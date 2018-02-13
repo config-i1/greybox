@@ -8,7 +8,7 @@
 #' The algorithm uses lm() to fit different models and cor() to select the next
 #' regressor in the sequence.
 #'
-#'
+#' @template AICRef
 #' @template author
 #' @template keywords
 #'

@@ -40,6 +40,13 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 stepwise(xreg)
 
 }
+\references{
+\itemize{
+\item Burnham Kenneth P. and Anderson David R. (2002). Model Selection
+and Multimodel Inference. A Practical Information-Theoretic Approach.
+Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.
+}
+}
 \seealso{
 \code{\link[stats]{step}, \link[smooth]{xregExpander}}
 }
