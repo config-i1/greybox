@@ -1,0 +1,25 @@
+Package: greybox
+Type: Package
+Title: Toolbox for working with multivariate models for purposes of analysis and forecasting
+Version: 0.1.0
+Date: 2018-02-13
+Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
+                  comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
+URL: https://github.com/config-i1/greybox
+BugReports: https://github.com/config-i1/greybox/issues
+Description: This toolbox would be useful if you need to solve tasks of model selection and combinations for
+                analysis and forecasting using regression models.
+License: GPL (>=2)
+Depends:
+    R (>= 3.0.2)
+Imports:
+    smooth,
+    stats,
+    graphics,
+    utils,
+    zoo
+Suggests:
+    numDeriv,
+    testthat,
+    rmarkdown
+RoxygenNote: 6.0.1
