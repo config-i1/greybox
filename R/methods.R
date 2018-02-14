@@ -1,3 +1,9 @@
+#' @importFrom stats nobs fitted
+#' @export
+nobs.lm.combined <- function(object, ...){
+    return(length(fitted(object)));
+}
+
 #' @export
 summary.lm.combined <- function(object, level=0.95, digits=5, ...){
     parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
@@ -9,9 +15,13 @@ summary.lm.combined <- function(object, level=0.95, digits=5, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
     residSE <- round(sqrt(sum(residuals(object)^2)/object$df.residual),digits);
 
+    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
+    names(ICs) <- c("AIC","AICc","BIC");
+
     cat("Coefficients:\n");
     print(round(parametersTable,digits));
     cat("---\n");
     cat(paste0("Residual standard error: ",residSE," on ",object$df.residual," degrees of freedom:\n"));
-    cat(paste0("Combined ",names(object$IC),": ",round(object$IC, digits)));
+    cat("Combined ICs:\n");
+    print(ICs);
 }

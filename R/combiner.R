@@ -30,6 +30,7 @@
 #'
 #' combiner(xreg)
 #'
+#' @importFrom stats dnorm
 #' @export combiner
 combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
@@ -137,10 +138,13 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
     testModel <- do.call("lm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data)));
 
+    #Calcualte logLik
+    logLikCombined <- sum(log(dnorm(errors,0,sd=sum(errors^2)/df)));
+
     finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=obsInsample, coefficientsSE=parametersSECombined, importance=importance,
-                       IC=ICValue, call=testModel$call);
-                       # logLik=);
+                       df.residual=df, coefficientsSE=parametersSECombined, importance=importance,
+                       IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=sum(importance)+1,
+                       model=ourData);
 
     return(structure(finalModel,class=c("lm.combined","lm")));
 }
