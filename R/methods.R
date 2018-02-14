@@ -1,10 +1,4 @@
 #' @export
-print.lm.combined <- function(x, digits=5, ...){
-    cat("Coefficients:\n");
-    print(round(coef(x),digits));
-}
-
-#' @export
 summary.lm.combined <- function(object, level=0.95, digits=5, ...){
     parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
     paramQuantiles <- qt((1+level)/2,df=object$df.residual);

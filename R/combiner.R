@@ -132,9 +132,14 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     parametersSECombined <- c(AICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
     names(parametersSECombined) <- exoNames;
 
-    finalModel <- list(coefficients=parametersCombined, residuals=errors, fitted.values=yFitted,
+    # Create an object of the same name as the original data
+    # If it was a call on its own, make it one string
+    assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
+    testModel <- do.call("lm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data)));
+
+    finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
                        df.residual=obsInsample, coefficientsSE=parametersSECombined, importance=importance,
-                       IC=ICValue);
+                       IC=ICValue, call=testModel$call);
                        # logLik=);
 
     return(structure(finalModel,class=c("lm.combined","lm")));
