@@ -23,7 +23,7 @@
 #' @template author
 #' @template keywords
 #'
-#' @seealso \code{\link[smooth]{es}, \link[smooth]{stepwise}}
+#' @seealso \code{\link[smooth]{es}, \link[greybox]{stepwise}}
 #'
 #' @examples
 #' # Create matrix of two variables, make it ts object and expand it

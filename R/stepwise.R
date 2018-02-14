@@ -22,9 +22,8 @@
 #'
 #' @return Function returns \code{model} - the final model of the class "lm".
 #'
-#' @seealso \code{\link[stats]{step}, \link[smooth]{xregExpander}}
-#'
-#' @keywords stepwise linear regression
+#' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
+#' \link[greybox]{combiner}}
 #'
 #' @examples
 #'
@@ -46,6 +45,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     if(!is.data.frame(ourData)){
         ourData <- as.data.frame(ourData);
     }
+    # Select IC
     ic <- ic[1];
     if(ic=="AIC"){
         IC <- AIC;

@@ -32,7 +32,7 @@
 #'}
 #'
 #' @importFrom graphics abline layout legend lines par points polygon
-#' @importFrom stats AIC BIC logLik cov deltat end frequency is.ts coef cor start time ts var lm as.formula residuals
+#' @importFrom stats AIC BIC logLik cov deltat end frequency is.ts coef cor start time ts var lm as.formula residuals qt vcov
 #' @importFrom utils packageVersion
 #' @importFrom smooth es AICc iss modelType graphmaker
 NULL

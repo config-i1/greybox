@@ -40,7 +40,7 @@ x <- ts(x,frequency=12)
 xregExpander(x)
 }
 \seealso{
-\code{\link[smooth]{es}, \link[smooth]{stepwise}}
+\code{\link[smooth]{es}, \link[greybox]{stepwise}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
