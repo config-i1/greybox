@@ -11,7 +11,7 @@ summary.lm.combined <- function(object, level=0.95, digits=5, ...){
     parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
                              parametersTable[,1]+paramQuantiles*parametersTable[,2])
     rownames(parametersTable) <- names(object$coefficients);
-    colnames(parametersTable) <- c("Estimate","Std. Error","Rel. Importance",
+    colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
                                    paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
     residSE <- round(sqrt(sum(residuals(object)^2)/object$df.residual),digits);
 

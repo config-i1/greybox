@@ -141,6 +141,8 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     #Calcualte logLik
     logLikCombined <- sum(log(dnorm(errors,0,sd=sum(errors^2)/df)));
 
+    # ourTerms <- testModel$terms;
+
     finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
                        df.residual=df, coefficientsSE=parametersSECombined, importance=importance,
                        IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=sum(importance)+1,
