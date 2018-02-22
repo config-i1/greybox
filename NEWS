@@ -1,6 +1,7 @@
-greybox v0.1.0 (Release data: 2018-02-14)
+greybox v0.1.0 (Release data: 2018-02-22)
 ==============
 
 * Initial release. stepwise() and xregExpander() are imported here from smooth package.
 * combiner() function that combines lm() models. This thing is in the development right now.
 * combiner() has a meaningful summary() now. Working to make it more accesible to lm functions.
+* summary() for combiner now returns the list of values.
