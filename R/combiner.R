@@ -13,8 +13,11 @@
 #' @param data Data frame containing dependant variable in the first column and
 #' the others in the rest.
 #' @param ic Information criterion to use.
-#' @param silent If \code{silent=FALSE}, then nothing is silent, everything is
-#' printed out. \code{silent=TRUE} means that nothing is produced.
+#' @param bruteForce If \code{TRUE}, then all the possible models are generated
+#' and combined. Otherwise the best model is found and then models around that
+#' one are produced and then combined.
+#' @param silent If \code{FALSE}, then nothing is silent, everything is printed
+#' out. \code{TRUE} means that nothing is produced.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "lm.combined".
@@ -31,8 +34,9 @@
 #' combiner(xreg)
 #'
 #' @importFrom stats dnorm
+#'
 #' @export combiner
-combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
+combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -54,36 +58,91 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     obsInsample <- sum(!is.na(ourData[,1]));
     # Number of variables
     nVariables <- ncol(ourData)-1;
-    # Number of combinations in the loop
-    nCombinations <- 2^nVariables;
     # Names of variables
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
-    # Matrix of all the combinations
-    variablesBinary <- rep(1,nVariables);
-    variablesCombinations <- matrix(NA,nCombinations,nVariables);
 
-    variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
-    for(i in 2:nVariables){
-        variablesCombinations[,i] <- rep(c(0:variablesBinary[i]),each=prod(variablesBinary[1:(i-1)]+1));
+    # If this is a simple one, go through all the models
+    if(bruteForce){
+        # Number of combinations in the loop
+        nCombinations <- 2^nVariables;
+        # Matrix of all the combinations
+        variablesBinary <- rep(1,nVariables);
+        variablesCombinations <- matrix(NA,nCombinations,nVariables);
+
+        #Produce matrix with binaries for inclusion of variables in the loop
+        variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
+        for(i in 2:nVariables){
+            variablesCombinations[,i] <- rep(c(0:variablesBinary[i]),each=prod(variablesBinary[1:(i-1)]+1));
+        }
+
+        # Vector of ICs
+        ICs <- rep(NA,nCombinations);
+        # Matrix of parameters
+        parameters <- matrix(0,nCombinations,nVariables+1);
+        # Matrix of s.e. of parameters
+        parametersSE <- matrix(0,nCombinations,nVariables+1);
+
+        # Starting estimating the models with just a constant
+        ourModel <- lm(as.formula(paste0(responseName,"~1")),data=ourData);
+        ICs[1] <- IC(ourModel);
+        parameters[1,1] <- coef(ourModel)[1];
+        parametersSE[1,1] <- diag(vcov(ourModel));
     }
+    else{
+        bestModel <- stepwise(ourData, ic=ic);
+        # Extract names of the used variables
+        bestExoNames <- colnames(bestModel$model)[-1];
+        nVariablesInModel <- length(bestExoNames);
+        # Define number of combinations:
+        # 1. Best model
+        nCombinations <- 1;
+        # 2. BM + {each variable not included};
+        nCombinations <- nCombinations + nVariables - nVariablesInModel;
+        # 3. BM - {each variable included};
+        nCombinations <- nCombinations + nVariablesInModel;
 
-    # Vector of AICs
-    AICs <- rep(NA,nCombinations);
-    # Matrix of parameters
-    parameters <- matrix(0,nCombinations,nVariables+1);
-    # Matrix of s.e. of parameters
-    parametersSE <- matrix(0,nCombinations,nVariables+1);
+        ## 4. BM + {each pair of variables not included};
+        ## 5. BM - {each pair of variables included}.
+
+        # Form combinations of variables
+        variablesCombinations <- matrix(NA,nCombinations,nVariables);
+        colnames(variablesCombinations) <- variablesNames;
+        # Fill in the first row with the variables from the best model
+        for(j in 1:nVariables){
+            variablesCombinations[,j] <- any(colnames(variablesCombinations)[j]==bestExoNames)*1;
+        }
+
+        # Fill in the first part with sequential inclusion
+        for(i in 1:(nVariables - nVariablesInModel)){
+            variablesCombinations[i+1,which(variablesCombinations[i+1,]==0)[i]] <- 1;
+        }
+
+        # Fill in the second part with sequential exclusion
+        for(i in 1:nVariablesInModel){
+            index <- i+(nVariables-nVariablesInModel)+1;
+            variablesCombinations[index,which(variablesCombinations[index,]==1)[i]] <- 0;
+        }
+
+        # Vector of ICs
+        ICs <- rep(NA,nCombinations);
+        # Matrix of parameters
+        parameters <- matrix(0,nCombinations,nVariables+1);
+        # Matrix of s.e. of parameters
+        parametersSE <- matrix(0,nCombinations,nVariables+1);
+
+        # Starting estimating the models with writing down the best one
+        ICs[1] <- IC(bestModel);
+        bufferCoef <- coef(bestModel)[exoNames];
+        parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+        bufferCoef <- diag(vcov(bestModel))[exoNames];
+        parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+    }
 
     if(!silent){
         cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
     }
-    # Starting estimating the models with just a constant
-    ourModel <- lm(as.formula(paste0(responseName,"~1")),data=ourData);
-    AICs[1] <- IC(ourModel);
-    parameters[1,1] <- coef(ourModel)[1];
-    parametersSE[1,1] <- diag(vcov(ourModel));
     # Go for the loop of lm models
     for(i in 2:nCombinations){
         if(!silent){
@@ -92,17 +151,17 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
         }
         lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
         ourModel <- lm(as.formula(lmFormula),data=ourData);
-        AICs[i] <- IC(ourModel);
+        ICs[i] <- IC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
     }
 
-    # Calculate AIC weights
-    AICWeights <- AICs - min(AICs);
-    AICWeights <- exp(-0.5*AICWeights) / sum(exp(-0.5*AICWeights));
+    # Calculate IC weights
+    ICWeights <- ICs - min(ICs);
+    ICWeights <- exp(-0.5*ICWeights) / sum(exp(-0.5*ICWeights));
 
     # Calculate weighted parameters
-    parametersWeighted <- parameters * matrix(AICWeights,nrow(parameters),ncol(parameters));
+    parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
 
     parametersCombined <- apply(parametersWeighted,2,sum);
     names(parametersCombined) <- exoNames;
@@ -120,17 +179,17 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     # abline(v=156.5,col="blue")
 
     # Relative importance of variables
-    importance <- c(1,round(AICWeights %*% variablesCombinations,3));
+    importance <- c(1,round(ICWeights %*% variablesCombinations,3));
     names(importance) <- exoNames;
 
     # Some of the variables have partial inclusion, 1 stands for constant
     df <- obsInsample - sum(importance) - 1;
 
-    ICValue <- c(AICWeights %*% AICs);
+    ICValue <- c(ICWeights %*% ICs);
     names(ICValue) <- ic;
 
     # Models SE
-    parametersSECombined <- c(AICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
+    parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
     names(parametersSECombined) <- exoNames;
 
     # Create an object of the same name as the original data
@@ -139,14 +198,14 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE){
     testModel <- do.call("lm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data)));
 
     #Calcualte logLik
-    logLikCombined <- sum(log(dnorm(errors,0,sd=sum(errors^2)/df)));
+    logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
 
-    # ourTerms <- testModel$terms;
+    ourTerms <- testModel$terms;
 
     finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
                        df.residual=df, coefficientsSE=parametersSECombined, importance=importance,
-                       IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=sum(importance)+1,
-                       model=ourData);
+                       IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
+                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance)+1);
 
     return(structure(finalModel,class=c("lm.combined","lm")));
 }

@@ -30,6 +30,7 @@
 #' x <- cbind(rnorm(100,100,1),rnorm(100,50,3))
 #' x <- ts(x,frequency=12)
 #' xregExpander(x)
+#'
 #' @export xregExpander
 
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),

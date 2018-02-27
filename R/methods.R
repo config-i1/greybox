@@ -1,3 +1,14 @@
+#' @importFrom forecast getResponse
+#' @export
+forecast::getResponse
+
+#' @export
+getResponse.lm.combined <- function(object, ...){
+    responseVariable <- object$model[,1];
+    names(responseVariable) <- c(1:length(responseVariable));
+    return(responseVariable);
+}
+
 #' @importFrom stats nobs fitted
 #' @export
 nobs.lm.combined <- function(object, ...){
@@ -32,7 +43,7 @@ summary.lm.combined <- function(object, level=0.95, digits=5, ...){
     parametersTable <- round(parametersTable,digits);
 
     # Extract degrees of freedom
-    df <- c(object$rank, object$df.residual, object$rank);
+    df <- c(object$df, object$df.residual, object$rank);
     # Calculate s.e. of residuals
     residSE <- round(sqrt(sum(errors^2)/df[2]),digits);
 
@@ -46,4 +57,28 @@ summary.lm.combined <- function(object, level=0.95, digits=5, ...){
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
                            class="summary.lm.combined");
     return(ourReturn);
+}
+
+plot.lm.combined <- function(x, ...){
+    ellipsis <- list(...);
+    # If type and ylab are not provided, set them...
+    if(!any(names(ellipsis)=="type")){
+        ellipsis$type <- "l";
+    }
+    if(!any(names(ellipsis)=="ylab")){
+        ellipsis$ylab <- colnames(x$model)[1];
+    }
+
+    ellipsis$x <- getResponse(x);
+    yFitted <- fitted(x);
+
+    do.call(plot,ellipsis);
+    lines(yFitted, col="red");
+    if(yFitted[length(yFitted)]>mean(yFitted)){
+        legelndPosition <- "bottomright";
+    }
+    else{
+        legelndPosition <- "topright";
+    }
+    legend(legelndPosition,legend=c("Actuals","Fitted"),col=c("black","red"),lwd=rep(1,2));
 }

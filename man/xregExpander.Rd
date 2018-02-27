@@ -38,6 +38,7 @@ mean forecasts produced using \link[smooth]{es}.
 x <- cbind(rnorm(100,100,1),rnorm(100,50,3))
 x <- ts(x,frequency=12)
 xregExpander(x)
+
 }
 \seealso{
 \code{\link[smooth]{es}, \link[greybox]{stepwise}}

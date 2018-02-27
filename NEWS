@@ -6,3 +6,5 @@ greybox v0.1.0 (Release data: 2018-02-27)
 * combiner() has a meaningful summary() now. Working to make it more accesible to lm functions.
 * summary() for combiner now returns the list of values.
 * stepwise() should now perform slightly better.
+* combiner() can now be smart and use stepwise for the models pool creation.
+* combined lm model can now be used together with predict() and forecast() functions.

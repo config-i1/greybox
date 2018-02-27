@@ -14,6 +14,8 @@ Future functions:
 Methods implemented:
 1. summary.lm.combined - returns summary of the combined regression.
 2. nobs.lm.combined - returns number of observations in the data of the model.
+3. getResponse - returns the response variable from the combined model.
+4. plot - plots the basic linear graph of actuals and fitted.
 
 ## Installation
 

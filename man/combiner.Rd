@@ -4,7 +4,8 @@
 \alias{combiner}
 \title{Combine regressions based on information criteria}
 \usage{
-combiner(data, ic = c("AICc", "AIC", "BIC"), silent = TRUE)
+combiner(data, ic = c("AICc", "AIC", "BIC"), bruteForce = FALSE,
+  silent = TRUE)
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and
@@ -12,8 +13,12 @@ the others in the rest.}
 
 \item{ic}{Information criterion to use.}
 
-\item{silent}{If \code{silent=FALSE}, then nothing is silent, everything is
-printed out. \code{silent=TRUE} means that nothing is produced.}
+\item{bruteForce}{If \code{TRUE}, then all the possible models are generated
+and combined. Otherwise the best model is found and then models around that
+one are produced and then combined.}
+
+\item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
+out. \code{TRUE} means that nothing is produced.}
 }
 \value{
 Function returns \code{model} - the final model of the class
