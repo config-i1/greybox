@@ -7,6 +7,9 @@ forecast::getResponse
 #' @importFrom stats predict.lm
 #' @export
 forecast.lm.combined <- function(object, newdata, ...){
+    if(!is.data.frame(newdata)){
+        newdata <- as.data.frame(newdata);
+    }
     ourForecast <- predict.lm(object, newdata, ...);
     ellipsis <- list(...);
     if(any(names(ellipsis)=="level")){
