@@ -2,6 +2,37 @@
 #' @export
 forecast::getResponse
 
+#' @importFrom forecast forecast
+
+#' @importFrom stats predict.lm
+#' @export
+forecast.lm.combined <- function(object, newdata, ...){
+    ourForecast <- predict.lm(object, newdata, ...);
+    ellipsis <- list(...);
+    if(any(names(ellipsis)=="level")){
+        level <- ellipsis$level;
+    }
+    else{
+        if(any(names(ellipsis)=="interval")){
+            level <- 0.95;
+        }
+        else{
+            level <- NULL;
+        }
+    }
+    if(is.matrix(ourForecast)){
+        lower <- ourForecast[,"lwr"];
+        upper <- ourForecast[,"upr"];
+        ourForecast <- ourForecast[,"fit"];
+    }
+    else{
+        lower <- NULL;
+        upper <- NULL;
+    }
+    ourModel <- list(model=object, forecast=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata);
+    return(structure(ourModel,class="forecast.greybox"));
+}
+
 #' @export
 getResponse.lm.combined <- function(object, ...){
     responseVariable <- object$model[,1];
@@ -15,6 +46,27 @@ nobs.lm.combined <- function(object, ...){
     return(length(fitted(object)));
 }
 
+#' @importFrom smooth graphmaker
+#' @export
+plot.forecast.greybox <- function(x, ...){
+    yActuals <- getResponse(x$model);
+    yStart <- start(yActuals);
+    yFrequency <- frequency(yActuals);
+    yForecastStart <- time(yActuals)[length(yActuals)]+deltat(yActuals);
+
+    yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+    yForecast <- ts(x$forecast, start=yForecastStart, frequency=yFrequency);
+    if(!is.null(x$lower)){
+        yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
+        yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
+
+        graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=x$level);
+    }
+    else{
+        graphmaker(yActuals, yForecast, yFitted);
+    }
+}
+
 #' @export
 print.summary.lm.combined <- function(x, ...){
     cat("Coefficients:\n");
@@ -23,6 +75,18 @@ print.summary.lm.combined <- function(x, ...){
     cat(paste0("Residual standard error: ",x$sigma," on ",x$df[2]," degrees of freedom:\n"));
     cat("Combined ICs:\n");
     print(x$ICs);
+}
+
+#' @export
+print.forecast.greybox <- function(x, ...){
+    ourMatrix <- as.matrix(x$forecast);
+    colnames(ourMatrix) <- "Mean";
+    if(!is.null(x$lower)){
+        ourMatrix <- cbind(ourMatrix, x$lower, x$upper);
+        level <- x$level;
+        colnames(ourMatrix)[2:3] <- c(paste0("Lower ",round((1-level)/2,3)*100,"%"),paste0("Upper ",round((1+level)/2,3)*100,"%"));
+    }
+    print(ourMatrix);
 }
 
 #' @export

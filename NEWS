@@ -1,4 +1,4 @@
-greybox v0.1.0 (Release data: 2018-02-27)
+greybox v0.1.0 (Release data: 2018-03-01)
 ==============
 
 * Initial release. stepwise() and xregExpander() are imported here from smooth package.
@@ -8,3 +8,4 @@ greybox v0.1.0 (Release data: 2018-02-27)
 * stepwise() should now perform slightly better.
 * combiner() can now be smart and use stepwise for the models pool creation.
 * combined lm model can now be used together with predict() and forecast() functions.
+* plot() and forecast() methods for the combined functions.
