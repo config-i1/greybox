@@ -3,6 +3,8 @@
 forecast::getResponse
 
 #' @importFrom forecast forecast
+#' @export forecast
+forecast::forecast
 
 #' @importFrom stats predict.lm
 #' @export
@@ -32,7 +34,7 @@ forecast.lm.combined <- function(object, newdata, ...){
         lower <- NULL;
         upper <- NULL;
     }
-    ourModel <- list(model=object, forecast=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata);
+    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata);
     return(structure(ourModel,class="forecast.greybox"));
 }
 
@@ -57,8 +59,18 @@ plot.forecast.greybox <- function(x, ...){
     yFrequency <- frequency(yActuals);
     yForecastStart <- time(yActuals)[length(yActuals)]+deltat(yActuals);
 
+    if(!is.null(x$newdata)){
+        yName <- colnames(x$model$model)[1];
+        if(any(colnames(x$newdata)==yName)){
+            yHoldout <- x$newdata[,yName];
+            if(!any(is.na(yHoldout))){
+                yActuals <- ts(c(yActuals,yHoldout), start=yStart, frequency=yFrequency);
+            }
+        }
+    }
+
     yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
-    yForecast <- ts(x$forecast, start=yForecastStart, frequency=yFrequency);
+    yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
     if(!is.null(x$lower)){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
@@ -82,7 +94,7 @@ print.summary.lm.combined <- function(x, ...){
 
 #' @export
 print.forecast.greybox <- function(x, ...){
-    ourMatrix <- as.matrix(x$forecast);
+    ourMatrix <- as.matrix(x$mean);
     colnames(ourMatrix) <- "Mean";
     if(!is.null(x$lower)){
         ourMatrix <- cbind(ourMatrix, x$lower, x$upper);
