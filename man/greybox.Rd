@@ -36,7 +36,7 @@ stepwise(xreg)
 \author{
 Ivan Svetunkov
 
-Maintainer: Ivan Svetunkov <ivan@svetunkov.ru>
+Maintainer: Ivan Svetunkov
 }
 \keyword{models}
 \keyword{nonlinear}

@@ -1,0 +1,140 @@
+---
+title: "Greybox"
+author: "Ivan Svetunkov"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vignette Title}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+There are three well-known notions of "boxes"" in modelling:
+1. Whitebox - the model that is completely transparent and does not have any randomness. One can see how the inputs are transformed into the specific outputs.
+2. Blackbox - the model which does not have an apparent structure. One can only observe inputs and outputs but does not know what happens inside.
+3. Greybox - the model that is in between the first two. We observe inputs and outputs plus have some information about the structure of the model, but there is still a part of unknown. 
+
+The whiteboxes are usually used in optimisations (e.g. linear programming), while blackboxes are popular in machine learning. As for the greybox models, they are more often used in analysis and forecasting. So the package greybox contains models that are used for these purposes.
+
+At the moment the package contains several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing.
+
+## Main functions
+
+The package includes the following functions:
+
+1. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
+2. `combiner()` - combine the linear models into one using IC weights;
+3. `xregExpander()` - expand the provided data by including leads and lags of the variables.
+
+The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
+
+```{r, echo=FALSE, message=FALSE}
+library(greybox)
+```
+
+## xregExpander
+
+The function `xregExpander()` is useful in cases when the exogenous variable may influence the response variable either via some lags or leads. As an example, consider `BJsales.lead` series from the `datasets` package. Let's assume that the `BJsales` variable is driven by the today's value of the indicator, the value five and 10 days ago. This means that we need to produce lags of `BJsales.lead`. This can be done using `xregExpander()`:
+```{r BJxreg1}
+BJxreg <- xregExpander(BJsales.lead,lags=c(-5,-10))
+```
+
+The `BJxreg` is a matrix, which contains the original data, the data with the lag 5 and the data with the lag 10. However, if we just move the original data several observations ahead or backwards, we will have missing values in the begining / end of series, so `xregExpander()` fills in those values with the forecasts using `es()` and `iss()` functions from `smooth` package (depending on the type of variable we are dealing with). This also means that in cases of binary variables you may have weird averaged values as forecasts (e.g. 0.7812), so beware and look at the produced matrix. Maybe in your case it makes sense to just substitute these weird numbers with zeroes...
+
+You may also need leads instead of lags. This is regulated with the same `lags` parameter but with positive values:
+```{r BJxreg2}
+BJxreg <- xregExpander(BJsales.lead,lags=c(7,-5,-10))
+```
+
+Once again, the values are shifted, and now the first 7 values are backcasted. In order to simplify things we can produce all the values from 10 lags till 10 leads, which returns the matrix with 21 variables:
+```{r BJxreg3}
+BJxreg <- xregExpander(BJsales.lead,lags=c(-10:10))
+```
+
+## stepwise
+
+The function stepwise() does the selection based on an information criterion (specified by user) and partial correlations. In order to run this function the response variable needs to be in the first column of the provided matrix. The idea of the function is simple, it works iteratively the following way:
+
+1. The basic model of the first variable and the constant is constructed (this corresponds to simple mean). An information criterion is calculated;
+2. The correlations of the residuals of the model with all the original exogenous variables are calculated;
+3. The regression model of the response variable and all the variables in the previous model plus the new most correlated variable from (2) is constructed using `lm()` function;
+4. An information criterion is calculated and is compared with the one from the previous model. If it is greater or equal to the previous one, then we stop and use the previous model. Otherwise we go to step 2.
+
+This way we do not do a blind search, going forward or backwards, but we follow some sort of "trace" of a good model: if the residuals contain a significant part of variance that can be explained by one of the exogenous variables, then that variable is included in the model. Following partial correlations makes sure that we include only meaningful (from technical point of view) variables in the model. In general the function guarantees that you will have the model with the lowest information criterion. However this does not guarantee that you will end up with a meaningful model or with a model that produces the most accurate forecasts. So analyse what you get as a result.
+
+Let’s see how the function works with the Box-Jenkins data. First we expand the data and form the matrix with all the variables:
+```{r BJData}
+BJxreg <- as.data.frame(xregExpander(BJsales.lead,lags=c(-10:10)))
+BJxreg <- cbind(as.matrix(BJsales),BJxreg)
+colnames(BJxreg)[1] <- "y"
+ourModel <- stepwise(BJxreg)
+```
+
+This way we have a nice data frame with nice names, not something weird with strange long names. It is important to note that the response variable should be in the first column of the resulting matrix. After that we use stepwise function:
+```{r BJStepwise}
+ourModel <- stepwise(BJxreg)
+```
+
+And here’s what it returns (the object of class `lm`):
+```{r BJStepwiseResult}
+ourModel
+```
+
+The values in the function are listed in the order of most correlated with the response variable to the least correlated ones. The function works very fast because it does not need to go through all the variables and their combinations in the dataset.
+
+All the basic methods can be used together with the final model (e.g. `predict.lm()`, `forecast.lm()`, `summary()` etc).
+
+## combiner
+
+`combiner()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteForce` parameter.
+
+Here's an example of the reduced data with combined model and the parameter `bruteForce=TRUE`:
+```{r BJCombiner1}
+ourModel <- combiner(BJxreg[,-c(3:7,18:22)],bruteForce=TRUE)
+summary(ourModel)
+```
+`summary()` function provides the table with the parameters, their standard errors, their relative importance and the 95% confidence intervals. Relative importance indicates in how many cases the variable was included in the model with high weight. So, in the example above variables xLag5, xLag4, xLag3 were included in the models with the highest weights, while all the others were in the models with lower ones. This may indicate that only these variables are needed for the purposes of analysis and forecasting.
+
+The more realistic situation is when the number of variables is high. In the following example we use the data with 21 variables. So if we use brute force and estimate every model in the dataset, we will end up with $2^{21}$ = `2^21` combinations of models, which is not possible to estimate in the adequate time. That is why we use `bruteForce=FALSE`:
+```{r BJCombiner2}
+ourModel <- combiner(BJxreg,bruteForce=FALSE)
+summary(ourModel)
+```
+In this case first, the `stepwise()` funciton is used, which finds the best model in the pool. Then each variable that is not in the model is added to the model and then removed iteratively. IC, parameters values and standard errors are all written down for each of these expanded models. Finally, in a similar manner each variable is removed from the optimal model and then added back. As a result the pool of combined models becomes much smaller than it could be in case of the brute force, but it contains only meaningful models, that are close to the optimal. The rationale for this is that the marginal contribution of variables deteriorates with the increase of the number of parameters in case of the stepwise function, and the IC weights become close to each other around the optimal model. So, whenever the models are combined, there is a lot of redundant models with very low weights. By using the mechanism described above we remove those redundant models.
+
+There are several methods for the `lm.combined` class, including:
+
+1. `predict.lm()` - returns the point and interval predictions.
+2. `forecast.lm.combined()` - wrapper around `predict()` which returns a slightly more useful list of variables. It also produced prediction intervals by default (controlled using `interval` parameter). The forecast horizon is defined by the length of the provided sample of `newdata`.
+3. `plot.lm.combined()` - plots actuals and fitted values.
+4. `plot.forecast.greybox()` - which uses `graphmaker()` function from `smooth` in order to produce graphs of actuals and forecasts.
+
+As an example, let's split the whole sample with Box-Jenkins data into in-sample and the holdout:
+```{r BJCombiner3}
+BJInsample <- BJxreg[1:130,];
+BJHoldout <- BJxreg[-(1:130),];
+ourModel <- combiner(BJInsample,bruteForce=FALSE)
+```
+A plot of the model:
+```{r BJCombinerPlot}
+plot(ourModel)
+```
+
+And the forecast using the holdout sample:
+```{r BJCombinerForecast}
+ourForecast <- forecast(ourModel,BJHoldout)
+plot(ourForecast)
+```
+
+These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend Burnham and Anderson (2002) textbook.
+
+## References
+
+1. Burnham Kenneth P. and Anderson David R. (2002). Model Selection and Multimodel Inference. A Practical Information-Theoretic Approach. Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.

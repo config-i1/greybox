@@ -16,7 +16,7 @@
 #' @docType package
 #' @author Ivan Svetunkov
 #'
-#' Maintainer: Ivan Svetunkov <ivan@svetunkov.ru>
+#' Maintainer: Ivan Svetunkov
 #' @seealso \code{\link[smooth]{es}, \link[smooth]{ssarima}}
 #'
 #' @template keywords
