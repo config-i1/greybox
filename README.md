@@ -9,7 +9,6 @@ The list of included functions:
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
-2. stepwiseExpander - Function produces all the possible lm models with the provided data.
 
 Methods implemented:
 1. summary.lm.combined - returns summary of the combined regression.

@@ -12,19 +12,20 @@ forecast.lm.combined <- function(object, newdata, ...){
     if(!is.data.frame(newdata)){
         newdata <- as.data.frame(newdata);
     }
-    ourForecast <- predict.lm(object, newdata, ...);
     ellipsis <- list(...);
+    if(!any(names(ellipsis)=="interval")){
+        ellipsis$interval <- "p";
+    }
+    ellipsis$object <- object;
+    ellipsis$newdata <- newdata;
+    ourForecast <- do.call(predict.lm, ellipsis);
     if(any(names(ellipsis)=="level")){
         level <- ellipsis$level;
     }
     else{
-        if(any(names(ellipsis)=="interval")){
-            level <- 0.95;
-        }
-        else{
-            level <- NULL;
-        }
+        level <- 0.95;
     }
+
     if(is.matrix(ourForecast)){
         lower <- ourForecast[,"lwr"];
         upper <- ourForecast[,"upr"];
