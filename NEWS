@@ -1,9 +1,12 @@
-greybox v0.1.1 (Release data: 2018-03-03)
+greybox v0.1.1 (Release data: 2018-03-04)
 ==============
 
 Changes:
 * We now do not depend on smooth. We suggest it. It's smooth that should depend on greybox!
 * New function imported from smooth - AICc.
+
+Bugfixes:
+* If smooth is not installed, plot forecasts using simpler function.
 
 
 greybox v0.1.0 (Release data: 2018-03-03)

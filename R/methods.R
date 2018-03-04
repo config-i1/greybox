@@ -120,7 +120,8 @@ plot.forecast.greybox <- function(x, ...){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
         if(!requireNamespace("smooth", quietly = TRUE)){
-            plot(yActuals, type="l", xlim=range(min(yActuals),max(yActuals,yForecast)));
+            plot(yActuals, type="l", xlim=range(start(yActuals),end(yForecast)), ...);
+            lines(yFitted, col="purple", lwd=2);
             lines(yForecast, col="blue", lwd=2);
             lines(yLower, col="gray", lwd=2);
             lines(yUpper, col="gray", lwd=2);
@@ -131,8 +132,9 @@ plot.forecast.greybox <- function(x, ...){
     }
     else{
         if(!requireNamespace("smooth", quietly = TRUE)){
-            plot(yActuals, type="l", xlim=range(min(yActuals),max(yActuals,yForecast)));
+            plot(yActuals, type="l", xlim=range(start(yActuals),end(yForecast)), ...);
             lines(yForecast, col="blue", lwd=2);
+            lines(yFitted, col="purple", lwd=2);
         }
         else{
             smooth::graphmaker(yActuals, yForecast, yFitted);
