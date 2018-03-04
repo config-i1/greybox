@@ -54,6 +54,10 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
         maxLead <- 0;
     }
 
+    if(!requireNamespace("smooth", quietly = TRUE)){
+        message("In order to fully enjoy the power of xregExpander, please install smooth package.");
+    }
+
     # Form proper lags
     lags <- abs(lags[lags<0]);
     lagsLength <- length(lags);
@@ -109,37 +113,47 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
             if(leadsLength!=0){
             # Produce forecasts for leads
             # If this is a binary variable, use iss function.
-                if(all((xregData==0) | (xregData==1))){
-                    xregModel <- suppressWarnings(iss(xregData,model="XXX", h=maxLead,intermittent="l"));
+                if(!requireNamespace("smooth", quietly = TRUE)){
+                    xregDataNew <- c(xregDataNew,rep(xregDataNew[obs],maxLead));
                 }
                 else{
-                    xregModel <- suppressWarnings(es(xregData,h=maxLead,intermittent="a"));
+                    if(all((xregData==0) | (xregData==1))){
+                        xregModel <- suppressWarnings(smooth::iss(xregData,model="XXX", h=maxLead,intermittent="l"));
+                    }
+                    else{
+                        xregModel <- suppressWarnings(smooth::es(xregData,h=maxLead,intermittent="a"));
+                    }
+                    xregDataNew <- c(xregDataNew,xregModel$forecast);
                 }
-                xregDataNew <- c(xregDataNew,xregModel$forecast);
             }
             if(lagsLength!=0){
             # Produce reversed forecasts for lags
-                if(leadsLength!=0){
-                    # If this is a binary variable, use iss function.
-                    if(all((xregData==0) | (xregData==1))){
-                        xregModel <- suppressWarnings(iss(rev(xregData), model=xregModel$model, intermittent=xregModel$intermittent,
-                                                          persistence=xregModel$persistence, h=maxLag));
-                    }
-                    else{
-                        xregModel <- suppressWarnings(es(rev(xregData), model=modelType(xregModel), persistence=xregModel$persistence,
-                                                         intermittent=xregModel$intermittent, imodel=xregModel$imodel, h=maxLag));
-                    }
+                if(!requireNamespace("smooth", quietly = TRUE)){
+                    xregDataNew <- c(rep(xregDataNew[1],maxLag),xregDataNew);
                 }
                 else{
-                    # If this is a binary variable, use iss function.
-                    if(all((xregData==0) | (xregData==1))){
-                        xregModel <- suppressWarnings(iss(rev(xregData),model="XXX", h=maxLag,intermittent="l"));
+                    if(leadsLength!=0){
+                        # If this is a binary variable, use iss function.
+                        if(all((xregData==0) | (xregData==1))){
+                            xregModel <- suppressWarnings(smooth::iss(rev(xregData), model=xregModel$model, intermittent=xregModel$intermittent,
+                                                              persistence=xregModel$persistence, h=maxLag));
+                        }
+                        else{
+                            xregModel <- suppressWarnings(smooth::es(rev(xregData), model=smooth::modelType(xregModel), persistence=xregModel$persistence,
+                                                             intermittent=xregModel$intermittent, imodel=xregModel$imodel, h=maxLag));
+                        }
                     }
                     else{
-                        xregModel <- suppressWarnings(es(rev(xregData),h=maxLag,intermittent="a"));
+                        # If this is a binary variable, use iss function.
+                        if(all((xregData==0) | (xregData==1))){
+                            xregModel <- suppressWarnings(smooth::iss(rev(xregData),model="XXX", h=maxLag,intermittent="l"));
+                        }
+                        else{
+                            xregModel <- suppressWarnings(smooth::es(rev(xregData),h=maxLag,intermittent="a"));
+                        }
                     }
+                    xregDataNew <- c(rev(xregModel$forecast),xregDataNew);
                 }
-                xregDataNew <- c(rev(xregModel$forecast),xregDataNew);
             }
 
             if(any(lagsOriginal<0)){

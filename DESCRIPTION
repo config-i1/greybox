@@ -1,7 +1,7 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Working with Multivariate Models for Purposes of Analysis and Forecasting
-Version: 0.1.0
+Version: 0.1.1.41001
 Date: 2018-03-03
 Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
@@ -13,13 +13,13 @@ License: GPL (>=2)
 Depends:
     R (>= 3.0.2)
 Imports:
-    smooth,
     forecast,
     stats,
     graphics,
     utils,
     zoo
 Suggests:
+    smooth,
     numDeriv,
     testthat,
     rmarkdown,

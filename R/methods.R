@@ -1,3 +1,48 @@
+##### IC functions #####
+
+#' Corrected Akaike's Information Criterion
+#'
+#' This function extracts AICc from "smooth" objects.
+#'
+#' AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples.
+#'
+#' @aliases AICc
+#' @param object Time series model.
+#' @param ...  Some stuff.
+#' @return This function returns numeric value.
+#' @author Ivan Svetunkov, \email{ivan@@svetunkov.ru}
+#' @seealso \link[stats]{AIC}, \link[stats]{BIC}
+#' @references Kenneth P. Burnham, David R. Anderson (1998). Model Selection
+#' and Multimodel Inference. Springer Science & Business Media.
+#' @keywords htest
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' ourModel <- stepwise(xreg)
+#'
+#' AICc(ourModel,h=10)
+#'
+#' @export AICc
+AICc <- function(object, ...) UseMethod("AICc")
+
+
+#' @export
+AICc.default <- function(object, ...){
+    obs <- nobs(object);
+
+    llikelihood <- logLik(object);
+    nParam <- attributes(llikelihood)$df;
+    llikelihood <- llikelihood[1:length(llikelihood)];
+
+    IC <- 2*nParam - 2*llikelihood + 2 * nParam * (nParam + 1) / (obs - nParam - 1);
+
+    return(IC);
+}
+
+
 #' @importFrom forecast getResponse
 #' @export
 forecast::getResponse
@@ -52,7 +97,6 @@ nobs.lm.combined <- function(object, ...){
     return(length(fitted(object)));
 }
 
-#' @importFrom smooth graphmaker
 #' @export
 plot.forecast.greybox <- function(x, ...){
     yActuals <- getResponse(x$model);
@@ -75,11 +119,24 @@ plot.forecast.greybox <- function(x, ...){
     if(!is.null(x$lower)){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
-
-        graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=x$level);
+        if(!requireNamespace("smooth", quietly = TRUE)){
+            plot(yActuals, type="l", xlim=range(min(yActuals),max(yActuals,yForecast)));
+            lines(yForecast, col="blue", lwd=2);
+            lines(yLower, col="gray", lwd=2);
+            lines(yUpper, col="gray", lwd=2);
+        }
+        else{
+            smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=x$level);
+        }
     }
     else{
-        graphmaker(yActuals, yForecast, yFitted);
+        if(!requireNamespace("smooth", quietly = TRUE)){
+            plot(yActuals, type="l", xlim=range(min(yActuals),max(yActuals,yForecast)));
+            lines(yForecast, col="blue", lwd=2);
+        }
+        else{
+            smooth::graphmaker(yActuals, yForecast, yFitted);
+        }
     }
 }
 

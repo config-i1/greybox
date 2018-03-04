@@ -34,7 +34,6 @@
 #' @importFrom graphics abline layout legend lines par points polygon plot
 #' @importFrom stats AIC BIC logLik cov deltat end frequency is.ts coef cor start time ts var lm as.formula residuals qt vcov
 #' @importFrom utils packageVersion
-#' @importFrom smooth es AICc iss modelType
 NULL
 
 
