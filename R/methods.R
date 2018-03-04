@@ -2,7 +2,9 @@
 
 #' Corrected Akaike's Information Criterion
 #'
-#' This function extracts AICc from "smooth" objects.
+#' This function extracts AICc from models. Can be applied to wide variety of
+#' models that use logLik() and nobs() methods (including the popular lm,
+#' forecast, smooth).
 #'
 #' AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples.
 #'

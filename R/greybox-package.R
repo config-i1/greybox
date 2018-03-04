@@ -6,6 +6,7 @@
 #' 2018-02-13 - Inf\cr License: \tab GPL-2 \cr } The following functions are
 #' included in the package:
 #' \itemize{
+#' \item \link[greybox]{AICc} - AIC corrected for the sample size.
 #' \item \link[greybox]{stepwise} - Stepwise based on information criteria and partial
 #' correlations. Efficient and fast.
 #' \item \link[greybox]{xregExpander} - Function that expands the provided data into
@@ -17,7 +18,7 @@
 #' @author Ivan Svetunkov
 #'
 #' Maintainer: Ivan Svetunkov
-#' @seealso \code{\link[smooth]{es}, \link[smooth]{ssarima}}
+#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{combiner}}
 #'
 #' @template keywords
 #'
