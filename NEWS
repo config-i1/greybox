@@ -1,9 +1,10 @@
-greybox v0.1.1 (Release data: 2018-03-04)
+greybox v0.1.1 (Release data: 2018-03-05)
 ==============
 
 Changes:
 * We now do not depend on smooth. We suggest it. It's smooth that should depend on greybox!
 * New function imported from smooth - AICc.
+* New functions for the S distribution (the maximisation of likelihood of which corresponds to the minimum of HAM): ds, ps, qs, rs.
 
 Bugfixes:
 * If smooth is not installed, plot forecasts using simpler function.

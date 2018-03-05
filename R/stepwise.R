@@ -65,7 +65,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     logLikValue <- logLik(testModel);
     attributes(logLikValue)$df <- attributes(logLikValue)$df + df;
     # Write down the IC
-    currentIC <- bestIC <- IC(logLikValue);
+    currentIC <- bestIC <- IC(testModel);
     # Add residuals to the ourData
     ourData <- cbind(ourData,residuals(testModel));
     colnames(ourData)[ncol(ourData)] <- "const resid";
