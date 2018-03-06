@@ -55,7 +55,7 @@ forecast::forecast
 
 #' @importFrom stats predict.lm
 #' @export
-forecast.greyboxC <- function(object, newdata, ...){
+forecast.greybox <- function(object, newdata, ...){
     if(!is.data.frame(newdata)){
         newdata <- as.data.frame(newdata);
     }
@@ -65,7 +65,15 @@ forecast.greyboxC <- function(object, newdata, ...){
     }
     ellipsis$object <- object;
     ellipsis$newdata <- newdata;
-    ourForecast <- do.call(predict.lm, ellipsis);
+
+    if(nobs(object) <= length(coef(object))){
+        matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+        ourForecast <- as.vector(matrixOfxreg %*% coef(object));
+    }
+    else{
+        ourForecast <- do.call(predict.lm, ellipsis);
+    }
+
     if(any(names(ellipsis)=="level")){
         level <- ellipsis$level;
     }
@@ -97,6 +105,47 @@ getResponse.greybox <- function(object, ...){
 #' @export
 nobs.greybox <- function(object, ...){
     return(length(fitted(object)));
+}
+
+
+#' Number of parameters in the model
+#'
+#' This function returns the number of estimated parameters in the model
+#'
+#' This is a very basic and a simple function which does what it says:
+#' extracts number of parameters in the estimated model.
+#'
+#' @aliases nParam
+#' @param object Time series model.
+#' @param ... Some other parameters passed to the method.
+#' @return This function returns a numeric value.
+#' @author Ivan Svetunkov, \email{ivan@@svetunkov.ru}
+#' @seealso \link[stats]{nobs}, \link[stats]{logLik}
+#' @keywords htest
+#' @examples
+#'
+#' ### Simple example
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' ourModel <- lm(y~.,data=as.data.frame(xreg))
+#'
+#' nParam(ourModel)
+#'
+#' @importFrom stats coef
+#' @export nParam
+nParam <- function(object, ...) UseMethod("nParam")
+
+#' @export
+nParam.default <- function(object, ...){
+    # The length of the vector of parameters + variance
+    return(length(coef(object))+1);
+}
+
+#' @export
+nParam.greyboxC <- function(object, ...){
+    # The length of the vector of parameters + variance
+    return(sum(object$importance)+1);
 }
 
 #' @export
@@ -166,40 +215,6 @@ print.forecast.greybox <- function(x, ...){
     print(ourMatrix);
 }
 
-#' @export
-summary.greyboxC <- function(object, level=0.95, digits=5, ...){
-
-    # Extract the values from the object
-    errors <- residuals(object);
-    obs <- length(errors);
-    parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
-
-    # Calculate the quantiles for parameters and add them to the table
-    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
-    parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
-                             parametersTable[,1]+paramQuantiles*parametersTable[,2])
-    rownames(parametersTable) <- names(object$coefficients);
-    colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
-                                   paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
-    parametersTable <- round(parametersTable,digits);
-
-    # Extract degrees of freedom
-    df <- c(object$df, object$df.residual, object$rank);
-    # Calculate s.e. of residuals
-    residSE <- round(sqrt(sum(errors^2)/df[2]),digits);
-
-    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
-    names(ICs) <- c("AIC","AICc","BIC");
-
-    R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
-    R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
-
-    ourReturn <- structure(list(parametersTable=parametersTable, sigma=residSE,
-                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
-                           class="summary.greyboxC");
-    return(ourReturn);
-}
-
 plot.greybox <- function(x, ...){
     ellipsis <- list(...);
     # If type and ylab are not provided, set them...
@@ -223,3 +238,44 @@ plot.greybox <- function(x, ...){
     }
     legend(legelndPosition,legend=c("Actuals","Fitted"),col=c("black","red"),lwd=rep(1,2));
 }
+
+#' @importFrom stats sigma
+#' @export
+sigma.greybox <- function(object, ...){
+    return(sum(residuals(object)/(nobs(object)-nParam(object))));
+}
+
+#' @export
+summary.greyboxC <- function(object, level=0.95, digits=5, ...){
+
+    # Extract the values from the object
+    errors <- residuals(object);
+    obs <- length(errors);
+    parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
+
+    # Calculate the quantiles for parameters and add them to the table
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+    parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
+                             parametersTable[,1]+paramQuantiles*parametersTable[,2])
+    rownames(parametersTable) <- names(coef(object));
+    colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
+                                   paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
+    parametersTable <- round(parametersTable,digits);
+
+    # Extract degrees of freedom
+    df <- c(object$df, object$df.residual, object$rank);
+    # Calculate s.e. of residuals
+    residSE <- round(sqrt(sum(errors^2)/df[2]),digits);
+
+    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
+    names(ICs) <- c("AIC","AICc","BIC");
+
+    R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
+    R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
+
+    ourReturn <- structure(list(parametersTable=parametersTable, sigma=residSE,
+                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
+                           class="summary.greyboxC");
+    return(ourReturn);
+}
+
