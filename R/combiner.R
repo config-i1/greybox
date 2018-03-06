@@ -42,8 +42,8 @@
 #' xreg <- matrix(rnorm(5000,10,3),50,100)
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
-#' inSample <- xreg[1:80,]
-#' outSample <- xreg[-c(1:80),]
+#' inSample <- xreg[1:30,]
+#' outSample <- xreg[-c(1:30),]
 #' # Combine only the models close to the optimal
 #' ourModel <- combiner(inSample,ic="AICc",bruteForce=FALSE)
 #' summary(ourModel)
