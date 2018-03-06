@@ -105,75 +105,81 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
         ICs[1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
         parametersSE[1,1] <- diag(vcov(ourModel));
-
-        if(!silent){
-            cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
-        }
-        # Go for the loop of lm models
-        for(i in 2:nCombinations){
-            if(!silent){
-                cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
-                cat(paste0(round(i/nCombinations,2)*100,"%"));
-            }
-            lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
-            ourModel <- lm(as.formula(lmFormula),data=ourData);
-            ICs[i] <- IC(ourModel);
-            parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
-            parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
-        }
     }
     else{
         bestModel <- stepwise(ourData, ic=ic);
 
-        newData <-  ourData[,c(colnames(ourData)[1],names(test$ICs)[-1])];
+        # If the number of variables is small, do bruteForce
+        if(ncol(bestModel$model)<16){
+            newData <-  ourData[,c(colnames(ourData)[1],names(test$ICs)[-1])];
+            return(combiner(newData, ic=ic, bruteForce=TRUE, silent=silent));
+        }
+        # If we have too many variables, use "stress" analysis
+        else{
+            # Extract names of the used variables
+            bestExoNames <- colnames(bestModel$model)[-1];
+            nVariablesInModel <- length(bestExoNames);
+            # Define number of combinations:
+            # 1. Best model
+            nCombinations <- 1;
+            # 2. BM + {each variable not included};
+            nCombinations <- nCombinations + nVariables - nVariablesInModel;
+            # 3. BM - {each variable included};
+            nCombinations <- nCombinations + nVariablesInModel;
 
-        return(combiner(newData, ic=ic, bruteForce=TRUE, silent=silent));
-#         # Extract names of the used variables
-#         bestExoNames <- colnames(bestModel$model)[-1];
-#         nVariablesInModel <- length(bestExoNames);
-#         # Define number of combinations:
-#         # 1. Best model
-#         nCombinations <- 1;
-#         # 2. BM + {each variable not included};
-#         nCombinations <- nCombinations + nVariables - nVariablesInModel;
-#         # 3. BM - {each variable included};
-#         nCombinations <- nCombinations + nVariablesInModel;
-#
-#         ## 4. BM + {each pair of variables not included};
-#         ## 5. BM - {each pair of variables included}.
-#
-#         # Form combinations of variables
-#         variablesCombinations <- matrix(NA,nCombinations,nVariables);
-#         colnames(variablesCombinations) <- variablesNames;
-#         # Fill in the first row with the variables from the best model
-#         for(j in 1:nVariables){
-#             variablesCombinations[,j] <- any(colnames(variablesCombinations)[j]==bestExoNames)*1;
-#         }
-#
-#         # Fill in the first part with sequential inclusion
-#         for(i in 1:(nVariables - nVariablesInModel)){
-#             variablesCombinations[i+1,which(variablesCombinations[i+1,]==0)[i]] <- 1;
-#         }
-#
-#         # Fill in the second part with sequential exclusion
-#         for(i in 1:nVariablesInModel){
-#             index <- i+(nVariables-nVariablesInModel)+1;
-#             variablesCombinations[index,which(variablesCombinations[index,]==1)[i]] <- 0;
-#         }
-#
-#         # Vector of ICs
-#         ICs <- rep(NA,nCombinations);
-#         # Matrix of parameters
-#         parameters <- matrix(0,nCombinations,nVariables+1);
-#         # Matrix of s.e. of parameters
-#         parametersSE <- matrix(0,nCombinations,nVariables+1);
-#
-#         # Starting estimating the models with writing down the best one
-#         ICs[1] <- IC(bestModel);
-#         bufferCoef <- coef(bestModel)[exoNames];
-#         parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-#         bufferCoef <- diag(vcov(bestModel))[exoNames];
-#         parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+            ## 4. BM + {each pair of variables not included};
+            ## 5. BM - {each pair of variables included}.
+
+            # Form combinations of variables
+            variablesCombinations <- matrix(NA,nCombinations,nVariables);
+            colnames(variablesCombinations) <- variablesNames;
+            # Fill in the first row with the variables from the best model
+            for(j in 1:nVariables){
+                variablesCombinations[,j] <- any(colnames(variablesCombinations)[j]==bestExoNames)*1;
+            }
+
+            # Fill in the first part with sequential inclusion
+            for(i in 1:(nVariables - nVariablesInModel)){
+                variablesCombinations[i+1,which(variablesCombinations[i+1,]==0)[i]] <- 1;
+            }
+
+            # Fill in the second part with sequential exclusion
+            for(i in 1:nVariablesInModel){
+                index <- i+(nVariables-nVariablesInModel)+1;
+                variablesCombinations[index,which(variablesCombinations[index,]==1)[i]] <- 0;
+            }
+
+            # Vector of ICs
+            ICs <- rep(NA,nCombinations);
+            # Matrix of parameters
+            parameters <- matrix(0,nCombinations,nVariables+1);
+            # Matrix of s.e. of parameters
+            parametersSE <- matrix(0,nCombinations,nVariables+1);
+
+            # Starting estimating the models with writing down the best one
+            ICs[1] <- IC(bestModel);
+            bufferCoef <- coef(bestModel)[exoNames];
+            parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+            bufferCoef <- diag(vcov(bestModel))[exoNames];
+            parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+        }
+    }
+
+
+    if(!silent){
+        cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
+    }
+    # Go for the loop of lm models
+    for(i in 2:nCombinations){
+        if(!silent){
+            cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
+            cat(paste0(round(i/nCombinations,2)*100,"%"));
+        }
+        lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
+        ourModel <- lm(as.formula(lmFormula),data=ourData);
+        ICs[i] <- IC(ourModel);
+        parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
+        parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
     }
 
     # Calculate IC weights
