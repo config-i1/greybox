@@ -45,6 +45,7 @@
 #' hist(x)
 #'
 #' @rdname s-distribution
+#' @importFrom stats optimize runif
 
 #' @rdname s-distribution
 #' @export ds

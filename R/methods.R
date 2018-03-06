@@ -55,7 +55,7 @@ forecast::forecast
 
 #' @importFrom stats predict.lm
 #' @export
-forecast.lm.combined <- function(object, newdata, ...){
+forecast.greyboxC <- function(object, newdata, ...){
     if(!is.data.frame(newdata)){
         newdata <- as.data.frame(newdata);
     }
@@ -87,7 +87,7 @@ forecast.lm.combined <- function(object, newdata, ...){
 }
 
 #' @export
-getResponse.lm.combined <- function(object, ...){
+getResponse.greybox <- function(object, ...){
     responseVariable <- object$model[,1];
     names(responseVariable) <- c(1:length(responseVariable));
     return(responseVariable);
@@ -95,7 +95,7 @@ getResponse.lm.combined <- function(object, ...){
 
 #' @importFrom stats nobs fitted
 #' @export
-nobs.lm.combined <- function(object, ...){
+nobs.greybox <- function(object, ...){
     return(length(fitted(object)));
 }
 
@@ -145,7 +145,7 @@ plot.forecast.greybox <- function(x, ...){
 }
 
 #' @export
-print.summary.lm.combined <- function(x, ...){
+print.summary.greyboxC <- function(x, ...){
     cat("Coefficients:\n");
     print(x$parametersTable);
     cat("---\n");
@@ -167,7 +167,7 @@ print.forecast.greybox <- function(x, ...){
 }
 
 #' @export
-summary.lm.combined <- function(object, level=0.95, digits=5, ...){
+summary.greyboxC <- function(object, level=0.95, digits=5, ...){
 
     # Extract the values from the object
     errors <- residuals(object);
@@ -196,11 +196,11 @@ summary.lm.combined <- function(object, level=0.95, digits=5, ...){
 
     ourReturn <- structure(list(parametersTable=parametersTable, sigma=residSE,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
-                           class="summary.lm.combined");
+                           class="summary.greyboxC");
     return(ourReturn);
 }
 
-plot.lm.combined <- function(x, ...){
+plot.greybox <- function(x, ...){
     ellipsis <- list(...);
     # If type and ylab are not provided, set them...
     if(!any(names(ellipsis)=="type")){

@@ -46,13 +46,11 @@ forecast(ourModel,outSample)
 plot(forecast(ourModel,outSample))
 
 ### Fat regression example
-xreg <- matrix(rnorm(20000,10,3),100,200)
+xreg <- matrix(rnorm(5000,10,3),50,100)
 xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
-colnames(xreg) <- c("y",paste0("x",c(1:200)),"Noise")
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
+colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
 # Combine only the models close to the optimal
-ourModel <- combiner(inSample,ic="AICc",bruteForce=FALSE)
+ourModel <- combiner(xreg,ic="AICc",bruteForce=FALSE)
 summary(ourModel)
 
 }

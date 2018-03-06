@@ -5,6 +5,8 @@ Changes:
 * We now do not depend on smooth. We suggest it. It's smooth that should depend on greybox!
 * New function imported from smooth - AICc.
 * New functions for the S distribution (the maximisation of likelihood of which corresponds to the minimum of HAM): ds, ps, qs, rs.
+* stepwise now returns the object of two classes: greybox and lm.
+* combiner now returns three: greybox, lm and greyboxC.
 
 Bugfixes:
 * If smooth is not installed, plot forecasts using simpler function.

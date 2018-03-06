@@ -135,5 +135,6 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
                                     data=substitute(data)));
 
+    class(bestModel) <- c("greybox","lm");
     return(model=bestModel);
 }
