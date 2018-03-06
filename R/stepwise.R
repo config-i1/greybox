@@ -37,7 +37,10 @@
 #' xreg <- matrix(rnorm(20000,10,3),100,200)
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y",paste0("x",c(1:200)),"Noise")
-#' stepwise(xreg,ic="AICc")
+#' ourModel <- stepwise(xreg,ic="AICc")
+#' plot(ourModel$ICs,type="l",ylim=range(min(ourModel$ICs),max(ourModel$ICs)+5))
+#' points(ourModel$ICs)
+#' text(c(1:length(ourModel$ICs))+0.1,ourModel$ICs+5,names(ourModel$ICs))
 #'
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
@@ -64,6 +67,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     }
     ourncols <- ncol(ourData) - 1;
     bestICNotFound <- TRUE;
+    allICs <- list(NA);
     # Run the simplest model y = const
     testFormula <- paste0(colnames(ourData)[1],"~ 1");
     testModel <- lm(as.formula(testFormula),data=ourData);
@@ -73,6 +77,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     # Write down the IC. This one needs to be calculated from the logLik
     # in order to take the additional df into account.
     currentIC <- bestIC <- IC(logLikValue);
+    names(currentIC) <- "Intercept";
+    allICs[[1]] <- currentIC;
     # Add residuals to the ourData
     ourData <- cbind(ourData,residuals(testModel));
     colnames(ourData)[ncol(ourData)] <- "const resid";
@@ -81,6 +87,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
         cat(testFormula); cat(", "); cat(currentIC); cat("\n\n");
     }
 
+    m <- 2;
     # Start the loop
     while(bestICNotFound){
         ourCorrelation <- cor(ourData,use="complete.obs");
@@ -125,6 +132,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
             bestFormula <- testFormula;
             ourData[,ncol(ourData)] <- residuals(testModel);
         }
+        names(currentIC) <- newElement;
+        allICs[[m]] <- currentIC;
+        m <- m+1;
     }
 
     # Create an object of the same name as the original data
@@ -136,6 +146,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
                                     data=substitute(data)));
 
+    bestModel$ICs <- unlist(allICs);
     class(bestModel) <- c("greybox","lm");
     return(model=bestModel);
 }
