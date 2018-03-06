@@ -116,7 +116,7 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
 
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
-            newData <-  ourData[,c(colnames(ourData)[1],names(test$ICs)[-1])];
+            newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
             return(combiner(newData, ic=ic, bruteForce=TRUE, silent=silent));
         }
         # If we have too many variables, use "stress" analysis
