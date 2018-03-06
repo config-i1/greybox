@@ -27,11 +27,17 @@
 #'
 #' @examples
 #'
+#' ### Simple example
 #' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
-#'
 #' stepwise(xreg)
+#'
+#' ### Fat regression example
+#' xreg <- matrix(rnorm(20000,10,3),100,200)
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y",paste0("x",c(1:200)),"Noise")
+#' stepwise(xreg,ic="AICc")
 #'
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
