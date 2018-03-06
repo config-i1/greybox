@@ -59,6 +59,11 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
         ourData <- as.data.frame(ourData);
     }
 
+    if((ncol(ourData)>nrow(ourData)) & bruteForce){
+        warning("You have too many variables. We have to be smart here. Switching 'bruteForce=FALSE'.");
+        bruteForce <- FALSE;
+    }
+
     ic <- ic[1];
     if(ic=="AIC"){
         IC <- AIC;

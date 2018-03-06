@@ -3,6 +3,7 @@ greybox v0.2.0 (Release data: 2018-03-06)
 
 Changes:
 * combiner now uses a more clever mechanism in case of bruteForce==FALSE.
+* combiner now also checks if the provided data has ncol>nrow and sets bruteForce if it has.
 
 Bugfixes:
 *
