@@ -194,6 +194,16 @@ plot.forecast.greybox <- function(x, ...){
 }
 
 #' @export
+print.summary.greybox <- function(x, ...){
+    cat("Coefficients:\n");
+    print(x$coefficients);
+    cat("---\n");
+    cat(paste0("Residual standard error: ",x$sigma," on ",x$df[2]," degrees of freedom:\n"));
+    cat("ICs:\n");
+    print(x$ICs);
+}
+
+#' @export
 print.summary.greyboxC <- function(x, ...){
     cat("Coefficients:\n");
     print(x$parametersTable);
@@ -246,6 +256,30 @@ sigma.greybox <- function(object, ...){
 }
 
 #' @export
+summary.greybox <- function(object, level=0.95, digits=5, ...){
+    ourReturn <- summary.lm(object, ...);
+
+    parametersTable <- ourReturn$coefficients[,1:2];
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+    parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
+                             parametersTable[,1]+paramQuantiles*parametersTable[,2])
+    rownames(parametersTable) <- names(coef(object));
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
+    parametersTable <- round(parametersTable,digits);
+    ourReturn$coefficients <- parametersTable;
+
+    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
+    names(ICs) <- c("AIC","AICc","BIC");
+    ourReturn$ICs <- ICs;
+
+    ourReturn$sigma <- round(ourReturn$sigma,digits);
+
+    ourReturn <- structure(ourReturn,class="summary.greybox");
+    return(ourReturn);
+}
+
+#' @export
 summary.greyboxC <- function(object, level=0.95, digits=5, ...){
 
     # Extract the values from the object
@@ -273,9 +307,8 @@ summary.greyboxC <- function(object, level=0.95, digits=5, ...){
     R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
-    ourReturn <- structure(list(parametersTable=parametersTable, sigma=residSE,
+    ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
                            class="summary.greyboxC");
     return(ourReturn);
 }
-
