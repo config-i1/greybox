@@ -19,6 +19,8 @@
 #' printed out. \code{silent=TRUE} means that nothing is produced.
 #' @param df Number of degrees of freedom to add (should be used if stepwise is
 #' used on residuals).
+#' @param method Method of correlations calculation. The default is Kendall's
+#' Tau, which should be applicable to a wide range of data in different scales.
 #'
 #' @return Function returns \code{model} - the final model of the class "lm".
 #'
@@ -43,7 +45,8 @@
 #' text(c(1:length(ourModel$ICs))+0.1,ourModel$ICs+5,names(ourModel$ICs))
 #'
 #' @export stepwise
-stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
+stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
+                     method=c("kendall","pearson","spearman")){
 ##### Function that selects variables based on IC and using partial correlations
     ourData <- data;
     ourData <- ourData[apply(!is.na(ourData),1,all),]
@@ -65,6 +68,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     else if(ic=="BIC"){
         IC <- BIC;
     }
+
+    method <- method[1];
+
     ourncols <- ncol(ourData) - 1;
     bestICNotFound <- TRUE;
     allICs <- list(NA);
@@ -90,7 +96,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL){
     m <- 2;
     # Start the loop
     while(bestICNotFound){
-        ourCorrelation <- cor(ourData,use="complete.obs");
+        ourCorrelation <- cor(ourData,use="complete.obs",method=method);
         # Extract the last row of the correlation matrix
         ourCorrelation <- ourCorrelation[-1,-1];
         ourCorrelation <- ourCorrelation[nrow(ourCorrelation),];

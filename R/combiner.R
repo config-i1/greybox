@@ -204,11 +204,6 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
     yFitted <- as.matrix(ourDataExo) %*% parametersCombined;
     errors <- ourData[,1] - yFitted;
 
-    # Combined model
-    # plot(ourData$Sales,type="l")
-    # lines(as.matrix(ourDataExo) %*% apply(parametersWeighted,2,sum),col="red")
-    # abline(v=156.5,col="blue")
-
     # Relative importance of variables
     importance <- c(1,round(ICWeights %*% variablesCombinations,3));
     names(importance) <- exoNames;
