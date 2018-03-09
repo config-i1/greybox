@@ -5,6 +5,7 @@ Changes:
 * combiner now uses a more clever mechanism in case of bruteForce==FALSE.
 * combiner now also checks if the provided data has ncol>nrow and sets bruteForce if it has.
 * Use Kendall Tau as default in cor() for stepwise.
+* Don't use Kendall Tau as default everywhere - only for fat regressions.
 
 Bugfixes:
 *

@@ -46,7 +46,7 @@
 #'
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
-                     method=c("kendall","pearson","spearman")){
+                     method=c("pearson","kendall","spearman")){
 ##### Function that selects variables based on IC and using partial correlations
     ourData <- data;
     ourData <- ourData[apply(!is.na(ourData),1,all),]

@@ -112,7 +112,15 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
         parametersSE[1,1] <- diag(vcov(ourModel));
     }
     else{
-        bestModel <- stepwise(ourData, ic=ic);
+        if(nVariables>=obsInsample){
+            if(!silent){
+                print("Selecting the best model...");
+            }
+            bestModel <- stepwise(ourData, ic=ic, method="kendall");
+        }
+        else{
+            bestModel <- stepwise(ourData, ic=ic);
+        }
 
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
