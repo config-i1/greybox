@@ -20,7 +20,8 @@ models that use logLik() and nobs() methods (including the popular lm,
 forecast, smooth).
 }
 \details{
-AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples.
+AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples
+for the models with normally distributed residuals.
 }
 \examples{
 
