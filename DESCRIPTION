@@ -11,7 +11,7 @@ Description: Implements model selection and combinations via information criteri
              the values of partial correlations. This allows, for example, solving "fat regression"
              problems, where the number of variables is much larger than the number of observations.
              This is driven by the research on information criteria, which is well discussed in
-             Burnham & Anderson (2002) <doi:/10.1007/b97636>, and currently developed further by
+             Burnham & Anderson (2002) <doi:10.1007/b97636>, and currently developed further by
              Ivan Svetunkov and Yves Sagaert (working paper in progress). Models developed in the
              package are tailored specifically for forecasting purposes. So as a results there are
              several methods that allow producing forecasts from these models and visualising them.
