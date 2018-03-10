@@ -34,13 +34,25 @@ AICc <- function(object, ...) UseMethod("AICc")
 
 #' @export
 AICc.default <- function(object, ...){
-    obs <- nobs(object);
+    if(class(object)=="smooth" & !is.null(object$imodel)){
+        obs <- sum(object$fitted!=0);
+        llikelihood <- logLik(object);
+        nParamAll <- attributes(llikelihood)$df;
+        nParamSizes <- nParamAll - object$nParam[1,3];
+        llikelihood <- llikelihood[1:length(llikelihood)];
 
-    llikelihood <- logLik(object);
-    nParam <- attributes(llikelihood)$df;
-    llikelihood <- llikelihood[1:length(llikelihood)];
+        IC <- (2*nParamAll - 2*llikelihood +
+                   2*nParamSizes*(nParamSizes + 1) / (obs - nParamSizes - 1));
+    }
+    else{
+        obs <- nobs(object);
 
-    IC <- 2*nParam - 2*llikelihood + 2 * nParam * (nParam + 1) / (obs - nParam - 1);
+        llikelihood <- logLik(object);
+        nParam <- attributes(llikelihood)$df;
+        llikelihood <- llikelihood[1:length(llikelihood)];
+
+        IC <- 2*nParam - 2*llikelihood + 2 * nParam * (nParam + 1) / (obs - nParam - 1);
+    }
 
     return(IC);
 }
