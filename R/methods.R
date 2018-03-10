@@ -66,7 +66,7 @@ forecast.greybox <- function(object, newdata, ...){
     ellipsis$object <- object;
     ellipsis$newdata <- newdata;
 
-    if(nobs(object) <= length(coef(object))){
+    if(nobs(object) <= nParam(object)){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
         ourForecast <- as.vector(matrixOfxreg %*% coef(object));
     }
