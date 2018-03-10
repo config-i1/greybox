@@ -1,7 +1,7 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Selection and Combinations for the Forecasting Purposes
-Version: 0.2.0.41006
+Version: 0.2.0
 Date: 2018-03-10
 Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
@@ -10,7 +10,9 @@ BugReports: https://github.com/config-i1/greybox/issues
 Description: The package implements model selection and combinations via information criteria based on
              the values of partial correlations. This allows, for example, solving "fat regression"
              problems, where the number of variables is much larger than the number of observations.
-             Models developed in the package are tailored for forecasting purposes.
+             Models developed in the package are tailored for forecasting purposes. So as a results
+             there are several methods that allow producing forecasts from these models and visualising
+             them.
 License: GPL (>=2)
 Depends:
     R (>= 3.0.2)
