@@ -7,6 +7,7 @@ output: html_document
 ## Version
 This is the initial release of the package ``greybox``, v0.2.0
 This version now includes a more detailed explanation of the package and a more focused title.
+I also changed the description as advised by Uwe Ligges, referring to the most relevant source at the moment.
 
 ## Test environments
 * local ubuntu 17.10, R 3.4.3
