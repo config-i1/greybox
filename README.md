@@ -9,6 +9,7 @@ The list of included functions:
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
+2. multicor - multiple correlations coefficient.
 
 Methods implemented:
 1. summary.lm.combined - returns summary of the combined regression.
