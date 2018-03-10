@@ -42,8 +42,8 @@
 #' xreg <- matrix(rnorm(5000,10,3),50,100)
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(50,0,3),xreg,rnorm(50,300,10))
 #' colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
-#' inSample <- xreg[1:30,]
-#' outSample <- xreg[-c(1:30),]
+#' inSample <- xreg[1:40,]
+#' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
 #' ourModel <- combiner(inSample,ic="AICc",bruteForce=FALSE)
 #' summary(ourModel)
@@ -114,7 +114,7 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
     else{
         if(nVariables>=obsInsample){
             if(!silent){
-                print("Selecting the best model...");
+                cat("Selecting the best model...\n");
             }
             bestModel <- stepwise(ourData, ic=ic, method="kendall");
         }

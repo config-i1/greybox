@@ -34,24 +34,28 @@ AICc <- function(object, ...) UseMethod("AICc")
 
 #' @export
 AICc.default <- function(object, ...){
-    if(class(object)=="smooth" & !is.null(object$imodel)){
-        obs <- sum(object$fitted!=0);
-        llikelihood <- logLik(object);
-        nParamAll <- attributes(llikelihood)$df;
-        nParamSizes <- nParamAll - object$nParam[1,3];
-        llikelihood <- llikelihood[1:length(llikelihood)];
+    llikelihood <- logLik(object);
+    nParamAll <- attributes(llikelihood)$df;
+    llikelihood <- llikelihood[1:length(llikelihood)];
 
-        IC <- (2*nParamAll - 2*llikelihood +
-                   2*nParamSizes*(nParamSizes + 1) / (obs - nParamSizes - 1));
+    if(any(class(object)=="smooth")){
+        if(!is.null(object$imodel)){
+            obs <- sum(object$fitted!=0);
+            nParamSizes <- nParamAll - object$nParam[1,3];
+
+            IC <- (2*nParamAll - 2*llikelihood +
+                       2*nParamSizes*(nParamSizes + 1) / (obs - nParamSizes - 1));
+        }
+        else{
+            obs <- nobs(object);
+
+            IC <- 2*nParamAll - 2*llikelihood + 2 * nParamAll * (nParamAll + 1) / (obs - nParamAll - 1);
+        }
     }
     else{
         obs <- nobs(object);
 
-        llikelihood <- logLik(object);
-        nParam <- attributes(llikelihood)$df;
-        llikelihood <- llikelihood[1:length(llikelihood)];
-
-        IC <- 2*nParam - 2*llikelihood + 2 * nParam * (nParam + 1) / (obs - nParam - 1);
+        IC <- 2*nParamAll - 2*llikelihood + 2 * nParamAll * (nParamAll + 1) / (obs - nParamAll - 1);
     }
 
     return(IC);
@@ -219,7 +223,7 @@ print.summary.greybox <- function(x, ...){
 #' @export
 print.summary.greyboxC <- function(x, ...){
     cat("Coefficients:\n");
-    print(x$parametersTable);
+    print(x$coefficients);
     cat("---\n");
     cat(paste0("Residual standard error: ",x$sigma," on ",x$df[2]," degrees of freedom:\n"));
     cat("Combined ICs:\n");
