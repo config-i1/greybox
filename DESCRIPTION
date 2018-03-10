@@ -7,12 +7,14 @@ Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("au
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
 URL: https://github.com/config-i1/greybox
 BugReports: https://github.com/config-i1/greybox/issues
-Description: The package implements model selection and combinations via information criteria based on
+Description: Implements model selection and combinations via information criteria based on
              the values of partial correlations. This allows, for example, solving "fat regression"
              problems, where the number of variables is much larger than the number of observations.
-             Models developed in the package are tailored for forecasting purposes. So as a results
-             there are several methods that allow producing forecasts from these models and visualising
-             them.
+             This is driven by the research on information criteria, which is well discussed in
+             Burnham & Anderson (2002) <doi:/10.1007/b97636>, and currently developed further by
+             Ivan Svetunkov and Yves Sagaert (working paper in progress). Models developed in the
+             package are tailored specifically for forecasting purposes. So as a results there are
+             several methods that allow producing forecasts from these models and visualising them.
 License: GPL (>=2)
 Depends:
     R (>= 3.0.2)
