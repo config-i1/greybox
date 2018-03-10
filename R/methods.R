@@ -272,6 +272,7 @@ sigma.greybox <- function(object, ...){
     return(sum(residuals(object)/(nobs(object)-nParam(object))));
 }
 
+#' @importFrom stats summary.lm
 #' @export
 summary.greybox <- function(object, level=0.95, digits=5, ...){
     ourReturn <- summary.lm(object, ...);
