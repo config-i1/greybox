@@ -4,7 +4,7 @@
 #' generation for the S distribution with the location parameter mu
 #' and half absolute moment equal to ham.
 #'
-#' When mu=0 and ham=2, the S distrition becomes standardized with
+#' When mu=0 and ham=2, the S distribution becomes standardized with
 #' b=1 (this is because b=ham/2). The distribution has the following
 #' density function:
 #'
