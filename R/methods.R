@@ -195,22 +195,38 @@ plot.forecast.greybox <- function(x, ...){
 
 #' @export
 print.summary.greybox <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 5;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
     cat("Coefficients:\n");
-    print(x$coefficients);
+    print(round(x$coefficients,digits));
     cat("---\n");
-    cat(paste0("Residual standard error: ",x$sigma," on ",x$df[2]," degrees of freedom:\n"));
+    cat(paste0("Residual standard error: ",round(x$sigma,digits)," on ",
+               round(x$df[2],digits)," degrees of freedom:\n"));
     cat("ICs:\n");
-    print(x$ICs);
+    print(round(x$ICs,digits));
 }
 
 #' @export
 print.summary.greyboxC <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 5;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
     cat("Coefficients:\n");
-    print(x$coefficients);
+    print(round(x$coefficients,digits));
     cat("---\n");
-    cat(paste0("Residual standard error: ",x$sigma," on ",x$df[2]," degrees of freedom:\n"));
+    cat(paste0("Residual standard error: ",round(x$sigma,digits)," on ",
+               round(x$df[2],digits)," degrees of freedom:\n"));
     cat("Combined ICs:\n");
-    print(x$ICs);
+    print(round(x$ICs,digits));
 }
 
 #' @export
@@ -257,7 +273,7 @@ sigma.greybox <- function(object, ...){
 
 #' @importFrom stats summary.lm
 #' @export
-summary.greybox <- function(object, level=0.95, digits=5, ...){
+summary.greybox <- function(object, level=0.95, ...){
     ourReturn <- summary.lm(object, ...);
 
     parametersTable <- ourReturn$coefficients[,1:2];
@@ -267,21 +283,18 @@ summary.greybox <- function(object, level=0.95, digits=5, ...){
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
                                    paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
-    parametersTable <- round(parametersTable,digits);
     ourReturn$coefficients <- parametersTable;
 
-    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
+    ICs <- c(AIC(object),AICc(object),BIC(object));
     names(ICs) <- c("AIC","AICc","BIC");
     ourReturn$ICs <- ICs;
-
-    ourReturn$sigma <- round(ourReturn$sigma,digits);
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
 }
 
 #' @export
-summary.greyboxC <- function(object, level=0.95, digits=5, ...){
+summary.greyboxC <- function(object, level=0.95, ...){
 
     # Extract the values from the object
     errors <- residuals(object);
@@ -295,14 +308,13 @@ summary.greyboxC <- function(object, level=0.95, digits=5, ...){
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
                                    paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
-    parametersTable <- round(parametersTable,digits);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
     # Calculate s.e. of residuals
-    residSE <- round(sqrt(sum(errors^2)/df[2]),digits);
+    residSE <- sqrt(sum(errors^2)/df[2]);
 
-    ICs <- round(c(AIC(object),AICc(object),BIC(object)),digits);
+    ICs <- c(AIC(object),AICc(object),BIC(object));
     names(ICs) <- c("AIC","AICc","BIC");
 
     R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)

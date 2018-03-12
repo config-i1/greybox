@@ -1,3 +1,10 @@
+greybox v0.2.1 (Release data: 2018-03-12)
+==============
+
+Changes:
+* print.summary now specifies digits. Summary does not round up anything. This corresponds to the normal behaviour of these methods.
+
+
 greybox v0.2.0 (Release data: 2018-03-10)
 ==============
 
@@ -8,9 +15,6 @@ Changes:
 * Don't use Kendall Tau as default everywhere - only for fat regressions.
 * New summary and print methods for models from stepwise. No statistical tests printed, only confidence intervals and ICs.
 * AICc for smooth functions in case of iSS models should take only the demand sizes into account, not all the parameters.
-
-Bugfixes:
-*
 
 
 greybox v0.1.1 (Release data: 2018-03-05)
