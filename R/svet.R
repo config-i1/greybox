@@ -12,6 +12,9 @@
 #'
 #' The S distribution has fat tails and large excess.
 #'
+#' @template author
+#' @keywords distribution
+#'
 #' @param q vector of quantiles.
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
@@ -77,10 +80,11 @@ qs <- function(p, mu=0, ham=2){
     cfFunction <- function(q,p,...){
         return(abs(ps(q,...)-p));
     }
-    svetReturn <- (p==0.5)*0;
+    svetReturn <- (p==0.5)*1;
     svetReturn[p==0] <- rep(-Inf,sum(p==0));
-    svetReturn[p==1] <- rep(Inf,sum(p==0));
+    svetReturn[p==1] <- rep(Inf,sum(p==1));
     probsToEstimate <- which(svetReturn==0);
+    svetReturn[svetReturn==1] <- 0;
     for(i in 1:length(probsToEstimate)){
         j <- probsToEstimate[i];
         solution <- optimize(cfFunction,c(-100:100),mu=0,ham=2,p=p[j]);
