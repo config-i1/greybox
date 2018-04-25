@@ -49,7 +49,7 @@
 #'
 #' @rdname s-distribution
 #' @importFrom stats optimize runif
-
+#'
 #' @rdname s-distribution
 #' @export ds
 #' @aliases ds
@@ -67,13 +67,13 @@ ds <- function(q, mu=0, ham=2, log=FALSE){
 #' @aliases ps
 ps <- function(q, mu=0, ham=2){
     b <- ham / 2;
-    svetReturn <- 1/(2*b)*(sqrt(abs(mu-q))+b)*exp(-sqrt(abs(mu-q))/b)*((mu>=q)*1 - (mu<q)*1);
-    svetReturn <- svetReturn + (mu<q)*1;
+    svetReturn <- 0.5+0.5*sign(q-mu)*(1-1/b*(sqrt(abs(mu-q))+b)*exp(-sqrt(abs(mu-q))/b))
     return(svetReturn);
 }
 
 #' @rdname s-distribution
 #' @export qs
+#' @importFrom lamW lambertWm1
 #' @aliases qs
 qs <- function(p, mu=0, ham=2){
     b <- ham / 2;
@@ -87,8 +87,14 @@ qs <- function(p, mu=0, ham=2){
     svetReturn[svetReturn==1] <- 0;
     for(i in 1:length(probsToEstimate)){
         j <- probsToEstimate[i];
-        solution <- optimize(cfFunction,c(-100:100),mu=0,ham=2,p=p[j]);
-        svetReturn[j] <- solution$minimum;
+        if(p[j]<0.5){
+            svetReturn[j] <- (mu - b^2*lambertWm1(-2*p[j]/exp(1))^2 -
+                                  2*b^2*lambertWm1(-2*p[j]/exp(1))-b^2);
+        }
+        else{
+            svetReturn[j] <- (mu + b^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
+                                  2*b^2*lambertWm1(2*(p[j]-1)/exp(1))+b^2);
+        }
     }
     svetReturn <- svetReturn * sqrt(b);
     svetReturn <- svetReturn + mu;

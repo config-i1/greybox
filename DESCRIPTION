@@ -1,7 +1,7 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Selection and Combinations for the Forecasting Purposes
-Version: 0.2.1.41002
+Version: 0.2.1.41003
 Date: 2018-04-25
 Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
@@ -23,7 +23,8 @@ Imports:
     stats,
     graphics,
     utils,
-    zoo
+    zoo,
+    lamW
 Suggests:
     smooth,
     numDeriv,

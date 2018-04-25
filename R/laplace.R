@@ -66,8 +66,7 @@ dlaplace <- function(q, mu=0, b=1, log=FALSE){
 #' @export plaplace
 #' @aliases plaplace
 plaplace <- function(q, mu=0, b=1){
-    laplaceReturn <- 1/2*exp(-abs(mu-q)/b)*((mu>=q)*1 - (mu<q)*1);
-    laplaceReturn <- laplaceReturn + (mu<q)*1;
+    laplaceReturn <- 0.5 + 0.5*sign(q-mu)*(1-exp(-abs(q-mu)/b));
     return(laplaceReturn);
 }
 
@@ -75,28 +74,20 @@ plaplace <- function(q, mu=0, b=1){
 #' @export qlaplace
 #' @aliases qlaplace
 qlaplace <- function(p, mu=0, b=1){
-    cfFunction <- function(q,p,...){
-        return(abs(plaplace(q,...)-p));
-    }
     laplaceReturn <- (p==0.5)*1;
     laplaceReturn[p==0] <- rep(-Inf,sum(p==0));
     laplaceReturn[p==1] <- rep(Inf,sum(p==1));
     probsToEstimate <- which(laplaceReturn==0);
     laplaceReturn[laplaceReturn==1] <- 0;
-    for(i in 1:length(probsToEstimate)){
-        j <- probsToEstimate[i];
-        solution <- optimize(cfFunction,c(-100:100),mu=0,b=1,p=p[j]);
-        laplaceReturn[j] <- solution$minimum;
-    }
-    laplaceReturn <- laplaceReturn * b;
-    laplaceReturn <- laplaceReturn + mu;
-    return(laplaceReturn)
+    laplaceReturn[probsToEstimate] <- (mu - b * sign(p[probsToEstimate]-0.5) *
+                                           log(1-2*abs(p[probsToEstimate]-0.5)));
+    return(laplaceReturn);
 }
 
 #' @rdname laplace-distribution
 #' @export rlaplace
 #' @aliases rlaplace
 rlaplace <- function(n=1, mu=0, b=1){
-    laplaceReturn[i] <- qlaplace(runif(n,0,1),mu,b);
+    laplaceReturn <- qlaplace(runif(n,0,1),mu,b);
     return(laplaceReturn);
 }
