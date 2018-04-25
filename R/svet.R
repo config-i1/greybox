@@ -90,7 +90,7 @@ qs <- function(p, mu=0, ham=2){
         solution <- optimize(cfFunction,c(-100:100),mu=0,ham=2,p=p[j]);
         svetReturn[j] <- solution$minimum;
     }
-    svetReturn <- svetReturn * b^2;
+    svetReturn <- svetReturn * sqrt(b);
     svetReturn <- svetReturn + mu;
     return(svetReturn)
 }
@@ -99,9 +99,6 @@ qs <- function(p, mu=0, ham=2){
 #' @export rs
 #' @aliases rs
 rs <- function(n=1, mu=0, ham=2){
-    svetReturn <- rep(NA,n);
-    for(i in 1:n){
-        svetReturn[i] <- qs(runif(1,0,1),mu,ham);
-    }
+    svetReturn <- qs(runif(n,0,1),mu,ham);
     return(svetReturn);
 }

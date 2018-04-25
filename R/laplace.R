@@ -88,7 +88,7 @@ qlaplace <- function(p, mu=0, b=1){
         solution <- optimize(cfFunction,c(-100:100),mu=0,b=1,p=p[j]);
         laplaceReturn[j] <- solution$minimum;
     }
-    laplaceReturn <- laplaceReturn * b^2;
+    laplaceReturn <- laplaceReturn * b;
     laplaceReturn <- laplaceReturn + mu;
     return(laplaceReturn)
 }
@@ -97,9 +97,6 @@ qlaplace <- function(p, mu=0, b=1){
 #' @export rlaplace
 #' @aliases rlaplace
 rlaplace <- function(n=1, mu=0, b=1){
-    laplaceReturn <- rep(NA,n);
-    for(i in 1:n){
-        laplaceReturn[i] <- qlaplace(runif(1,0,1),mu,b);
-    }
+    laplaceReturn[i] <- qlaplace(runif(n,0,1),mu,b);
     return(laplaceReturn);
 }
