@@ -30,9 +30,13 @@
 #' provided parameters.
 #' \item \code{ps} returns the value of the cumulative function
 #' for the provided parameters.
-#' \item \code{qs} returns quantiles of the distribution.
+#' \item \code{qs} returns quantiles of the distribution. Depending
+#' on what was provided in \code{p}, \code{mu} and \code{b}, this
+#' can be either a vector or a matrix, or an array.
 #' \item \code{rs} returns a vector of random variables
-#' generated from the S distribution.
+#' generated from the S distribution. Depending on what was provided
+#' in \code{mu} and \code{b}, this can be either a vector or a matrix
+#' or an array.
 #' }
 #'
 #' @examples
@@ -77,29 +81,43 @@ ps <- function(q, mu=0, ham=2){
 #' @aliases qs
 qs <- function(p, mu=0, ham=2){
     b <- ham / 2;
-    svetReturn <- matrix(0,length(p),length(b));
-    svetReturn[p==0.5,] <- 1;
-    svetReturn[p==0,] <- -Inf;
-    svetReturn[p==1,] <- Inf;
-    probsToEstimate <- which(svetReturn[,1]==0);
+    svetReturn <- array(0,c(length(p),length(mu),length(b)),
+                        dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("ham=",ham)));
+    svetReturn[p==0.5,,] <- 1;
+    svetReturn[p==0,,] <- -Inf;
+    svetReturn[p==1,,] <- Inf;
+    probsToEstimate <- which(svetReturn[,1,1]==0);
     svetReturn[svetReturn==1] <- 0;
     if(length(probsToEstimate)!=0){
         for(i in 1:length(probsToEstimate)){
             j <- probsToEstimate[i];
             for(k in 1:length(b)){
                 if(p[j]<0.5){
-                    svetReturn[j,k] <- (mu - b[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
-                                            2*b[k]^2*lambertWm1(-2*p[j]/exp(1))-b[k]^2);
+                    svetReturn[j,,k] <- (-b[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
+                                             2*b[k]^2*lambertWm1(-2*p[j]/exp(1))-b[k]^2);
                 }
                 else{
-                    svetReturn[j,k] <- (mu + b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
-                                            2*b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+b[k]^2);
+                    svetReturn[j,,k] <- (b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
+                                             2*b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+b[k]^2);
                 }
             }
         }
+        svetReturn <- svetReturn + rep(mu,each=length(p));
     }
     if(any(dim(svetReturn)==1)){
-        svetReturn <- c(svetReturn);
+        if(dim(svetReturn)[1]==1){
+            svetReturn <- svetReturn[1,,];
+        }
+        else if(dim(svetReturn)[2]==1){
+            svetReturn <- svetReturn[,1,];
+        }
+        else if(dim(svetReturn)[3]==1){
+            svetReturn <- svetReturn[,,1];
+        }
+
+        if(any(dim(svetReturn)==1)){
+            svetReturn <- c(svetReturn);
+        }
     }
     return(svetReturn);
 }
