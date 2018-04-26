@@ -37,9 +37,13 @@ Depending on the function, various things are returned
 provided parameters.
 \item \code{ps} returns the value of the cumulative function
 for the provided parameters.
-\item \code{qs} returns quantiles of the distribution.
+\item \code{qs} returns quantiles of the distribution. Depending
+on what was provided in \code{p}, \code{mu} and \code{b}, this
+can be either a vector or a matrix, or an array.
 \item \code{rs} returns a vector of random variables
-generated from the S distribution.
+generated from the S distribution. Depending on what was provided
+in \code{mu} and \code{b}, this can be either a vector or a matrix
+or an array.
 }
 }
 \description{

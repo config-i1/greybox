@@ -37,9 +37,13 @@ Depending on the function, various things are returned
 provided parameters.
 \item \code{ps} returns the value of the cumulative function
 for the provided parameters.
-\item \code{qs} returns quantiles of the distribution.
+\item \code{qs} returns quantiles of the distribution. Depending
+on what was provided in \code{p}, \code{mu} and \code{b}, this
+can be either a vector or a matrix, or an array.
 \item \code{rs} returns a vector of random variables
-generated from the Laplace distribution.
+generated from the Laplace distribution. Depending on what was
+provided in \code{mu} and \code{b}, this can be either a vector
+or a matrix or an array.
 }
 }
 \description{
@@ -60,7 +64,7 @@ plot(x, type="l")
 x <- plaplace(c(-1000:1000)/10, 0, 1)
 plot(x, type="l")
 
-qlaplace(c(0.025,0.975), 0, 1)
+qlaplace(c(0.025,0.975), 0, c(1,2))
 
 x <- rlaplace(1000, 0, 1)
 hist(x)
