@@ -77,28 +77,31 @@ ps <- function(q, mu=0, ham=2){
 #' @aliases qs
 qs <- function(p, mu=0, ham=2){
     b <- ham / 2;
-    cfFunction <- function(q,p,...){
-        return(abs(ps(q,...)-p));
-    }
-    svetReturn <- (p==0.5)*1;
-    svetReturn[p==0] <- rep(-Inf,sum(p==0));
-    svetReturn[p==1] <- rep(Inf,sum(p==1));
-    probsToEstimate <- which(svetReturn==0);
+    svetReturn <- matrix(0,length(p),length(b));
+    svetReturn[p==0.5,] <- 1;
+    svetReturn[p==0,] <- -Inf;
+    svetReturn[p==1,] <- Inf;
+    probsToEstimate <- which(svetReturn[,1]==0);
     svetReturn[svetReturn==1] <- 0;
-    for(i in 1:length(probsToEstimate)){
-        j <- probsToEstimate[i];
-        if(p[j]<0.5){
-            svetReturn[j] <- (mu - b^2*lambertWm1(-2*p[j]/exp(1))^2 -
-                                  2*b^2*lambertWm1(-2*p[j]/exp(1))-b^2);
-        }
-        else{
-            svetReturn[j] <- (mu + b^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
-                                  2*b^2*lambertWm1(2*(p[j]-1)/exp(1))+b^2);
+    if(length(probsToEstimate)!=0){
+        for(i in 1:length(probsToEstimate)){
+            j <- probsToEstimate[i];
+            for(k in 1:length(b)){
+                if(p[j]<0.5){
+                    svetReturn[j,k] <- (mu - b[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
+                                            2*b[k]^2*lambertWm1(-2*p[j]/exp(1))-b[k]^2);
+                }
+                else{
+                    svetReturn[j,k] <- (mu + b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
+                                            2*b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+b[k]^2);
+                }
+            }
         }
     }
-    svetReturn <- svetReturn * sqrt(b);
-    svetReturn <- svetReturn + mu;
-    return(svetReturn)
+    if(any(dim(svetReturn)==1)){
+        svetReturn <- c(svetReturn);
+    }
+    return(svetReturn);
 }
 
 #' @rdname s-distribution

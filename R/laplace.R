@@ -74,13 +74,19 @@ plaplace <- function(q, mu=0, b=1){
 #' @export qlaplace
 #' @aliases qlaplace
 qlaplace <- function(p, mu=0, b=1){
-    laplaceReturn <- (p==0.5)*1;
-    laplaceReturn[p==0] <- rep(-Inf,sum(p==0));
-    laplaceReturn[p==1] <- rep(Inf,sum(p==1));
-    probsToEstimate <- which(laplaceReturn==0);
+    laplaceReturn <- matrix(0,length(p),length(b));
+    laplaceReturn[p==0.5,] <- 1;
+    laplaceReturn[p==0,] <- -Inf;
+    laplaceReturn[p==1,] <- Inf;
+    probsToEstimate <- which(laplaceReturn[,1]==0);
     laplaceReturn[laplaceReturn==1] <- 0;
-    laplaceReturn[probsToEstimate] <- (mu - b * sign(p[probsToEstimate]-0.5) *
-                                           log(1-2*abs(p[probsToEstimate]-0.5)));
+    for(k in 1:length(b)){
+        laplaceReturn[probsToEstimate,k] <- (mu - b[k] * sign(p[probsToEstimate]-0.5) *
+                                                 log(1-2*abs(p[probsToEstimate]-0.5)));
+    }
+    if(any(dim(laplaceReturn)==1)){
+        laplaceReturn <- c(laplaceReturn);
+    }
     return(laplaceReturn);
 }
 
