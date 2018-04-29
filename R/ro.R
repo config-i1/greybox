@@ -1,0 +1,431 @@
+#' Rolling Origin
+#'
+#' The function does rolling origin for any forecasting function
+#'
+#' This function produces rolling origin forecasts using the \code{data} and a
+#' \code{call} passed as parameters. The function can do all of that either in
+#' serial or in parallel, but it needs \code{foreach} and either \code{doMC}
+#' (Linux only), \code{doParallel} or \code{doSNOW} packages installed in order
+#' to do the latter.
+#'
+#' @keywords ts
+#'
+#' @param data Data vector or ts object passed to the function.
+#' @param h The forecasting horizon.
+#' @param origins The number of rolling origins.
+#' @param call The call that is passed to the function. The call must be in quotes.
+#' Example: \code{"forecast(ets(data),h)"}. Here \code{data} shows where the data is
+#' and \code{h} defines where the horizon should be passed in the \code{call}. Some
+#' hidden parameters can also be specified in the call. For example, parameters
+#' \code{counti}, \code{counto} and \code{countfull} are used in the inner loop
+#' and can be used for the regulation of exogenous variables sizes. See examples
+#' for the details.
+#' @param value The variable or set of variables returned by the \code{call}.
+#' For example, "\code{mean}" for functions of \code{forecast} package. This can
+#' also be a vector of variables. See examples for the details. If the parameter
+#' is \code{NULL}, then all the values from the call are returned (could be really
+#' messy!).
+#' @param ci The parameter defines if the in-sample window size should be constant.
+#' If \code{TRUE}, then with each origin one observation is added at the end of
+#' series and another one is removed from the beginning.
+#' @param co The parameter defines whether the holdout sample window size should
+#' be constant. If \code{TRUE}, the rolling origin will stop when less than
+#' \code{h} observations are left in the holdout.
+#' @param silent If \code{TRUE}, nothing is printed out in the console.
+#' @param parallel If \code{TRUE}, then the rolling origin is done in parallel.
+#' WARNING! Packages \code{foreach} and either \code{doMC} (Linux only),
+#' \code{doParallel} or \code{doSNOW} are needed in order to run the function
+#' in parallel.
+#'
+#' @return Function returns the following variables:
+#' \itemize{
+#' \item{\code{actuals} - the matrix of actual values corresponding to the
+#' produced forecasts from each origin.}
+#' \item{\code{value} - the matrices with the produced data from each origin.
+#' Name of each matrix corresponds to the names in the parameter \code{value}.}
+#' }
+#'
+#' @author Yves Sagaert
+#' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
+#'
+#' @references \itemize{
+#' \item Tashman, (2000) Out-of-sample tests of forecasting accuracy:
+#' an analysis and review International Journal of Forecasting, 16,
+#' pp. 437-450. \url{https://doi.org/10.1016/S0169-2070(00)00065-0}.
+#' }
+#'
+#' @examples
+#'
+#' x <- rnorm(100,0,1)
+#' ourCall <- "predict(arima(x=data,order=c(0,1,1)),n.ahead=h)"
+#'
+#' # The default call and values
+#' ourValue <- "pred"
+#' ro(x, h=5, origins=5, ourCall, ourValue)
+#'
+#' # You can also use dolar sign
+#' ourValue <- "$pred"
+#' # And you can have constant in-sample size
+#' ro(x, h=5, origins=5, ourCall, ourValue, ci=TRUE)
+#'
+#' # You can ask for several values
+#' ourValue <- c("pred","se")
+#' # And you can have constant holdout size
+#' ro(x, h=5, origins=20, ourCall, ourValue, ci=TRUE, co=TRUE)
+#'
+#' #### The following code will give exactly the same result as above,
+#' #### but computed in parallel using all but 1 core of CPU:
+#' \dontrun{ro(x, h=5, origins=20, ourCall, ourValue, ci=TRUE, co=TRUE, parallel=TRUE)}
+#'
+#'
+#' #### A more complicated example using the for loop and
+#' #### several time series
+#' x <- matrix(rnorm(120*3,0,1), 120, 3)
+#'
+#' ## Form an array for the forecasts we will produce
+#' ## We will have 4 origins with 6-steps ahead forecasts
+#' ourForecasts <- array(NA,c(6,4,3))
+#'
+#' ## Define models that need to be used for each series
+#' ourModels <- list(c(0,1,1), c(0,0,1), c(0,1,0))
+#'
+#' ## This call uses specific models for each time series
+#' ourCall <- "predict(arima(data, order=ourModels[[i]]), n.ahead=h)"
+#' ourValue <- "pred"
+#'
+#' ## Start the loop. The important thing here is to use the same variable 'i' as in ourCall.
+#' for(i in 1:3){
+#'     ourdata <- x[,i]
+#'     ourForecasts[,,i] <- ro(data=ourdata,h=6,origins=4,call=ourCall,
+#'                             value=ourValue,co=TRUE,silent=TRUE)$pred
+#' }
+#'
+#' ## ourForecasts array now contains rolling origin forecasts from specific
+#' ## models.
+#'
+#' ##### An example with exogenous variables
+#' x <- rnorm(100,0,1)
+#' xreg <- rnorm(100,0,1)
+#'
+#' ## 'counti' is used to define in-sample size of xreg,
+#' ## 'counto' - the size of the holdout sample of xreg
+#'
+#' ourCall <- "predict(arima(x=data, order=c(0,1,1), xreg=xreg[counti]),
+#'             n.ahead=h, newxreg=xreg[counto])"
+#' ourValue <- "pred"
+#' ro(x,h=5,origins=5,ourCall,ourValue)
+#'
+#'
+#' ## 'countfull' is used to take xreg of the size corresponding to the whole
+#' ## sample on each iteration
+#' ## This is useful when working with functions from smooth package.
+#' ## The following call will return the forecasts from es() function of smooth.
+#' \dontrun{ourCall <- "es(data=data, h=h, xreg=xreg[countfull])"
+#' ourValue <- "forecast"
+#' ro(x,h=5,origins=5,ourCall,ourValue)}
+#'
+#'
+#' @export ro
+ro <- function(data,h=10,origins=10,call,value=NULL,
+               ci=FALSE,co=FALSE,silent=TRUE,parallel=FALSE){
+    # Function makes Rolling Origin for the data using the call
+    #    Copyright (C) 2016  Yves Sagaert & Ivan Svetunkov
+    # Names of variables ivan41 and yves14 are given in order not to mess with the possible inner loops of "for(i in 1:n)" type.
+    l.value <- length(value);
+    if(!is.null(value)){
+        for(ivan41 in 1:l.value){
+            if(substring(value[ivan41],1,1)!="$"){
+                value[ivan41] <- paste0("$",value[ivan41])
+            }
+        }
+    }
+    else{
+        value <- "";
+        l.value <- 1;
+    }
+
+    # Check if the data is vector or ts
+    if(!is.numeric(data) & !is.ts(data)){
+        stop("The provided data is not a vector or ts object! Can't work with it!", call.=FALSE);
+    }
+
+    if(parallel){
+        if(!requireNamespace("foreach", quietly = TRUE)){
+            stop("In order to run the function in parallel, 'foreach' package must be installed.", call. = FALSE)
+        }
+        if(!requireNamespace("parallel", quietly = TRUE)){
+            stop("In order to run the function in parallel, 'parallel' package must be installed.", call. = FALSE)
+        }
+        # Detect number of cores for parallel calculations
+        crs <- min(parallel::detectCores() - 1, origins);
+
+        # Check the system and choose the package to use
+        #    else{
+        if(Sys.info()['sysname']=="Windows"){
+            if(requireNamespace("doParallel", quietly = TRUE)){
+                cat(paste0("Setting up ", crs, " clusters using 'doParallel'..."));
+                cat("\n");
+                cl <- parallel::makeCluster(crs);
+                doParallel::registerDoParallel(cl);
+            }
+            else{
+                stop("Sorry, but in order to run the function in parallel, you need 'doParallel' package.",
+                     call. = FALSE)
+            }
+        }
+        #    else(Sys.info()['sysname']=="Linux"){
+        else{
+            if(requireNamespace("doMC", quietly = TRUE)){
+                doMC::registerDoMC(crs);
+                cl <- NULL;
+            }
+            else if(requireNamespace("doParallel", quietly = TRUE)){
+                cat(paste0("Setting up ", crs, " clusters using 'doParallel'..."));
+                cat("\n");
+                cl <- parallel::makeCluster(crs);
+                doParallel::registerDoParallel(cl);
+            }
+            else{
+                stop("Sorry, but in order to run the function in parallel, you need either 'doMC' (prefered) or 'doParallel' packages.",
+                     call. = FALSE)
+            }
+        }
+    }
+
+    # Write down the start and frequency
+    data.start <- start(data)
+    data.freq <- frequency(data)
+
+    # Write down the entire dataset y and the original horizon
+    y <- data
+    hh <- h
+    obs <- length(y)
+    in.sample <- obs - origins
+
+    actuals <- matrix(NA,nrow=h,ncol=origins)
+    colnames(actuals) <- paste0("origin",c(1:origins))
+    rownames(actuals) <- paste0("h",c(1:h))
+
+    forecasts <- list(NA)
+    if(!silent & !parallel){
+        cat(paste0("Origins done:  "))
+    }
+    else if(!silent & parallel){
+        cat(paste0("Working..."))
+    }
+
+    ##### Start the main loop #####
+    if(!parallel){
+        if(!co){
+            for(ivan41 in 1:origins){
+                # Adjust forecasting horizon to not exeed the sample size
+                h <- min(hh,obs - (in.sample+ivan41-1))
+                # Make the in-sample
+                if(!ci){
+                    counti <- 1:(in.sample+ivan41);
+                }
+                else{
+                    counti <- ivan41:(in.sample+ivan41);
+                }
+                counto <- (in.sample+ivan41):(in.sample+ivan41+h-1);
+                countfull <- c(counti,counto);
+
+                data <- ts(y[counti],start=data.start,frequency=data.freq);
+                # Evaluate the call string and save to object o.m.
+                o.m <- eval(parse(text=call));
+                # Save the forecast and the corresponding actuals in matrices
+                for(yves14 in 1:l.value){
+                    forecasts[[(ivan41-1)*l.value+yves14]] <- eval(parse(text=paste0("o.m",value[yves14])))
+                }
+                actuals[1:h,ivan41] <- y[counto];
+                if(silent==FALSE){
+                    cat(paste(rep("\b",nchar(ivan41)),collapse=""));
+                    cat(ivan41);
+                }
+            }
+        }
+        else{
+            for(ivan41 in 1:origins){
+                # Make the in-sample
+                if(!ci){
+                    counti <- 1:(in.sample-h+ivan41);
+                }
+                else{
+                    counti <- ivan41:(in.sample-h+ivan41);
+                }
+                counto <- (in.sample+ivan41-h+1):(in.sample+ivan41);
+                countfull <- c(counti,counto);
+
+                data <- ts(y[counti],start=data.start,frequency=data.freq);
+                # Evaluate the call string and save to object o.m.
+                o.m <- eval(parse(text=call))
+                # Save the forecast and the corresponding actuals in matrices
+                for(yves14 in 1:l.value){
+                    forecasts[[(ivan41-1)*l.value+yves14]] <- eval(parse(text=paste0("o.m",value[yves14])));
+                }
+                actuals[,ivan41] <- y[counto];
+                if(!silent){
+                    cat(paste(rep("\b",nchar(ivan41)),collapse=""));
+                    cat(ivan41);
+                }
+            }
+        }
+    }
+    else{
+        ##### Use foreach for the loop #####
+        # But first make the list of the needed packages to pass to doParallel
+        callenvir <- globalenv();
+        callpackages <- search();
+        callpackages <- callpackages[c(-1,-length(callpackages))];
+        callpackages <- callpackages[substring(callpackages,1,7)=="package"];
+        callpackages <- substring(callpackages,9,nchar(callpackages));
+        callpackages <- callpackages[callpackages!="timeDate"];
+        callpackages <- callpackages[callpackages!="zoo"];
+        callpackages <- callpackages[callpackages!="stats"];
+        callpackages <- callpackages[callpackages!="graphics"];
+        callpackages <- callpackages[callpackages!="grDevices"];
+        callpackages <- callpackages[callpackages!="utils"];
+        callpackages <- callpackages[callpackages!="datasets"];
+        callpackages <- callpackages[callpackages!="methods"];
+
+        if(co==FALSE){
+            forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
+                # Adjust forecasting horizon to not exeed the sample size
+                h <- min(hh,obs - (in.sample+ivan41-1));
+                # Make the in-sample
+                if(ci==FALSE){
+                    counti <- 1:(in.sample+ivan41-1);
+                }
+                else{
+                    counti <- ivan41:(in.sample+ivan41-1);
+                }
+                counto <- (in.sample+ivan41):(in.sample+ivan41+h-1);
+                countfull <- c(counti,counto);
+
+                data <- ts(y[counti],start=data.start,frequency=data.freq);
+                # Evaluate the call string and save to object o.m.
+                o.m <- eval(parse(text=call));
+                # Save the forecast and the corresponding actuals in matrices
+                for(yves14 in 1:l.value){
+                    forecasts[[yves14]] <- eval(parse(text=paste0("o.m",value[yves14])));
+                }
+
+                return(forecasts);
+            })
+        }
+        else{
+            forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
+                # Make the in-sample
+                if(ci==FALSE){
+                    counti <- 1:(in.sample-h+ivan41-1);
+                }
+                else{
+                    counti <- ivan41:(in.sample-h+ivan41-1);
+                }
+                counto <- (in.sample+ivan41-h+1):(in.sample+ivan41);
+                countfull <- c(counti,counto);
+
+                data <- ts(y[counti],start=data.start,frequency=data.freq);
+                # Evaluate the call string and save to object o.m.
+                o.m <- eval(parse(text=call));
+                # Save the forecast and the corresponding actuals in matrices
+                for(yves14 in 1:l.value){
+                    forecasts[[yves14]] <- eval(parse(text=paste0("o.m",value[yves14])));
+                }
+
+                return(forecasts);
+            })
+        }
+
+        # Make the needed list if there were several values
+        forecasts <- unlist(forecasts,recursive=FALSE);
+
+        # Check if the clusters have been made
+        if(!is.null(cl)){
+            parallel::stopCluster(cl);
+        }
+
+        # Form matrix of actuals in a different loop...
+        if(co==FALSE){
+            for(ivan41 in 1:origins){
+                actuals[1:h,ivan41] <- y[(in.sample+ivan41):(in.sample+ivan41+h-1)]
+            }
+        }
+        else{
+            for(ivan41 in 1:origins){
+                actuals[,ivan41] <- y[(in.sample+ivan41-h+1):(in.sample+ivan41)]
+            }
+        }
+    }
+
+    if(silent==FALSE){
+        cat("\n")
+    }
+
+    returned.list <- list(actuals)
+
+    # Create several matrices from the list
+    if(all(value=="")){
+        if(is.matrix(forecasts[[1]])){
+            value <- colnames(forecasts[[1]]);
+            if(length(colnames(forecasts[[1]][[1]]))>1){
+                value.start <- 2;
+            }
+            else{
+                value.start <- 1;
+            }
+        }
+        # This must be just a vector
+        else if(!is.list(forecasts[[1]])){
+            value.start <- 1;
+        }
+        else{
+            value <- names(forecasts[[1]]);
+            if(length(names(forecasts[[1]][[1]]))>1){
+                value.start <- 2;
+            }
+            else{
+                value.start <- 1;
+            }
+            forecasts <- as.list(unlist(forecasts,recursive=FALSE));
+        }
+        l.value <- length(value);
+    }
+    else{
+        value <- substring(value,2,nchar(value));
+        value.start <- 1;
+    }
+
+    if(is.matrix(forecasts[[1]])){
+        for(ivan41 in value.start:l.value){
+            stuff.max.length <- max(nrow(forecasts[[ivan41]]),nrow(forecasts[[origins]]))
+            stuff <- matrix(NA,nrow=stuff.max.length,ncol=origins)
+            colnames(stuff) <- colnames(actuals)
+            for(yves14 in 1:origins){
+                stuff.length <- nrow(forecasts[[yves14]])
+                stuff[1:stuff.length,yves14] <- forecasts[[yves14]][,ivan41]
+            }
+            returned.list[[ivan41+1]] <- stuff
+        }
+    }
+    else if(!is.list(forecasts[[1]]) & all(value=="")){
+        forecasts <- unlist(forecasts,recursive=FALSE);
+        stuff <- matrix(forecasts,nrow=h,ncol=origins);
+        returned.list[[2]] <- stuff
+    }
+    else{
+        for(ivan41 in value.start:l.value){
+            stuff.max.length <- max(length(forecasts[[ivan41]]),length(forecasts[[l.value*(origins-1)+ivan41]]))
+            stuff <- matrix(NA,nrow=stuff.max.length,ncol=origins)
+            colnames(stuff) <- colnames(actuals)
+            for(yves14 in 1:origins){
+                stuff.length <- length(forecasts[[(yves14-1)*l.value+ivan41]])
+                stuff[1:stuff.length,yves14] <- forecasts[[(yves14-1)*l.value+ivan41]]
+            }
+            returned.list[[ivan41+1]] <- stuff
+        }
+    }
+
+    names(returned.list) <- c("actuals",value)
+    return(returned.list)
+}

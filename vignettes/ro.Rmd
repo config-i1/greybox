@@ -1,0 +1,194 @@
+---
+title: "Rolling Origin"
+author: "Ivan Svetunkov"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Greybox - Rolling Origin}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+
+library(greybox)
+```
+
+When there is a need to select the most appropriate forecasting model or method to the data, the forecasters usually split the available sample into two parts: in-sample (aka "training set") and holdout sample (or out-sample, or "test set"). The model is then estimated on in-sample and its forecasting performance is evaluated [using some error measure](https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/) on the holdout sample.
+
+If such a procedure done only once, then this is called "fixed origin" evaluation. However, the time series might contain outliers or level shifts and a poor model might perform better than the more appropriate because of that. In order to robustify the evaluation of models, an evaluation techinque called "rolling origin" is used.
+
+Rolling origin is an evaluation technique according to which the forecasting origin is updated successively and the forecasts are produced from each origin (Tashman, 2000). This technique allows obtaining several forecast errors for time series, which gives a better understanding of how the models perform. There are different options how this can be done.
+
+## How can this be done?
+
+The figure below (from Svetunkov & Petropoulos, 2018) depicts the basic idea of rolling origin. White cells correspond to the in-sample data, while the light grey cells correspond to the three-steps-ahead forecasts. Time series has 25 observations in that figure, and the forecasts are produced from 8 origins, starting from the origin 15. The model is reestimated on each iteration, and the forecasts are produced. After that a new observation is added at the end of the series and the procedure continues. The process stops when there is no more data to add. This could be considered as a rolling origin with a **constant holdout** sample size. As a result of this procedure 8 one to three steps ahead forecasts are produced. Based on them we can calculate the preferred error measures and choose the best performing model.
+
+```{r out.width="75%", echo=FALSE}
+# All defaults
+knitr::include_graphics("./img/ROProcessCO.gif")
+```
+
+Another option of producing forecasts from 8 origins would be to start from the origin 17 instead of 15 (see Figure below). In this case the procedure continues until origin 22, when the last three-steps-ahead forecast is produced, and then continues with the decreased forecasting horizon. So the two-steps-ahead forecast is produced from the origin 23 and only one-step-ahead forecast is produced from the origin 24. As a result we obtain 8 one-step-ahead forecasts, 7 two-steps-ahead forecasts and 6 three-steps-ahead forecasts. This can be considered as a rolling origin with a **non-constant holdout** sample size. This can be useful in cases of small samples, when every observation is important.
+
+```{r out.width="75%", echo=FALSE}
+# All defaults
+knitr::include_graphics("./img/ROProcessNoCO.gif")
+```
+
+Finally, in both of the cases above we had the **increasing in-sample** size. However for some research purposes we might need a **constant in-sample**. The figure below demonstrates such a situation. In this case we add one observation at the end of the series on each iteration and remove one from the beginning of the series (dark grey cells).
+
+```{r out.width="75%", echo=FALSE}
+# All defaults
+knitr::include_graphics("./img/ROProcessCOCI.gif")
+```
+
+## What does this have to do with R?
+
+The function `ro()` from grebox package implements the rolling origin evaluation for any function you like with a predefined `call` and returns the desired `values`. It is very flexible, but it is not very simple because of that.
+
+Let's start with a simple example, generating series from normal distribution:
+```{r}
+x <- rnorm(100,100,10)
+```
+
+We will evaluate several ARIMA models and then compare their performance. We start with ARIMA(0,1,1):
+```{r}
+ourCall <- "predict(arima(x=data,order=c(0,1,1)),n.ahead=h)"
+```
+
+The call that we specify includes two important elements: `data` and `h`. `data` specifies where the in-sample values are located in the function that we want to use, and it needs to be called `data` in the call. `h` will tell our function, where the forecasting horizon is specified in the selected function. Note that in this example we use `arima(x=data,order=c(0,1,1))`, which produces a desired ARIMA(0,1,1) model and then we use `predict(...,n.ahead=h)`, which produces a forecast from that model.
+
+Having the call, we need also to specify what the function should return. This can be the conditional mean (point forecasts), prediction intervals, the parameters of a model, or, in fact, anything that the model returns (e.g. name of the fitted model and its likelihood). The only requirement is that the value returned as a named element of a list. If it's not a list, then you don't need to specify value at all. In order not to overcomplicate things, let's collect the conditional mean:
+```{r}
+ourValue <- "pred"
+```
+
+Now that we have `ourCall` and `ourValue`, we can produce forecasts from the model using rolling origin. Let's say that we want three-steps-ahead forecasts and 8 origins with the default values of all the other parameters:
+```{r}
+returnedValues1 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue)
+```
+
+The function returns a list with all the values that we asked for plus the actual values from the holdout sample. We can calculate some basic error measure based on those values, for example, Mean Absolute Error:
+```{r}
+apply(abs(returnedValues1$actuals - returnedValues1$pred),1,mean,na.rm=TRUE)
+```
+
+In this example I use `apply()` function in order to distinguish between the different forecasting horizons and have an idea of how the model performs for each of them. In a similar manner we could evaluate the performance of some other model and compare the errors with the ones produced from the first one.
+
+If we notice, the matrices with actual values and the forecasts contain NAs:
+```{r}
+returnedValues1$actuals
+```
+
+This is because by defauls the holdout sample is set to be non-constant: `co=FALSE` (constant out-sample = FALSE). The in-sample is also set to non-constant, that is why the model will be reestimated on each iteration on the increasing sample. If we want to change that we might call `ro()` differently:
+```{r}
+returnedValues2 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=TRUE)
+```
+Note that the values from the `returnedValues2` are not directly comparable with the ones from `returnedValues1`,  because they are from different origins.
+
+## Making things more ~~exciting~~ complicated
+
+As you see, `ro()` is convinient function, when you have one model and one time series. But what if you need to apply different models on different time series? We would need a loop, right? Yes. And there is a simple way to use `ro()` in this case. Let's continue our example but now introduce several time series:
+```{r}
+x <- matrix(rnorm(120*3,c(100,50,150),c(10,5,15)), 120, 3, byrow=TRUE)
+```
+
+We would need an array of the returned values for this example:
+```{r}
+ourForecasts <- array(NA,c(3,2,3,8))
+```
+Here we will have 3 time series, 2 models and 3-steps-ahead forecasts from 8 origins. Our models will be saved in a separate lists. We will have ARIMA(0,1,1) and ARIMA(1,1,0) in this example:
+```{r}
+ourModels <- list(c(0,1,1), c(1,1,0))
+```
+We will return the same `pred` value from the function but we need to change the call, as now we will have to take these two different models into account:
+```{r}
+ourCall <- "predict(arima(data, order=ourModels[[i]]), n.ahead=h)"
+```
+As you see, instead of specifying the model directly, we use the i-th element of the list.
+
+We also want to save the actual values from the holdout in order to be able to calculate the error measures:
+```{r}
+ourHoldoutValues <- array(NA,c(3,3,8))
+```
+This array has dimensions for 3 time series and 3-steps-ahead forecast from 8 origins.
+
+Finally, we can write a loop and produce the forecasts:
+```{r}
+for(j in 1:3){
+    for(i in 1:2){
+        ourdata <- x[,j]
+        ourROReturn <- ro(data=ourdata, h=3, origins=8, call=ourCall,
+                          value=ourValue, co=TRUE)
+        ourForecasts[j,i,,] <- ourROReturn$pred
+    }
+    ourHoldoutValues[j,,] <- ourROReturn$actuals
+}
+```
+Although we do not specify `i` explicitly anywhere in the call of `ro()` above, it is used in `ourCall` and as a result the different models will be estimated in the inner loop. Comparing the performance of the two on the different time series we have (this is something similar to RelMAE):
+
+```{r}
+mean(apply(abs(ourHoldoutValues - ourForecasts[,1,,]),1,mean,na.rm=TRUE) / apply(abs(ourHoldoutValues - ourForecasts[,2,,]),1,mean,na.rm=TRUE))
+```
+So based on these results, it can be concluded, that ARIMA(0,1,1) is more accurate than ARIMA(1,1,0) on our three time series.
+
+## Making things even more ~~complicated~~ exciting
+
+For the last example we will create the data frame and try fitting linear regression:
+```{r}
+xreg <- matrix(rnorm(120*3,c(100,50,150),c(10,5,15)), 120, 3, byrow=TRUE)
+y <- 0.5*xreg[,1] + 0.2*xreg[,2] + 0.75*xreg[,3] + rnorm(120,0,10)
+xreg <- cbind(y,xreg)
+colnames(xreg) <- c("y",paste0("x",c(1:3)))
+xreg <- as.data.frame(xreg)
+```
+
+Note that in this example we will cheat `ro()` function and make a call, that does not contain either `data` or `h`, because the regression implemented in `lm()` function relies on data frames and does not use forecasting horizon:
+```{r}
+ourCall <- "predict(lm(y~x1+x2+x3,xreg[counti,]),newdata=xreg[counto,],interval='p')"
+```
+In this case we just need to make sure that the Global Environment contains the xreg data frame. `counti` variable is needed for the internal loop - it determines the length of the in-sample. Similarly `counto` specifies the length of the holdout. Both of them are defined inside the `ro()` function.
+
+In addition, we don't need to specify `ourValue`, because the function `predict.lm()` returns a matrix with values (or a vector if we don't ask for intervals), not a list. The final call to `ro()` is as usual pretty simple:
+```{r}
+ourROReturn <- ro(y, h=3, origins=8, call=ourCall, ci=TRUE, co=TRUE)
+```
+
+As a final example, we consider ARIMAX model for the following data:
+```{r}
+xreg <- matrix(rnorm(120*3,c(100,50,150),c(10,5,15)), 120, 3, byrow=TRUE)
+y <- 0.5*xreg[,1] + 0.2*xreg[,2] + 0.75*xreg[,3] + rnorm(120,0,10)
+colnames(xreg) <- paste0("x",c(1:3))
+xreg <- as.data.frame(xreg)
+```
+and modify the call accordingly:
+```{r}
+ourCall <- "predict(arima(x=data, order=c(0,1,1), xreg=xreg[counti,]), n.ahead=h, newxreg=xreg[counto,])"
+```
+Taking that now we deal with ARIMA, we need to specify both `data` and `h`. As usual, we will need our function to return the specific predicted values:
+```{r}
+ourValue <- "pred"
+```
+And then we call for the function and get the results:
+```{r}
+ourROReturn <- ro(x, h=3, origins=8, call=ourCall, value=ourValue)
+```
+
+As a side note, if you use `smooth` package for R and want to do rolling origin evaluation, for example, for ETSX model using `es()` function, the call can be modified to:
+```{r}
+ourCall <- "es(x=data, xreg=xreg[countfull,]), h=h)"
+```
+Here we use `countfull` variable, which specifies that we need to use both in-sample and the holdout, as the function `es()` does not rely on `forecast()` or `predict()` and produces forecasts internally.
+
+Finally, all of the examples mentioned above can be done in parallel, which is triggered by `parallel` parameter. Note that this might be useful for cases, when number of origins is very high and the sample size is large. Otherwise this might be less efficient than serial calculation. If you want to do anything in parallel, then you either need `doMC` package (Linux and Mac OS) or `doParallel` (for Windows) package in R. The number of cores used in this case is equal to the number of cores of your CPU minus one.
+
+## References
+
+1. Tashman (2000). Out-of-sample tests of forecasting accuracy: an analysis and review. International Journal of Forecasting, 16, pp. 437-450. DOI: [10.1016/S0169-2070(00)00065-0](https://doi.org/10.1016/S0169-2070(00)00065-0).
+2. Svetunkov, Petropoulos (2017). Old dog, new tricks: a modelling view of simple moving averages. International Journal of Production Research, DOI: [10.1080/00207543.2017.1380326](https://dx.doi.org/10.1080/00207543.2017.1380326)
+

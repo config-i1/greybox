@@ -1,10 +1,11 @@
-greybox v0.2.1 (Release data: 2018-04-25)
+greybox v0.2.1 (Release data: 2018-04-29)
 ==============
 
 Changes:
 * print.summary now specifies digits. Summary does not round up anything. This corresponds to the normal behaviour of these methods.
 * Implemented Laplace distribution, which is useful when models are estimated using MAE.
 * Sped up qs() and qlaplace() functions using the inverse cumulative functions.
+* New function - ro() - Rolling origin.
 
 Bugfixes:
 * qs() returned weird values when several 0 and 1 were specified as probabilities.
