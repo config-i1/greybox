@@ -49,14 +49,14 @@ knitr::include_graphics("./img/ROProcessCOCI.gif")
 
 ## What does this have to do with R?
 
-The function `ro()` from grebox package implements the rolling origin evaluation for any function you like with a predefined `call` and returns the desired `values`. It is very flexible, but it is not very simple because of that.
+The function `ro()` from `greybox` package (written by Yves Sagaert and Ivan Svetunkov in 2016) implements the rolling origin evaluation for any function you like with a predefined `call` and returns the desired `value`. It mainly relies on the `call` and the produced `value`, so it is quite important to understand how to formulate them in order to get the desired results. Overal, `ro()` is a very flexible function, but, as a result, it is not very simple. Let's see how it works.
 
-Let's start with a simple example, generating series from normal distribution:
+We start with a simple example, generating series from normal distribution:
 ```{r}
 x <- rnorm(100,100,10)
 ```
 
-We will evaluate several ARIMA models and then compare their performance. We start with ARIMA(0,1,1):
+We will use ARIMA(0,1,1) for this example:
 ```{r}
 ourCall <- "predict(arima(x=data,order=c(0,1,1)),n.ahead=h)"
 ```
