@@ -19,7 +19,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
-#' @param ham vector of half absolute moments.
+#' @param b vector of scaling parameter (which equalt sot ham/2).
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'
@@ -57,8 +57,7 @@
 #' @rdname s-distribution
 #' @export ds
 #' @aliases ds
-ds <- function(q, mu=0, ham=2, log=FALSE){
-    b <- ham / 2;
+ds <- function(q, mu=0, b=1, log=FALSE){
     svetReturn <- 1/(4*b^2)*exp(-sqrt(abs(mu-q))/b);
     if(log){
         svetReturn <- log(svetReturn);
@@ -69,8 +68,7 @@ ds <- function(q, mu=0, ham=2, log=FALSE){
 #' @rdname s-distribution
 #' @export ps
 #' @aliases ps
-ps <- function(q, mu=0, ham=2){
-    b <- ham / 2;
+ps <- function(q, mu=0, b=1){
     svetReturn <- 0.5+0.5*sign(q-mu)*(1-1/b*(sqrt(abs(mu-q))+b)*exp(-sqrt(abs(mu-q))/b))
     return(svetReturn);
 }
@@ -79,8 +77,7 @@ ps <- function(q, mu=0, ham=2){
 #' @export qs
 #' @importFrom lamW lambertWm1
 #' @aliases qs
-qs <- function(p, mu=0, ham=2){
-    b <- ham / 2;
+qs <- function(p, mu=0, b=1){
     svetReturn <- array(0,c(length(p),length(mu),length(b)),
                         dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("ham=",ham)));
     svetReturn[p==0.5,,] <- 1;
@@ -125,7 +122,7 @@ qs <- function(p, mu=0, ham=2){
 #' @rdname s-distribution
 #' @export rs
 #' @aliases rs
-rs <- function(n=1, mu=0, ham=2){
-    svetReturn <- qs(runif(n,0,1),mu,ham);
+rs <- function(n=1, mu=0, b=1){
+    svetReturn <- qs(runif(n,0,1),mu,b);
     return(svetReturn);
 }

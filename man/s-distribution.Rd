@@ -7,20 +7,20 @@
 \alias{rs}
 \title{S Distribution}
 \usage{
-ds(q, mu = 0, ham = 2, log = FALSE)
+ds(q, mu = 0, b = 1, log = FALSE)
 
-ps(q, mu = 0, ham = 2)
+ps(q, mu = 0, b = 1)
 
-qs(p, mu = 0, ham = 2)
+qs(p, mu = 0, b = 1)
 
-rs(n = 1, mu = 0, ham = 2)
+rs(n = 1, mu = 0, b = 1)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
 \item{mu}{vector of location parameters (means).}
 
-\item{ham}{vector of half absolute moments.}
+\item{b}{vector of scaling parameter (which equalt sot ham/2).}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}
