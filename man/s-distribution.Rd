@@ -49,7 +49,7 @@ or an array.
 \description{
 Density, cumulative distribution, quantile functions and random
 generation for the S distribution with the location parameter mu
-and half absolute moment equal to ham.
+and a scaling parameter b.
 }
 \details{
 When mu=0 and ham=2, the S distribution becomes standardized with
@@ -61,15 +61,15 @@ f(x) = 1/(4b^2) exp(-sqrt(abs(x-mu)) / b)
 The S distribution has fat tails and large excess.
 }
 \examples{
-x <- ds(c(-1000:1000)/10, 0, 2)
+x <- ds(c(-1000:1000)/10, 0, 1)
 plot(x, type="l")
 
-x <- ps(c(-1000:1000)/10, 0, 2)
+x <- ps(c(-1000:1000)/10, 0, 1)
 plot(x, type="l")
 
-qs(c(0.025,0.975), 0, 2)
+qs(c(0.025,0.975), 0, 1)
 
-x <- rs(1000, 0, 2)
+x <- rs(1000, 0, 1)
 hist(x)
 
 }
