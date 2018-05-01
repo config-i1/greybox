@@ -8,7 +8,7 @@ combiner(data, ic = c("AICc", "AIC", "BIC"), bruteForce = FALSE,
   silent = TRUE)
 }
 \arguments{
-\item{data}{Data frame containing dependant variable in the first column and
+\item{data}{Data frame containing dependent variable in the first column and
 the others in the rest.}
 
 \item{ic}{Information criterion to use.}

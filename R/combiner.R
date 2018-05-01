@@ -10,7 +10,7 @@
 #' @template author
 #' @template keywords
 #'
-#' @param data Data frame containing dependant variable in the first column and
+#' @param data Data frame containing dependent variable in the first column and
 #' the others in the rest.
 #' @param ic Information criterion to use.
 #' @param bruteForce If \code{TRUE}, then all the possible models are generated

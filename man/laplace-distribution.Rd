@@ -49,7 +49,7 @@ or a matrix or an array.
 \description{
 Density, cumulative distribution, quantile functions and random
 generation for the Laplace distribution with the location parameter mu
-and Mean Absolute Error (or Mean Aboslute Deviation) equal to b.
+and Mean Absolute Error (or Mean Absolute Deviation) equal to b.
 }
 \details{
 When mu=0 and b=1, the Laplace distribution becomes standardized with.

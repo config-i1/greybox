@@ -20,7 +20,7 @@ rs(n = 1, mu = 0, b = 1)
 
 \item{mu}{vector of location parameters (means).}
 
-\item{b}{vector of scaling parameter (which equalt sot ham/2).}
+\item{b}{vector of scaling parameter (which equals to ham/2).}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}

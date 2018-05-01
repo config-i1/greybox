@@ -19,7 +19,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
-#' @param b vector of scaling parameter (which equalt sot ham/2).
+#' @param b vector of scaling parameter (which equals to ham/2).
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'
