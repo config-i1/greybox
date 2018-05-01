@@ -2,7 +2,7 @@
 #'
 #' Density, cumulative distribution, quantile functions and random
 #' generation for the S distribution with the location parameter mu
-#' and half absolute moment equal to ham.
+#' and a scaling parameter b.
 #'
 #' When mu=0 and ham=2, the S distribution becomes standardized with
 #' b=1 (this is because b=ham/2). The distribution has the following
@@ -40,15 +40,15 @@
 #' }
 #'
 #' @examples
-#' x <- ds(c(-1000:1000)/10, 0, 2)
+#' x <- ds(c(-1000:1000)/10, 0, 1)
 #' plot(x, type="l")
 #'
-#' x <- ps(c(-1000:1000)/10, 0, 2)
+#' x <- ps(c(-1000:1000)/10, 0, 1)
 #' plot(x, type="l")
 #'
-#' qs(c(0.025,0.975), 0, 2)
+#' qs(c(0.025,0.975), 0, 1)
 #'
-#' x <- rs(1000, 0, 2)
+#' x <- rs(1000, 0, 1)
 #' hist(x)
 #'
 #' @rdname s-distribution
@@ -79,7 +79,7 @@ ps <- function(q, mu=0, b=1){
 #' @aliases qs
 qs <- function(p, mu=0, b=1){
     svetReturn <- array(0,c(length(p),length(mu),length(b)),
-                        dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("ham=",ham)));
+                        dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b)));
     svetReturn[p==0.5,,] <- 1;
     svetReturn[p==0,,] <- -Inf;
     svetReturn[p==1,,] <- Inf;
