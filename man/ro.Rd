@@ -18,7 +18,7 @@ ro(data, h = 10, origins = 10, call, value = NULL, ci = FALSE,
 Example: \code{"forecast(ets(data),h)"}. Here \code{data} shows where the data is
 and \code{h} defines where the horizon should be passed in the \code{call}. Some
 hidden parameters can also be specified in the call. For example, parameters
-\code{counti}, \code{counto} and \code{countfull} are used in the inner loop
+\code{counti}, \code{counto} and \code{countf} are used in the inner loop
 and can be used for the regulation of exogenous variables sizes. See examples
 for the details.}
 
@@ -124,11 +124,11 @@ ourValue <- "pred"
 ro(x,h=5,origins=5,ourCall,ourValue)
 
 
-## 'countfull' is used to take xreg of the size corresponding to the whole
+## 'countf' is used to take xreg of the size corresponding to the whole
 ## sample on each iteration
 ## This is useful when working with functions from smooth package.
 ## The following call will return the forecasts from es() function of smooth.
-\dontrun{ourCall <- "es(data=data, h=h, xreg=xreg[countfull])"
+\dontrun{ourCall <- "es(data=data, h=h, xreg=xreg[countf])"
 ourValue <- "forecast"
 ro(x,h=5,origins=5,ourCall,ourValue)}
 
