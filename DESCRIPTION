@@ -23,7 +23,6 @@ Imports:
     stats,
     graphics,
     utils,
-    zoo,
     lamW
 Suggests:
     smooth,
