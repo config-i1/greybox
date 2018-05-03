@@ -9,6 +9,13 @@ greybox v0.2.1 (Release data: 2018-05-01)
 ==============
 
 Changes:
+* New description of the package and badges in README.md
+
+
+greybox v0.2.1 (Release data: 2018-05-01)
+==============
+
+Changes:
 * print.summary now specifies digits. Summary does not round up anything. This corresponds to the normal behaviour of these methods.
 * Implemented Laplace distribution, which is useful when models are estimated using MAE.
 * Sped up qs() and qlaplace() functions using the inverse cumulative functions.
