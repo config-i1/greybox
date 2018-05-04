@@ -12,9 +12,8 @@ The list of included functions:
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
-2. multicor - multiple correlations coefficient.
-3. lmAdvanced - linear regression with MAE / HAM / MAPE / etc.
-4. vcov, confint, forecast - methods for stepwise and combined regressions.
+2. lmAdvanced - linear regression with MAE / HAM / MAPE / etc.
+3. vcov, confint, forecast - methods for stepwise and combined regressions.
 
 Methods already implemented:
 1. summary - returns summary of the regression (either selected or combined).
