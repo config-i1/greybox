@@ -39,7 +39,7 @@
 #' xreg <- matrix(rnorm(20000,10,3),100,200)
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y",paste0("x",c(1:200)),"Noise")
-#' ourModel <- stepwise(xreg,ic="AICc",method="s")
+#' ourModel <- stepwise(xreg,ic="AICc")
 #' plot(ourModel$ICs,type="l",ylim=range(min(ourModel$ICs),max(ourModel$ICs)+5))
 #' points(ourModel$ICs)
 #' text(c(1:length(ourModel$ICs))+0.1,ourModel$ICs+5,names(ourModel$ICs))
@@ -79,7 +79,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
     testModel <- lm(as.formula(testFormula),data=ourData);
     # Write down the logLik and take df into account
     logLikValue <- logLik(testModel);
-    attributes(logLikValue)$df <- attributes(logLikValue)$df + df;
+    attributes(logLikValue)$df <- nParam(logLikValue) + df;
     # Write down the IC. This one needs to be calculated from the logLik
     # in order to take the additional df into account.
     currentIC <- bestIC <- IC(logLikValue);
@@ -114,7 +114,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
         testModel <- lm(as.formula(testFormula),data=ourData);
         # Modify logLik
         logLikValue <- logLik(testModel);
-        attributes(logLikValue)$df <- attributes(logLikValue)$df + df;
+        attributes(logLikValue)$df <- nParam(logLikValue) + df;
         if(attributes(logLikValue)$df >= (obs+1)){
             if(!silent){
                 warning("Number of degrees of freedom is greater than number of observations. Cannot proceed.");

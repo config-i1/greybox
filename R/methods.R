@@ -143,6 +143,12 @@ nParam.default <- function(object, ...){
 }
 
 #' @export
+nParam.logLik <- function(object, ...){
+    # The length of the vector of parameters + variance
+    return(attributes(object)$df);
+}
+
+#' @export
 nParam.greyboxC <- function(object, ...){
     # The length of the vector of parameters + variance
     return(sum(object$importance)+1);
