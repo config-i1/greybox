@@ -10,18 +10,18 @@
 #' for the models with normally distributed residuals. BICc was derived in
 #' McQuarrie (1999) and is used in similar circumstances.
 #'
-#' Note that both of the criteria can only be used for univariate models
+#' IMPORTANT NOTE: both of the criteria can only be used for univariate models
 #' (regression models, ARIMA, ETS etc) with normally distributed residuals!
 #'
 #' @aliases AICc
+#' @template author
+#' @template AICRef
+#'
 #' @param object Time series model.
 #' @param ...  Some stuff.
 #' @return This function returns numeric value.
-#' @author Ivan Svetunkov, \email{ivan@@svetunkov.ru}
 #' @seealso \link[stats]{AIC}, \link[stats]{BIC}
 #' @references \itemize{
-#' \item Burnham K.P., Anderson D.R. (1998). Model Selection
-#' and Multimodel Inference. Springer Science & Business Media.
 #' \item McQuarrie A.D., A small-sample correction for the Schwarz SIC
 #' model selection criterion, Statistics & Probability Letters 44 (1999)
 #' pp.79-86. \doi{10.1016/S0167-7152(98)00294-6}
@@ -42,7 +42,7 @@
 #' AICc(ourModel,h=10)
 #' BICc(ourModel,h=10)
 #'
-#' @rdname Information-Criteria
+#' @rdname InformationCriteria
 #' @export AICc
 AICc <- function(object, ...) UseMethod("AICc")
 

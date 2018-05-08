@@ -2,12 +2,9 @@
 % Please edit documentation in R/methods.R
 \name{AICc}
 \alias{AICc}
-\alias{BICc}
 \title{Corrected Akaike's Information Criterion and Bayesian Information Criterion}
 \usage{
 AICc(object, ...)
-
-BICc(object, ...)
 }
 \arguments{
 \item{object}{Time series model.}
@@ -27,7 +24,7 @@ AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples
 for the models with normally distributed residuals. BICc was derived in
 McQuarrie (1999) and is used in similar circumstances.
 
-Note that both of the criteria can only be used for univariate models
+IMPORTANT NOTE: both of the criteria can only be used for univariate models
 (regression models, ARIMA, ETS etc) with normally distributed residuals!
 }
 \examples{
@@ -44,8 +41,12 @@ BICc(ourModel,h=10)
 }
 \references{
 \itemize{
-\item Burnham K.P., Anderson D.R. (1998). Model Selection
-and Multimodel Inference. Springer Science & Business Media.
+\item Burnham Kenneth P. and Anderson David R. (2002). Model Selection
+and Multimodel Inference. A Practical Information-Theoretic Approach.
+Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.
+}
+
+\itemize{
 \item McQuarrie A.D., A small-sample correction for the Schwarz SIC
 model selection criterion, Statistics & Probability Letters 44 (1999)
 pp.79-86. \doi{10.1016/S0167-7152(98)00294-6}
