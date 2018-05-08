@@ -46,7 +46,7 @@
 #' @export AICc
 AICc <- function(object, ...) UseMethod("AICc")
 
-#' @rdname Information-Criteria
+#' @rdname InformationCriteria
 #' @aliases BICc
 #' @export BICc
 BICc <- function(object, ...) UseMethod("BICc")

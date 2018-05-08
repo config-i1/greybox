@@ -2,9 +2,12 @@
 % Please edit documentation in R/methods.R
 \name{AICc}
 \alias{AICc}
+\alias{BICc}
 \title{Corrected Akaike's Information Criterion and Bayesian Information Criterion}
 \usage{
 AICc(object, ...)
+
+BICc(object, ...)
 }
 \arguments{
 \item{object}{Time series model.}
