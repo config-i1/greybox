@@ -52,7 +52,7 @@
 #' @importFrom stats dnorm
 #'
 #' @export combiner
-combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TRUE){
+combiner <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -73,6 +73,9 @@ combiner <- function(data, ic=c("AICc","AIC","BIC"), bruteForce=FALSE, silent=TR
     }
     else if(ic=="BIC"){
         IC <- BIC;
+    }
+    else if(ic=="BICc"){
+        IC <- BICc;
     }
 
     # Observations in sample, assuming that the missing values are for the holdout

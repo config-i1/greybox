@@ -45,7 +45,7 @@
 #' text(c(1:length(ourModel$ICs))+0.1,ourModel$ICs+5,names(ourModel$ICs))
 #'
 #' @export stepwise
-stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
+stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman")){
 ##### Function that selects variables based on IC and using partial correlations
     ourData <- data;
@@ -67,6 +67,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC"), silent=TRUE, df=NULL,
     }
     else if(ic=="BIC"){
         IC <- BIC;
+    }
+    else if(ic=="BICc"){
+        IC <- BICc;
     }
 
     method <- method[1];

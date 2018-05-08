@@ -1,13 +1,17 @@
 ##### IC functions #####
 
-#' Corrected Akaike's Information Criterion
+#' Corrected Akaike's Information Criterion and Bayesian Information Criterion
 #'
-#' This function extracts AICc from models. Can be applied to wide variety of
-#' models that use logLik() and nobs() methods (including the popular lm,
-#' forecast, smooth).
+#' This function extracts AICc / BICc from models. It can be applied to wide
+#' variety of models that use logLik() and nobs() methods (including the
+#' popular lm, forecast, smooth classes).
 #'
 #' AICc was proposed by Nariaki Sugiura in 1978 and is used on small samples
-#' for the models with normally distributed residuals.
+#' for the models with normally distributed residuals. BICc was derived in
+#' McQuarrie (1999) and is used in similar circumstances.
+#'
+#' Note that both of the criteria can only be used for univariate models
+#' (regression models, ARIMA, ETS etc) with normally distributed residuals!
 #'
 #' @aliases AICc
 #' @param object Time series model.
@@ -15,8 +19,17 @@
 #' @return This function returns numeric value.
 #' @author Ivan Svetunkov, \email{ivan@@svetunkov.ru}
 #' @seealso \link[stats]{AIC}, \link[stats]{BIC}
-#' @references Kenneth P. Burnham, David R. Anderson (1998). Model Selection
+#' @references \itemize{
+#' \item Burnham K.P., Anderson D.R. (1998). Model Selection
 #' and Multimodel Inference. Springer Science & Business Media.
+#' \item McQuarrie A.D., A small-sample correction for the Schwarz SIC
+#' model selection criterion, Statistics & Probability Letters 44 (1999)
+#' pp.79-86. \doi{10.1016/S0167-7152(98)00294-6}
+#' \item Sugiura Nariaki (1978) Further analysts of the data by Akaike's
+#' information criterion and the finite corrections, Communications in
+#' Statistics - Theory and Methods, 7:1, 13-26,
+#' \doi{10.1080/03610927808827599}
+#' }
 #' @keywords htest
 #' @examples
 #'
@@ -27,15 +40,22 @@
 #' ourModel <- stepwise(xreg)
 #'
 #' AICc(ourModel,h=10)
+#' BICc(ourModel,h=10)
 #'
+#' @rdname Information-Criteria
 #' @export AICc
 AICc <- function(object, ...) UseMethod("AICc")
+
+#' @rdname Information-Criteria
+#' @aliases BICc
+#' @export BICc
+BICc <- function(object, ...) UseMethod("BICc")
 
 
 #' @export
 AICc.default <- function(object, ...){
     llikelihood <- logLik(object);
-    nParamAll <- attributes(llikelihood)$df;
+    nParamAll <- nParam(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     obs <- nobs(object);
 
@@ -44,6 +64,17 @@ AICc.default <- function(object, ...){
     return(IC);
 }
 
+#' @export
+BICc.default <- function(object, ...){
+    llikelihood <- logLik(object);
+    nParamAll <- nParam(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    obs <- nobs(object);
+
+    IC <- - 2*llikelihood + (nParamAll * log(obs) * obs) / (obs - nParamAll - 1);
+
+    return(IC);
+}
 
 #' @importFrom forecast getResponse
 #' @export

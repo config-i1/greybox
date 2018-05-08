@@ -4,7 +4,7 @@
 \alias{combiner}
 \title{Combine regressions based on information criteria}
 \usage{
-combiner(data, ic = c("AICc", "AIC", "BIC"), bruteForce = FALSE,
+combiner(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteForce = FALSE,
   silent = TRUE)
 }
 \arguments{

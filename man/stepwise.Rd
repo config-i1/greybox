@@ -4,8 +4,8 @@
 \alias{stepwise}
 \title{Stepwise selection of regressors}
 \usage{
-stepwise(data, ic = c("AICc", "AIC", "BIC"), silent = TRUE, df = NULL,
-  method = c("pearson", "kendall", "spearman"))
+stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
+  df = NULL, method = c("pearson", "kendall", "spearman"))
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and
