@@ -13,11 +13,22 @@ Toolbox for working with multivariate models for purposes of analysis and foreca
 2018-02-13 - Inf\cr License: \tab GPL-2 \cr } The following functions are
 included in the package:
 \itemize{
-\item \link[greybox]{AICc} - AIC corrected for the sample size.
+\item \link[greybox]{AICc} and \link[greybox]{BICc} - AIC / BIC corrected for the
+sample size.
+\item \link[greybox]{determination} - Coefficients of determination between different
+exogenous variables.
 \item \link[greybox]{stepwise} - Stepwise based on information criteria and partial
 correlations. Efficient and fast.
 \item \link[greybox]{xregExpander} - Function that expands the provided data into
 the data with lags and leads.
+\item \link[greybox]{combiner} - Function combines lm models from the estimated
+based on information criteria weigths.
+\item \link[greybox]{ro} - Rolling origin evaluation.
+\item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
+\link[greybox]{plaplace}, \link[greybox]{rlaplace} - Laplace distribution and the
+respective functions.
+\item \link[greybox]{qs}, \link[greybox]{ds}, \link[greybox]{ps},
+\link[greybox]{rs} - S distribution and the respective functions.
 }
 }
 \examples{

@@ -1,4 +1,4 @@
-greybox v0.2.2 (Release data: 2018-05-08)
+greybox v0.2.2 (Release data: 2018-05-15)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * New function - determination() - returns R-squares for the provided data. This can be useful when you need to analyse the multicollinearity effect.
 * nParam method for logLik class.
 * BICc - new method for the classes, implementing, guess what?
+* Updated description of the package in the help file.
 
 
 greybox v0.2.1 (Release data: 2018-05-01)

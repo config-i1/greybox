@@ -6,7 +6,7 @@
 #' between all the provided variables. The higher the coefficient is,
 #' the higher the potential multicollinearity effect in the model with
 #' the variables will be. Coefficients of determination are connected
-#' directly with Variance Inflation Factor (VIF): VIF = 1 / (1 -
+#' directly to Variance Inflation Factor (VIF): VIF = 1 / (1 -
 #' determination). Arguably it is easier to interpret, because it is
 #' restricted with (0, 1) bounds. The multicollinearity can be
 #' considered as serious, when determination > 0.9 (which corresponds
