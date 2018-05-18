@@ -1,4 +1,4 @@
-greybox v0.2.2 (Release data: 2018-05-15)
+greybox v0.2.2 (Release data: 2018-05-18)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * nParam method for logLik class.
 * BICc - new method for the classes, implementing, guess what?
 * Updated description of the package in the help file.
+* ro() now returns a class and has print and plot methods associated with it.
 
 
 greybox v0.2.1 (Release data: 2018-05-01)

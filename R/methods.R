@@ -186,6 +186,31 @@ nParam.greyboxC <- function(object, ...){
 }
 
 #' @export
+plot.greybox <- function(x, ...){
+    ellipsis <- list(...);
+    # If type and ylab are not provided, set them...
+    if(!any(names(ellipsis)=="type")){
+        ellipsis$type <- "l";
+    }
+    if(!any(names(ellipsis)=="ylab")){
+        ellipsis$ylab <- colnames(x$model)[1];
+    }
+
+    ellipsis$x <- getResponse(x);
+    yFitted <- fitted(x);
+
+    do.call(plot,ellipsis);
+    lines(yFitted, col="red");
+    if(yFitted[length(yFitted)]>mean(yFitted)){
+        legelndPosition <- "bottomright";
+    }
+    else{
+        legelndPosition <- "topright";
+    }
+    legend(legelndPosition,legend=c("Actuals","Fitted"),col=c("black","red"),lwd=rep(1,2));
+}
+
+#' @export
 plot.forecast.greybox <- function(x, ...){
     yActuals <- getResponse(x$model);
     yStart <- start(yActuals);
@@ -226,6 +251,44 @@ plot.forecast.greybox <- function(x, ...){
         }
         else{
             smooth::graphmaker(yActuals, yForecast, yFitted);
+        }
+    }
+}
+
+#' @importFrom grDevices rgb
+#' @export
+plot.rollingOrigin <- function(x, ...){
+    y <- x$actuals;
+    yDeltat <- deltat(y);
+
+    # How many tables we have
+    dimsOfHoldout <- dim(x$holdout);
+    dimsOfThings <- lapply(x,dim);
+    thingsToPlot <- 0;
+    # 1 - actuals, 2 - holdout
+    for(i in 3:length(dimsOfThings)){
+        thingsToPlot <- thingsToPlot + all(dimsOfThings[[i]]==dimsOfHoldout)*1;
+    }
+
+    # Define basic parameters
+    co <- !any(is.na(x$holdout[,ncol(x$holdout)]));
+    h <- nrow(x$holdout);
+    roh <- ncol(x$holdout);
+
+    # Define the start of the RO
+    roStart <- length(y)-h;
+    roStart <- start(y)[1]+yDeltat*(roStart-roh*co);
+
+    # Start plotting
+    plot(y, ylab="Actuals", ylim=range(min(unlist(lapply(x,min,na.rm=T)),na.rm=T),
+                                       max(unlist(lapply(x,max,na.rm=T)),na.rm=T)),
+         ...);
+    abline(v=roStart, col="red", lwd=2);
+    for(j in 1:thingsToPlot){
+        colCurrent <- rgb((j-1)/thingsToPlot,0,(thingsToPlot-j+1)/thingsToPlot,1);
+        for(i in 1:roh){
+            points(roStart+i*yDeltat,x[[2+j]][1,i],col=colCurrent,pch=16);
+            lines(c(roStart + (0:(h-1)+i)*yDeltat),c(x[[2+j]][,i]),col=colCurrent);
         }
     }
 }
@@ -278,28 +341,20 @@ print.forecast.greybox <- function(x, ...){
     print(ourMatrix);
 }
 
-plot.greybox <- function(x, ...){
-    ellipsis <- list(...);
-    # If type and ylab are not provided, set them...
-    if(!any(names(ellipsis)=="type")){
-        ellipsis$type <- "l";
-    }
-    if(!any(names(ellipsis)=="ylab")){
-        ellipsis$ylab <- colnames(x$model)[1];
-    }
+#' @export
+print.rollingOrigin <- function(x, ...){
+    co <- !any(is.na(x$holdout[,ncol(x$holdout)]));
+    h <- nrow(x$holdout);
+    roh <- ncol(x$holdout);
 
-    ellipsis$x <- getResponse(x);
-    yFitted <- fitted(x);
-
-    do.call(plot,ellipsis);
-    lines(yFitted, col="red");
-    if(yFitted[length(yFitted)]>mean(yFitted)){
-        legelndPosition <- "bottomright";
+    if(co){
+        cat(paste0("Rolling Origin with constant holdout was done.\n"));
     }
     else{
-        legelndPosition <- "topright";
+        cat(paste0("Rolling Origin with decreasing holdout was done.\n"));
     }
-    legend(legelndPosition,legend=c("Actuals","Fitted"),col=c("black","red"),lwd=rep(1,2));
+    cat(paste0("Forecast horizon is ",h,"\n"));
+    cat(paste0("Number of origins is ",roh,"\n"));
 }
 
 #' @importFrom stats sigma

@@ -39,7 +39,8 @@
 #'
 #' @return Function returns the following variables:
 #' \itemize{
-#' \item{\code{actuals} - the matrix of actual values corresponding to the
+#' \item{\code{actuals} - the data provided to the function.}
+#' \item{\code{holdout} - the matrix of actual values corresponding to the
 #' produced forecasts from each origin.}
 #' \item{\code{value} - the matrices with the produced data from each origin.
 #' Name of each matrix corresponds to the names in the parameter \code{value}.}
@@ -61,7 +62,10 @@
 #'
 #' # The default call and values
 #' ourValue <- "pred"
-#' ro(x, h=5, origins=5, ourCall, ourValue)
+#' ourRO <- ro(x, h=5, origins=5, ourCall, ourValue)
+#'
+#' # We can now plot the results of this evaluation:
+#' plot(ourRO)
 #'
 #' # You can also use dolar sign
 #' ourValue <- "$pred"
@@ -77,6 +81,17 @@
 #' #### but computed in parallel using all but 1 core of CPU:
 #' \dontrun{ro(x, h=5, origins=20, ourCall, ourValue, ci=TRUE, co=TRUE, parallel=TRUE)}
 #'
+#' #### If you want to use functions from forecast package, please note that you need to
+#' #### set the values that need to be returned explicitly. There are two options for this.
+#' # Example 1:
+#' \dontrun{ourCall <- "forecast(ets(data), h=h, level=95)"
+#' ourValue <- c("mean", "lower", "upper")
+#' ro(x,h=5,origins=5,ourCall,ourValue)}
+#'
+#' # Example 2:
+#' \dontrun{ourCall <- "forecast(ets(data), h=h, level=c(80,95))"
+#' ourValue <- c("mean", "lower[,1]", "upper[,1]", "lower[,2]", "upper[,2]")
+#' ro(x,h=5,origins=5,ourCall,ourValue)}
 #'
 #' #### A more complicated example using the for loop and
 #' #### several time series
@@ -417,6 +432,10 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         stuff <- matrix(forecasts,nrow=h,ncol=origins,dimnames=dimnames(actuals));
         listReturned[[2]] <- stuff;
     }
+    # else if(!is.list(forecasts[[1]]) & all(value=="")){
+    #     stop(paste0("It is not clear what your function has returned. ",
+    #                 "Please, redefine the value parameter."),call.=FALSE);
+    # }
     else{
         for(ivan41 in valueStart:valueLength){
             stuff.max.length <- max(length(forecasts[[ivan41]]),length(forecasts[[valueLength*(origins-1)+ivan41]]));
@@ -429,6 +448,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         }
     }
 
-    names(listReturned) <- c("actuals",value);
-    return(listReturned);
+    listReturned <- c(list(actuals=data),listReturned);
+    names(listReturned)[-1] <- c("holdout",value);
+    return(structure(listReturned,class="rollingOrigin"));
 }
