@@ -8,6 +8,9 @@
 #' (Linux only), \code{doParallel} or \code{doSNOW} packages installed in order
 #' to do the latter.
 #'
+#' This is a dangerous function, so be careful with the call that you pass to
+#' it, and make sure that it is well formulated before the execution.
+#'
 #' @keywords ts
 #'
 #' @param data Data vector or ts object passed to the function.
@@ -21,10 +24,12 @@
 #' and can be used for the regulation of exogenous variables sizes. See examples
 #' for the details.
 #' @param value The variable or set of variables returned by the \code{call}.
-#' For example, "\code{mean}" for functions of \code{forecast} package. This can
+#' For example, \code{mean} for functions of \code{forecast} package. This can
 #' also be a vector of variables. See examples for the details. If the parameter
 #' is \code{NULL}, then all the values from the call are returned (could be really
-#' messy!).
+#' messy!). Note that if your function returns a list with matrices, then you need
+#' to specify the columns or rows of those matrices separately (e.g.
+#' \code{"lower[,1]"}). Otherwise the function won't work.
 #' @param ci The parameter defines if the in-sample window size should be constant.
 #' If \code{TRUE}, then with each origin one observation is added at the end of
 #' series and another one is removed from the beginning.

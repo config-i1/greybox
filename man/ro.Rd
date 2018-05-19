@@ -23,10 +23,12 @@ and can be used for the regulation of exogenous variables sizes. See examples
 for the details.}
 
 \item{value}{The variable or set of variables returned by the \code{call}.
-For example, "\code{mean}" for functions of \code{forecast} package. This can
+For example, \code{mean} for functions of \code{forecast} package. This can
 also be a vector of variables. See examples for the details. If the parameter
 is \code{NULL}, then all the values from the call are returned (could be really
-messy!).}
+messy!). Note that if your function returns a list with matrices, then you need
+to specify the columns or rows of those matrices separately (e.g.
+\code{"lower[,1]"}). Otherwise the function won't work.}
 
 \item{ci}{The parameter defines if the in-sample window size should be constant.
 If \code{TRUE}, then with each origin one observation is added at the end of
@@ -46,6 +48,7 @@ in parallel.}
 \value{
 Function returns the following variables:
 \itemize{
+\item{\code{actuals} - the data provided to the function.}
 \item{\code{holdout} - the matrix of actual values corresponding to the
 produced forecasts from each origin.}
 \item{\code{value} - the matrices with the produced data from each origin.
@@ -61,6 +64,9 @@ This function produces rolling origin forecasts using the \code{data} and a
 serial or in parallel, but it needs \code{foreach} and either \code{doMC}
 (Linux only), \code{doParallel} or \code{doSNOW} packages installed in order
 to do the latter.
+
+This is a dangerous function, so be careful with the call that you pass to
+it, and make sure that it is well formulated before the execution.
 }
 \examples{
 
