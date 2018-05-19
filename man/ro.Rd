@@ -26,9 +26,10 @@ for the details.}
 For example, \code{mean} for functions of \code{forecast} package. This can
 also be a vector of variables. See examples for the details. If the parameter
 is \code{NULL}, then all the values from the call are returned (could be really
-messy!). Note that if your function returns a list with matrices, then you need
-to specify the columns or rows of those matrices separately (e.g.
-\code{"lower[,1]"}). Otherwise the function won't work.}
+messy!). Note that if your function returns a list with matrices, then ro will
+return an array. If your function returns a list, then you will have a list of
+lists in the end. So it makes sense to understand what you want to get before
+running the function.}
 
 \item{ci}{The parameter defines if the in-sample window size should be constant.
 If \code{TRUE}, then with each origin one observation is added at the end of
@@ -51,8 +52,9 @@ Function returns the following variables:
 \item{\code{actuals} - the data provided to the function.}
 \item{\code{holdout} - the matrix of actual values corresponding to the
 produced forecasts from each origin.}
-\item{\code{value} - the matrices with the produced data from each origin.
-Name of each matrix corresponds to the names in the parameter \code{value}.}
+\item{\code{value} - the matrices / array / lists with the produced data
+from each origin. Name of each object corresponds to the names in the
+parameter \code{value}.}
 }
 }
 \description{

@@ -27,9 +27,10 @@
 #' For example, \code{mean} for functions of \code{forecast} package. This can
 #' also be a vector of variables. See examples for the details. If the parameter
 #' is \code{NULL}, then all the values from the call are returned (could be really
-#' messy!). Note that if your function returns a list with matrices, then you need
-#' to specify the columns or rows of those matrices separately (e.g.
-#' \code{"lower[,1]"}). Otherwise the function won't work.
+#' messy!). Note that if your function returns a list with matrices, then ro will
+#' return an array. If your function returns a list, then you will have a list of
+#' lists in the end. So it makes sense to understand what you want to get before
+#' running the function.
 #' @param ci The parameter defines if the in-sample window size should be constant.
 #' If \code{TRUE}, then with each origin one observation is added at the end of
 #' series and another one is removed from the beginning.
@@ -47,8 +48,9 @@
 #' \item{\code{actuals} - the data provided to the function.}
 #' \item{\code{holdout} - the matrix of actual values corresponding to the
 #' produced forecasts from each origin.}
-#' \item{\code{value} - the matrices with the produced data from each origin.
-#' Name of each matrix corresponds to the names in the parameter \code{value}.}
+#' \item{\code{value} - the matrices / array / lists with the produced data
+#' from each origin. Name of each object corresponds to the names in the
+#' parameter \code{value}.}
 #' }
 #'
 #' @author Yves Sagaert
@@ -222,14 +224,14 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
     obs <- length(y);
     inSample <- obs - origins;
 
-    actuals <- matrix(NA,nrow=h,ncol=origins);
+    holdout <- matrix(NA,nrow=h,ncol=origins);
     if(co){
-        colnames(actuals) <- paste0("origin",inSample+c(1:origins)-h);
+        colnames(holdout) <- paste0("origin",inSample+c(1:origins)-h);
     }
     else{
-        colnames(actuals) <- paste0("origin",inSample+c(1:origins));
+        colnames(holdout) <- paste0("origin",inSample+c(1:origins));
     }
-    rownames(actuals) <- paste0("h",c(1:h));
+    rownames(holdout) <- paste0("h",c(1:h));
 
     forecasts <- list(NA);
     if(!silent & !parallel){
@@ -258,11 +260,11 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
                 # Evaluate the call string and save to the object
                 callEvaluated <- eval(parse(text=call));
-                # Save the forecast and the corresponding actuals in matrices
+                # Save the forecast and the corresponding holdout in matrices
                 for(yves14 in 1:valueLength){
                     forecasts[[(ivan41-1)*valueLength+yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
-                actuals[1:h,ivan41] <- y[counto];
+                holdout[1:h,ivan41] <- y[counto];
                 if(silent==FALSE){
                     cat(paste(rep("\b",nchar(ivan41)),collapse=""));
                     cat(ivan41);
@@ -284,11 +286,11 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
                 # Evaluate the call string and save to object callEvaluated.
                 callEvaluated <- eval(parse(text=call));
-                # Save the forecast and the corresponding actuals in matrices
+                # Save the forecast and the corresponding holdout in matrices
                 for(yves14 in 1:valueLength){
                     forecasts[[(ivan41-1)*valueLength+yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
-                actuals[,ivan41] <- y[counto];
+                holdout[,ivan41] <- y[counto];
                 if(!silent){
                     cat(paste(rep("\b",nchar(ivan41)),collapse=""));
                     cat(ivan41);
@@ -330,7 +332,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
                 # Evaluate the call string and save to object callEvaluated.
                 callEvaluated <- eval(parse(text=call));
-                # Save the forecast and the corresponding actuals in matrices
+                # Save the forecast and the corresponding holdout in matrices
                 for(yves14 in 1:valueLength){
                     forecasts[[yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
@@ -353,7 +355,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
                 # Evaluate the call string and save to object callEvaluated.
                 callEvaluated <- eval(parse(text=call));
-                # Save the forecast and the corresponding actuals in matrices
+                # Save the forecast and the corresponding holdout in matrices
                 for(yves14 in 1:valueLength){
                     forecasts[[yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
@@ -370,15 +372,15 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
             parallel::stopCluster(cl);
         }
 
-        # Form matrix of actuals in a different loop...
+        # Form matrix of holdout in a different loop...
         if(co==FALSE){
             for(ivan41 in 1:origins){
-                actuals[1:h,ivan41] <- y[(inSample+ivan41):(inSample+ivan41+h-1)];
+                holdout[1:h,ivan41] <- y[(inSample+ivan41):(inSample+ivan41+h-1)];
             }
         }
         else{
             for(ivan41 in 1:origins){
-                actuals[,ivan41] <- y[(inSample+ivan41-h+1):(inSample+ivan41)];
+                holdout[,ivan41] <- y[(inSample+ivan41-h+1):(inSample+ivan41)];
             }
         }
     }
@@ -387,70 +389,106 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         cat("\n");
     }
 
-    listReturned <- list(actuals);
+    listReturned <- list(holdout);
 
-    # Create several matrices from the list
+    # Transform the list of forecasts into something general
     if(all(value=="")){
         if(is.matrix(forecasts[[1]])){
             value <- colnames(forecasts[[1]]);
-            if(length(colnames(forecasts[[1]][[1]]))>1){
-                valueStart <- 2;
-            }
-            else{
-                valueStart <- 1;
-            }
+            forecasts <- unlist(lapply(lapply(forecasts,as.data.frame),as.list),
+                                recursive=FALSE);
         }
-        # This must be just a vector
-        else if(!is.list(forecasts[[1]])){
-            valueStart <- 1;
-        }
-        else{
-            value <- names(forecasts[[1]]);
-            if(length(names(forecasts[[1]][[1]]))>1){
-                valueStart <- 2;
-            }
-            else{
-                valueStart <- 1;
-            }
+        else if(is.list(forecasts[[1]])){
             forecasts <- as.list(unlist(forecasts,recursive=FALSE));
+            value <- names(forecasts[[1]]);
         }
         valueLength <- length(value);
     }
     else{
         value <- substring(value,2,nchar(value));
-        valueStart <- 1;
     }
 
-    if(is.matrix(forecasts[[1]])){
-        for(ivan41 in valueStart:valueLength){
-            stuff.max.length <- max(nrow(forecasts[[ivan41]]),nrow(forecasts[[origins]]));
-            stuff <- matrix(NA,nrow=stuff.max.length,ncol=origins,dimnames=dimnames(actuals));
-            for(yves14 in 1:origins){
-                stuffLength <- nrow(forecasts[[yves14]]);
-                stuff[1:stuffLength,yves14] <- forecasts[[yves14]][,ivan41];
+    # Reconstruct the list, so that each object is a separate element
+    for(ivan41 in 1:valueLength){
+        if(is.array(forecasts[[ivan41]])){
+            # If it is matrix, form arrays
+            # The length is the max between the first and the last elements of this type
+            stuffMaxLength <- max(nrow(forecasts[[ivan41]]),
+                                  nrow(forecasts[[origins*(valueLength-1)+ivan41]]));
+            if(length(dim(forecasts[[ivan41]]))==2){
+                if(ncol(forecasts[[ivan41]])>1){
+                    # If it contains several columns, make an array
+                    # We assume that this thing has the same number of columns for all the origins
+                    stuffNcol <- ncol(forecasts[[ivan41]]);
+                    stuff <- array(NA,c(stuffMaxLength,origins,stuffNcol));
+                    if(stuffMaxLength==nrow(holdout)){
+                        dimnames(stuff) <- list(rownames(holdout), colnames(holdout),
+                                                colnames(forecasts[[ivan41]]));
+                    }
+                    else{
+                        dimnames(stuff) <- list(NULL, colnames(holdout), colnames(forecasts[[ivan41]]));
+                    }
+                    # Do the loop and fill in the new array
+                    for(yves14 in 1:origins){
+                        stuffLength <- nrow(forecasts[[(yves14-1)*valueLength+ivan41]]);
+                        stuff[1:stuffLength,yves14,] <- forecasts[[(yves14-1)*valueLength+ivan41]];
+                    }
+                }
+                else{
+                    # If it is a one-column, then stack it to the matrix
+                    stuff <- matrix(NA, stuffMaxLength, origins);
+                    if(stuffMaxLength==nrow(holdout)){
+                        dimnames(stuff) <- dimnames(holdout);
+                    }
+                    else{
+                        dimnames(stuff) <- list(NULL, colnames(holdout));
+                    }
+                    # Do the loop and fill in the new array
+                    for(yves14 in 1:origins){
+                        stuffLength <- nrow(forecasts[[(yves14-1)*valueLength+ivan41]]);
+                        stuff[1:stuffLength,yves14] <- forecasts[[(yves14-1)*valueLength+ivan41]];
+                    }
+                }
             }
-            listReturned[[ivan41+1]] <- stuff;
+            else{
+                # If this is an array (3d and more), return a list
+                stuff <- list(NA);
+                for(yves14 in 1:origins){
+                    stuff[[yves14]] <- forecasts[[(yves14-1)*valueLength+ivan41]];
+                }
+                names(stuff) <- colnames(holdout);
+            }
         }
-    }
-    else if(!is.list(forecasts[[1]]) & all(value=="")){
-        forecasts <- unlist(forecasts,recursive=FALSE);
-        stuff <- matrix(forecasts,nrow=h,ncol=origins,dimnames=dimnames(actuals));
-        listReturned[[2]] <- stuff;
-    }
-    # else if(!is.list(forecasts[[1]]) & all(value=="")){
-    #     stop(paste0("It is not clear what your function has returned. ",
-    #                 "Please, redefine the value parameter."),call.=FALSE);
-    # }
-    else{
-        for(ivan41 in valueStart:valueLength){
-            stuff.max.length <- max(length(forecasts[[ivan41]]),length(forecasts[[valueLength*(origins-1)+ivan41]]));
-            stuff <- matrix(NA,nrow=stuff.max.length,ncol=origins,dimnames=dimnames(actuals));
+        else if(is.list(forecasts[[ivan41]])){
+            # If it is a list, just make a list of lists
+            stuff <- list(NA);
+            for(yves14 in 1:origins){
+                stuff[[yves14]] <- forecasts[[(yves14-1)*valueLength+ivan41]];
+            }
+            names(stuff) <- colnames(holdout);
+        }
+        else{
+            # If it is something else (vector?), then stack everything together
+            # The length is the max between the first and the last elements of this type
+            stuffMaxLength <- max(length(forecasts[[ivan41]]),
+                                  length(forecasts[[(origins-1)*valueLength+ivan41]]));
+            # If it is a one-column, then stack it to the matrix
+            stuff <- matrix(NA, stuffMaxLength, origins);
+            if(stuffMaxLength==nrow(holdout)){
+                dimnames(stuff) <- dimnames(holdout);
+            }
+            else{
+                dimnames(stuff) <- list(NULL, colnames(holdout));
+            }
+
+            # Do the loop and fill in the new array
             for(yves14 in 1:origins){
                 stuffLength <- length(forecasts[[(yves14-1)*valueLength+ivan41]]);
+                # cat(stuffLength); cat("\n")
                 stuff[1:stuffLength,yves14] <- forecasts[[(yves14-1)*valueLength+ivan41]];
             }
-            listReturned[[ivan41+1]] <- stuff;
         }
+        listReturned[[ivan41+1]] <- stuff;
     }
 
     listReturned <- c(list(actuals=data),listReturned);

@@ -63,7 +63,9 @@ ourCall <- "predict(arima(x=data,order=c(0,1,1)),n.ahead=h)"
 
 The call that we specify includes two important elements: `data` and `h`. `data` specifies where the in-sample values are located in the function that we want to use, and it needs to be called "data" in the call. `h` will tell our function, where the forecasting horizon is specified in the selected function. Note that in this example we use `arima(x=data,order=c(0,1,1))`, which produces a desired ARIMA(0,1,1) model and then we use `predict(...,n.ahead=h)`, which produces a forecast from that model. The part `arima(x=data,order=c(0,1,1))` can also be simplified to `arima(data,order=c(0,1,1))` according to the general rules of R.
 
-Having the call, we need also to specify what the function should return. This can be the conditional mean (point forecasts), prediction intervals, the parameters of a model, or, in fact, anything that the model returns (e.g. name of the fitted model and its likelihood). The only requirement is that the value should be returned as a named element of a list and it should be a vector. If the function does not return a list, then you don't need to specify value at all - it will collect everything that is returned and give it back to you in a nice format. In order not to overcomplicate things, let's start with collecting the conditional mean from the `predict()` function:
+Having the call, we need also to specify what the function should return. This can be the conditional mean (point forecasts), prediction intervals, the parameters of a model, or, in fact, anything that the model returns (e.g. name of the fitted model and its likelihood). However, there are some differences in what the `ro()` returns depending on what the function you use returns. If it is a vector, then `ro()` will produce a matrix (with values for each origin in columns). If it is a matrix, then an array is returned. Finally, if it is a list, then a list of lists is returned.
+
+In order not to overcomplicate things, let's start with collecting the conditional mean from the `predict()` function:
 ```{r}
 ourValue <- "pred"
 ```
