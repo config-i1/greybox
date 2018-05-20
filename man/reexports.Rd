@@ -3,9 +3,9 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
-\alias{getResponse}
-\alias{reexports}
 \alias{forecast}
+\alias{reexports}
+\alias{getResponse}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -13,6 +13,6 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{forecast}{\code{\link[forecast]{getResponse}}, \code{\link[forecast]{forecast}}}
+  \item{forecast}{\code{\link[forecast]{forecast}}, \code{\link[forecast]{getResponse}}}
 }}
 

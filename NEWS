@@ -1,4 +1,4 @@
-greybox v0.2.2 (Release data: 2018-05-19)
+greybox v0.2.2 (Release data: 2018-05-20)
 ==============
 
 Changes:
@@ -9,6 +9,11 @@ Changes:
 * Updated description of the package in the help file.
 * ro() now returns a class and has print and plot methods associated with it.
 * ro() is much more flexible now, returning whatever you want in an adequate format.
+* New methods for the greybox functions: confint, vcov.
+* Renamed "combiner" into "combine", because... why not?
+
+Bugfixes:
+* sigma() method returned the wrong standard error in cases of combined models.
 
 
 greybox v0.2.1 (Release data: 2018-05-01)

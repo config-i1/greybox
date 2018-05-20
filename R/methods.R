@@ -76,9 +76,27 @@ BICc.default <- function(object, ...){
     return(IC);
 }
 
-#' @importFrom forecast getResponse
+#' @importFrom stats confint
 #' @export
-forecast::getResponse
+confint.greyboxC <- function(object, parm, level=0.95, ...){
+
+    # Extract parameters
+    parameters <- coef(object);
+    # Extract SE
+    parametersSE <- object$coefficientsSE;
+    # Define quantiles using Student distribution
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+    # Do the stuff
+    confintValues <- cbind(parameters-paramQuantiles*parametersSE,
+                           parameters+paramQuantiles*parametersSE);
+    colnames(confintValues) <- c(paste0((1-level)/2*100,"%"),
+                                 paste0((1+level)/2*100,"%"));
+    # If parm was not provided, return everything.
+    if(!exists("parm",inherits=FALSE)){
+        parm <- names(parameters);
+    }
+    return(confintValues[parm,]);
+}
 
 #' @importFrom forecast forecast
 #' @export forecast
@@ -125,6 +143,10 @@ forecast.greybox <- function(object, newdata, ...){
     return(structure(ourModel,class="forecast.greybox"));
 }
 
+#' @importFrom forecast getResponse
+#' @export
+forecast::getResponse
+
 #' @export
 getResponse.greybox <- function(object, ...){
     responseVariable <- object$model[,1];
@@ -150,7 +172,7 @@ nobs.greybox <- function(object, ...){
 #' @param object Time series model.
 #' @param ... Some other parameters passed to the method.
 #' @return This function returns a numeric value.
-#' @author Ivan Svetunkov, \email{ivan@@svetunkov.ru}
+#' @template author
 #' @seealso \link[stats]{nobs}, \link[stats]{logLik}
 #' @keywords htest
 #' @examples
@@ -360,7 +382,7 @@ print.rollingOrigin <- function(x, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, ...){
-    return(sum(residuals(object)/(nobs(object)-nParam(object))));
+    return(sqrt(sum(residuals(object)^2)/(nobs(object)-nParam(object))));
 }
 
 #' @importFrom stats summary.lm
@@ -368,17 +390,17 @@ sigma.greybox <- function(object, ...){
 summary.greybox <- function(object, level=0.95, ...){
     ourReturn <- summary.lm(object, ...);
 
+    # Collect parameters and their standard errors
     parametersTable <- ourReturn$coefficients[,1:2];
-    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
-    parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
-                             parametersTable[,1]+paramQuantiles*parametersTable[,2])
+    parametersTable <- cbind(parametersTable,confint(object, level=level));
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
-                                   paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn$coefficients <- parametersTable;
 
-    ICs <- c(AIC(object),AICc(object),BIC(object));
-    names(ICs) <- c("AIC","AICc","BIC");
+    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+    names(ICs) <- c("AIC","AICc","BIC","BICc");
     ourReturn$ICs <- ICs;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
@@ -394,20 +416,19 @@ summary.greyboxC <- function(object, level=0.95, ...){
     parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
 
     # Calculate the quantiles for parameters and add them to the table
-    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
-    parametersTable <- cbind(parametersTable,parametersTable[,1]-paramQuantiles*parametersTable[,2],
-                             parametersTable[,1]+paramQuantiles*parametersTable[,2])
+    parametersTable <- cbind(parametersTable,confint(object, level=level));
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
-                                   paste0("Lower ",(1-level)/2*100,"%"), paste0("Upper ",(1+level)/2*100,"%"));
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
     # Calculate s.e. of residuals
     residSE <- sqrt(sum(errors^2)/df[2]);
 
-    ICs <- c(AIC(object),AICc(object),BIC(object));
-    names(ICs) <- c("AIC","AICc","BIC");
+    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+    names(ICs) <- c("AIC","AICc","BIC","BICc");
 
     R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
@@ -416,4 +437,18 @@ summary.greyboxC <- function(object, level=0.95, ...){
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
                            class="summary.greyboxC");
     return(ourReturn);
+}
+
+#' @importFrom stats vcov
+#' @export
+vcov.greyboxC <- function(object, ...){
+    s2 <- sigma(object)^2;
+    xreg <- as.matrix(object$model[,-1]);
+    xreg <- cbind(1,xreg);
+    colnames(xreg)[1] <- "Intercept";
+    importance <- object$importance;
+
+    vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
+    warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
+    return(vcovValue);
 }

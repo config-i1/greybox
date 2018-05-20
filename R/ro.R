@@ -54,7 +54,7 @@
 #' }
 #'
 #' @author Yves Sagaert
-#' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
+#' @template author
 #'
 #' @references \itemize{
 #' \item Tashman, (2000) Out-of-sample tests of forecasting accuracy:

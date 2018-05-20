@@ -21,7 +21,7 @@ exogenous variables.
 correlations. Efficient and fast.
 \item \link[greybox]{xregExpander} - Function that expands the provided data into
 the data with lags and leads.
-\item \link[greybox]{combiner} - Function combines lm models from the estimated
+\item \link[greybox]{combine} - Function combines lm models from the estimated
 based on information criteria weigths.
 \item \link[greybox]{ro} - Rolling origin evaluation.
 \item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
@@ -43,10 +43,10 @@ stepwise(xreg)
 
 }
 \seealso{
-\code{\link[greybox]{stepwise}, \link[greybox]{combiner}}
+\code{\link[greybox]{stepwise}, \link[greybox]{combine}}
 }
 \author{
-Ivan Svetunkov
+Ivan Svetunkov, \email{ivan@svetunkov.ru}
 
 Maintainer: Ivan Svetunkov
 }

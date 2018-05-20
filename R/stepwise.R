@@ -25,7 +25,7 @@
 #' @return Function returns \code{model} - the final model of the class "lm".
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
-#' \link[greybox]{combiner}}
+#' \link[greybox]{combine}}
 #'
 #' @examples
 #'

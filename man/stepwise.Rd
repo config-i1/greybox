@@ -62,7 +62,7 @@ Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.
 }
 \seealso{
 \code{\link[stats]{step}, \link[greybox]{xregExpander},
-\link[greybox]{combiner}}
+\link[greybox]{combine}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
