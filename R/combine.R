@@ -45,7 +45,7 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- combine(inSample,ic="AICc",bruteForce=FALSE)
+#' ourModel <- combine(inSample,ic="BICc",bruteForce=FALSE)
 #' summary(ourModel)
 #' plot(forecast(ourModel,outSample))
 #'
