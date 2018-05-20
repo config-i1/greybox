@@ -34,7 +34,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- combiner(inSample,bruteForce=TRUE)
+#' ourModel <- combine(inSample,bruteForce=TRUE)
 #' forecast(ourModel,outSample)
 #' plot(forecast(ourModel,outSample))
 #'
@@ -45,14 +45,14 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- combiner(inSample,ic="AICc",bruteForce=FALSE)
+#' ourModel <- combine(inSample,ic="AICc",bruteForce=FALSE)
 #' summary(ourModel)
 #' plot(forecast(ourModel,outSample))
 #'
 #' @importFrom stats dnorm
 #'
-#' @export combiner
-combiner <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
+#' @export combine
+combine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -128,7 +128,7 @@ combiner <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, si
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(combiner(newData, ic=ic, bruteForce=TRUE, silent=silent));
+            return(combine(newData, ic=ic, bruteForce=TRUE, silent=silent));
         }
         # If we have too many variables, use "stress" analysis
         else{
