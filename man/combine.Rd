@@ -52,7 +52,7 @@ colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
 inSample <- xreg[1:40,]
 outSample <- xreg[-c(1:40),]
 # Combine only the models close to the optimal
-ourModel <- combine(inSample,ic="AICc",bruteForce=FALSE)
+ourModel <- combine(inSample,ic="BICc",bruteForce=FALSE)
 summary(ourModel)
 plot(forecast(ourModel,outSample))
 
@@ -61,7 +61,7 @@ plot(forecast(ourModel,outSample))
 \itemize{
 \item Burnham Kenneth P. and Anderson David R. (2002). Model Selection
 and Multimodel Inference. A Practical Information-Theoretic Approach.
-Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.
+Springer-Verlag New York. DOI: [10.1007/b97636](http://dx.doi.org/10.1007/b97636).
 }
 }
 \seealso{
