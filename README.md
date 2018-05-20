@@ -9,7 +9,7 @@ The list of included functions:
 2. stepwise - Function implements stepwise AIC based on partial correlations.
 3. combine - Function combines the regression models from the provided data based on IC weigths and returns the combined lm object.
 4. ro - rolling origin evaluation (see the vignette).
-5. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful in the diagnostics of multicollinearity.
+5. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
 6. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 7. qs, ds, rs, ps - functions for S distribution.
 
