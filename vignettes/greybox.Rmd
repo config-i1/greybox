@@ -30,7 +30,7 @@ At the moment the package contains several basic functions that implement model 
 The package includes the following functions:
 
 1. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
-2. `combine()` - combine the linear models into one using IC weights;
+2. `lmCombine()` - lmCombine the linear models into one using IC weights;
 3. `xregExpander()` - expand the provided data by including leads and lags of the variables.
 4. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
 
@@ -92,20 +92,20 @@ The values in the function are listed in the order of most correlated with the r
 
 All the basic methods can be used together with the final model (e.g. `predict.lm()`, `forecast.lm()`, `summary()` etc).
 
-## combine
+## lmCombine
 
-`combine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteForce` parameter.
+`lmCombine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteForce` parameter.
 
 Here's an example of the reduced data with combined model and the parameter `bruteForce=TRUE`:
 ```{r BJcombine1}
-ourModel <- combine(BJxreg[,-c(3:7,18:22)],bruteForce=TRUE)
+ourModel <- lmCombine(BJxreg[,-c(3:7,18:22)],bruteForce=TRUE)
 summary(ourModel)
 ```
 `summary()` function provides the table with the parameters, their standard errors, their relative importance and the 95% confidence intervals. Relative importance indicates in how many cases the variable was included in the model with high weight. So, in the example above variables xLag5, xLag4, xLag3 were included in the models with the highest weights, while all the others were in the models with lower ones. This may indicate that only these variables are needed for the purposes of analysis and forecasting.
 
 The more realistic situation is when the number of variables is high. In the following example we use the data with 21 variables. So if we use brute force and estimate every model in the dataset, we will end up with $2^{21}$ = `2^21` combinations of models, which is not possible to estimate in the adequate time. That is why we use `bruteForce=FALSE`:
 ```{r BJcombine2}
-ourModel <- combine(BJxreg,bruteForce=FALSE)
+ourModel <- lmCombine(BJxreg,bruteForce=FALSE)
 summary(ourModel)
 ```
 In this case first, the `stepwise()` funciton is used, which finds the best model in the pool. Then each variable that is not in the model is added to the model and then removed iteratively. IC, parameters values and standard errors are all written down for each of these expanded models. Finally, in a similar manner each variable is removed from the optimal model and then added back. As a result the pool of combined models becomes much smaller than it could be in case of the brute force, but it contains only meaningful models, that are close to the optimal. The rationale for this is that the marginal contribution of variables deteriorates with the increase of the number of parameters in case of the stepwise function, and the IC weights become close to each other around the optimal model. So, whenever the models are combined, there is a lot of redundant models with very low weights. By using the mechanism described above we remove those redundant models.
@@ -121,7 +121,7 @@ As an example, let's split the whole sample with Box-Jenkins data into in-sample
 ```{r BJcombine3}
 BJInsample <- BJxreg[1:130,];
 BJHoldout <- BJxreg[-(1:130),];
-ourModel <- combine(BJInsample,bruteForce=FALSE)
+ourModel <- lmCombine(BJInsample,bruteForce=FALSE)
 ```
 A plot of the model:
 ```{r BJcombinePlot}

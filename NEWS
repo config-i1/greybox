@@ -1,4 +1,4 @@
-greybox v0.2.2 (Release data: 2018-05-20)
+greybox v0.2.2 (Release data: 2018-05-22)
 ==============
 
 Changes:
@@ -10,7 +10,7 @@ Changes:
 * ro() now returns a class and has print and plot methods associated with it.
 * ro() is much more flexible now, returning whatever you want in an adequate format.
 * New methods for the greybox functions: confint, vcov.
-* Renamed "combiner" into "combine", because... why not?
+* Renamed "combiner" into "lmCombine", because it makes more sense. We will use "combine" name for a more general function that would combine forecasts from arbitrary provided models (e.g. smooth, forecast and lm classes).
 
 Bugfixes:
 * sigma() method returned the wrong standard error in cases of combined models.

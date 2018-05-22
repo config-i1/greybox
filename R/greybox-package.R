@@ -14,7 +14,7 @@
 #' correlations. Efficient and fast.
 #' \item \link[greybox]{xregExpander} - Function that expands the provided data into
 #' the data with lags and leads.
-#' \item \link[greybox]{combine} - Function combines lm models from the estimated
+#' \item \link[greybox]{lmCombine} - Function combines lm models from the estimated
 #' based on information criteria weigths.
 #' \item \link[greybox]{ro} - Rolling origin evaluation.
 #' \item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
@@ -29,7 +29,7 @@
 #' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
 #'
 #' Maintainer: Ivan Svetunkov
-#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{combine}}
+#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 #'
 #' @template keywords
 #'

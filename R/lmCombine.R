@@ -34,7 +34,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- combine(inSample,bruteForce=TRUE)
+#' ourModel <- lmCombine(inSample,bruteForce=TRUE)
 #' forecast(ourModel,outSample)
 #' plot(forecast(ourModel,outSample))
 #'
@@ -45,14 +45,15 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- combine(inSample,ic="BICc",bruteForce=FALSE)
+#' ourModel <- lmCombine(inSample,ic="BICc",bruteForce=FALSE)
 #' summary(ourModel)
 #' plot(forecast(ourModel,outSample))
 #'
 #' @importFrom stats dnorm
 #'
-#' @export combine
-combine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
+#' @aliases combine combiner
+#' @export lmCombine
+lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -128,7 +129,7 @@ combine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, sil
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(combine(newData, ic=ic, bruteForce=TRUE, silent=silent));
+            return(lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent));
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -245,4 +246,16 @@ combine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, sil
                        model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance)+1);
 
     return(structure(finalModel,class=c("greyboxC","greybox","lm")));
+}
+
+#' @export
+combiner <- function(...){
+    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
+    lmCombine(...);
+}
+
+#' @export
+combine <- function(...){
+    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
+    lmCombine(...);
 }
