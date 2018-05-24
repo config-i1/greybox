@@ -1,6 +1,6 @@
 #' Determination coefficients
 #'
-#' Function produces determintation coefficient for the provided data
+#' Function produces determination coefficient for the provided data
 #'
 #' The function calculates determination coefficients (aka R^2)
 #' between all the provided variables. The higher the coefficient is,
@@ -18,7 +18,7 @@
 #' @param xreg Data frame or a matrix, containing the exogenous variables.
 #' @param ... Other values passed to cor function.
 #'
-#' @return Function returns the vector of determintation coefficients.
+#' @return Function returns the vector of determination coefficients.
 #'
 #' @seealso \code{\link[stats]{cor}}
 #'

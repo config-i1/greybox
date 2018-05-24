@@ -15,7 +15,7 @@
 #' \item \link[greybox]{xregExpander} - Function that expands the provided data into
 #' the data with lags and leads.
 #' \item \link[greybox]{lmCombine} - Function combines lm models from the estimated
-#' based on information criteria weigths.
+#' based on information criteria weights.
 #' \item \link[greybox]{ro} - Rolling origin evaluation.
 #' \item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
 #' \link[greybox]{plaplace}, \link[greybox]{rlaplace} - Laplace distribution and the

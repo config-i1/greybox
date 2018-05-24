@@ -12,10 +12,10 @@ determination(xreg, ...)
 \item{...}{Other values passed to cor function.}
 }
 \value{
-Function returns the vector of determintation coefficients.
+Function returns the vector of determination coefficients.
 }
 \description{
-Function produces determintation coefficient for the provided data
+Function produces determination coefficient for the provided data
 }
 \details{
 The function calculates determination coefficients (aka R^2)
