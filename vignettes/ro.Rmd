@@ -83,7 +83,7 @@ apply(abs(returnedValues1$holdout - returnedValues1$pred),1,mean,na.rm=TRUE) / m
 In this example we use `apply()` function in order to distinguish between the different forecasting horizons and have an idea of how the model performs for each of them. In a similar manner we could evaluate the performance of some other model and compare the errors with the ones produced by the first one. These numbers do not tell us much on their own, but if we compared the performance of this model with another one, then we could infer if one model is more appropriate to the data than the other one.
 
 We can also plot the forecasts from the rolling origin, which shows how the selected model behaves:
-```{r}
+```{r, fig.height = 4, fig.width = 6}
 plot(returnedValues1)
 ```
 
@@ -99,7 +99,7 @@ This is because by defauls the holdout sample is set to be non-constant: `co=FAL
 returnedValues2 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=TRUE)
 ```
 Note that the values from the `returnedValues2` are not directly comparable with the ones from `returnedValues1`,  because they are produced from the different origins. This becomes more apparent when we plot things:
-```{r}
+```{r, fig.height = 4, fig.width = 6}
 plot(returnedValues2)
 ```
 
