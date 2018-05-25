@@ -86,6 +86,7 @@ We can also plot the forecasts from the rolling origin, which shows how the sele
 ```{r}
 plot(returnedValues1)
 ```
+
 In this example the forecasts from different origins are close to each other. This is because the data is stationary and the model is quite stable.
 
 If we have a look at the returned matrices, we will notice that they contain NAs:
