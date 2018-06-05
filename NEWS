@@ -1,3 +1,13 @@
+greybox v0.2.3 (Release data: 2018-06-05)
+==============
+
+Changes:
+* determination() now automatically drops variables with no variability.
+
+Bugfixes:
+*
+
+
 greybox v0.2.2 (Release data: 2018-05-25)
 ==============
 

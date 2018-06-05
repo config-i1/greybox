@@ -33,6 +33,11 @@
 #' @export determination
 determination <- function(xreg, ...){
 
+    if(any(colMeans(xreg,na.rm=TRUE)==xreg[1,])){
+        warning("Some of the variables did not have any variability. We dropped them.",
+                call.=FALSE);
+        xreg <- xreg[,colMeans(xreg,na.rm=TRUE)!=xreg[1,]]
+    }
     # Produce correlation matrix
     matrixCorrelations <- cor(xreg, ...);
     # Calculate its determinant
