@@ -304,7 +304,7 @@ plot.rollingOrigin <- function(x, ...){
     # Start plotting
     plot(y, ylab="Actuals", ylim=range(min(unlist(lapply(x,min,na.rm=T)),na.rm=T),
                                        max(unlist(lapply(x,max,na.rm=T)),na.rm=T)),
-         ...);
+         type="l", ...);
     abline(v=roStart, col="red", lwd=2);
     for(j in 1:thingsToPlot){
         colCurrent <- rgb((j-1)/thingsToPlot,0,(thingsToPlot-j+1)/thingsToPlot,1);
