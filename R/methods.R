@@ -299,7 +299,7 @@ plot.rollingOrigin <- function(x, ...){
 
     # Define the start of the RO
     roStart <- length(y)-h;
-    roStart <- start(y)[1]+yDeltat*(roStart-roh*co);
+    roStart <- start(y)[1]+yDeltat*(roStart-roh+(h-1)*(!co));
 
     # Start plotting
     plot(y, ylab="Actuals", ylim=range(min(unlist(lapply(x,min,na.rm=T)),na.rm=T),

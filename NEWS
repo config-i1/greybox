@@ -1,11 +1,11 @@
-greybox v0.2.3 (Release data: 2018-06-05)
+greybox v0.2.3 (Release data: 2018-07-02)
 ==============
 
 Changes:
 * determination() now automatically drops variables with no variability.
 
 Bugfixes:
-*
+* plots of ro() were misaligned in case of co=FALSE
 
 
 greybox v0.2.2 (Release data: 2018-05-25)
