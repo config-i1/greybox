@@ -6,6 +6,7 @@ Changes:
 
 Bugfixes:
 * plots of ro() were misaligned in case of co=FALSE
+* ro() now also returns the correct actual values (previously they could be cut off when ci=FALSE).
 
 
 greybox v0.2.2 (Release data: 2018-05-25)
