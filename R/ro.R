@@ -491,7 +491,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         listReturned[[ivan41+1]] <- stuff;
     }
 
-    listReturned <- c(list(actuals=data),listReturned);
+    listReturned <- c(list(actuals=y),listReturned);
     names(listReturned)[-1] <- c("holdout",value);
     return(structure(listReturned,class="rollingOrigin"));
 }
