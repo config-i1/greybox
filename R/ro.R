@@ -146,7 +146,6 @@
 #' ourValue <- "forecast"
 #' ro(x,h=5,origins=5,ourCall,ourValue)}
 #'
-#'
 #' @export ro
 ro <- function(data,h=10,origins=10,call,value=NULL,
                ci=FALSE,co=FALSE,silent=TRUE,parallel=FALSE){

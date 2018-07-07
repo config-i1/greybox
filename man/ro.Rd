@@ -154,7 +154,6 @@ ro(x,h=5,origins=5,ourCall,ourValue)
 ourValue <- "forecast"
 ro(x,h=5,origins=5,ourCall,ourValue)}
 
-
 }
 \references{
 \itemize{

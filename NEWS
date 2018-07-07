@@ -1,8 +1,9 @@
-greybox v0.2.3 (Release data: 2018-07-02)
+greybox v0.2.3 (Release data: 2018-07-08)
 ==============
 
 Changes:
 * determination() now automatically drops variables with no variability.
+* New function - nemenyi() - imported from TStools with minor bugfixes and corrections.
 
 Bugfixes:
 * plots of ro() were misaligned in case of co=FALSE
