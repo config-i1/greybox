@@ -9,9 +9,10 @@ The list of included functions:
 2. stepwise - Function implements stepwise AIC based on partial correlations.
 3. combine - Function combines the regression models from the provided data based on IC weigths and returns the combined lm object.
 4. ro - rolling origin evaluation (see the vignette).
-5. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-6. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
-7. qs, ds, rs, ps - functions for S distribution.
+5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.
+6. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+7. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
+8. qs, ds, rs, ps - functions for S distribution.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.

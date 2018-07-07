@@ -66,6 +66,9 @@ ourData[,4] <- ourData[,4]+0.5
 colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D");
 nemenyi(ourData, level=0.95, type="vline")
 
+par(mar=c(2,0,2,0),cex=1.5)
+nemenyi(ourData,level=0.95,type="vline",main="",xlim=range(0,1.5))
+
 }
 \references{
 \itemize{
