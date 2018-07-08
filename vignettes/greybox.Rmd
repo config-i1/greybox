@@ -33,7 +33,7 @@ The package includes the following functions:
 2. `lmCombine()` - lmCombine the linear models into one using IC weights;
 3. `xregExpander()` - expand the provided data by including leads and lags of the variables.
 4. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-5. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.
+<!--5. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
 
