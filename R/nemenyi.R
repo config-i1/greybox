@@ -1,4 +1,4 @@
-utils::globalVariables(c("axis","box","colorRampPalette",
+utils::globalVariables(c("axis","box","colorRampPalette","brewer.pal",
                          "friedman.test","na.exclude","qtukey"));
 
 # Nemenyi test
@@ -31,8 +31,8 @@ utils::globalVariables(c("axis","box","colorRampPalette",
 #
 # @return Function returns the following variables:
 # \itemize{
-# \item{means}{Mean rank of each method.}
-# \item{intervals}{Nemenyi intervals for each method.}
+# \item{mean}{Mean rank of each method.}
+# \item{interval}{Nemenyi intervals for each method.}
 # \item{p.value}{Friedman test p-value.}
 # \item{hypothesis}{Friedman hypothesis result.}
 # \item{CD}{Critical distance for nemenyi.}
@@ -67,7 +67,7 @@ utils::globalVariables(c("axis","box","colorRampPalette",
 # ourData[,2] <- ourData[,2]+1
 # ourData[,3] <- ourData[,3]+0.7
 # ourData[,4] <- ourData[,4]+0.5
-# colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D");
+# colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
 # nemenyi(ourData, level=0.95, type="vline")
 #
 # par(mar=c(2,0,2,0),cex=1.5)
@@ -80,7 +80,7 @@ utils::globalVariables(c("axis","box","colorRampPalette",
 # @importFrom RColorBrewer brewer.pal
 #
 # @export nemenyi
-nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
+nemenyi <- function(data, level=0.95, sort=TRUE,
                     type=c("vline","none","mcb","vmcb","line"),
                     select=NULL, labels=NULL, ...)
 {
@@ -95,7 +95,6 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
     data <- as.matrix(data);
 
     # Defaults
-    sort <- sort[1]
     type <- type[1]
 
     if(type!="none"){
@@ -195,7 +194,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
     #### MCB plot ####
     # MCB style plot
     if(type=="mcb"){
-        cmp <- RColorBrewer::brewer.pal(3,"Set1")[1:2]
+        cmp <- brewer.pal(3,"Set1")[1:2]
         # Choose colour depending on Friedman test result
         if (friedmanPvalue > 1-level){
             pcol <- "gray"
@@ -262,7 +261,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
     #### Vertical MCB plot ####
     # MCB style plot - vertical
     else if(type=="vmcb"){
-        cmp <- RColorBrewer::brewer.pal(3,"Set1")[1:2]
+        cmp <- brewer.pal(3,"Set1")[1:2]
         # Find max label size
         labelSize <- max(nchar(labels))
         # Choose colour depending on Friedman test result
@@ -350,7 +349,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
         }
         k <- nrow(rline)
         # Choose colour depending on Friedman test result
-        cmp <- colorRampPalette(RColorBrewer::brewer.pal(12,"Paired"))(k)
+        cmp <- colorRampPalette(brewer.pal(12,"Paired"))(k)
         if (friedmanPvalue > 1-level){
             pcol <- rep("gray",times=k)
         }
@@ -416,7 +415,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
         }
         axis(1,at=c(1:nMethods),labels=lblm,las=2)
         if(!is.null(select)){
-            points(select,0,pch=20,col=RColorBrewer::brewer.pal(3,"Set1")[1],cex=2)
+            points(select,0,pch=20,col=brewer.pal(3,"Set1")[1],cex=2)
         }
     }
     #### Vertical line plot ####
@@ -438,7 +437,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
         }
         k <- nrow(rline)
         # Choose colour depending on Friedman test result
-        cmp <- colorRampPalette(RColorBrewer::brewer.pal(12,"Paired"))(k)
+        cmp <- colorRampPalette(brewer.pal(12,"Paired"))(k)
         if(friedmanPvalue > 1-level){
             pcol <- rep("gray",times=k)
         }
@@ -504,7 +503,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
         }
         axis(2,at=c(1:nMethods),labels=lblm,las=2)
         if(!is.null(select)){
-            points(0,select,pch=20,col=RColorBrewer::brewer.pal(3,"Set1")[1],cex=2)
+            points(0,select,pch=20,col=brewer.pal(3,"Set1")[1],cex=2)
         }
     }
 
@@ -513,7 +512,7 @@ nemenyi <- function(data, level=0.95, sort=c(TRUE,FALSE),
         par(parDefault)
     }
 
-    return(structure(list("means"=ranksMeans,"intervals"=ranksIntervals,
+    return(structure(list("mean"=ranksMeans,"interval"=ranksIntervals,
                           "p.value"=friedmanPvalue,"hypothesis"=friedmanH,
                           "CD"=tukeyQuant,"level"=level,"nMethods"=nMethods,
                           "obs"=obs),
