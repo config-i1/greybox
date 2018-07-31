@@ -125,9 +125,9 @@ rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 \item  Demsar, J. (2006). Statistical Comparisons of Classifiers over
 Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
 \url{http://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
-\item Davydenko, A., & Fildes, R. (2013). Measuring Forecasting Accuracy:
+\item Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy:
 The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
-International Journal of Forecasting, 29(3), 510–522.
+International Journal of Forecasting, 29(3), 510-522.
 \url{https://doi.org/10.1016/j.ijforecast.2012.09.002}
 }
 }
