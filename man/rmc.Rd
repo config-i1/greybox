@@ -37,12 +37,18 @@ effect.}
 \item{...}{Other parameters passed to plot function}
 }
 \value{
-Function returns the following variables:
+If \code{plot=TRUE}, then the function plots the results after all
+the calculations. In case of \code{value="normal"}, the closer to zero the
+intervals are, the better model performs. When \code{value="absolute"} or
+\code{value="squared"}, the smaller, the better.
+
+Function returns a list of a class "rmc", which contains the following
+variables:
 \itemize{
-\item{mean}{Mean rank of each method.}
-\item{interval}{rmc intervals for each method.}
-\item{p.value}{Friedman test p-value.}
-\item{level}{Singificance level.}
+\item{mean}{Mean values for each method.}
+\item{interval}{Confidence intervals for each method.}
+\item{p.value}{ANOVA test p-value.}
+\item{level}{Significance level.}
 \item{model}{lm model produced for the calculation of the intervals.}
 \item{style}{Style of the plot to produce.}
 \item{select}{The selected variable to highlight.}
@@ -50,14 +56,34 @@ Function returns the following variables:
 }
 \description{
 RMC stands for "Regression for Methods Comparison". This is a parametric
-test for the comparison of medians of several distributions
+test for the comparison of means of several distributions
 This test is a parametric counterpart of nemenyi / MCB test and uses
-asymptotic properties of regression models.
+asymptotic properties of regression models. It relies on distributional
+assumptions about the provided data. For instance, if the mean forecast errors
+are used, then it is safe to assume that the regression model constructed on
+them will have normally distributed residuals.
 }
 \details{
-The advisable error measures to use for data are RelMAE and RelMSE, which are
-unbiased and have good properties. Don't forget to take logarythms of measures
-first. See examples for more details on how to use them.
+The test constructs the regression model of the kind:
+
+y = b' X + e,
+
+where y is the vector of the provided data (as.vector(data)), X is the matrix
+of dummy variables for each column of the data (forecasting method), b is the
+vector of coefficients for the dummies and e is the error term of the model.
+
+Depending on the provided data, it might make sense to use different types of
+regressions. The function supports Gausian linear regression
+(\code{value="normal"}, when the data is normal), truncated normal linear
+regression (\code{value="absolute"}, when \code{truncreg} package is installed,
+when the data is truncated normal, for example, absolute errors) and generalised
+regression with Gamma distribution (\code{value="squared"}, when the data is
+distributed as Chi^2, for example squared errors).
+
+The advisable error measures to use in the test are RelMAE and RelMSE, which are
+unbiased and asymptotically have log-normal distribution. Don't forget to take
+logarythms of these measures first, in order to impose normality. See examples
+for more details on how to do that.
 
 The test is equivalent to nemenyi test, when applied to the ranks of the error
 measures on large samples.
@@ -90,13 +116,15 @@ ourData <- ourData / ourData[,1]
 rmc(ourData, value="n", level=0.95)
 
 # The following example should give similar results to nemenyi test on
-# large samples:
+# large samples, which compares medians of the distributions:
 rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 
 }
 \references{
 \itemize{
-\item ???
+\item  Demsar, J. (2006). Statistical Comparisons of Classifiers over
+Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
+\url{http://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
 }
 }
 \author{

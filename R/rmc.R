@@ -1,14 +1,34 @@
 #' RMC test
 #'
 #' RMC stands for "Regression for Methods Comparison". This is a parametric
-#' test for the comparison of medians of several distributions
+#' test for the comparison of means of several distributions
 #
 #' This test is a parametric counterpart of nemenyi / MCB test and uses
-#' asymptotic properties of regression models.
+#' asymptotic properties of regression models. It relies on distributional
+#' assumptions about the provided data. For instance, if the mean forecast errors
+#' are used, then it is safe to assume that the regression model constructed on
+#' them will have normally distributed residuals.
 #'
-#' The advisable error measures to use for data are RelMAE and RelMSE, which are
-#' unbiased and have good properties. Don't forget to take logarythms of measures
-#' first. See examples for more details on how to use them.
+#' The test constructs the regression model of the kind:
+#'
+#' y = b' X + e,
+#'
+#' where y is the vector of the provided data (as.vector(data)), X is the matrix
+#' of dummy variables for each column of the data (forecasting method), b is the
+#' vector of coefficients for the dummies and e is the error term of the model.
+#'
+#' Depending on the provided data, it might make sense to use different types of
+#' regressions. The function supports Gausian linear regression
+#' (\code{value="normal"}, when the data is normal), truncated normal linear
+#' regression (\code{value="absolute"}, when \code{truncreg} package is installed,
+#' when the data is truncated normal, for example, absolute errors) and generalised
+#' regression with Gamma distribution (\code{value="squared"}, when the data is
+#' distributed as Chi^2, for example squared errors).
+#'
+#' The advisable error measures to use in the test are RelMAE and RelMSE, which are
+#' unbiased and asymptotically have log-normal distribution. Don't forget to take
+#' logarythms of these measures first, in order to impose normality. See examples
+#' for more details on how to do that.
 #'
 #' The test is equivalent to nemenyi test, when applied to the ranks of the error
 #' measures on large samples.
@@ -33,12 +53,18 @@
 #' effect.
 #' @param ... Other parameters passed to plot function
 #
-#' @return Function returns the following variables:
+#' @return If \code{plot=TRUE}, then the function plots the results after all
+#' the calculations. In case of \code{value="normal"}, the closer to zero the
+#' intervals are, the better model performs. When \code{value="absolute"} or
+#' \code{value="squared"}, the smaller, the better.
+#'
+#' Function returns a list of a class "rmc", which contains the following
+#' variables:
 #' \itemize{
-#' \item{mean}{Mean rank of each method.}
-#' \item{interval}{rmc intervals for each method.}
-#' \item{p.value}{Friedman test p-value.}
-#' \item{level}{Singificance level.}
+#' \item{mean}{Mean values for each method.}
+#' \item{interval}{Confidence intervals for each method.}
+#' \item{p.value}{ANOVA test p-value.}
+#' \item{level}{Significance level.}
 #' \item{model}{lm model produced for the calculation of the intervals.}
 #' \item{style}{Style of the plot to produce.}
 #' \item{select}{The selected variable to highlight.}
@@ -48,7 +74,9 @@
 #' @template author
 #
 #' @references \itemize{
-#' \item ???
+#' \item  Demsar, J. (2006). Statistical Comparisons of Classifiers over
+#' Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
+#' \url{http://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
 #' }
 #
 #' @examples
@@ -81,7 +109,7 @@
 #' rmc(ourData, value="n", level=0.95)
 #'
 #' # The following example should give similar results to nemenyi test on
-#' # large samples:
+#' # large samples, which compares medians of the distributions:
 #' rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 #'
 #' @importFrom stats pf glm Gamma
@@ -155,7 +183,7 @@ rmc <- function(data, value=c("normal","absolute","squared"),
                                     model=lmModel, style=style, select=select),
                                class="rmc");
     if(plot){
-        plot(returnedClass);
+        plot(returnedClass, ...);
     }
     return(returnedClass);
 }
@@ -168,6 +196,22 @@ plot.rmc <- function(x, ...){
 
     args <- list(...);
     argsNames <- names(args);
+
+    if(!("xaxs" %in% argsNames)){
+        args$xaxs <- "i";
+    }
+    if(!("yaxs" %in% argsNames)){
+        args$yaxs <- "i";
+    }
+
+    args$x <- args$y <- NA;
+    args$axes <- FALSE;
+    args$pch <- NA;
+
+    if(!("main" %in% argsNames)){
+        args$main <- paste0("P-value for ANOVA is ", format(round(x$p.value,3),nsmall=3),".\n",
+                         x$level*100,"% confidence intervals constructed.");
+    }
 
     style <- x$style;
 
@@ -185,19 +229,49 @@ plot.rmc <- function(x, ...){
     }
 
     if(x$style=="m"){
-        plot(0,0, xlim=c(1,nMethods), ylim=range(x$interval), xaxt="n", xlab="", ylab="Values", pch=NA,
-             main=paste0("P-value for ANOVA is ", format(round(x$p.value,3),nsmall=3),".\n",
-                         x$level*100,"% confidence intervals constructed."));
+        if(!("xlab" %in% argsNames)){
+            args$xlab <- "";
+        }
+        if(!("ylab" %in% argsNames)){
+            args$ylab <- "";
+        }
+        # Remaining defaults
+        if(!("xlim" %in% argsNames)){
+            args$xlim <- c(0,nMethods+1);
+        }
+        if(!("ylim" %in% argsNames)){
+            args$ylim <- range(x$interval);
+            args$ylim <- c(args$ylim[1]-0.01,args$ylim[2]+0.01);
+        }
+
+        if(all(parMar==(c(5,4,4,2)+0.1))){
+            parMar <- c(2, 2, 0, 0) + 0.1;
+        }
+        if(args$main!=""){
+            parMar <- parMar + c(0,0,4,0);
+        }
+        if(args$ylab!=""){
+            parMar <- parMar + c(0,2,0,0);
+        }
+        if(args$xlab!=""){
+            parMar <- parMar + c(2,0,0,0);
+        }
+        par(mar=parMar);
+
+        # Use do.call to use manipulated ellipsis (...)
+        do.call(plot, args);
         for(i in 1:nMethods){
             lines(rep(i,2),x$interval[i,],col=lineCol,lwd=2);
         }
-        points(x$mean, pch=19, col=pointCol)
+        points(x$mean, pch=19, col=pointCol);
         axis(1,c(1:nMethods),namesMethods);
+        axis(2);
+        box(which="plot", col="black");
 
         abline(h=x$interval[x$select,], lwd=2, lty=2, col="grey");
     }
     else if(x$style=="l"){
-        #Sort things just in case
+        #Sort things, just in case
         lmIntervals <- x$interval[order(x$mean),];
         lmCoefs <- x$mean[order(x$mean)];
 
@@ -222,23 +296,41 @@ plot.rmc <- function(x, ...){
 
         labelSize <- max(nchar(names(lmCoefs)));
 
+        if(!("ylab" %in% argsNames)){
+            args$ylab <- "";
+        }
+        if(!("xlab" %in% argsNames)){
+            args$xlab <- "";
+        }
+        # Remaining defaults
+        if(!("xlim" %in% argsNames)){
+            args$xlim <- c(0,k);
+        }
+        if(!("ylim" %in% argsNames)){
+            args$ylim <- c(1,nMethods);
+        }
+
         if(all(parMar==(c(5,4,4,2)+0.1))){
-            parMar <- c(2, labelSize/2, 2, 0) + 0.1
+            parMar <- c(2, labelSize/2, 2, 2) + 0.1
         }
         else{
-            parMar <- parMar + c(0, labelSize/2, 0, 0)
+            parMar <- parMar + c(0, labelSize/2, 0, 2)
         }
-        if(!is.null(args$main)){
-            if(args$main!=""){
-                parMar <- parMar + c(0,0,4,0)
-            }
+
+        if(args$main!=""){
+            parMar <- parMar + c(0,0,4,0)
+        }
+        if(args$ylab!=""){
+            parMar <- parMar + c(0,2,0,0);
+        }
+        if(args$xlab!=""){
+            parMar <- parMar + c(2,0,0,0);
         }
         par(mar=parMar)
 
-        plot(0,0, ylim=c(1,nMethods), xlim=c(1,k), xaxt="n", yaxt="n", xlab="", ylab="", pch=NA,
-             main=paste0("P-value for ANOVA is ", format(round(x$p.value,3),nsmall=3),".\n",
-                         x$level*100,"% confidence intervals constructed."),
-             axes=FALSE);
+        # Use do.call to use manipulated ellipsis (...)
+        do.call(plot, args);
+
         if(k>1){
             for(i in 1:k){
                 lines(c(i,i), vlines[i,], col=colours[i], lwd = 2);
@@ -251,7 +343,6 @@ plot.rmc <- function(x, ...){
             lines(c(0,1), rep(vlines[1,1],times=2), col="gray", lty=2);
             lines(c(0,1), rep(vlines[1,2],times=2), col="gray", lty=2);
         }
-        axis(1,c(1:k),c(1:k));
         axis(2,c(1:nMethods),namesMethods,las=2);
     }
 

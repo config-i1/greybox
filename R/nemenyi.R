@@ -36,7 +36,7 @@ utils::globalVariables(c("axis","box","colorRampPalette","brewer.pal",
 # \item{p.value}{Friedman test p-value.}
 # \item{hypothesis}{Friedman hypothesis result.}
 # \item{CD}{Critical distance for nemenyi.}
-# \item{level}{Singificance level.}
+# \item{level}{Significance level.}
 # \item{nMethods}{Number of methods.}
 # \item{obs}{Number of measurements.}
 # }
