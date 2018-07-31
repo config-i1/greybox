@@ -7,8 +7,11 @@
 #' asymptotic properties of regression models.
 #'
 #' The advisable error measures to use for data are RelMAE and RelMSE, which are
-#' unbiased and have good properties. See examples for more details on how to
-#' use them.
+#' unbiased and have good properties. Don't forget to take logarythms of measures
+#' first. See examples for more details on how to use them.
+#'
+#' The test is equivalent to nemenyi test, when applied to the ranks of the error
+#' measures on large samples.
 #
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
@@ -76,6 +79,10 @@
 #' ourData <- abs(ourData)
 #' ourData <- ourData / ourData[,1]
 #' rmc(ourData, value="n", level=0.95)
+#'
+#' # The following example should give similar results to nemenyi test on
+#' # large samples:
+#' rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 #'
 #' @importFrom stats pf glm Gamma
 #' @export rmc

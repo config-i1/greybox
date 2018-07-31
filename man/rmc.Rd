@@ -56,8 +56,11 @@ asymptotic properties of regression models.
 }
 \details{
 The advisable error measures to use for data are RelMAE and RelMSE, which are
-unbiased and have good properties. See examples for more details on how to
-use them.
+unbiased and have good properties. Don't forget to take logarythms of measures
+first. See examples for more details on how to use them.
+
+The test is equivalent to nemenyi test, when applied to the ranks of the error
+measures on large samples.
 }
 \examples{
 N <- 50
@@ -85,6 +88,10 @@ rmc(ourData^2, value="s", level=0.95)
 ourData <- abs(ourData)
 ourData <- ourData / ourData[,1]
 rmc(ourData, value="n", level=0.95)
+
+# The following example should give similar results to nemenyi test on
+# large samples:
+rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 
 }
 \references{
