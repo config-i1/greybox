@@ -3,8 +3,8 @@
 #' RMC stands for "Regression for Methods Comparison". This is a parametric
 #' test for the comparison of means of several distributions
 #
-#' This test is a parametric counterpart of nemenyi / MCB test and uses
-#' asymptotic properties of regression models. It relies on distributional
+#' This test is a parametric counterpart of nemenyi / MCB test (Demsar, 2006) and
+#' uses asymptotic properties of regression models. It relies on distributional
 #' assumptions about the provided data. For instance, if the mean forecast errors
 #' are used, then it is safe to assume that the regression model constructed on
 #' them will have normally distributed residuals.
@@ -26,9 +26,9 @@
 #' distributed as Chi^2, for example squared errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
-#' unbiased and asymptotically have log-normal distribution. Don't forget to take
-#' logarythms of these measures first, in order to impose normality. See examples
-#' for more details on how to do that.
+#' unbiased and asymptotically have log-normal distribution (Davydenko & Fildes, 2013).
+#' Don't forget to take logarythms of these measures first, in order to impose
+#' normality. See examples for more details on how to do that.
 #'
 #' The test is equivalent to nemenyi test, when applied to the ranks of the error
 #' measures on large samples.
@@ -77,6 +77,10 @@
 #' \item  Demsar, J. (2006). Statistical Comparisons of Classifiers over
 #' Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
 #' \url{http://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
+#' \item Davydenko, A., & Fildes, R. (2013). Measuring Forecasting Accuracy:
+#' The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
+#' International Journal of Forecasting, 29(3), 510–522.
+#' \url{https://doi.org/10.1016/j.ijforecast.2012.09.002}
 #' }
 #
 #' @examples
