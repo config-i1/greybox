@@ -164,6 +164,10 @@ plot.rmc <- function(x, ...){
 
     style <- x$style;
 
+    # Save the current par() values
+    parDefault <- par(no.readonly=TRUE);
+    parMar <- parDefault$mar;
+
     if(x$p.value > 1-x$level){
         pointCol <- "darkgrey";
         lineCol <- "grey";
@@ -209,22 +213,48 @@ plot.rmc <- function(x, ...){
         colours <- c("#0DA0DC","#17850C","#EA3921","#E1C513","#BB6ECE","#5DAD9D");
         colours <- rep(colours,ceiling(k/length(colours)))[1:k];
 
-        plot(0,0, ylim=c(1,nMethods), xlim=c(1,k), xaxt="n", yaxt="n", xlab="Groups", ylab="Methods", pch=NA,
+        labelSize <- max(nchar(names(lmCoefs)));
+
+        if(all(parMar==(c(5,4,4,2)+0.1))){
+            parMar <- c(2, labelSize/2, 2, 0) + 0.1
+        }
+        else{
+            parMar <- parMar + c(0, labelSize/2, 0, 0)
+        }
+        if(!is.null(args$main)){
+            if(args$main!=""){
+                parMar <- parMar + c(0,0,4,0)
+            }
+        }
+        par(mar=parMar)
+
+        plot(0,0, ylim=c(1,nMethods), xlim=c(1,k), xaxt="n", yaxt="n", xlab="", ylab="", pch=NA,
              main=paste0("P-value for ANOVA is ", format(round(x$p.value,3),nsmall=3),".\n",
-                         x$level*100,"% confidence intervals constructed."));
+                         x$level*100,"% confidence intervals constructed."),
+             axes=FALSE);
         if(k>1){
             for(i in 1:k){
-                lines(c(i,i), vlines[i,], col=colours[i], lwd = 4);
+                lines(c(i,i), vlines[i,], col=colours[i], lwd = 2);
                 lines(c(0,i), rep(vlines[i,1],times=2), col="gray", lty=2);
                 lines(c(0,i), rep(vlines[i,2],times=2), col="gray", lty=2);
             }
         }
         else{
-            lines(c(1,1), c(1,nMethods), col="gray", lwd = 4);
+            lines(c(1,1), c(1,nMethods), col="gray", lwd = 2);
             lines(c(0,1), rep(vlines[1,1],times=2), col="gray", lty=2);
             lines(c(0,1), rep(vlines[1,2],times=2), col="gray", lty=2);
         }
         axis(1,c(1:k),c(1:k));
-        axis(2,c(1:nMethods),namesMethods);
+        axis(2,c(1:nMethods),namesMethods,las=2);
     }
+
+    par(parDefault)
+}
+
+#' @export
+print.rmc <- function(x, ...){
+    cat("Regression for Multiple Comparison\n");
+    cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
+    cat(paste0("Number of observations is ",nobs(x$model)," and number of dummies is ",length(x$mean),"\n"));
+    cat(paste0("ANOVA test p-value: ",round(x$p.value,5),"\n"));
 }
