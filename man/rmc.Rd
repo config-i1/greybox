@@ -89,16 +89,16 @@ squared normal errors).
 The advisable error measures to use in the test are RelMAE and RelMSE, which are
 unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
 2013). In fact RelMSE should have F-distribution with h and h degrees of freedom
-and its logarithm is a log F distribution, because each MSE * h ~ chi-square(h)
+and its logarithm is a log F distribution, because each MSE * h has chi-square(h)
 (assuming that the forecast error is normal).
 
 As for RelMAE, its distribution is trickier, because each MAE has folded normal
 distribution (assuming that the original error is normal) and their ratio is
 something complicated, but tracktable (Kim, 2006).
 
-Still, given large samples, logarythms of the both RelMAE and RelMSE can be
-approximated by normal distribution. Thus \code{value="normal"} can be used in
-this case (see examples).
+Still, given large samples, the parameters of the regression on logarithms of
+the both RelMAE and RelMSE should have normal distribution. Thus
+\code{value="normal"} can be used in this case (see examples).
 
 If you use \code{value="absolute"} or \code{value="squared"}, then the inverse
 link is used in Gamma distribution, so the parameters have an inverse meaning as
@@ -149,7 +149,7 @@ The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
 International Journal of Forecasting, 29(3), 510-522.
 \url{https://doi.org/10.1016/j.ijforecast.2012.09.002}
 \item Hea-Jung Kim (2006) On the Ratio of Two Folded Normal
-Distributions, Communications in Statistics—Theory and Methods, 35:6,
+Distributions, Communications in Statistics Theory and Methods, 35:6,
 965-977, \url{https://doi.org/10.1080/03610920600672229}
 }
 }
