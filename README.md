@@ -13,7 +13,7 @@ The list of included functions:
 6. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
 7. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 8. qs, ds, rs, ps - functions for S distribution.
-9. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out.
+9. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
