@@ -91,6 +91,10 @@ unbiased and asymptotically have log-normal distribution (Davydenko & Fildes, 20
 Don't forget to take logarythms of these measures first, in order to impose
 normality. See examples for more details on how to do that.
 
+If you use \code{value="absolute"} or \code{value="squared"}, then the inverse
+link is used in Gamma distribution, so the parameters have an inverse meaning as
+well. i.e. the method with lower MSE-based measure will have a higher parameter.
+
 The test is equivalent to nemenyi test, when applied to the ranks of the error
 measures on large samples.
 }
