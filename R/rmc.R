@@ -314,7 +314,7 @@ plot.rmc <- function(x, ...){
         }
         if(!("ylim" %in% argsNames)){
             args$ylim <- range(x$interval);
-            args$ylim <- c(args$ylim[1]-0.01,args$ylim[2]+0.01);
+            args$ylim <- c(args$ylim[1]-0.1,args$ylim[2]+0.1);
         }
 
         if(all(parMar==(c(5,4,4,2)+0.1))){
@@ -412,9 +412,9 @@ plot.rmc <- function(x, ...){
             }
         }
         else{
-            lines(c(1,1), c(1,nMethods), col="gray", lwd = 2);
-            lines(c(0,1), rep(vlines[1,1],times=2), col="gray", lty=2);
-            lines(c(0,1), rep(vlines[1,2],times=2), col="gray", lty=2);
+            lines(c(1,1), c(1,nMethods), col=lineCol, lwd = 2);
+            lines(c(0,1), rep(vlines[1,1],times=2), col=lineCol, lty=2);
+            lines(c(0,1), rep(vlines[1,2],times=2), col=lineCol, lty=2);
         }
         axis(2,c(1:nMethods),namesMethods,las=2);
     }
