@@ -14,9 +14,9 @@ columns.}
 
 \item{value}{Type of the provided value. If this is a clear forecast error,
 then \code{"normal"} is appropriate, leading to a simple Gausian linear
-regression. \code{"absolute"} would lead to truncated regression (if the
-package "truncreg" is installed. Otherwise this will be a linear regression).
-Finally, \code{"squared"} would lead to the glm with Gamma distribution.}
+regression. \code{"absolute"} would lead to a glm model with exponential
+distribution of the residuals. Finally, \code{"squared"} would lead to the
+glm with Chi squared distribution.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 
@@ -47,7 +47,11 @@ variables:
 \itemize{
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
-\item{p.value}{ANOVA test p-value.}
+\item{p.value}{p-value for the test of the significance of the model. In
+case of value="n" F-test is done. Otherwise Chisq is done.}
+\item{importance}{The weights of the estimated model in comparison with the
+model with the constant only. 0 means that the constant is better, 1 means that
+the estimated model is the best.}
 \item{level}{Significance level.}
 \item{model}{lm model produced for the calculation of the intervals.}
 \item{style}{Style of the plot to produce.}
@@ -74,11 +78,13 @@ vector of coefficients for the dummies and e is the error term of the model.
 
 Depending on the provided data, it might make sense to use different types of
 regressions. The function supports Gausian linear regression
-(\code{value="normal"}, when the data is normal), truncated normal linear
-regression (\code{value="absolute"}, when \code{truncreg} package is installed,
-when the data is truncated normal, for example, absolute errors) and generalised
-regression with Gamma distribution (\code{value="squared"}, when the data is
-distributed as Chi^2, for example squared errors).
+(\code{value="normal"}, when the data is normal), generalised regression with
+exponential distribution (\code{value="absolute"}, for example, absolute errors,
+assuming that the original errors are Laplacian and are unbiased; This is a
+temporary solution. The proper folded normal distribution will be used in the
+future releases) and generalised regression with Gamma distribution
+(\code{value="squared"}, when the data is distributed as Chi^2, for example
+squared normal errors).
 
 The advisable error measures to use in the test are RelMAE and RelMSE, which are
 unbiased and asymptotically have log-normal distribution (Davydenko & Fildes, 2013).

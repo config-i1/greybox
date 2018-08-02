@@ -19,11 +19,13 @@
 #'
 #' Depending on the provided data, it might make sense to use different types of
 #' regressions. The function supports Gausian linear regression
-#' (\code{value="normal"}, when the data is normal), truncated normal linear
-#' regression (\code{value="absolute"}, when \code{truncreg} package is installed,
-#' when the data is truncated normal, for example, absolute errors) and generalised
-#' regression with Gamma distribution (\code{value="squared"}, when the data is
-#' distributed as Chi^2, for example squared errors).
+#' (\code{value="normal"}, when the data is normal), generalised regression with
+#' exponential distribution (\code{value="absolute"}, for example, absolute errors,
+#' assuming that the original errors are Laplacian and are unbiased; This is a
+#' temporary solution. The proper folded normal distribution will be used in the
+#' future releases) and generalised regression with Gamma distribution
+#' (\code{value="squared"}, when the data is distributed as Chi^2, for example
+#' squared normal errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
 #' unbiased and asymptotically have log-normal distribution (Davydenko & Fildes, 2013).
@@ -37,9 +39,9 @@
 #' columns.
 #' @param value Type of the provided value. If this is a clear forecast error,
 #' then \code{"normal"} is appropriate, leading to a simple Gausian linear
-#' regression. \code{"absolute"} would lead to truncated regression (if the
-#' package "truncreg" is installed. Otherwise this will be a linear regression).
-#' Finally, \code{"squared"} would lead to the glm with Gamma distribution.
+#' regression. \code{"absolute"} would lead to a glm model with exponential
+#' distribution of the residuals. Finally, \code{"squared"} would lead to the
+#' glm with Chi squared distribution.
 #' @param level The width of the confidence interval. Default is 0.95.
 #' @param sort If \code{TRUE} function sorts the final values of mean ranks.
 #' If plots are requested via \code{type} parameter, then this is forced to
@@ -63,7 +65,11 @@
 #' \itemize{
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
-#' \item{p.value}{ANOVA test p-value.}
+#' \item{p.value}{p-value for the test of the significance of the model. In
+#' case of value="n" F-test is done. Otherwise Chisq is done.}
+#' \item{importance}{The weights of the estimated model in comparison with the
+#' model with the constant only. 0 means that the constant is better, 1 means that
+#' the estimated model is the best.}
 #' \item{level}{Significance level.}
 #' \item{model}{lm model produced for the calculation of the intervals.}
 #' \item{style}{Style of the plot to produce.}
@@ -116,19 +122,13 @@
 #' # large samples, which compares medians of the distributions:
 #' rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
 #'
-#' @importFrom stats pf glm Gamma
+#' @importFrom stats pf dchisq dexp pchisq glm Gamma
 #' @export rmc
 rmc <- function(data, value=c("normal","absolute","squared"),
                 level=0.95, sort=TRUE, style=c("mcb","lines"),
                 select=NULL, plot=TRUE, ...){
 
     value <- substr(value[1],1,1);
-    if(!requireNamespace("truncreg", quietly = TRUE) & value=="a"){
-        value <- "n";
-        data <- log(data);
-        warning(paste0("You use 'absolute' value, but don't have truncreg package installed. \n",
-                       "The results of the test might be unreliable"), call.=FALSE);
-    }
     style <- substr(style[1],1,1);
 
     dataNew <- as.vector(data);
@@ -148,26 +148,95 @@ rmc <- function(data, value=c("normal","absolute","squared"),
 
     # This is the model used for the confidence intervals calculation
     if(value=="n"){
-        lmModel <- lm(y~.-1,data=dataNew);
+        lmModel <- lm(y~.,data=dataNew[,-2]);
         lmCoefs <- coef(lmModel);
         lmIntervals <- confint(lmModel, level=level);
-    }
-    else if(value=="a"){
-        lmModel <- truncreg::truncreg(y~.-1,data=dataNew);
-        lmCoefs <- coef(lmModel);
-        lmCoefs <- lmCoefs[-length(lmCoefs)]
-        lmIntervals <- confint(lmModel, level=level)[names(lmCoefs),];
-    }
-    else if(value=="s"){
-        lmModel <- glm(y~.-1,data=dataNew,family=Gamma);
-        lmCoefs <- coef(lmModel);
-        lmIntervals <- confint(lmModel, level=level);
-    }
+        names(lmCoefs)[1] <- colnames(dataNew)[2];
+        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
-    # Model2 is needed for ANOVA results
-    lmSummary <- summary(lm(y~.,data=dataNew));
+        # Stuff needed for the importance of the model
+        lmModel2 <- lm(y~1,data=dataNew);
+        AICs <- c(AIC(lmModel2),AIC(lmModel));
+        delta <- AICs - min(AICs);
+        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
 
-    fStatistics <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
+        # ANOVA test
+        lmSummary <- summary(lmModel);
+        p.value <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
+    }
+    else{
+        # Fit GLM
+        lmModel <- glm(y~.,data=dataNew[,-2],family=Gamma);
+        # Extract coefficients
+        lmCoefs <- coef(lmModel);
+
+        if(value=="a"){
+            lmSummary <- summary(lmModel, level=level, dispersion=1);
+            # Construct intervals
+            lmIntervals <- lmSummary$coefficients;
+            lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
+                                 lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
+            colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
+            # Rename constant
+            names(lmCoefs)[1] <- colnames(dataNew)[2];
+            rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+            # Adjust values
+            lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+            lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+
+            # This is the log-likelihood for Gamma
+            # sum(dgamma(lmModel$y,shape=1/lmSummary$dispersion,scale=fitted(lmModel)*lmSummary$dispersion,log=T))
+            # This is equivalent to exponential
+            # sum(dgamma(lmModel$y,shape=1,scale=fitted(lmModel),log=T))
+            # sum(dexp(lmModel$y,1/fitted(lmModel),log=T))
+
+            # Calculate logLik and AIC for exponential distribution
+            logLikExp <- sum(dexp(lmModel$y,1/fitted(lmModel),log=T));
+
+            # Stuff needed for the significance numbers
+            lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
+            logLikExp2 <- sum(dexp(lmModel$y,1/fitted(lmModel2),log=T));
+        }
+        else if(value=="s"){
+            lmSummary <- summary(lmModel, level=level);
+            # Construct intervals
+            lmIntervals <- lmSummary$coefficients;
+            lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
+                                 lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
+            colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
+            # Rename constant
+            names(lmCoefs)[1] <- colnames(dataNew)[2];
+            rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+            # Adjust values
+            lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+            lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+
+            # These two should be equivalent
+            # print(sum(dgamma(lmModel$y,shape=1/(2*lmSummary$dispersion),scale=2,log=T)))
+            # print(sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T)))
+
+            # Calculate logLik and AIC for exponential distribution
+            logLikExp <- sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T));
+
+            # Stuff needed for the significance numbers
+            lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
+            lmSummary2 <- summary(lmModel2);
+            logLikExp2 <- sum(dchisq(lmModel$y,1/lmSummary2$dispersion,log=T));
+        }
+        AICExp <- 2*(nParam(lmModel) - logLikExp);
+        AICExp2 <- 2*(nParam(lmModel2) - logLikExp2);
+
+        # Calculate importance of the model
+        AICs <- c(AICExp2,AICExp);
+        delta <- AICs - min(AICs);
+        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
+
+        # Chi-squared test. +logLikExp is because the logLik is negative
+        p.value <- pchisq(-(logLikExp2-logLikExp),
+                          lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
+    }
 
     if(is.null(select)){
         select <- which.min(lmCoefs);
@@ -183,7 +252,7 @@ rmc <- function(data, value=c("normal","absolute","squared"),
     names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
     rownames(lmIntervals) <- names(lmCoefs);
 
-    returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, p.value=fStatistics, level=level,
+    returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, importance=importance, p.value=p.value, level=level,
                                     model=lmModel, style=style, select=select),
                                class="rmc");
     if(plot){
@@ -213,7 +282,7 @@ plot.rmc <- function(x, ...){
     args$pch <- NA;
 
     if(!("main" %in% argsNames)){
-        args$main <- paste0("P-value for ANOVA is ", format(round(x$p.value,3),nsmall=3),".\n",
+        args$main <- paste0("Importance of the model is ", format(round(x$importance,3),nsmall=3),".\n",
                          x$level*100,"% confidence intervals constructed.");
     }
 

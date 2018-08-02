@@ -1,11 +1,11 @@
-greybox v0.2.3 (Release data: 2018-07-31)
+greybox v0.2.3 (Release data: 2018-08-01)
 ==============
 
 Changes:
 * determination() now automatically drops variables with no variability.
 * New function - nemenyi() - imported from TStools with minor bugfixes and corrections.
 * It appears that Nikos is against the move of nemenyi() function from TStools to greybox. This was a misunderstanding between the two of us. So no nemenyi() function here, nothing to see here, move along!
-* New function for multiple comparison of methods based on regression analysis - rmc(). This is a parametric analogue of nemenyi test.
+* New function for multiple comparison of methods based on regression analysis - rmc(). This is a parametric analogue of nemenyi test. The function works with errors, their absolute and squared values and relies on lm / glm.
 
 Bugfixes:
 * plots of ro() were misaligned in case of co=FALSE
