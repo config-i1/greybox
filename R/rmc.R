@@ -101,7 +101,7 @@
 #' International Journal of Forecasting, 29(3), 510-522.
 #' \url{https://doi.org/10.1016/j.ijforecast.2012.09.002}
 #' \item Hea-Jung Kim (2006) On the Ratio of Two Folded Normal
-#' Distributions, Communications in Statistics—Theory and Methods, 35:6,
+#' Distributions, Communications in Statistics Theory and Methods, 35:6,
 #' 965-977, \url{https://doi.org/10.1080/03610920600672229}
 #' }
 #
