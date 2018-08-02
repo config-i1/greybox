@@ -1,4 +1,4 @@
-greybox v0.2.3 (Release data: 2018-08-01)
+greybox v0.2.3 (Release data: 2018-08-02)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * New function - nemenyi() - imported from TStools with minor bugfixes and corrections.
 * It appears that Nikos is against the move of nemenyi() function from TStools to greybox. This was a misunderstanding between the two of us. So no nemenyi() function here, nothing to see here, move along!
 * New function for multiple comparison of methods based on regression analysis - rmc(). This is a parametric analogue of nemenyi test. The function works with errors, their absolute and squared values and relies on lm / glm.
+* New methods imported from smooth: errorType, pointLik and pAIC.
 
 Bugfixes:
 * plots of ro() were misaligned in case of co=FALSE

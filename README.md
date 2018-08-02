@@ -10,25 +10,27 @@ The list of included functions:
 3. combine - Function combines the regression models from the provided data based on IC weigths and returns the combined lm object.
 4. ro - rolling origin evaluation (see the vignette).
 <!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
-6. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-7. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
-8. qs, ds, rs, ps - functions for S distribution.
-9. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
+6. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
+7. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+8. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
+9. qs, ds, rs, ps - functions for S distribution.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
-2. lmAdvanced - linear regression with MAE / HAM / MAPE / etc.
+2. lmAdvanced - linear regression with MAE / HAM / folded normal distribution etc.
 
 Methods already implemented:
-1. summary - returns summary of the regression (either selected or combined).
-2. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
-3. confint - confidence intervals for combined models.
-4. forecast - point and interval forecasts for the response variable.
-5. nParam - returns number of parameters of a model.
-6. getResponse - returns the response variable from the model.
-7. plot - plots the basic linear graph of actuals and fitted. Similar thing plots graphs for forecasts of greybox functions.
-8. AICc - AICc for regression with normally distributed residuals.
-9. BICc - BICc for regression with normally distributed residuals.
+1. pointLik - point likelihood method for the time series models.
+2. pAIC - point AIC based on pointLik.
+3. summary - returns summary of the regression (either selected or combined).
+4. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
+5. confint - confidence intervals for combined models.
+6. forecast - point and interval forecasts for the response variable.
+7. nParam - returns number of parameters of a model.
+8. getResponse - returns the response variable from the model.
+9. plot - plots the basic linear graph of actuals and fitted. Similar thing plots graphs for forecasts of greybox functions.
+10. AICc - AICc for regression with normally distributed residuals.
+11. BICc - BICc for regression with normally distributed residuals.
 
 ## Installation
 

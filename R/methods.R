@@ -76,6 +76,145 @@ BICc.default <- function(object, ...){
     return(IC);
 }
 
+#' Functions that extracts type of error from the model
+#'
+#' This function allows extracting error type from any model.
+#'
+#' \code{errorType} extracts the type of error from the model
+#' (either additive or multiplicative).
+#'
+#' @template author
+#' @template keywords
+#'
+#' @param object Model estimated using one of the functions of smooth package.
+#' @param ... Currently nothing is accepted via ellipsis.
+#' @return     Either \code{"A"} for additive error or \code{"M"} for multiplicative.
+#' All the other functions return strings of character.
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#'
+#' errorType(ourModel)
+#'
+#' @export errorType
+errorType <- function(object, ...) UseMethod("errorType")
+
+#' @export
+errorType.default <- function(object, ...){
+    return("A");
+}
+
+#' @export
+errorType.ets <- function(object, ...){
+    if(substr(object$method,5,5)=="M"){
+        return("M");
+    }
+    else{
+        return("A");
+    }
+}
+
+#' Point likelihood values
+#'
+#' This function returns a vector of logarithms of likelihoods for each observation
+#'
+#' Instead of taking the expected log-likelihood for the whole series, this function
+#' calculates the individual value for each separate observation. Note that these
+#' values are biased, so you would possibly need to take number of degrees of freedom
+#' into account in order to have an unbiased estimator.
+#'
+#' This value is based on the general likelihood (not its concentrated version), so
+#' the sum of these values may slightly differ from the output of logLik.
+#'
+#' @aliases pointLik
+#' @param object Time series model.
+#' @param ...  Some stuff.
+#' @return This function returns a vector.
+#' @template author
+#' @seealso \link[stats]{AIC}, \link[stats]{BIC}
+#' @keywords htest
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#'
+#' pointLik(ourModel)
+#'
+#' # Bias correction
+#' pointLik(ourModel) - nParam(ourModel)
+#'
+#' # Bias correction in AIC style
+#' 2*(nParam(ourModel)/nobs(ourModel) - pointLik(ourModel))
+#'
+#' # BIC calculation based on pointLik
+#' log(nobs(ourModel))*nParam(ourModel) - 2*sum(pointLik(ourModel))
+#'
+#' @export pointLik
+pointLik <- function(object, ...) UseMethod("pointLik")
+
+#' @export
+pointLik.default <- function(object, ...){
+    obs <- nobs(object);
+    errors <- residuals(object);
+    likValues <- dnorm(errors, 0, sigma(object), TRUE);
+
+    return(likValues);
+}
+
+#' @export
+pointLik.ets <- function(object, ...){
+    likValues <- pointLik.default(object);
+    if(errorType(object)=="M"){
+        likValues <- likValues - log(abs(fitted(object)));
+    }
+
+    return(likValues);
+}
+
+#' Point AIC
+#'
+#' This function returns a vector of AIC values for the in-sample observations
+#'
+#' This is based on \link[smooth]{pointLik} function. The formula for this is:
+#' pAIC_t = 2 * k - 2 * T * l_t ,
+#' where k is the number of parameters, T is the number of observations and l_t is
+#' the point likelihood. This way we preserve the property that AIC = mean(pAIC).
+#'
+#' @aliases pAIC
+#' @param object Time series model.
+#' @param ...  Some stuff.
+#' @return The function returns the vector of point AIC values.
+#' @template author
+#' @seealso \link[smooth]{pointLik}
+#' @keywords htest
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#'
+#' pAICValues <- pAIC(ourModel)
+#'
+#' mean(pAICValues)
+#' AIC(ourModel)
+#'
+#' @export pAIC
+pAIC <- function(object, ...) UseMethod("pAIC")
+
+#' @export
+pAIC.default <- function(object, ...){
+    obs <- nobs(object);
+    k <- nParam(object);
+    return(2*k - 2 * obs * pointLik(object));
+}
+
+#### Coefficients and extraction functions ####
 #' @importFrom stats confint
 #' @export
 confint.greyboxC <- function(object, parm, level=0.95, ...){
@@ -207,6 +346,7 @@ nParam.greyboxC <- function(object, ...){
     return(sum(object$importance)+1);
 }
 
+#### Plot functions ####
 #' @export
 plot.greybox <- function(x, ...){
     ellipsis <- list(...);
@@ -315,6 +455,7 @@ plot.rollingOrigin <- function(x, ...){
     }
 }
 
+#### Print and summary ####
 #' @export
 print.summary.greybox <- function(x, ...){
     ellipsis <- list(...);
