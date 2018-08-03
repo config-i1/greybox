@@ -204,6 +204,7 @@ pointLik.ets <- function(object, ...){
 #' mean(pAICValues)
 #' AIC(ourModel)
 #'
+#' @rdname pointIC
 #' @export pAIC
 pAIC <- function(object, ...) UseMethod("pAIC")
 
@@ -211,10 +212,57 @@ pAIC <- function(object, ...) UseMethod("pAIC")
 pAIC.default <- function(object, ...){
     obs <- nobs(object);
     k <- nParam(object);
-    return(2*k - 2 * obs * pointLik(object));
+    return(2 * k - 2 * obs * pointLik(object));
 }
 
+#' @rdname pointIC
+#' @export pAICc
+pAICc <- function(object, ...) UseMethod("pAICc")
+
+#' @export
+pAICc.default <- function(object, ...){
+    obs <- nobs(object);
+    k <- nParam(object);
+    return(2 * k - 2 * obs * pointLik(object) + 2 * k * (k + 1) / (obs - k - 1));
+}
+
+#' @rdname pointIC
+#' @export pBIC
+pBIC <- function(object, ...) UseMethod("pBIC")
+
+#' @export
+pBIC.default <- function(object, ...){
+    obs <- nobs(object);
+    k <- nParam(object);
+    return(log(obs) * k - 2 * obs * pointLik(object));
+}
+
+#' @rdname pointIC
+#' @export pBIC
+pBICc <- function(object, ...) UseMethod("pBICc")
+
+#' @export
+pBICc.default <- function(object, ...){
+    obs <- nobs(object);
+    k <- nParam(object);
+    return((k * log(obs) * obs) / (obs - k - 1)  - 2 * obs * pointLik(object));
+}
+
+
 #### Coefficients and extraction functions ####
+#' @importFrom stats coef
+#' @export
+coef.greybox <- function(object, ...){
+    return(object$coefficients);
+}
+
+#' @export
+coef.greyboxD <- function(object, ...){
+    coefReturned <- list(coefficients=object$coefficients,se=object$se,
+                         dynamic=object$dynamic,importance=object$importance);
+    return(structure(coefReturned,class="coef.greyboxD"));
+}
+
 #' @importFrom stats confint
 #' @export
 confint.greyboxC <- function(object, parm, level=0.95, ...){
@@ -222,7 +270,7 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
     # Extract parameters
     parameters <- coef(object);
     # Extract SE
-    parametersSE <- object$coefficientsSE;
+    parametersSE <- object$se;
     # Define quantiles using Student distribution
     paramQuantiles <- qt((1+level)/2,df=object$df.residual);
     # Do the stuff
@@ -235,6 +283,29 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
         parm <- names(parameters);
     }
     return(confintValues[parm,]);
+}
+
+#' @export
+confint.greyboxD <- function(object, parm, level=0.95, ...){
+
+    # Extract parameters
+    parameters <- coef(object)$dynamic;
+    # Extract SE
+    parametersSE <- object$se;
+    # Define quantiles using Student distribution
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+    # Do the stuff
+    confintValues <- array(NA,c(dim(parameters),2),
+                           dimnames=list(NULL, dimnames(parameters)[[2]],
+                                         c(paste0((1-level)/2*100,"%"),paste0((1+level)/2*100,"%"))));
+    confintValues[,,1] <- parameters-paramQuantiles*parametersSE;
+    confintValues[,,2] <- parameters+paramQuantiles*parametersSE;
+
+    # If parm was not provided, return everything.
+    if(!exists("parm",inherits=FALSE)){
+        parm <- colnames(parameters);
+    }
+    return(confintValues[,parm,]);
 }
 
 #' @importFrom forecast forecast
@@ -254,13 +325,12 @@ forecast.greybox <- function(object, newdata, ...){
     ellipsis$object <- object;
     ellipsis$newdata <- newdata;
 
-    if(nobs(object) <= nParam(object)){
-        matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
-        ourForecast <- as.vector(matrixOfxreg %*% coef(object));
-    }
-    else{
-        ourForecast <- do.call(predict.lm, ellipsis);
-    }
+    parameters <- coef.greybox(object);
+    parametersNames <- names(parameters);
+
+    matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+    colnames(matrixOfxreg)[1] <- parametersNames[1];
+    ourForecast <- as.vector(matrixOfxreg[,parametersNames] %*% coef.greybox(object));
 
     if(any(names(ellipsis)=="level")){
         level <- ellipsis$level;
@@ -347,6 +417,51 @@ nParam.greyboxC <- function(object, ...){
 }
 
 #### Plot functions ####
+#' @export
+plot.coef.greyboxD <- function(x, ...){
+    ellipsis <- list(...);
+    # If type and ylab are not provided, set them...
+    if(!any(names(ellipsis)=="type")){
+        ellipsis$type <- "l";
+    }
+    if(!any(names(ellipsis)=="ylab")){
+        ellipsis$ylab <- "Importance";
+    }
+    if(!any(names(ellipsis)=="ylim")){
+        ellipsis$ylim <- c(0,1);
+    }
+
+    ourData <- x$importance;
+    # We are not interested in intercept, so skip it in plot
+
+    parDefault <- par(no.readonly=TRUE);
+
+    pages <- ceiling((ncol(ourData)-1) / 8);
+    perPage <- ceiling((ncol(ourData)-1) / pages);
+    if(pages>1){
+        parCols <- ceiling(perPage/4);
+        perPage <- ceiling(perPage/parCols);
+    }
+    else{
+        parCols <- 1;
+    }
+
+    parDims <- c(perPage,parCols);
+    par(mfcol=parDims);
+
+    if(pages>1){
+        message(paste0("Too many variables. Ploting several per page, on ",pages," pages."));
+    }
+
+    for(i in 2:ncol(ourData)){
+        ellipsis$x <- ourData[,i];
+        ellipsis$main <- colnames(ourData)[i];
+        do.call(plot,ellipsis);
+    }
+
+    par(parDefault);
+}
+
 #' @export
 plot.greybox <- function(x, ...){
     ellipsis <- list(...);
@@ -457,6 +572,19 @@ plot.rollingOrigin <- function(x, ...){
 
 #### Print and summary ####
 #' @export
+print.greybox <- function(x, ...){
+    cat("Call:\n");
+    print(x$call);
+    cat("\nCoefficients:\n");
+    print(coef(x));
+}
+
+#' @export
+print.coef.greyboxD <- function(x, ...){
+    print(x$coefficients);
+}
+
+#' @export
 print.summary.greybox <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
@@ -553,8 +681,8 @@ summary.greyboxC <- function(object, level=0.95, ...){
 
     # Extract the values from the object
     errors <- residuals(object);
-    obs <- length(errors);
-    parametersTable <- cbind(coef(object),object$coefficientsSE,object$importance);
+    obs <- nobs(object);
+    parametersTable <- cbind(coef(object),object$se,object$importance);
 
     # Calculate the quantiles for parameters and add them to the table
     parametersTable <- cbind(parametersTable,confint(object, level=level));
@@ -580,6 +708,41 @@ summary.greyboxC <- function(object, level=0.95, ...){
     return(ourReturn);
 }
 
+#' @export
+summary.greyboxD <- function(object, level=0.95, ...){
+
+    # Extract the values from the object
+    errors <- residuals(object);
+    obs <- nobs(object);
+    parametersTable <- cbind(coef.greybox(object),apply(object$se,2,mean),apply(object$importance,2,mean));
+
+    parametersConfint <- confint(object, level=level);
+    # Calculate the quantiles for parameters and add them to the table
+    parametersTable <- cbind(parametersTable,apply(parametersConfint,c(2,3),mean));
+
+    rownames(parametersTable) <- names(coef.greybox(object));
+    colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+
+    # Extract degrees of freedom
+    df <- c(object$df, object$df.residual, object$rank);
+    # Calculate s.e. of residuals
+    residSE <- sqrt(sum(errors^2)/df[2]);
+
+    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+    names(ICs) <- c("AIC","AICc","BIC","BICc");
+
+    R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
+    R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
+
+    ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
+                                confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
+                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
+                           class="summary.greyboxC");
+    return(ourReturn);
+}
+
 #' @importFrom stats vcov
 #' @export
 vcov.greyboxC <- function(object, ...){
@@ -588,6 +751,19 @@ vcov.greyboxC <- function(object, ...){
     xreg <- cbind(1,xreg);
     colnames(xreg)[1] <- "Intercept";
     importance <- object$importance;
+
+    vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
+    warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
+    return(vcovValue);
+}
+
+#' @export
+vcov.greyboxD <- function(object, ...){
+    s2 <- sigma(object)^2;
+    xreg <- as.matrix(object$model[,-1]);
+    xreg <- cbind(1,xreg);
+    colnames(xreg)[1] <- "Intercept";
+    importance <- apply(object$importance,2,mean);
 
     vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
     warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);

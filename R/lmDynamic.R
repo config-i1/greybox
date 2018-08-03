@@ -1,10 +1,11 @@
-#' Combine regressions based on information criteria
+#' Combine regressions based on point information criteria
 #'
 #' Function combines parameters of linear regressions of the first variable
-#' on all the other provided data.
+#' on all the other provided data using pAIC weights
 #'
 #' The algorithm uses lm() to fit different models and then combines the models
-#' based on the selected IC.
+#' based on the selected point IC. This is a dynamic counterpart of
+#' \link[greybox]{lmCombine} function.
 #'
 #' @template AICRef
 #' @template author
@@ -20,10 +21,10 @@
 #' out. \code{TRUE} means that nothing is produced.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "lm.combined".
+#' "lm.combined", which includes time varying parameters and dynamic importance
+#' of each variable.
 #'
-#' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
-#' \link[greybox]{stepwise}}
+#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 #'
 #' @examples
 #'
@@ -34,26 +35,12 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- lmCombine(inSample,bruteForce=TRUE)
+#' ourModel <- lmDynamic(inSample,bruteForce=TRUE)
 #' forecast(ourModel,outSample)
 #' plot(forecast(ourModel,outSample))
 #'
-#' ### Fat regression example
-#' xreg <- matrix(rnorm(5000,10,3),50,100)
-#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(50,0,3),xreg,rnorm(50,300,10))
-#' colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
-#' inSample <- xreg[1:40,]
-#' outSample <- xreg[-c(1:40),]
-#' # Combine only the models close to the optimal
-#' ourModel <- lmCombine(inSample,ic="BICc",bruteForce=FALSE)
-#' summary(ourModel)
-#' plot(forecast(ourModel,outSample))
-#'
-#' @importFrom stats dnorm
-#'
-#' @aliases combine combiner
-#' @export lmCombine
-lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
+#' @export lmDynamic
+lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -67,16 +54,16 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     ic <- ic[1];
     if(ic=="AIC"){
-        IC <- AIC;
+        IC <- pAIC;
     }
     else if(ic=="AICc"){
-        IC <- AICc;
+        IC <- pAICc;
     }
     else if(ic=="BIC"){
-        IC <- BIC;
+        IC <- pBIC;
     }
     else if(ic=="BICc"){
-        IC <- BICc;
+        IC <- pBICc;
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
@@ -103,7 +90,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
 
         # Vector of ICs
-        ICs <- rep(NA,nCombinations);
+        pICs <- matrix(NA,obsInsample,nCombinations);
         # Matrix of parameters
         parameters <- matrix(0,nCombinations,nVariables+1);
         # Matrix of s.e. of parameters
@@ -111,7 +98,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
         # Starting estimating the models with just a constant
         ourModel <- lm(as.formula(paste0(responseName,"~1")),data=ourData);
-        ICs[1] <- IC(ourModel);
+        pICs[,1] <- pAIC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
         parametersSE[1,1] <- diag(vcov(ourModel));
     }
@@ -129,7 +116,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent));
+            return(lmDynamic(newData, ic=ic, bruteForce=TRUE, silent=silent));
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -167,14 +154,14 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             }
 
             # Vector of ICs
-            ICs <- rep(NA,nCombinations);
+            pICs <- matrix(NA,obsInsample,nCombinations);
             # Matrix of parameters
             parameters <- matrix(0,nCombinations,nVariables+1);
             # Matrix of s.e. of parameters
             parametersSE <- matrix(0,nCombinations,nVariables+1);
 
             # Starting estimating the models with writing down the best one
-            ICs[1] <- IC(bestModel);
+            pICs[,1] <- pAIC(bestModel);
             bufferCoef <- coef(bestModel)[exoNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
             bufferCoef <- diag(vcov(bestModel))[exoNames];
@@ -194,41 +181,44 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
         lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
         ourModel <- lm(as.formula(lmFormula),data=ourData);
-        ICs[i] <- IC(ourModel);
+        pICs[,i] <- pAIC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
     }
 
     # Calculate IC weights
-    ICWeights <- ICs - min(ICs);
-    ICWeights <- exp(-0.5*ICWeights) / sum(exp(-0.5*ICWeights));
+    pICWeights <- pICs - apply(pICs,1,min);
+    pICWeights <- exp(-0.5*pICWeights) / apply(exp(-0.5*pICWeights),1,sum)
 
     # Calculate weighted parameters
-    parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
+    parametersWeighted <- pICWeights %*% parameters;
+    colnames(parametersWeighted) <- exoNames;
 
-    parametersCombined <- apply(parametersWeighted,2,sum);
-    names(parametersCombined) <- exoNames;
+    parametersMean <- apply(parametersWeighted,2,mean);
+    names(parametersMean) <- exoNames;
 
     # From the matrix of exogenous variables without the response variable
     ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
     colnames(ourDataExo) <- exoNames;
 
-    yFitted <- as.matrix(ourDataExo) %*% parametersCombined;
+    yFitted <- parametersWeighted * as.matrix(ourDataExo);
+    yFitted <- apply(yFitted,1,sum)
     errors <- ourData[,1] - yFitted;
 
     # Relative importance of variables
-    importance <- c(1,round(ICWeights %*% variablesCombinations,3));
-    names(importance) <- exoNames;
+    importance <- cbind(1,pICWeights %*% variablesCombinations);
+    colnames(importance) <- exoNames;
 
     # Some of the variables have partial inclusion, 1 stands for constant
-    df <- obsInsample - sum(importance) - 1;
+    # This is the dynamic degrees of freedom
+    df <- obsInsample - apply(importance,1,sum) - 1;
 
-    ICValue <- c(ICWeights %*% ICs);
-    names(ICValue) <- ic;
+    # Dynamic weighted mean pAIC
+    ICValue <- apply(pICWeights * pICs,1,sum);
 
     # Models SE
-    parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
-    names(parametersSECombined) <- exoNames;
+    parametersSECombined <- pICWeights %*% sqrt(parametersSE +(parameters - matrix(parametersMean,nrow(parameters),ncol(parameters),byrow=T))^2);
+    colnames(parametersSECombined) <- exoNames;
 
     # Create an object of the same name as the original data
     # If it was a call on its own, make it one string
@@ -240,22 +230,11 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     ourTerms <- testModel$terms;
 
-    finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=df, se=parametersSECombined, importance=importance,
-                       IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
-                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance)+1);
+    finalModel <- list(coefficients=parametersMean, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
+                       df.residual=df[obsInsample], se=parametersSECombined, dynamic=parametersWeighted,
+                       importance=importance, IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
+                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance[obsInsample,])+1,
+                       df.residualDynamic=df,dfDynamic=apply(importance,1,sum)+1);
 
-    return(structure(finalModel,class=c("greyboxC","greybox","lm")));
-}
-
-#' @export
-combiner <- function(...){
-    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
-    lmCombine(...);
-}
-
-#' @export
-combine <- function(...){
-    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
-    lmCombine(...);
+    return(structure(finalModel,class=c("greyboxD","greybox","lm")));
 }

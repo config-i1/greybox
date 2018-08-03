@@ -30,10 +30,12 @@ At the moment the package contains several basic functions that implement model 
 The package includes the following functions:
 
 1. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
-2. `lmCombine()` - lmCombine the linear models into one using IC weights;
-3. `xregExpander()` - expand the provided data by including leads and lags of the variables.
-4. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-<!--5. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
+2. `lmCombine()` - combine the linear models into one using IC weights;
+3. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
+4. `xregExpander()` - expand the provided data by including leads and lags of the variables.
+5. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
+6. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples.
+<!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
 
@@ -124,10 +126,12 @@ BJInsample <- BJxreg[1:130,];
 BJHoldout <- BJxreg[-(1:130),];
 ourModel <- lmCombine(BJInsample,bruteForce=FALSE)
 ```
-A plot of the model:
+A summary and a plot of the model:
 ```{r BJcombinePlot}
+summary(ourModel)
 plot(ourModel)
 ```
+Importance tells us how important the respective variable is in the combination. 1 means 100% important, 0 means not important at all.
 
 And the forecast using the holdout sample:
 ```{r BJcombineForecast}
@@ -136,6 +140,49 @@ plot(ourForecast)
 ```
 
 These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend Burnham and Anderson (2002) textbook.
+
+## lmDynamic
+
+This function is based on the principles of `lmCombine()` and point ICs. It allows not only combining the models but also to capture the dynamics of it parameters. So in a way this corresponds to a time varying parameters model, but based on information criteria.
+
+Continuing the example from `lmCombine()`, let's construct the dynamic model:
+```{r BJDynamicModel}
+ourModel <- lmDynamic(BJInsample,bruteForce=FALSE)
+```
+
+We can plot the model and ask for the summary in the similar way as with `lmCombine()`:
+```{r BJDynamicPlot}
+ourSummary <- summary(ourModel)
+ourSummary
+plot(ourModel)
+```
+
+The coefficeints in the summary are the averaged out over the whole sample. The more interesting elements are the time varying parameters, their standard errors (and respective confidence intervals) and time varying importance of the parameters. 
+```{r BJDynamicCoefficients}
+# Coefficients in dynamics
+head(ourModel$dynamic)
+# Standard errors of the coefficients in dynamics
+head(ourModel$se)
+# Importance of parameters in dynamics
+head(ourModel$importance)
+```
+The importance can also be plotted using `plot()` and `coef()` functions, which might produce a lot of images:
+```{r BJDynamicCoefficientsPlots, eval=FALSE, include=FALSE}
+plot(coef(ourModel))
+```
+The plots show how the importance of each parameter changes over time. The values do not look as smooth as we would like them to, but nothing can be done with this at this point. If you want something smooth, then smooth these values out using, for example, `cma()` function from `smooth` package.
+
+In fact, even degrees of freedom are now also time varying:
+```{r BJDynamicdf}
+ourModel$dfDynamic
+ourModel$df.residualDynamic
+```
+And as usual we can produce forecast from this function, the mean parameters are used in this case:
+```{r BJDynamicForecast}
+ourForecast <- forecast(ourModel,BJHoldout)
+plot(ourForecast)
+```
+This function is currently under development, so stay tuned.
 
 ## References
 

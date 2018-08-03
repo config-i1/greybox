@@ -2,9 +2,18 @@
 % Please edit documentation in R/methods.R
 \name{pAIC}
 \alias{pAIC}
+\alias{pAICc}
+\alias{pBIC}
+\alias{pBICc}
 \title{Point AIC}
 \usage{
 pAIC(object, ...)
+
+pAICc(object, ...)
+
+pBIC(object, ...)
+
+pBICc(object, ...)
 }
 \arguments{
 \item{object}{Time series model.}

@@ -11,9 +11,10 @@ The list of included functions:
 4. ro - rolling origin evaluation (see the vignette).
 <!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
 6. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
-7. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-8. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
-9. qs, ds, rs, ps - functions for S distribution.
+7. lmDynamic - linear regression with time varying parameters based on pAIC.
+8. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+9. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
+10. qs, ds, rs, ps - functions for S distribution.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
