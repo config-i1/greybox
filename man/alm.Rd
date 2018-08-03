@@ -18,6 +18,8 @@ used in the fitting process.}
 
 \item{na.rm}{if \code{TRUE}, then observations with missing values are
 removed. Otherwise they are interpolated.}
+
+\item{distribution}{What density function to use in the process.}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -43,6 +45,7 @@ The estimation is done using likelihood of respective distributions.
 }
 \examples{
 
+#Nothing here yet...
 
 }
 \seealso{
