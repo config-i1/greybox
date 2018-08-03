@@ -5,7 +5,7 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset = NULL, na.rm = TRUE,
-  distribution = c("dlaplace", "ds", "dfnorm"), ...)
+  distribution = c("dlaplace", "ds", "dfnorm"))
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to

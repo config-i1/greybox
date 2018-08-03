@@ -26,6 +26,7 @@
 #' used in the fitting process.
 #' @param na.rm	if \code{TRUE}, then observations with missing values are
 #' removed. Otherwise they are interpolated.
+#' @param distribution What density function to use in the process.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "alm".
@@ -34,9 +35,10 @@
 #'
 #' @examples
 #'
+#' #Nothing here yet...
 #'
 #' @export alm
 alm <- function(formula, data, subset=NULL, na.rm=TRUE,
-                distribution=c("dlaplace","ds","dfnorm"), ...){
+                distribution=c("dlaplace","ds","dfnorm")){
     print("This function is under development right now...");
 }
