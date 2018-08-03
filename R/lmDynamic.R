@@ -231,9 +231,9 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     ourTerms <- testModel$terms;
 
     finalModel <- list(coefficients=parametersMean, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=df[obsInsample], se=parametersSECombined, dynamic=parametersWeighted,
+                       df.residual=mean(df), se=parametersSECombined, dynamic=parametersWeighted,
                        importance=importance, IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
-                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance[obsInsample,])+1,
+                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(apply(importance,2,mean))+1,
                        df.residualDynamic=df,dfDynamic=apply(importance,1,sum)+1);
 
     return(structure(finalModel,class=c("greyboxD","greybox","lm")));
