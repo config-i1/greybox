@@ -33,14 +33,14 @@ logarithms.}
 Depending on the function, various things are returned
 (usually either vector or scalar):
 \itemize{
-\item \code{ds} returns the density function value for the
+\item \code{dlaplace} returns the density function value for the
 provided parameters.
-\item \code{ps} returns the value of the cumulative function
+\item \code{plaplace} returns the value of the cumulative function
 for the provided parameters.
-\item \code{qs} returns quantiles of the distribution. Depending
+\item \code{qlaplace} returns quantiles of the distribution. Depending
 on what was provided in \code{p}, \code{mu} and \code{b}, this
 can be either a vector or a matrix, or an array.
-\item \code{rs} returns a vector of random variables
+\item \code{rlaplace} returns a vector of random variables
 generated from the Laplace distribution. Depending on what was
 provided in \code{mu} and \code{b}, this can be either a vector
 or a matrix or an array.
