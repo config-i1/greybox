@@ -58,8 +58,11 @@ determination <- function(xreg, ...){
             vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
         }
     }
-    else{
+    else if(nVariables==2){
         vectorCorrelationsMultiple <- matrixCorrelations[1,2]^2;
+    }
+    else{
+        vectorCorrelationsMultiple <- 0;
     }
 
     return(vectorCorrelationsMultiple);
