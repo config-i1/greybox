@@ -117,6 +117,13 @@ errorType.ets <- function(object, ...){
     }
 }
 
+#' @importFrom stats logLik
+#' @export
+logLik.alm <- function(object, ...){
+    return(structure(object$logLik,nobs=nobs(object),df=nParam(object),class="logLik"));
+}
+
+
 #' Point likelihood values
 #'
 #' This function returns a vector of logarithms of likelihoods for each observation
@@ -265,6 +272,28 @@ coef.greyboxD <- function(object, ...){
 
 #' @importFrom stats confint
 #' @export
+confint.alm <- function(object, parm, level=0.95, ...){
+    # Extract parameters
+    parameters <- coef(object);
+    parametersSE <- sqrt(diag(vcov(object)));
+    # Define quantiles using Student distribution
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+
+    # We can use normal distribution, because of the asymptotics of MLE
+    confintValues <- cbind(parameters-qt((1+level)/2,df=object$df.residual)*parametersSE,
+                           parameters+qt((1+level)/2,df=object$df.residual)*parametersSE);
+
+    colnames(confintValues) <- c(paste0((1-level)/2*100,"%"),
+                                 paste0((1+level)/2*100,"%"));
+    rownames(confintValues) <- names(parameters);
+    # If parm was not provided, return everything.
+    if(!exists("parm",inherits=FALSE)){
+        parm <- names(parameters);
+    }
+    return(confintValues[parm,]);
+}
+
+#' @export
 confint.greyboxC <- function(object, parm, level=0.95, ...){
 
     # Extract parameters
@@ -353,8 +382,6 @@ forecast.greybox <- function(object, newdata, ...){
 }
 
 #' @importFrom forecast getResponse
-#' @export
-forecast::getResponse
 
 #' @export
 getResponse.greybox <- function(object, ...){
@@ -585,6 +612,33 @@ print.coef.greyboxD <- function(x, ...){
 }
 
 #' @export
+print.summary.alm <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 5;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    if(x$distribution=="dlaplace"){
+        distrib <- "Laplace";
+    }
+    else if(x$distribution=="ds"){
+        distrib <- "S";
+    }
+    else if(x$distribution=="dfnorm"){
+        distrib <- "Folded Normal";
+    }
+
+    cat(paste0("Distribution used in the estimation: ", distrib));
+    cat("\nCoefficients:\n");
+    print(round(x$coefficients,digits));
+    cat("ICs:\n");
+    print(round(x$ICs,digits));
+}
+
+#' @export
 print.summary.greybox <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
@@ -652,6 +706,27 @@ print.rollingOrigin <- function(x, ...){
 #' @export
 sigma.greybox <- function(object, ...){
     return(sqrt(sum(residuals(object)^2)/(nobs(object)-nParam(object))));
+}
+
+#' @export
+summary.alm <- function(object, level=0.95, ...){
+
+    # Collect parameters and their standard errors
+    parametersTable <- cbind(coef(object),sqrt(diag(vcov(object))));
+    parametersTable <- cbind(parametersTable,confint(object, level=level));
+    rownames(parametersTable) <- names(coef(object));
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+    ourReturn <- list(coefficients=parametersTable);
+
+    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+    names(ICs) <- c("AIC","AICc","BIC","BICc");
+    ourReturn$ICs <- ICs;
+    ourReturn$distribution <- object$distribution;
+
+    ourReturn <- structure(ourReturn,class="summary.alm");
+    return(ourReturn);
 }
 
 #' @importFrom stats summary.lm
@@ -744,6 +819,11 @@ summary.greyboxD <- function(object, level=0.95, ...){
 }
 
 #' @importFrom stats vcov
+#' @export
+vcov.alm <- function(object, ...){
+    return(object$vcov);
+}
+
 #' @export
 vcov.greyboxC <- function(object, ...){
     s2 <- sigma(object)^2;

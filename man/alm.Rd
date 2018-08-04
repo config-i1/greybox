@@ -31,21 +31,27 @@ Function estimates model based on the selected distribution
 \details{
 This is a function, similar to \link[stats]{lm}, but for the cases of several
 non-normal distributions. These include:
-
 \enumerate{
-\item Laplace distribution,
-\item S-distribution,
-\item Folded-normal distribution.
+\item Laplace distribution, \link[greybox]{dlaplace},
+\item S-distribution, \link[greybox]{ds},
+\item Folded-normal distribution, \link[greybox]{dfnorm}.
 }
 
-Some other distributions can be used as well, given that they are formulated
-in terms of mean and some other parameters (NOT YET IMPLEMENTED).
+Probably some other distributions will be added to this function at some point...
 
 The estimation is done using likelihood of respective distributions.
 }
 \examples{
 
-#Nothing here yet...
+xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
+xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
+colnames(xreg) <- c("y","x1","x2","Noise")
+inSample <- xreg[1:80,]
+outSample <- xreg[-c(1:80),]
+# Combine all the possible models
+ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
+summary(ourModel)
+plot(forecast(ourModel,outSample))
 
 }
 \seealso{
