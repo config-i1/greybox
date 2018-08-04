@@ -5,6 +5,7 @@ Changes:
 * New cool function - lmDynamic() - that constructs a dynamic linear regression based on point ICs.
 * New set of functions for Folded normal distribution.
 * New function - alm - Advanced Linear Model.
+* Folded normal distribution for rmc() with value="a"
 
 Bugfixes:
 * determination() function did not work in cases of 2 variables

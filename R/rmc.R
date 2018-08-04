@@ -19,13 +19,11 @@
 #'
 #' Depending on the provided data, it might make sense to use different types of
 #' regressions. The function supports Gausian linear regression
-#' (\code{value="normal"}, when the data is normal), generalised regression with
-#' exponential distribution (\code{value="absolute"}, for example, absolute errors,
-#' assuming that the original errors are Laplacian and are unbiased; This is a
-#' temporary solution. The proper folded normal distribution will be used in the
-#' future releases) and generalised regression with Gamma distribution
-#' (\code{value="squared"}, when the data is distributed as Chi^2, for example
-#' squared normal errors).
+#' (\code{value="normal"}, when the data is normal), advanced linear regression with
+#' folded normal distribution (\code{value="absolute"}, for example, absolute errors,
+#' assuming that the original errors are normally distributed) and generalised
+#' regression with Gamma distribution (\code{value="squared"}, when the data is
+#' distributed as Chi^2, for example squared normal errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
 #' unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
@@ -52,9 +50,9 @@
 #' columns.
 #' @param value Type of the provided value. If this is a clear forecast error,
 #' then \code{"normal"} is appropriate, leading to a simple Gausian linear
-#' regression. \code{"absolute"} would lead to a glm model with exponential
-#' distribution of the residuals. Finally, \code{"squared"} would lead to the
-#' glm with Chi squared distribution.
+#' regression. \code{"absolute"} would lead to a alm model with folded normal
+#' distribution. Finally, \code{"squared"} would lead to the glm with Chi
+#' squared distribution.
 #' @param level The width of the confidence interval. Default is 0.95.
 #' @param sort If \code{TRUE} function sorts the final values of mean ranks.
 #' If plots are requested via \code{type} parameter, then this is forced to
@@ -109,7 +107,7 @@
 #
 #' N <- 50
 #' M <- 4
-#' ourData <- matrix(rnorm(N*M,mean=0,sd=1), N, M)
+#' ourData <- matrix(rnorm(N*M,mean=0,sd=3), N, M)
 #' ourData[,2] <- ourData[,2]+1
 #' ourData[,3] <- ourData[,3]+0.7
 #' ourData[,4] <- ourData[,4]+0.5
@@ -147,6 +145,9 @@ rmc <- function(data, value=c("normal","absolute","squared"),
     value <- substr(value[1],1,1);
     style <- substr(style[1],1,1);
 
+    if(is.data.frame(data)){
+        data <- as.matrix(data);
+    }
     dataNew <- as.vector(data);
     obs <- nrow(data);
     nMethods <- ncol(data);
@@ -182,65 +183,59 @@ rmc <- function(data, value=c("normal","absolute","squared"),
         lmSummary <- summary(lmModel);
         p.value <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
     }
-    else{
+    else if(value=="a"){
+        lmModel <- alm(y~., data=dataNew[,-2], distribution="dfnorm");
+
+        lmSummary <- summary(lmModel, level=level);
+        # Construct intervals
+        lmCoefs <- coef(lmModel);
+        lmIntervals <- confint(lmModel, level=level);
+        names(lmCoefs)[1] <- colnames(dataNew)[2];
+        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+
+        # Stuff needed for the importance of the model
+        lmModel2 <- alm(y~1,data=dataNew, distribution="dfnorm");
+        AICs <- c(AIC(lmModel2),AIC(lmModel));
+        delta <- AICs - min(AICs);
+        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
+
+        # Chi-squared test. +logLikExp is because the logLik is negative
+        p.value <- pchisq(-(logLik(lmModel2)-logLik(lmModel)),
+                          lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
+    }
+    else if(value=="s"){
         # Fit GLM
         lmModel <- glm(y~.,data=dataNew[,-2],family=Gamma);
         # Extract coefficients
         lmCoefs <- coef(lmModel);
 
-        if(value=="a"){
-            lmSummary <- summary(lmModel, level=level, dispersion=1);
-            # Construct intervals
-            lmIntervals <- lmSummary$coefficients;
-            lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
-                                 lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
-            colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
-            # Rename constant
-            names(lmCoefs)[1] <- colnames(dataNew)[2];
-            rownames(lmIntervals)[1] <- colnames(dataNew)[2];
-            # Adjust values
-            lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-            lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+        lmSummary <- summary(lmModel, level=level);
+        # Construct intervals
+        lmIntervals <- lmSummary$coefficients;
+        lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
+                             lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
+        colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
+        # Rename constant
+        names(lmCoefs)[1] <- colnames(dataNew)[2];
+        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+        # Adjust values
+        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
-            # This is the log-likelihood for Gamma
-            # sum(dgamma(lmModel$y,shape=1/lmSummary$dispersion,scale=fitted(lmModel)*lmSummary$dispersion,log=T))
-            # This is equivalent to exponential
-            # sum(dgamma(lmModel$y,shape=1,scale=fitted(lmModel),log=T))
-            # sum(dexp(lmModel$y,1/fitted(lmModel),log=T))
+        # These two should be equivalent
+        # print(sum(dgamma(lmModel$y,shape=1/(2*lmSummary$dispersion),scale=2,log=T)))
+        # print(sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T)))
 
-            # Calculate logLik and AIC for exponential distribution
-            logLikExp <- sum(dexp(lmModel$y,1/fitted(lmModel),log=T));
+        # Calculate logLik and AIC for chisq distribution
+        logLikExp <- sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T));
 
-            # Stuff needed for the significance numbers
-            lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
-            logLikExp2 <- sum(dexp(lmModel$y,1/fitted(lmModel2),log=T));
-        }
-        else if(value=="s"){
-            lmSummary <- summary(lmModel, level=level);
-            # Construct intervals
-            lmIntervals <- lmSummary$coefficients;
-            lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
-                                 lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
-            colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
-            # Rename constant
-            names(lmCoefs)[1] <- colnames(dataNew)[2];
-            rownames(lmIntervals)[1] <- colnames(dataNew)[2];
-            # Adjust values
-            lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-            lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+        # Stuff needed for the significance numbers
+        lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
+        lmSummary2 <- summary(lmModel2);
+        logLikExp2 <- sum(dchisq(lmModel$y,1/lmSummary2$dispersion,log=T));
 
-            # These two should be equivalent
-            # print(sum(dgamma(lmModel$y,shape=1/(2*lmSummary$dispersion),scale=2,log=T)))
-            # print(sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T)))
-
-            # Calculate logLik and AIC for exponential distribution
-            logLikExp <- sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T));
-
-            # Stuff needed for the significance numbers
-            lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
-            lmSummary2 <- summary(lmModel2);
-            logLikExp2 <- sum(dchisq(lmModel$y,1/lmSummary2$dispersion,log=T));
-        }
         AICExp <- 2*(nParam(lmModel) - logLikExp);
         AICExp2 <- 2*(nParam(lmModel2) - logLikExp2);
 
@@ -443,5 +438,5 @@ print.rmc <- function(x, ...){
     cat("Regression for Multiple Comparison\n");
     cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
     cat(paste0("Number of observations is ",nobs(x$model)," and number of dummies is ",length(x$mean),"\n"));
-    cat(paste0("ANOVA test p-value: ",round(x$p.value,5),"\n"));
+    cat(paste0("Significance test p-value: ",round(x$p.value,5),"\n"));
 }

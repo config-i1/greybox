@@ -14,9 +14,9 @@ columns.}
 
 \item{value}{Type of the provided value. If this is a clear forecast error,
 then \code{"normal"} is appropriate, leading to a simple Gausian linear
-regression. \code{"absolute"} would lead to a glm model with exponential
-distribution of the residuals. Finally, \code{"squared"} would lead to the
-glm with Chi squared distribution.}
+regression. \code{"absolute"} would lead to a alm model with folded normal
+distribution. Finally, \code{"squared"} would lead to the glm with Chi
+squared distribution.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 
@@ -78,13 +78,11 @@ vector of coefficients for the dummies and e is the error term of the model.
 
 Depending on the provided data, it might make sense to use different types of
 regressions. The function supports Gausian linear regression
-(\code{value="normal"}, when the data is normal), generalised regression with
-exponential distribution (\code{value="absolute"}, for example, absolute errors,
-assuming that the original errors are Laplacian and are unbiased; This is a
-temporary solution. The proper folded normal distribution will be used in the
-future releases) and generalised regression with Gamma distribution
-(\code{value="squared"}, when the data is distributed as Chi^2, for example
-squared normal errors).
+(\code{value="normal"}, when the data is normal), advanced linear regression with
+folded normal distribution (\code{value="absolute"}, for example, absolute errors,
+assuming that the original errors are normally distributed) and generalised
+regression with Gamma distribution (\code{value="squared"}, when the data is
+distributed as Chi^2, for example squared normal errors).
 
 The advisable error measures to use in the test are RelMAE and RelMSE, which are
 unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
@@ -110,7 +108,7 @@ measures on large samples.
 \examples{
 N <- 50
 M <- 4
-ourData <- matrix(rnorm(N*M,mean=0,sd=1), N, M)
+ourData <- matrix(rnorm(N*M,mean=0,sd=3), N, M)
 ourData[,2] <- ourData[,2]+1
 ourData[,3] <- ourData[,3]+0.7
 ourData[,4] <- ourData[,4]+0.5
