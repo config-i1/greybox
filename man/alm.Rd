@@ -4,8 +4,8 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset = NULL, na.action, distribution = c("dlaplace",
-  "ds", "dfnorm", "dchisq"))
+alm(formula, data, subset = NULL, na.action, distribution = c("laplace",
+  "s", "fnorm", "chisq"))
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -53,7 +53,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 # Combine all the possible models
-ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
+ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 summary(ourModel)
 plot(forecast(ourModel,outSample))
 

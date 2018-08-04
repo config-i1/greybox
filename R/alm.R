@@ -43,7 +43,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
+#' ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 #' summary(ourModel)
 #' plot(forecast(ourModel,outSample))
 #'
@@ -52,7 +52,7 @@
 #' @importFrom stats model.frame sd terms dchisq
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("dlaplace","ds","dfnorm","dchisq")){
+                distribution=c("laplace","s","fnorm","chisq")){
 
     cl <- match.call();
 
@@ -143,21 +143,24 @@ alm <- function(formula, data, subset=NULL,  na.action,
     y <- as.matrix(dataWork[,1]);
 
     fitter <- function(A, distribution, y, matrixXreg){
-        if(distribution=="dfnorm"){
-            scale <- A[length(A)];
-            A <- A[-length(A)];
-        }
+        # if(distribution=="fnorm"){
+        #     scale <- A[length(A)];
+        #     A <- A[-length(A)];
+        # }
 
         yFitted <- matrixXreg %*% A;
         errors <- y - yFitted;
 
-        if(distribution=="dlaplace"){
+        if(distribution=="laplace"){
             scale <- mean(abs(y-yFitted));
         }
-        else if(distribution=="ds"){
+        else if(distribution=="s"){
             scale <- mean(sqrt(abs(y-yFitted))) / 2;
         }
-        else if(distribution=="dchisq"){
+        else if(distribution=="fnorm"){
+            scale <- mean((y-yFitted)^2);
+        }
+        else if(distribution=="chisq"){
             scale <- 2*yFitted;
         }
 
@@ -167,17 +170,29 @@ alm <- function(formula, data, subset=NULL,  na.action,
     CF <- function(A, distribution, y, matrixXreg){
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
-        if(distribution=="dlaplace"){
-            CFReturn <- -sum(dlaplace(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE));
+        if(distribution=="laplace"){
+            CFReturn <- dlaplace(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE);
         }
-        else if(distribution=="ds"){
-            CFReturn <- -sum(dlaplace(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE));
+        else if(distribution=="s"){
+            CFReturn <- ds(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE);
         }
-        else if(distribution=="dfnorm"){
-            CFReturn <- -sum(dfnorm(y, mu=fitterReturn$yFitted, sigma=fitterReturn$scale, log=TRUE));
+        else if(distribution=="fnorm"){
+            CFReturn <- dfnorm(y, mu=fitterReturn$yFitted, sigma=fitterReturn$scale, log=TRUE);
         }
-        else if(distribution=="dchisq"){
-            CFReturn <- -sum(dchisq(y, fitterReturn$yFitted, log=TRUE));
+        else if(distribution=="chisq"){
+            if(any(fitterReturn$yFitted<0)){
+                CFReturn <- 1E+300;
+            }
+            else{
+                CFReturn <- dchisq(y, fitterReturn$yFitted, log=TRUE);
+                # CFReturn <- -sum(dchisq(y, fitterReturn$yFitted, log=TRUE));
+            }
+        }
+
+        CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);
+
+        if(is.nan(CFReturn) | is.na(CFReturn) | is.infinite(CFReturn)){
+            CFReturn <- 1E+300;
         }
 
         return(CFReturn);
@@ -185,9 +200,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
 
     A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
 
-    if(distribution=="dfnorm"){
-        A <- c(A,sd(y));
-    }
+#     if(distribution=="fnorm"){
+#         A <- c(A,sd(y));
+#     }
 
     res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
                           distribution=distribution, y=y, matrixXreg=matrixXreg);
@@ -204,14 +219,31 @@ alm <- function(formula, data, subset=NULL,  na.action,
     # Parameters of the model + scale
     df <- nVariables + 1;
 
-    vcovMatrix <- solve(hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg));
-    # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
-    if(any(diag(vcovMatrix)<0)){
-        diag(vcovMatrix) <- abs(diag(vcovMatrix));
+    vcovMatrix <- hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg);
+    if(any(vcovMatrix==0)){
+        warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                       "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                       "Try a different distribution maybe?"), call.=FALSE);
+        vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
+    }
+    else{
+        vcovMatrix <- solve(vcovMatrix);
+    }
+    if(any(is.nan(vcovMatrix))){
+        warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                       "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                       "Try a different distribution maybe?"), call.=FALSE);
+        vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
+    }
+    else{
+        # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
+        if(any(diag(vcovMatrix)<0)){
+            diag(vcovMatrix) <- abs(diag(vcovMatrix));
+        }
     }
 
-    if(distribution=="dfnorm"){
-        A <- A[-(nVariables+1)];
+    if(distribution=="fnorm"){
+        # A <- A[-(nVariables+1)];
         # Correction so that the the expectation of the folded is returned
         mu <- yFitted;
         sigma <- scale;
@@ -221,7 +253,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
     else{
         mu <- yFitted;
-        if(distribution=="dchisq"){
+        if(distribution=="chisq"){
             scale <- yFitted * 2;
         }
     }
