@@ -282,15 +282,21 @@ confint.alm <- function(object, parm, level=0.95, ...){
     # We can use normal distribution, because of the asymptotics of MLE
     confintValues <- cbind(parameters-qt((1+level)/2,df=object$df.residual)*parametersSE,
                            parameters+qt((1+level)/2,df=object$df.residual)*parametersSE);
-
-    colnames(confintValues) <- c(paste0((1-level)/2*100,"%"),
+    confintNames <- c(paste0((1-level)/2*100,"%"),
                                  paste0((1+level)/2*100,"%"));
+    colnames(confintValues) <- confintNames;
     rownames(confintValues) <- names(parameters);
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
         parm <- names(parameters);
     }
-    return(confintValues[parm,]);
+    confintValues <- confintValues[parm,];
+    if(!is.matrix(confintValues)){
+        confintValues <- matrix(confintValues,1,2,);
+        colnames(confintValues) <- confintNames;
+        rownames(confintValues) <- names(parameters);
+    }
+    return(confintValues);
 }
 
 #' @export
@@ -305,13 +311,20 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
     # Do the stuff
     confintValues <- cbind(parameters-paramQuantiles*parametersSE,
                            parameters+paramQuantiles*parametersSE);
-    colnames(confintValues) <- c(paste0((1-level)/2*100,"%"),
+    confintNames <- c(paste0((1-level)/2*100,"%"),
                                  paste0((1+level)/2*100,"%"));
+    colnames(confintValues) <- confintNames;
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
         parm <- names(parameters);
     }
-    return(confintValues[parm,]);
+    confintValues <- confintValues[parm,];
+    if(!is.matrix(confintValues)){
+        confintValues <- matrix(confintValues,1,2,);
+        colnames(confintValues) <- confintNames;
+        rownames(confintValues) <- names(parameters);
+    }
+    return(confintValues);
 }
 
 #' @export
@@ -821,7 +834,12 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    return(object$vcov);
+    vcov <- object$vcov;
+    if(!is.matrix(vcov)){
+        vcov <- as.matrix(object$vcov);
+        colnames(vcov) <- rownames(vcov);
+    }
+    return(vcov);
 }
 
 #' @export

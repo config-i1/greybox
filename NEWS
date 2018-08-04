@@ -5,10 +5,11 @@ Changes:
 * New cool function - lmDynamic() - that constructs a dynamic linear regression based on point ICs.
 * New set of functions for Folded normal distribution.
 * New function - alm - Advanced Linear Model.
-* Folded normal distribution for rmc() with value="a"
+* Folded normal distribution for rmc() with value="a".
 
 Bugfixes:
-* determination() function did not work in cases of 2 variables
+* determination() function did not work in cases of 2 variables.
+* vcov() and confint() were misbehaving when nVars==1.
 
 greybox v0.2.3 (Release data: 2018-08-02)
 ==============
