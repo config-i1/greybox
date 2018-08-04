@@ -4,8 +4,8 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset = NULL, na.rm = TRUE,
-  distribution = c("dlaplace", "ds", "dfnorm"))
+alm(formula, data, subset = NULL, na.action, distribution = c("dlaplace",
+  "ds", "dfnorm"))
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -16,8 +16,11 @@ that class): a symbolic description of the model to be fitted.}
 \item{subset}{an optional vector specifying a subset of observations to be
 used in the fitting process.}
 
-\item{na.rm}{if \code{TRUE}, then observations with missing values are
-removed. Otherwise they are interpolated.}
+\item{na.action}{a function which indicates what should happen when the
+data contain NAs. The default is set by the na.action setting of
+\link[base]{options}, and is \link[stats]{na.fail} if that is unset. The
+factory-fresh default is \link[stats]{na.omit}. Another possible value
+is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 
 \item{distribution}{What density function to use in the process.}
 }

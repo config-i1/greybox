@@ -22,8 +22,11 @@
 #' @param data a data frame or a matrix, containing the variables in the model.
 #' @param subset an optional vector specifying a subset of observations to be
 #' used in the fitting process.
-#' @param na.rm	if \code{TRUE}, then observations with missing values are
-#' removed. Otherwise they are interpolated.
+#' @param na.action	a function which indicates what should happen when the
+#' data contain NAs. The default is set by the na.action setting of
+#' \link[base]{options}, and is \link[stats]{na.fail} if that is unset. The
+#' factory-fresh default is \link[stats]{na.omit}. Another possible value
+#' is NULL, no action. Value \link[stats]{na.exclude} can be useful.
 #' @param distribution What density function to use in the process.
 #'
 #' @return Function returns \code{model} - the final model of the class
@@ -47,7 +50,7 @@
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms
 #' @export alm
-alm <- function(formula, data, subset=NULL, na.rm=TRUE,
+alm <- function(formula, data, subset=NULL,  na.action,
                 distribution=c("dlaplace","ds","dfnorm")){
 
     cl <- match.call();
@@ -56,10 +59,7 @@ alm <- function(formula, data, subset=NULL, na.rm=TRUE,
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
     }
-    dataWork <- model.frame(formula, data);
-    if(na.rm){
-        dataWork <- dataWork[!apply(is.na(dataWork),1,any),];
-    }
+    dataWork <- model.frame(formula, data, na.action=na.action);
     ourTerms <- terms(dataWork);
     obsInsample <- nrow(dataWork);
     variablesNames <- colnames(dataWork)[-1];
@@ -204,7 +204,7 @@ alm <- function(formula, data, subset=NULL, na.rm=TRUE,
     }
 
     if(distribution=="dfnorm"){
-        A <- A[-nVariables];
+        A <- A[-(nVariables+1)];
         # Correction so that the the expectation of the folded is returned
         mu <- yFitted;
         sigma <- scale;
