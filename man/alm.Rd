@@ -5,7 +5,7 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset = NULL, na.action, distribution = c("dlaplace",
-  "ds", "dfnorm"))
+  "ds", "dfnorm", "dchisq"))
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -37,7 +37,8 @@ non-normal distributions. These include:
 \enumerate{
 \item Laplace distribution, \link[greybox]{dlaplace},
 \item S-distribution, \link[greybox]{ds},
-\item Folded-normal distribution, \link[greybox]{dfnorm}.
+\item Folded-normal distribution, \link[greybox]{dfnorm},
+\item Chi-Squared Distribution, \link[stats]{dchisq}.
 }
 
 Probably some other distributions will be added to this function at some point...

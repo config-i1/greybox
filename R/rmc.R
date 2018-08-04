@@ -19,10 +19,10 @@
 #'
 #' Depending on the provided data, it might make sense to use different types of
 #' regressions. The function supports Gausian linear regression
-#' (\code{value="normal"}, when the data is normal), advanced linear regression with
-#' folded normal distribution (\code{value="absolute"}, for example, absolute errors,
-#' assuming that the original errors are normally distributed) and generalised
-#' regression with Gamma distribution (\code{value="squared"}, when the data is
+#' (\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
+#' folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
+#' assuming that the original errors are normally distributed) and advanced linear
+#' regression with Chi-Squared distribution (\code{distribution="dchisq"}, when the data is
 #' distributed as Chi^2, for example squared normal errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
@@ -37,9 +37,9 @@
 #'
 #' Still, given large samples, the parameters of the regression on logarithms of
 #' the both RelMAE and RelMSE should have normal distribution. Thus
-#' \code{value="normal"} can be used in this case (see examples).
+#' \code{distribution="dnorm"} can be used in this case (see examples).
 #'
-#' If you use \code{value="absolute"} or \code{value="squared"}, then the inverse
+#' If you use \code{distribution="dfnorm"} or \code{distribution="dchisq"}, then the inverse
 #' link is used in Gamma distribution, so the parameters have an inverse meaning as
 #' well. i.e. the method with lower MSE-based measure will have a higher parameter.
 #'
@@ -48,10 +48,10 @@
 #
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
-#' @param value Type of the provided value. If this is a clear forecast error,
-#' then \code{"normal"} is appropriate, leading to a simple Gausian linear
-#' regression. \code{"absolute"} would lead to a alm model with folded normal
-#' distribution. Finally, \code{"squared"} would lead to the glm with Chi
+#' @param distribution Type of the distribution to use. If this is a clear forecast error,
+#' then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
+#' regression. \code{"dfnorm"} would lead to a alm model with folded normal
+#' distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
 #' squared distribution.
 #' @param level The width of the confidence interval. Default is 0.95.
 #' @param sort If \code{TRUE} function sorts the final values of mean ranks.
@@ -67,9 +67,9 @@
 #' @param ... Other parameters passed to plot function
 #
 #' @return If \code{plot=TRUE}, then the function plots the results after all
-#' the calculations. In case of \code{value="normal"}, the closer to zero the
-#' intervals are, the better model performs. When \code{value="absolute"} or
-#' \code{value="squared"}, the smaller, the better.
+#' the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
+#' intervals are, the better model performs. When \code{distribution="dfnorm"} or
+#' \code{distribution="dchisq"}, the smaller, the better.
 #'
 #' Function returns a list of a class "rmc", which contains the following
 #' variables:
@@ -77,7 +77,7 @@
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
 #' \item{p.value}{p-value for the test of the significance of the model. In
-#' case of value="n" F-test is done. Otherwise Chisq is done.}
+#' case of distribution="dnorm" F-test is done. Otherwise Chisq is done.}
 #' \item{importance}{The weights of the estimated model in comparison with the
 #' model with the constant only. 0 means that the constant is better, 1 means that
 #' the estimated model is the best.}
@@ -103,46 +103,44 @@
 #' 965-977, \url{https://doi.org/10.1080/03610920600672229}
 #' }
 #
+#' @seealso \code{\link[greybox]{alm}}
+#'
 #' @examples
 #
 #' N <- 50
 #' M <- 4
-#' ourData <- matrix(rnorm(N*M,mean=0,sd=3), N, M)
+#' ourData <- matrix(rnorm(N*M,mean=0,sd=1), N, M)
 #' ourData[,2] <- ourData[,2]+1
 #' ourData[,3] <- ourData[,3]+0.7
 #' ourData[,4] <- ourData[,4]+0.5
 #' colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
-#' rmc(ourData, value="n", level=0.95)
+#' rmc(ourData, distribution="dnorm", level=0.95)
 #
-#' par(mar=c(2,0,2,0),cex=1.5)
-#' rmc(ourData, level=0.95)
+#' # In case of AE-based measures, distribution="dfnorm" should be selected
+#' rmc(abs(ourData), distribution="dfnorm", level=0.95)
 #'
-#' # In case of AE-based measures, value="a" should be selected
-#' rmc(abs(ourData), value="a", level=0.95)
-#'
-#' # In case of SE-based measures, value="s" should be selected
-#' rmc(ourData^2, value="s", level=0.95)
+#' # In case of SE-based measures, distribution="dchisq" should be selected
+#' rmc(ourData^2, distribution="dchisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
 #' # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
-#' # value="n" and provide logarithms of the RelMAE, which can be approximated by
+#' # distribution="dnorm" and provide logarithms of the RelMAE, which can be approximated by
 #' # normal distribution
 #' ourData <- abs(ourData)
-#' ourData <- ourData / ourData[,1]
-#' rmc(ourData, value="n", level=0.95)
+#' rmc(ourData / ourData[,1], distribution="dnorm", level=0.95)
 #'
 #' # The following example should give similar results to nemenyi test on
 #' # large samples, which compares medians of the distributions:
-#' rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
+#' rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
 #'
-#' @importFrom stats pf dchisq dexp pchisq glm Gamma
+#' @importFrom stats pf pchisq
 #' @export rmc
-rmc <- function(data, value=c("normal","absolute","squared"),
+rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
                 level=0.95, sort=TRUE, style=c("mcb","lines"),
                 select=NULL, plot=TRUE, ...){
 
-    value <- substr(value[1],1,1);
+    distribution <- distribution[1];
     style <- substr(style[1],1,1);
 
     if(is.data.frame(data)){
@@ -164,7 +162,7 @@ rmc <- function(data, value=c("normal","absolute","squared"),
     colnames(dataNew)[1] <- "y";
 
     # This is the model used for the confidence intervals calculation
-    if(value=="n"){
+    if(distribution=="dnorm"){
         lmModel <- lm(y~.,data=dataNew[,-2]);
         lmCoefs <- coef(lmModel);
         lmIntervals <- confint(lmModel, level=level);
@@ -183,8 +181,13 @@ rmc <- function(data, value=c("normal","absolute","squared"),
         lmSummary <- summary(lmModel);
         p.value <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
     }
-    else if(value=="a"){
-        lmModel <- alm(y~., data=dataNew[,-2], distribution="dfnorm");
+    else{
+        if(distribution=="a"){
+            lmModel <- alm(y~., data=dataNew[,-2], distribution="dfnorm");
+        }
+        else{
+            lmModel <- alm(y~., data=dataNew[,-2], distribution="dchisq");
+        }
 
         lmSummary <- summary(lmModel, level=level);
         # Construct intervals
@@ -205,49 +208,6 @@ rmc <- function(data, value=c("normal","absolute","squared"),
         p.value <- pchisq(-(logLik(lmModel2)-logLik(lmModel)),
                           lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
     }
-    else if(value=="s"){
-        # Fit GLM
-        lmModel <- glm(y~.,data=dataNew[,-2],family=Gamma);
-        # Extract coefficients
-        lmCoefs <- coef(lmModel);
-
-        lmSummary <- summary(lmModel, level=level);
-        # Construct intervals
-        lmIntervals <- lmSummary$coefficients;
-        lmIntervals <- cbind(lmIntervals[,1] + qt((1-level)/2, lmModel$df.residual) * lmIntervals[,2],
-                             lmIntervals[,1] + qt((1+level)/2, lmModel$df.residual) * lmIntervals[,2]);
-        colnames(lmIntervals) <- paste0(c((1-level)/2,(1+level)/2)*100," %");
-        # Rename constant
-        names(lmCoefs)[1] <- colnames(dataNew)[2];
-        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
-        # Adjust values
-        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
-
-        # These two should be equivalent
-        # print(sum(dgamma(lmModel$y,shape=1/(2*lmSummary$dispersion),scale=2,log=T)))
-        # print(sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T)))
-
-        # Calculate logLik and AIC for chisq distribution
-        logLikExp <- sum(dchisq(lmModel$y,1/lmSummary$dispersion,log=T));
-
-        # Stuff needed for the significance numbers
-        lmModel2 <- glm(y~1,data=dataNew,family=Gamma);
-        lmSummary2 <- summary(lmModel2);
-        logLikExp2 <- sum(dchisq(lmModel$y,1/lmSummary2$dispersion,log=T));
-
-        AICExp <- 2*(nParam(lmModel) - logLikExp);
-        AICExp2 <- 2*(nParam(lmModel2) - logLikExp2);
-
-        # Calculate importance of the model
-        AICs <- c(AICExp2,AICExp);
-        delta <- AICs - min(AICs);
-        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
-
-        # Chi-squared test. +logLikExp is because the logLik is negative
-        p.value <- pchisq(-(logLikExp2-logLikExp),
-                          lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
-    }
 
     if(is.null(select)){
         select <- which.min(lmCoefs);
@@ -264,7 +224,7 @@ rmc <- function(data, value=c("normal","absolute","squared"),
     rownames(lmIntervals) <- names(lmCoefs);
 
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, importance=importance, p.value=p.value, level=level,
-                                    model=lmModel, style=style, select=select),
+                                    model=lmModel, style=style, select=select,distribution=distribution),
                                class="rmc");
     if(plot){
         plot(returnedClass, ...);
@@ -435,7 +395,7 @@ plot.rmc <- function(x, ...){
 
 #' @export
 print.rmc <- function(x, ...){
-    cat("Regression for Multiple Comparison\n");
+    cat(paste0("Regression for Multiple Comparison with ",x$distribution,".\n"));
     cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
     cat(paste0("Number of observations is ",nobs(x$model)," and number of dummies is ",length(x$mean),"\n"));
     cat(paste0("Significance test p-value: ",round(x$p.value,5),"\n"));

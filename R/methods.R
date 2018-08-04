@@ -643,6 +643,9 @@ print.summary.alm <- function(x, ...){
     else if(x$distribution=="dfnorm"){
         distrib <- "Folded Normal";
     }
+    else if(x$distribution=="dchisq"){
+        distrib <- "Chi-Squared";
+    }
 
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");

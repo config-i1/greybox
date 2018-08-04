@@ -4,7 +4,7 @@
 \alias{rmc}
 \title{RMC test}
 \usage{
-rmc(data, value = c("normal", "absolute", "squared"), level = 0.95,
+rmc(data, distribution = c("dnorm", "dfnorm", "dchisq"), level = 0.95,
   sort = TRUE, style = c("mcb", "lines"), select = NULL, plot = TRUE,
   ...)
 }
@@ -12,10 +12,10 @@ rmc(data, value = c("normal", "absolute", "squared"), level = 0.95,
 \item{data}{Matrix or data frame with observations in rows and variables in
 columns.}
 
-\item{value}{Type of the provided value. If this is a clear forecast error,
-then \code{"normal"} is appropriate, leading to a simple Gausian linear
-regression. \code{"absolute"} would lead to a alm model with folded normal
-distribution. Finally, \code{"squared"} would lead to the glm with Chi
+\item{distribution}{Type of the distribution to use. If this is a clear forecast error,
+then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
+regression. \code{"dfnorm"} would lead to a alm model with folded normal
+distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
 squared distribution.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
@@ -38,9 +38,9 @@ effect.}
 }
 \value{
 If \code{plot=TRUE}, then the function plots the results after all
-the calculations. In case of \code{value="normal"}, the closer to zero the
-intervals are, the better model performs. When \code{value="absolute"} or
-\code{value="squared"}, the smaller, the better.
+the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
+intervals are, the better model performs. When \code{distribution="dfnorm"} or
+\code{distribution="dchisq"}, the smaller, the better.
 
 Function returns a list of a class "rmc", which contains the following
 variables:
@@ -48,7 +48,7 @@ variables:
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
 \item{p.value}{p-value for the test of the significance of the model. In
-case of value="n" F-test is done. Otherwise Chisq is done.}
+case of distribution="dnorm" F-test is done. Otherwise Chisq is done.}
 \item{importance}{The weights of the estimated model in comparison with the
 model with the constant only. 0 means that the constant is better, 1 means that
 the estimated model is the best.}
@@ -78,10 +78,10 @@ vector of coefficients for the dummies and e is the error term of the model.
 
 Depending on the provided data, it might make sense to use different types of
 regressions. The function supports Gausian linear regression
-(\code{value="normal"}, when the data is normal), advanced linear regression with
-folded normal distribution (\code{value="absolute"}, for example, absolute errors,
-assuming that the original errors are normally distributed) and generalised
-regression with Gamma distribution (\code{value="squared"}, when the data is
+(\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
+folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
+assuming that the original errors are normally distributed) and advanced linear
+regression with Chi-Squared distribution (\code{distribution="dchisq"}, when the data is
 distributed as Chi^2, for example squared normal errors).
 
 The advisable error measures to use in the test are RelMAE and RelMSE, which are
@@ -96,9 +96,9 @@ something complicated, but tracktable (Kim, 2006).
 
 Still, given large samples, the parameters of the regression on logarithms of
 the both RelMAE and RelMSE should have normal distribution. Thus
-\code{value="normal"} can be used in this case (see examples).
+\code{distribution="dnorm"} can be used in this case (see examples).
 
-If you use \code{value="absolute"} or \code{value="squared"}, then the inverse
+If you use \code{distribution="dfnorm"} or \code{distribution="dchisq"}, then the inverse
 link is used in Gamma distribution, so the parameters have an inverse meaning as
 well. i.e. the method with lower MSE-based measure will have a higher parameter.
 
@@ -108,33 +108,29 @@ measures on large samples.
 \examples{
 N <- 50
 M <- 4
-ourData <- matrix(rnorm(N*M,mean=0,sd=3), N, M)
+ourData <- matrix(rnorm(N*M,mean=0,sd=1), N, M)
 ourData[,2] <- ourData[,2]+1
 ourData[,3] <- ourData[,3]+0.7
 ourData[,4] <- ourData[,4]+0.5
 colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
-rmc(ourData, value="n", level=0.95)
-par(mar=c(2,0,2,0),cex=1.5)
-rmc(ourData, level=0.95)
+rmc(ourData, distribution="dnorm", level=0.95)
+# In case of AE-based measures, distribution="dfnorm" should be selected
+rmc(abs(ourData), distribution="dfnorm", level=0.95)
 
-# In case of AE-based measures, value="a" should be selected
-rmc(abs(ourData), value="a", level=0.95)
-
-# In case of SE-based measures, value="s" should be selected
-rmc(ourData^2, value="s", level=0.95)
+# In case of SE-based measures, distribution="dchisq" should be selected
+rmc(ourData^2, distribution="dchisq", level=0.95)
 
 # APE-based measures should not be used in general...
 
 # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
-# value="n" and provide logarithms of the RelMAE, which can be approximated by
+# distribution="dnorm" and provide logarithms of the RelMAE, which can be approximated by
 # normal distribution
 ourData <- abs(ourData)
-ourData <- ourData / ourData[,1]
-rmc(ourData, value="n", level=0.95)
+rmc(ourData / ourData[,1], distribution="dnorm", level=0.95)
 
 # The following example should give similar results to nemenyi test on
 # large samples, which compares medians of the distributions:
-rmc(t(apply(ourData,1,rank)), value="n", level=0.95)
+rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
 
 }
 \references{
@@ -150,6 +146,9 @@ International Journal of Forecasting, 29(3), 510-522.
 Distributions, Communications in Statistics Theory and Methods, 35:6,
 965-977, \url{https://doi.org/10.1080/03610920600672229}
 }
+}
+\seealso{
+\code{\link[greybox]{alm}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

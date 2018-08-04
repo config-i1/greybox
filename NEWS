@@ -6,6 +6,7 @@ Changes:
 * New set of functions for Folded normal distribution.
 * New function - alm - Advanced Linear Model.
 * Folded normal distribution for rmc() with value="a".
+* Proper model for chi-squared distribution in alm and rmc.
 
 Bugfixes:
 * determination() function did not work in cases of 2 variables.

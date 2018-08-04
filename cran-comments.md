@@ -1,11 +1,11 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "24 May 2018"
+date: "04 August 2018"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.2.2
+This is the release of the package ``greybox``, v0.3.0
 
 ## Test environments
 * local ubuntu 17.10, R 3.4.4

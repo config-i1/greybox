@@ -7,7 +7,8 @@
 #' \enumerate{
 #' \item Laplace distribution, \link[greybox]{dlaplace},
 #' \item S-distribution, \link[greybox]{ds},
-#' \item Folded-normal distribution, \link[greybox]{dfnorm}.
+#' \item Folded-normal distribution, \link[greybox]{dfnorm},
+#' \item Chi-Squared Distribution, \link[stats]{dchisq}.
 #' }
 #'
 #' Probably some other distributions will be added to this function at some point...
@@ -48,10 +49,10 @@
 #'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
-#' @importFrom stats model.frame sd terms
+#' @importFrom stats model.frame sd terms dchisq
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("dlaplace","ds","dfnorm")){
+                distribution=c("dlaplace","ds","dfnorm","dchisq")){
 
     cl <- match.call();
 
@@ -156,6 +157,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
         else if(distribution=="ds"){
             scale <- mean(sqrt(abs(y-yFitted))) / 2;
         }
+        else if(distribution=="dchisq"){
+            scale <- 2*yFitted;
+        }
 
         return(list(yFitted=yFitted,scale=scale,errors=errors));
     }
@@ -171,6 +175,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
         }
         else if(distribution=="dfnorm"){
             CFReturn <- -sum(dfnorm(y, mu=fitterReturn$yFitted, sigma=fitterReturn$scale, log=TRUE));
+        }
+        else if(distribution=="dchisq"){
+            CFReturn <- -sum(dchisq(y, fitterReturn$yFitted, log=TRUE));
         }
 
         return(CFReturn);
@@ -214,6 +221,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
     else{
         mu <- yFitted;
+        if(distribution=="dchisq"){
+            scale <- yFitted * 2;
+        }
     }
     names(A) <- variablesNames;
     if(nVariables>1){
