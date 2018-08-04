@@ -19,10 +19,10 @@
 #'
 #' Depending on the provided data, it might make sense to use different types of
 #' regressions. The function supports Gausian linear regression
-#' (\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
-#' folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
+#' (\code{distribution="norm"}, when the data is normal), advanced linear regression with
+#' folded normal distribution (\code{distribution="fnorm"}, for example, absolute errors,
 #' assuming that the original errors are normally distributed) and advanced linear
-#' regression with Chi-Squared distribution (\code{distribution="dchisq"}, when the data is
+#' regression with Chi-Squared distribution (\code{distribution="chisq"}, when the data is
 #' distributed as Chi^2, for example squared normal errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
@@ -37,9 +37,9 @@
 #'
 #' Still, given large samples, the parameters of the regression on logarithms of
 #' the both RelMAE and RelMSE should have normal distribution. Thus
-#' \code{distribution="dnorm"} can be used in this case (see examples).
+#' \code{distribution="norm"} can be used in this case (see examples).
 #'
-#' If you use \code{distribution="dfnorm"} or \code{distribution="dchisq"}, then the inverse
+#' If you use \code{distribution="fnorm"} or \code{distribution="chisq"}, then the inverse
 #' link is used in Gamma distribution, so the parameters have an inverse meaning as
 #' well. i.e. the method with lower MSE-based measure will have a higher parameter.
 #'
@@ -49,9 +49,9 @@
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
 #' @param distribution Type of the distribution to use. If this is a clear forecast error,
-#' then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
-#' regression. \code{"dfnorm"} would lead to a alm model with folded normal
-#' distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
+#' then \code{"norm"} is appropriate, leading to a simple Gausian linear
+#' regression. \code{"fnorm"} would lead to a alm model with folded normal
+#' distribution. Finally, \code{"chisq"} would lead to the alm with Chi
 #' squared distribution.
 #' @param level The width of the confidence interval. Default is 0.95.
 #' @param sort If \code{TRUE} function sorts the final values of mean ranks.
@@ -67,9 +67,9 @@
 #' @param ... Other parameters passed to plot function
 #
 #' @return If \code{plot=TRUE}, then the function plots the results after all
-#' the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
-#' intervals are, the better model performs. When \code{distribution="dfnorm"} or
-#' \code{distribution="dchisq"}, the smaller, the better.
+#' the calculations. In case of \code{distribution="norm"}, the closer to zero the
+#' intervals are, the better model performs. When \code{distribution="fnorm"} or
+#' \code{distribution="chisq"}, the smaller, the better.
 #'
 #' Function returns a list of a class "rmc", which contains the following
 #' variables:
@@ -77,7 +77,7 @@
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
 #' \item{p.value}{p-value for the test of the significance of the model. In
-#' case of distribution="dnorm" F-test is done. Otherwise Chisq is done.}
+#' case of distribution="norm" F-test is done. Otherwise Chisq is done.}
 #' \item{importance}{The weights of the estimated model in comparison with the
 #' model with the constant only. 0 means that the constant is better, 1 means that
 #' the estimated model is the best.}
@@ -114,29 +114,29 @@
 #' ourData[,3] <- ourData[,3]+0.7
 #' ourData[,4] <- ourData[,4]+0.5
 #' colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
-#' rmc(ourData, distribution="dnorm", level=0.95)
+#' rmc(ourData, distribution="norm", level=0.95)
 #
-#' # In case of AE-based measures, distribution="dfnorm" should be selected
-#' rmc(abs(ourData), distribution="dfnorm", level=0.95)
+#' # In case of AE-based measures, distribution="fnorm" should be selected
+#' rmc(abs(ourData), distribution="fnorm", level=0.95)
 #'
-#' # In case of SE-based measures, distribution="dchisq" should be selected
-#' rmc(ourData^2, distribution="dchisq", level=0.95)
+#' # In case of SE-based measures, distribution="chisq" should be selected
+#' rmc(ourData^2, distribution="chisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
 #' # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
-#' # distribution="dnorm" and provide logarithms of the RelMAE, which can be approximated by
+#' # distribution="norm" and provide logarithms of the RelMAE, which can be approximated by
 #' # normal distribution
 #' ourData <- abs(ourData)
-#' rmc(ourData / ourData[,1], distribution="dnorm", level=0.95)
+#' rmc(ourData / ourData[,1], distribution="norm", level=0.95)
 #'
 #' # The following example should give similar results to nemenyi test on
 #' # large samples, which compares medians of the distributions:
-#' rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
+#' rmc(t(apply(ourData,1,rank)), distribution="norm", level=0.95)
 #'
 #' @importFrom stats pf pchisq
 #' @export rmc
-rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
+rmc <- function(data, distribution=c("norm","fnorm","chisq"),
                 level=0.95, sort=TRUE, style=c("mcb","lines"),
                 select=NULL, plot=TRUE, ...){
 
@@ -162,7 +162,7 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
     colnames(dataNew)[1] <- "y";
 
     # This is the model used for the confidence intervals calculation
-    if(distribution=="dnorm"){
+    if(distribution=="norm"){
         lmModel <- lm(y~.,data=dataNew[,-2]);
         lmCoefs <- coef(lmModel);
         lmIntervals <- confint(lmModel, level=level);
@@ -182,11 +182,11 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
         p.value <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
     }
     else{
-        if(distribution=="a"){
-            lmModel <- alm(y~., data=dataNew[,-2], distribution="dfnorm");
+        if(distribution=="fnorm"){
+            lmModel <- alm(y~., data=dataNew[,-2], distribution="fnorm");
         }
         else{
-            lmModel <- alm(y~., data=dataNew[,-2], distribution="dchisq");
+            lmModel <- alm(y~., data=dataNew[,-2], distribution="chisq");
         }
 
         lmSummary <- summary(lmModel, level=level);
@@ -199,7 +199,12 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
         lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
         # Stuff needed for the importance of the model
-        lmModel2 <- alm(y~1,data=dataNew, distribution="dfnorm");
+        if(distribution=="fnorm"){
+            lmModel2 <- alm(y~1,data=dataNew, distribution="fnorm");
+        }
+        else{
+            lmModel2 <- alm(y~1,data=dataNew, distribution="chisq");
+        }
         AICs <- c(AIC(lmModel2),AIC(lmModel));
         delta <- AICs - min(AICs);
         importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];

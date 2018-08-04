@@ -634,16 +634,16 @@ print.summary.alm <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    if(x$distribution=="dlaplace"){
+    if(x$distribution=="laplace"){
         distrib <- "Laplace";
     }
-    else if(x$distribution=="ds"){
+    else if(x$distribution=="s"){
         distrib <- "S";
     }
-    else if(x$distribution=="dfnorm"){
+    else if(x$distribution=="fnorm"){
         distrib <- "Folded Normal";
     }
-    else if(x$distribution=="dchisq"){
+    else if(x$distribution=="chisq"){
         distrib <- "Chi-Squared";
     }
 

@@ -1,4 +1,4 @@
-greybox v0.3.0 (Release data: 2018-08-04)
+greybox v0.3.0 (Release data: 2018-08-05)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * New function - alm - Advanced Linear Model.
 * Folded normal distribution for rmc() with value="a".
 * Proper model for chi-squared distribution in alm and rmc.
+* Renamed distributions in the alm function.
 
 Bugfixes:
 * determination() function did not work in cases of 2 variables.
