@@ -51,9 +51,15 @@ determination <- function(xreg, ...){
         warning(paste0("The number of variables is larger than the number of observations. ",
                        "All the coefficients of determination are equal to one."), call.=FALSE);
     }
+
     # Calculate the multiple determinations
-    for(i in 1:nVariables){
-        vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
+    if(nVariables>2){
+        for(i in 1:nVariables){
+            vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
+        }
+    }
+    else{
+        vectorCorrelationsMultiple <- matrixCorrelations[1,2]^2;
     }
 
     return(vectorCorrelationsMultiple);
