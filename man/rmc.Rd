@@ -92,7 +92,7 @@ and its logarithm is a log F distribution, because each MSE * h has chi-square(h
 
 As for RelMAE, its distribution is trickier, because each MAE has folded normal
 distribution (assuming that the original error is normal) and their ratio is
-something complicated, but tracktable (Kim, 2006).
+something complicated, but tractable (Kim, 2006).
 
 Still, given large samples, the parameters of the regression on logarithms of
 the both RelMAE and RelMSE should have normal distribution. Thus
