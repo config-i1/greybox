@@ -187,7 +187,7 @@ pointLik.ets <- function(object, ...){
 #'
 #' This function returns a vector of AIC values for the in-sample observations
 #'
-#' This is based on \link[smooth]{pointLik} function. The formula for this is:
+#' This is based on \link[greybox]{pointLik} function. The formula for this is:
 #' pAIC_t = 2 * k - 2 * T * l_t ,
 #' where k is the number of parameters, T is the number of observations and l_t is
 #' the point likelihood. This way we preserve the property that AIC = mean(pAIC).
@@ -197,7 +197,7 @@ pointLik.ets <- function(object, ...){
 #' @param ...  Some stuff.
 #' @return The function returns the vector of point AIC values.
 #' @template author
-#' @seealso \link[smooth]{pointLik}
+#' @seealso \link[greybox]{pointLik}
 #' @keywords htest
 #' @examples
 #'
