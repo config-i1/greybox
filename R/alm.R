@@ -180,12 +180,11 @@ alm <- function(formula, data, subset=NULL,  na.action,
             CFReturn <- dfnorm(y, mu=fitterReturn$yFitted, sigma=fitterReturn$scale, log=TRUE);
         }
         else if(distribution=="chisq"){
-            if(any(fitterReturn$yFitted<0)){
-                CFReturn <- 1E+300;
+            if(any(fitterReturn$yFitted<=0)){
+                CFReturn <- -1E+300;
             }
             else{
                 CFReturn <- dchisq(y, fitterReturn$yFitted, log=TRUE);
-                # CFReturn <- -sum(dchisq(y, fitterReturn$yFitted, log=TRUE));
             }
         }
 
@@ -204,10 +203,14 @@ alm <- function(formula, data, subset=NULL,  na.action,
 #         A <- c(A,sd(y));
 #     }
 
-    res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
-                          distribution=distribution, y=y, matrixXreg=matrixXreg);
-    res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
-                          distribution=distribution, y=y, matrixXreg=matrixXreg);
+    res <- nloptr(A, CF,
+                  opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
+                  distribution=distribution, y=y, matrixXreg=matrixXreg);
+
+    # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
+    #               distribution=distribution, y=y, matrixXreg=matrixXreg);
+    # res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
+    #               distribution=distribution, y=y, matrixXreg=matrixXreg);
     A <- res$solution;
     CFValue <- res$objective;
 
@@ -220,15 +223,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     df <- nVariables + 1;
 
     vcovMatrix <- hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg);
-    if(any(vcovMatrix==0)){
-        warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
-                       "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
-                       "Try a different distribution maybe?"), call.=FALSE);
-        vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
-    }
-    else{
-        vcovMatrix <- solve(vcovMatrix);
-    }
+
     if(any(is.nan(vcovMatrix))){
         warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                        "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
@@ -236,11 +231,23 @@ alm <- function(formula, data, subset=NULL,  na.action,
         vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
     }
     else{
+        if(any(vcovMatrix==0)){
+            warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                           "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                           "Try a different distribution maybe?"), call.=FALSE);
+            vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
+        }
+        else{
+            vcovMatrix <- solve(vcovMatrix);
+        }
+
         # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
         if(any(diag(vcovMatrix)<0)){
             diag(vcovMatrix) <- abs(diag(vcovMatrix));
         }
     }
+
+
 
     if(distribution=="fnorm"){
         # A <- A[-(nVariables+1)];
