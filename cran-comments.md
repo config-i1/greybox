@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "04 August 2018"
+date: "05 August 2018"
 output: html_document
 ---
 ## Version
@@ -17,5 +17,5 @@ R CMD check results
 0 errors | 0 warnings | 0 note
 
 ## Downstream dependencies
-I have also run R CMD check on reverse dependencies of greybox (which only includes smooth package for now).
+I have also run R CMD check on reverse dependencies of greybox (which only includes smooth package for now). Everything is fine.
 Checks on Linux are totally fine (no NOTEs, WARNINGs or ERRORs at all), but Windows gives a NOTE about doMC, which is not available for Windows (for obvious reasons), but is included in suggested packages of greybox.
