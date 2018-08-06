@@ -5,7 +5,7 @@
 The package _greybox_ contains functions for model building, which is currently done via the model selection and combinations based on information criteria. The resulting model can then be used in analysis and forecasting.
 
 The list of included functions:
-1. alm - advanced linear regression model that implements likelihood estimation of parameters for Laplace, S, Folded Normaland Chi-Squared distributions. In a sense this is similar to glm, but with a different set of distributions.
+1. alm - advanced linear regression model that implements likelihood estimation of parameters for Laplace, S, Folded Normaland and Chi-Squared distributions. In a sense this is similar to glm, but with a different set of distributions.
 2. xregExpander - Function produces lags and leads of the provided data.
 3. stepwise - Function implements stepwise AIC based on partial correlations.
 4. combine - Function combines the regression models from the provided data based on IC weigths and returns the combined lm object.
@@ -16,6 +16,7 @@ The list of included functions:
 8. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
 9. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 10. qs, ds, rs, ps - functions for S distribution.
+11. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
