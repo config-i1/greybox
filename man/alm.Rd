@@ -52,7 +52,7 @@ xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,30
 colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
-# Combine all the possible models
+
 ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 summary(ourModel)
 plot(forecast(ourModel,outSample))
