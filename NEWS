@@ -4,6 +4,9 @@ greybox v0.3.1 (Release data: 2018-08-06)
 Changes:
 * Corrected some typos in README.md and added description of several functions.
 
+Bugfixes:
+* Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
+
 
 greybox v0.3.0 (Release data: 2018-08-05)
 ==============

@@ -23,7 +23,7 @@
 #' folded normal distribution (\code{distribution="fnorm"}, for example, absolute errors,
 #' assuming that the original errors are normally distributed) and advanced linear
 #' regression with Chi-Squared distribution (\code{distribution="chisq"}, when the data is
-#' distributed as Chi^2, for example squared normal errors).
+#' distributed as Chi^2, for example squared normal standard errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
 #' unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
@@ -38,10 +38,6 @@
 #' Still, given large samples, the parameters of the regression on logarithms of
 #' the both RelMAE and RelMSE should have normal distribution. Thus
 #' \code{distribution="norm"} can be used in this case (see examples).
-#'
-#' If you use \code{distribution="fnorm"} or \code{distribution="chisq"}, then the inverse
-#' link is used in Gamma distribution, so the parameters have an inverse meaning as
-#' well. i.e. the method with lower MSE-based measure will have a higher parameter.
 #'
 #' The test is equivalent to nemenyi test, when applied to the ranks of the error
 #' measures on large samples.
@@ -120,7 +116,8 @@
 #' rmc(abs(ourData), distribution="fnorm", level=0.95)
 #'
 #' # In case of SE-based measures, distribution="chisq" should be selected
-#' rmc(ourData^2, distribution="chisq", level=0.95)
+#' rmc((ourData-matrix(apply(ourData,2,mean),nrow(ourData),ncol(ourData),
+#'                     byrow=TRUE))^2, distribution="chisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
@@ -333,7 +330,7 @@ plot.rmc <- function(x, ...){
 
         # Get rid of duplicates and single member groups
         vlines <- unique(vlines);
-        vlines <- vlines[apply(vlines,1,min) != apply(vlines,1,max),];
+        # vlines <- vlines[apply(vlines,1,min) != apply(vlines,1,max),];
         # Re-convert to matrix if necessary and find number of remaining groups
         if(length(vlines)==2){
             vlines <- as.matrix(vlines);
@@ -360,7 +357,7 @@ plot.rmc <- function(x, ...){
         }
 
         if(all(parMar==(c(5,4,4,2)+0.1))){
-            parMar <- c(2, labelSize/2, 2, 2) + 0.1
+            parMar <- c(2, 2+labelSize/2, 2, 2) + 0.1
         }
         else{
             parMar <- parMar + c(0, labelSize/2, 0, 2)

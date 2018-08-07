@@ -82,7 +82,7 @@ regressions. The function supports Gausian linear regression
 folded normal distribution (\code{distribution="fnorm"}, for example, absolute errors,
 assuming that the original errors are normally distributed) and advanced linear
 regression with Chi-Squared distribution (\code{distribution="chisq"}, when the data is
-distributed as Chi^2, for example squared normal errors).
+distributed as Chi^2, for example squared normal standard errors).
 
 The advisable error measures to use in the test are RelMAE and RelMSE, which are
 unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
@@ -97,10 +97,6 @@ something complicated, but tractable (Kim, 2006).
 Still, given large samples, the parameters of the regression on logarithms of
 the both RelMAE and RelMSE should have normal distribution. Thus
 \code{distribution="norm"} can be used in this case (see examples).
-
-If you use \code{distribution="fnorm"} or \code{distribution="chisq"}, then the inverse
-link is used in Gamma distribution, so the parameters have an inverse meaning as
-well. i.e. the method with lower MSE-based measure will have a higher parameter.
 
 The test is equivalent to nemenyi test, when applied to the ranks of the error
 measures on large samples.
@@ -118,7 +114,8 @@ rmc(ourData, distribution="norm", level=0.95)
 rmc(abs(ourData), distribution="fnorm", level=0.95)
 
 # In case of SE-based measures, distribution="chisq" should be selected
-rmc(ourData^2, distribution="chisq", level=0.95)
+rmc((ourData-matrix(apply(ourData,2,mean),nrow(ourData),ncol(ourData),
+                    byrow=TRUE))^2, distribution="chisq", level=0.95)
 
 # APE-based measures should not be used in general...
 
