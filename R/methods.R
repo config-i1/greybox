@@ -320,7 +320,7 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
     }
     confintValues <- confintValues[parm,];
     if(!is.matrix(confintValues)){
-        confintValues <- matrix(confintValues,1,2,);
+        confintValues <- matrix(confintValues,1,2);
         colnames(confintValues) <- confintNames;
         rownames(confintValues) <- names(parameters);
     }
@@ -350,48 +350,144 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
     return(confintValues[,parm,]);
 }
 
-#' @importFrom forecast forecast
-#' @export forecast
-forecast::forecast
-
-#' @importFrom stats predict.lm
+#' @importFrom stats predict
+#' @importFrom stats qchisq
 #' @export
-forecast.greybox <- function(object, newdata, ...){
+predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
+                            level=0.95, ...){
+    ellipsis <- list(...);
+
+    greyboxForecast <- predict.greybox(object, newdata, ...);
+
+    if(object$distribution=="laplace"){
+        # Use the connection between the variance and MAE in Laplace distribution
+        bValues <- sqrt(greyboxForecast$variances/2);
+        greyboxForecast$lower <- diag(qlaplace((1-level)/2,greyboxForecast$mean,bValues));
+        greyboxForecast$upper <- diag(qlaplace((1+level)/2,greyboxForecast$mean,bValues));
+    }
+    else if(object$distribution=="s"){
+        # Use the connection between the variance and b in S distribution
+        bValues <- (greyboxForecast$variances/120)^0.25;
+        greyboxForecast$lower <- diag(qs((1-level)/2,greyboxForecast$mean,bValues));
+        greyboxForecast$upper <- diag(qs((1+level)/2,greyboxForecast$mean,bValues));
+    }
+    else if(object$distribution=="fnorm"){
+        if(any(greyboxForecast$lower<0)){
+            greyboxForecast$lower <- rep(0, nrow(newdata));
+            # qfnorm is slow, so it's faster to extract the values in a loop
+            for(i in 1:nrow(newdata)){
+                greyboxForecast$upper[i] <- qfnorm(level,greyboxForecast$mean[i],sqrt(greyboxForecast$variance[i]));
+            }
+        }
+        # Correct the mean value
+        greyboxForecast$mean <- (sqrt(2/pi)*sqrt(greyboxForecast$variance)*exp(-greyboxForecast$mean^2 /
+                                                                                   (2*sqrt(greyboxForecast$variance)^2)) +
+                                     greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
+    }
+    else if(object$distribution=="chisq"){
+        greyboxForecast$lower <- 0;
+        greyboxForecast$upper <- qchisq(level,greyboxForecast$mean);
+    }
+
+    return(structure(greyboxForecast,class="predict.greybox"));
+}
+
+#' Forecasting using greybox functions
+#'
+#' \code{predict} is a function for predictions from various model fitting
+#' functions. The function invokes particular method, corresponding to the
+#' class of the first argument.
+#'
+#' Although this function is called "forecast", it has functionality similar to
+#' "predict" function.
+#'
+#' @aliases forecast forecast.smooth
+#' @param object Time series model for which forecasts are required.
+#' @param newdata Forecast horizon
+#' @param interval Type of intervals to construct: either "confidence" or
+#' "prediction". Can be abbreviated
+#' @param level Confidence level. Defines width of prediction interval.
+#' @param ...  Other arguments.
+#' @return Returns object of class "predict.greybox", which contains:
+#'
+#' \itemize{
+#' \item \code{model} - the estimated model.
+#' \item \code{mean} - the expected values.
+#' \item \code{fitted} - fitted values of the model.
+#' \item \code{lower} - lower bound of prediction / confidence intervals.
+#' \item \code{upper} - upper bound of prediction / confidence intervals.
+#' \item \code{level} - confidence level.
+#' \item \code{newdata} - the data provided in the call to the function.
+#' \item \code{variances} - conditional variance for the holdout sample.
+#' In case of \code{interval="prediction"} includes variance of the error.
+#' }
+#'
+#' @template author
+#' @seealso \code{\link[stats]{predict.lm}}
+#' @keywords ts univar
+#' @examples
+#'
+#' xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' inSample <- xreg[1:80,]
+#' outSample <- xreg[-c(1:80),]
+#'
+#' ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
+#'
+#' predict(ourModel,outSample)
+#' predict(ourModel,outSample,interval="c")
+#' plot(predict(ourModel,outSample,interval="p"))
+#'
+#' @export
+predict.greybox <- function(object, newdata, interval=c("none", "confidence", "prediction"),
+                            level=0.95, ...){
     if(!is.data.frame(newdata)){
         newdata <- as.data.frame(newdata);
     }
-    ellipsis <- list(...);
-    if(!any(names(ellipsis)=="interval")){
-        ellipsis$interval <- "p";
-    }
-    ellipsis$object <- object;
-    ellipsis$newdata <- newdata;
+    interval <- substr(interval[1],1,1);
 
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
 
     matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
     colnames(matrixOfxreg)[1] <- parametersNames[1];
-    ourForecast <- as.vector(matrixOfxreg[,parametersNames] %*% coef.greybox(object));
+    matrixOfxreg <- matrixOfxreg[,parametersNames];
+    ourForecast <- as.vector(matrixOfxreg %*% coef.greybox(object));
 
-    if(any(names(ellipsis)=="level")){
-        level <- ellipsis$level;
-    }
-    else{
-        level <- 0.95;
-    }
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
 
-    if(is.matrix(ourForecast)){
-        lower <- ourForecast[,"lwr"];
-        upper <- ourForecast[,"upr"];
-        ourForecast <- ourForecast[,"fit"];
+    ourVcov <- vcov(object);
+    vectorOfVariances <- diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg));
+
+    if(interval=="c"){
+        lower <- ourForecast - paramQuantiles * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles * sqrt(vectorOfVariances);
+    }
+    else if(interval=="p"){
+        vectorOfVariances <- vectorOfVariances + sigma(object)^2;
+        lower <- ourForecast - paramQuantiles * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles * sqrt(vectorOfVariances);
     }
     else{
         lower <- NULL;
         upper <- NULL;
     }
-    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata);
-    return(structure(ourModel,class="forecast.greybox"));
+    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata,
+                     variances=vectorOfVariances);
+    return(structure(ourModel,class="predict.greybox"));
+}
+
+#' @importFrom forecast forecast
+#' @export forecast
+#' @export
+forecast.greybox <- function(object, newdata, ...){
+    return(predict(object, newdata, ...));
+}
+
+#' @export
+forecast.alm <- function(object, newdata, ...){
+    return(predict(object, newdata, ...));
 }
 
 #' @importFrom forecast getResponse
@@ -528,7 +624,7 @@ plot.greybox <- function(x, ...){
 }
 
 #' @export
-plot.forecast.greybox <- function(x, ...){
+plot.predict.greybox <- function(x, ...){
     yActuals <- getResponse(x$model);
     yStart <- start(yActuals);
     yFrequency <- frequency(yActuals);
@@ -691,7 +787,7 @@ print.summary.greyboxC <- function(x, ...){
 }
 
 #' @export
-print.forecast.greybox <- function(x, ...){
+print.predict.greybox <- function(x, ...){
     ourMatrix <- as.matrix(x$mean);
     colnames(ourMatrix) <- "Mean";
     if(!is.null(x$lower)){

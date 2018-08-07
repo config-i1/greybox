@@ -36,8 +36,8 @@
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
 #' ourModel <- lmDynamic(inSample,bruteForce=TRUE)
-#' forecast(ourModel,outSample)
-#' plot(forecast(ourModel,outSample))
+#' predict(ourModel,outSample)
+#' plot(predict(ourModel,outSample))
 #'
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){

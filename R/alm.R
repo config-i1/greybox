@@ -45,7 +45,7 @@
 #'
 #' ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 #' summary(ourModel)
-#' plot(forecast(ourModel,outSample))
+#' plot(predict(ourModel,outSample))
 #'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
@@ -158,7 +158,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
             scale <- mean(sqrt(abs(y-yFitted))) / 2;
         }
         else if(distribution=="fnorm"){
-            scale <- mean((y-yFitted)^2);
+            scale <- sqrt(mean((y-yFitted)^2));
         }
         else if(distribution=="chisq"){
             scale <- 2*yFitted;
@@ -247,13 +247,11 @@ alm <- function(formula, data, subset=NULL,  na.action,
         }
     }
 
-
-
     if(distribution=="fnorm"){
         # A <- A[-(nVariables+1)];
         # Correction so that the the expectation of the folded is returned
         mu <- yFitted;
-        sigma <- scale;
+        # Calculate the conditional expectation based on the parameters of the distribution
         yFitted <- sqrt(2/pi)*scale*exp(-yFitted^2/(2*scale^2))+yFitted*(1-2*pnorm(-yFitted/scale));
         errors <- y - yFitted;
         vcovMatrix <- vcovMatrix[1:nVariables,1:nVariables];

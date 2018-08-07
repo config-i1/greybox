@@ -93,7 +93,7 @@ ourModel
 
 The values in the function are listed in the order of most correlated with the response variable to the least correlated ones. The function works very fast because it does not need to go through all the variables and their combinations in the dataset.
 
-All the basic methods can be used together with the final model (e.g. `predict.lm()`, `forecast.lm()`, `summary()` etc).
+All the basic methods can be used together with the final model (e.g. `predict()`, `forecast()`, `summary()` etc).
 
 ## lmCombine
 
@@ -115,10 +115,10 @@ In this case first, the `stepwise()` funciton is used, which finds the best mode
 
 There are several methods for the `lm.combined` class, including:
 
-1. `predict.lm()` - returns the point and interval predictions.
-2. `forecast.lm.combined()` - wrapper around `predict()` which returns a slightly more useful list of variables. It also produced prediction intervals by default (controlled using `interval` parameter). The forecast horizon is defined by the length of the provided sample of `newdata`.
+1. `predict.greybox()` - returns the point and interval predictions.
+2. `forecast.greybox()` - wrapper around `predict()` The forecast horizon is defined by the length of the provided sample of `newdata`.
 3. `plot.lm.combined()` - plots actuals and fitted values.
-4. `plot.forecast.greybox()` - which uses `graphmaker()` function from `smooth` in order to produce graphs of actuals and forecasts.
+4. `plot.predict.greybox()` - which uses `graphmaker()` function from `smooth` in order to produce graphs of actuals and forecasts.
 
 As an example, let's split the whole sample with Box-Jenkins data into in-sample and the holdout:
 ```{r BJcombine3}
@@ -135,7 +135,7 @@ Importance tells us how important the respective variable is in the combination.
 
 And the forecast using the holdout sample:
 ```{r BJcombineForecast}
-ourForecast <- forecast(ourModel,BJHoldout)
+ourForecast <- predict(ourModel,BJHoldout)
 plot(ourForecast)
 ```
 
@@ -179,7 +179,7 @@ ourModel$df.residualDynamic
 ```
 And as usual we can produce forecast from this function, the mean parameters are used in this case:
 ```{r BJDynamicForecast}
-ourForecast <- forecast(ourModel,BJHoldout)
+ourForecast <- predict(ourModel,BJHoldout)
 plot(ourForecast)
 ```
 This function is currently under development, so stay tuned.

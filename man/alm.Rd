@@ -55,7 +55,7 @@ outSample <- xreg[-c(1:80),]
 
 ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 summary(ourModel)
-plot(forecast(ourModel,outSample))
+plot(predict(ourModel,outSample))
 
 }
 \seealso{

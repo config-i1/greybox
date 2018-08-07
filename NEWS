@@ -1,8 +1,9 @@
-greybox v0.3.1 (Release data: 2018-08-06)
+greybox v0.3.1 (Release data: 2018-08-07)
 ==============
 
 Changes:
 * Corrected some typos in README.md and added description of several functions.
+* predict() and forecast() functions now produce confidence and prediction intervals for the provided holdout sample data. forecast() is just a wrapper around predict().
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.

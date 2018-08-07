@@ -35,8 +35,8 @@
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
 #' ourModel <- lmCombine(inSample,bruteForce=TRUE)
-#' forecast(ourModel,outSample)
-#' plot(forecast(ourModel,outSample))
+#' predict(ourModel,outSample)
+#' plot(predict(ourModel,outSample))
 #'
 #' ### Fat regression example
 #' xreg <- matrix(rnorm(5000,10,3),50,100)
@@ -47,7 +47,7 @@
 #' # Combine only the models close to the optimal
 #' ourModel <- lmCombine(inSample,ic="BICc",bruteForce=FALSE)
 #' summary(ourModel)
-#' plot(forecast(ourModel,outSample))
+#' plot(predict(ourModel,outSample))
 #'
 #' @importFrom stats dnorm
 #'
