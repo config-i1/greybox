@@ -267,6 +267,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
                 diag(vcovMatrix) <- abs(diag(vcovMatrix));
             }
         }
+
+        if(nVariables>1){
+            dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
+        }
+        else{
+            names(vcovMatrix) <- variablesNames;
+        }
     }
     else{
         vcovMatrix <- NULL;
@@ -296,14 +303,6 @@ alm <- function(formula, data, subset=NULL,  na.action,
     errors <- y - yFitted;
 
     names(A) <- variablesNames;
-    if(vcovProduce){
-        if(nVariables>1){
-            dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
-        }
-        else{
-            names(vcovMatrix) <- variablesNames;
-        }
-    }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
