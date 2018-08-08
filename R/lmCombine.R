@@ -3,7 +3,7 @@
 #' Function combines parameters of linear regressions of the first variable
 #' on all the other provided data.
 #'
-#' The algorithm uses lm() to fit different models and then combines the models
+#' The algorithm uses alm() to fit different models and then combines the models
 #' based on the selected IC.
 #'
 #' @template AICRef
@@ -18,6 +18,7 @@
 #' one are produced and then combined.
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
+#' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "lm.combined".
@@ -53,7 +54,8 @@
 #'
 #' @aliases combine combiner
 #' @export lmCombine
-lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE){
+lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
+                      distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
     # Function combines linear regression models and produces the combined lm object.
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -77,6 +79,16 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
     else if(ic=="BICc"){
         IC <- BICc;
+    }
+
+    distribution <- distribution[1];
+    if(distribution=="norm"){
+        lmCall <- lm;
+        listToCall <- list(NULL);
+    }
+    else{
+        lmCall <- alm;
+        listToCall <- list(distribution=distribution);
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
@@ -110,7 +122,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         parametersSE <- matrix(0,nCombinations,nVariables+1);
 
         # Starting estimating the models with just a constant
-        ourModel <- lm(as.formula(paste0(responseName,"~1")),data=ourData);
+        # ourModel <- alm(as.formula(paste0(responseName,"~1")),data=ourData,distribution=distribution);
+        listToCall$formula <- as.formula(paste0(responseName,"~1"));
+        listToCall$data <- ourData;
+        ourModel <- do.call(lmCall,listToCall);
         ICs[1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
         parametersSE[1,1] <- diag(vcov(ourModel));
@@ -193,7 +208,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             cat(paste0(round(i/nCombinations,2)*100,"%"));
         }
         lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
-        ourModel <- lm(as.formula(lmFormula),data=ourData);
+        # ourModel <- alm(as.formula(lmFormula),data=ourData,distribution=distribution);
+        listToCall$formula <- as.formula(lmFormula);
+        listToCall$data <- ourData;
+        ourModel <- do.call(lmCall,listToCall);
         ICs[i] <- IC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));

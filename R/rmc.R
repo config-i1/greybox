@@ -72,8 +72,9 @@
 #' \itemize{
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
-#' \item{p.value}{p-value for the test of the significance of the model. In
-#' case of distribution="norm" F-test is done. Otherwise Chisq is done.}
+#' \item{p.value}{p-value for the test of the significance of the model. This is a
+#' log-likelihood ratios chi-squared test, comparing the model with the one with
+#' intercept only.}
 #' \item{importance}{The weights of the estimated model in comparison with the
 #' model with the constant only. 0 means that the constant is better, 1 means that
 #' the estimated model is the best.}
@@ -131,7 +132,7 @@
 #' # large samples, which compares medians of the distributions:
 #' rmc(t(apply(ourData,1,rank)), distribution="norm", level=0.95)
 #'
-#' @importFrom stats pf pchisq
+#' @importFrom stats pchisq
 #' @export rmc
 rmc <- function(data, distribution=c("norm","fnorm","chisq"),
                 level=0.95, sort=TRUE, style=c("mcb","lines"),
@@ -159,57 +160,27 @@ rmc <- function(data, distribution=c("norm","fnorm","chisq"),
     colnames(dataNew)[1] <- "y";
 
     # This is the model used for the confidence intervals calculation
-    if(distribution=="norm"){
-        lmModel <- lm(y~.,data=dataNew[,-2]);
-        lmCoefs <- coef(lmModel);
-        lmIntervals <- confint(lmModel, level=level);
-        names(lmCoefs)[1] <- colnames(dataNew)[2];
-        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
-        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+    lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution);
 
-        # Stuff needed for the importance of the model
-        lmModel2 <- lm(y~1,data=dataNew);
-        AICs <- c(AIC(lmModel2),AIC(lmModel));
-        delta <- AICs - min(AICs);
-        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
+    lmSummary <- summary(lmModel, level=level);
+    # Construct intervals
+    lmCoefs <- coef(lmModel);
+    lmIntervals <- confint(lmModel, level=level);
+    names(lmCoefs)[1] <- colnames(dataNew)[2];
+    rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+    lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
+    lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
-        # ANOVA test
-        lmSummary <- summary(lmModel);
-        p.value <- pf(lmSummary$fstatistic[1],lmSummary$fstatistic[2],lmSummary$fstatistic[3],lower.tail=FALSE);
-    }
-    else{
-        if(distribution=="fnorm"){
-            lmModel <- alm(y~., data=dataNew[,-2], distribution="fnorm");
-        }
-        else{
-            lmModel <- alm(y~., data=dataNew[,-2], distribution="chisq");
-        }
+    # Stuff needed for the importance of the model
+    lmModel2 <- alm(y~1,data=dataNew, distribution=distribution);
 
-        lmSummary <- summary(lmModel, level=level);
-        # Construct intervals
-        lmCoefs <- coef(lmModel);
-        lmIntervals <- confint(lmModel, level=level);
-        names(lmCoefs)[1] <- colnames(dataNew)[2];
-        rownames(lmIntervals)[1] <- colnames(dataNew)[2];
-        lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-        lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+    AICs <- c(AIC(lmModel2),AIC(lmModel));
+    delta <- AICs - min(AICs);
+    importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
 
-        # Stuff needed for the importance of the model
-        if(distribution=="fnorm"){
-            lmModel2 <- alm(y~1,data=dataNew, distribution="fnorm");
-        }
-        else{
-            lmModel2 <- alm(y~1,data=dataNew, distribution="chisq");
-        }
-        AICs <- c(AIC(lmModel2),AIC(lmModel));
-        delta <- AICs - min(AICs);
-        importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
-
-        # Chi-squared test. +logLikExp is because the logLik is negative
-        p.value <- pchisq(-(logLik(lmModel2)-logLik(lmModel)),
-                          lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
-    }
+    # Chi-squared test. +logLikExp is because the logLik is negative
+    p.value <- pchisq(-(logLik(lmModel2)-logLik(lmModel)),
+                      lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
 
     if(is.null(select)){
         select <- which.min(lmCoefs);

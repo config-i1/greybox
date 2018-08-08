@@ -7,7 +7,8 @@
 \title{Combine regressions based on information criteria}
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteForce = FALSE,
-  silent = TRUE)
+  silent = TRUE, distribution = c("norm", "fnorm", "lnorm", "laplace", "s",
+  "chisq"))
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -21,6 +22,8 @@ one are produced and then combined.}
 
 \item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
 out. \code{TRUE} means that nothing is produced.}
+
+\item{distribution}{Distribution to pass to \code{alm()}.}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -31,7 +34,7 @@ Function combines parameters of linear regressions of the first variable
 on all the other provided data.
 }
 \details{
-The algorithm uses lm() to fit different models and then combines the models
+The algorithm uses alm() to fit different models and then combines the models
 based on the selected IC.
 }
 \examples{

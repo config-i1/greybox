@@ -95,7 +95,7 @@ BICc.default <- function(object, ...){
 #' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
-#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#' ourModel <- alm(y~x1+x2,as.data.frame(xreg))
 #'
 #' errorType(ourModel)
 #'
@@ -148,7 +148,7 @@ logLik.alm <- function(object, ...){
 #' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
-#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#' ourModel <- alm(y~x1+x2,as.data.frame(xreg))
 #'
 #' pointLik(ourModel)
 #'
@@ -204,7 +204,7 @@ pointLik.ets <- function(object, ...){
 #' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
-#' ourModel <- lm(y~x1+x2,as.data.frame(xreg))
+#' ourModel <- alm(y~x1+x2,as.data.frame(xreg))
 #'
 #' pAICValues <- pAIC(ourModel)
 #'
@@ -350,14 +350,11 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
     return(confintValues[,parm,]);
 }
 
-#' @importFrom stats predict
-#' @importFrom stats qchisq
+#' @importFrom stats predict qchisq qlnorm
 #' @export
 predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, ...){
-    ellipsis <- list(...);
-
-    greyboxForecast <- predict.greybox(object, newdata, ...);
+    greyboxForecast <- predict.greybox(object, newdata, interval, level, ...);
 
     if(object$distribution=="laplace"){
         # Use the connection between the variance and MAE in Laplace distribution
@@ -387,6 +384,17 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     else if(object$distribution=="chisq"){
         greyboxForecast$lower <- 0;
         greyboxForecast$upper <- qchisq(level,greyboxForecast$mean);
+    }
+    else if(object$distribution=="lnorm"){
+        if(interval=="p"){
+            sdlog <- sqrt(greyboxForecast$variance - sigma(object)^2 + object$scale^2);
+        }
+        else{
+            sdlog <- sqrt(greyboxForecast$variance);
+        }
+        greyboxForecast$lower <- qlnorm((1-level)/2,greyboxForecast$mean,sdlog);
+        greyboxForecast$upper <- qlnorm((1+level)/2,greyboxForecast$mean,sdlog);
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
@@ -730,18 +738,14 @@ print.summary.alm <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    if(x$distribution=="laplace"){
-        distrib <- "Laplace";
-    }
-    else if(x$distribution=="s"){
-        distrib <- "S";
-    }
-    else if(x$distribution=="fnorm"){
-        distrib <- "Folded Normal";
-    }
-    else if(x$distribution=="chisq"){
-        distrib <- "Chi-Squared";
-    }
+    distrib <- switch(x$distribution,
+                      "norm" = "Normal",
+                      "fnorm" = "Folded Normal",
+                      "lnorm" = "Log Normal",
+                      "laplace" = "Laplace",
+                      "s" = "S",
+                      "chisq" = "Chi-Squared"
+    );
 
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");

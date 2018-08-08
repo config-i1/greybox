@@ -5,11 +5,17 @@
 #' This is a function, similar to \link[stats]{lm}, but for the cases of several
 #' non-normal distributions. These include:
 #' \enumerate{
+#' \item Normal distribution, \link[stats]{dnorm},
+#' \item Folded normal distribution, \link[greybox]{dfnorm},
+#' \item Log normal distribution, \link[stats]{dlnorm},
 #' \item Laplace distribution, \link[greybox]{dlaplace},
 #' \item S-distribution, \link[greybox]{ds},
-#' \item Folded-normal distribution, \link[greybox]{dfnorm},
 #' \item Chi-Squared Distribution, \link[stats]{dchisq}.
 #' }
+#'
+#' This function is slower than \code{lm}, because it relies on likelihood estimation
+#' of parameters, hessian calculation and matrix multiplication. So think twice when
+#' using \code{distribution="norm"} here.
 #'
 #' Probably some other distributions will be added to this function at some point...
 #'
@@ -31,7 +37,25 @@
 #' @param distribution What density function to use in the process.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "alm".
+#' "alm", which contains:
+#' \itemize{
+#' \item coefficients - estimated parameters of the model,
+#' \item vcov - covariance matrix of parameters of the model (based on Fisher Information),
+#' \item actuals - actual values of the response variable,
+#' \item fitted.values - fitted values,
+#' \item residuals - residuals of the model,
+#' \item mu - the estimated location parameter of the distribution,
+#' \item scale - the estimated scale parameter of the distribution,
+#' \item distribution - distribution used in the estimation,
+#' \item logLik - log-likelihood of the model,
+#' \item df.residual - number of degrees of freedom of the residuals of the model,
+#' \item df - number of degrees of freedom of the model,
+#' \item call - how the model was called,
+#' \item rank - rank of the model,
+#' \item model - data on which the model was fitted,
+#' \item qr - QR decomposition of the data,
+#' \item terms - terms of the model.
+#' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 #'
@@ -49,10 +73,10 @@
 #'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
-#' @importFrom stats model.frame sd terms dchisq
+#' @importFrom stats model.frame sd terms dchisq dlnorm dnorm
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("laplace","s","fnorm","chisq")){
+                distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
 
     cl <- match.call();
 
@@ -142,51 +166,41 @@ alm <- function(formula, data, subset=NULL,  na.action,
 
     y <- as.matrix(dataWork[,1]);
 
+    ifelseFast <- function(condition, yes, no){
+        if(condition){
+            return(yes);
+        }
+        else{
+            return(no);
+        }
+    }
+
     fitter <- function(A, distribution, y, matrixXreg){
-        # if(distribution=="fnorm"){
-        #     scale <- A[length(A)];
-        #     A <- A[-length(A)];
-        # }
+        mu <- matrixXreg %*% A;
 
-        yFitted <- matrixXreg %*% A;
-        errors <- y - yFitted;
+        scale <- switch(distribution,
+                        "norm"=,
+                        "fnorm" = sqrt(mean((y-mu)^2)),
+                        "lnorm"= sqrt(mean((log(y)-mu)^2)),
+                        "laplace" = mean(abs(y-mu)),
+                        "s" = mean(sqrt(abs(y-mu))) / 2,
+                        "chisq" = 2*mu
+        );
 
-        if(distribution=="laplace"){
-            scale <- mean(abs(y-yFitted));
-        }
-        else if(distribution=="s"){
-            scale <- mean(sqrt(abs(y-yFitted))) / 2;
-        }
-        else if(distribution=="fnorm"){
-            scale <- sqrt(mean((y-yFitted)^2));
-        }
-        else if(distribution=="chisq"){
-            scale <- 2*yFitted;
-        }
-
-        return(list(yFitted=yFitted,scale=scale,errors=errors));
+        return(list(mu=mu,scale=scale));
     }
 
     CF <- function(A, distribution, y, matrixXreg){
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
-        if(distribution=="laplace"){
-            CFReturn <- dlaplace(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE);
-        }
-        else if(distribution=="s"){
-            CFReturn <- ds(y, mu=fitterReturn$yFitted, b=fitterReturn$scale, log=TRUE);
-        }
-        else if(distribution=="fnorm"){
-            CFReturn <- dfnorm(y, mu=fitterReturn$yFitted, sigma=fitterReturn$scale, log=TRUE);
-        }
-        else if(distribution=="chisq"){
-            if(any(fitterReturn$yFitted<=0)){
-                CFReturn <- -1E+300;
-            }
-            else{
-                CFReturn <- dchisq(y, fitterReturn$yFitted, log=TRUE);
-            }
-        }
+        CFReturn <- switch(distribution,
+                           "norm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
+                           "fnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
+                           "lnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
+                           "laplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "s" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "chisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE))
+        );
 
         CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);
 
@@ -197,12 +211,14 @@ alm <- function(formula, data, subset=NULL,  na.action,
         return(CFReturn);
     }
 
-    A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
+    if(distribution=="lnorm"){
+        A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% log(y));
+    }
+    else{
+        A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
+    }
 
-#     if(distribution=="fnorm"){
-#         A <- c(A,sd(y));
-#     }
-
+    # Although this is not needed in case of distribution="norm", we do that in a way, for the code consistency purposes
     res <- nloptr(A, CF,
                   opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
                   distribution=distribution, y=y, matrixXreg=matrixXreg);
@@ -215,8 +231,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     CFValue <- res$objective;
 
     fitterReturn <- fitter(A, distribution, y, matrixXreg);
-    yFitted <- fitterReturn$yFitted;
-    errors <- fitterReturn$errors;
+    mu <- fitterReturn$mu;
     scale <- fitterReturn$scale;
 
     # Parameters of the model + scale
@@ -228,7 +243,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                        "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                        "Try a different distribution maybe?"), call.=FALSE);
-        vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
+        vcovMatrix <- diag(nVariables);
     }
     else{
         if(any(vcovMatrix==0)){
@@ -248,20 +263,22 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
 
     if(distribution=="fnorm"){
-        # A <- A[-(nVariables+1)];
         # Correction so that the the expectation of the folded is returned
-        mu <- yFitted;
         # Calculate the conditional expectation based on the parameters of the distribution
-        yFitted <- sqrt(2/pi)*scale*exp(-yFitted^2/(2*scale^2))+yFitted*(1-2*pnorm(-yFitted/scale));
-        errors <- y - yFitted;
+        yFitted <- sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale));
         vcovMatrix <- vcovMatrix[1:nVariables,1:nVariables];
     }
+    else if(distribution=="lnorm"){
+        yFitted <- exp(mu);
+    }
     else{
-        mu <- yFitted;
+        yFitted <- mu;
         if(distribution=="chisq"){
-            scale <- yFitted * 2;
+            scale <- mu * 2;
         }
     }
+    errors <- y - yFitted;
+
     names(A) <- variablesNames;
     if(nVariables>1){
         dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
@@ -270,8 +287,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
         names(vcovMatrix) <- variablesNames;
     }
 
-    finalModel <- list(coefficients=A, vcov=vcovMatrix, residuals=as.vector(errors), fitted.values=yFitted, actuals=y, mu=mu,
-                       df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork, scale=scale,
-                       qr=qr(dataWork), terms=ourTerms, logLik=-CFValue, distribution=distribution);
+    finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
+                       mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
+                       df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork,
+                       qr=qr(dataWork), terms=ourTerms);
     return(structure(finalModel,class=c("alm","greybox")));
 }

@@ -5,7 +5,8 @@
 \title{Stepwise selection of regressors}
 \usage{
 stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
-  df = NULL, method = c("pearson", "kendall", "spearman"))
+  df = NULL, method = c("pearson", "kendall", "spearman"),
+  distribution = c("norm", "fnorm", "lnorm", "laplace", "s", "chisq"))
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and
@@ -21,6 +22,8 @@ used on residuals).}
 
 \item{method}{Method of correlations calculation. The default is Kendall's
 Tau, which should be applicable to a wide range of data in different scales.}
+
+\item{distribution}{Distribution to pass to \code{alm()}.}
 }
 \value{
 Function returns \code{model} - the final model of the class "lm".
@@ -32,7 +35,7 @@ partial correlations. This should be a simpler and faster implementation
 than step() function from `stats' package.
 }
 \details{
-The algorithm uses lm() to fit different models and cor() to select the next
+The algorithm uses alm() to fit different models and cor() to select the next
 regressor in the sequence.
 }
 \examples{

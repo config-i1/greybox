@@ -5,7 +5,7 @@
 #' partial correlations. This should be a simpler and faster implementation
 #' than step() function from `stats' package.
 #'
-#' The algorithm uses lm() to fit different models and cor() to select the next
+#' The algorithm uses alm() to fit different models and cor() to select the next
 #' regressor in the sequence.
 #'
 #' @template AICRef
@@ -21,6 +21,7 @@
 #' used on residuals).
 #' @param method Method of correlations calculation. The default is Kendall's
 #' Tau, which should be applicable to a wide range of data in different scales.
+#' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class "lm".
 #'
@@ -46,7 +47,8 @@
 #'
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
-                     method=c("pearson","kendall","spearman")){
+                     method=c("pearson","kendall","spearman"),
+                     distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
 ##### Function that selects variables based on IC and using partial correlations
     ourData <- data;
     ourData <- ourData[apply(!is.na(ourData),1,all),]
@@ -72,6 +74,16 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         IC <- BICc;
     }
 
+    distribution <- distribution[1];
+    if(distribution=="norm"){
+        lmCall <- lm;
+        listToCall <- list(NULL);
+    }
+    else{
+        lmCall <- alm;
+        listToCall <- list(distribution=distribution);
+    }
+
     method <- method[1];
 
     ourncols <- ncol(ourData) - 1;
@@ -79,7 +91,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     allICs <- list(NA);
     # Run the simplest model y = const
     testFormula <- paste0(colnames(ourData)[1],"~ 1");
-    testModel <- lm(as.formula(testFormula),data=ourData);
+    listToCall$formula <- as.formula(testFormula);
+    listToCall$data <- ourData;
+    testModel <- do.call(lmCall,listToCall);
     # Write down the logLik and take df into account
     logLikValue <- logLik(testModel);
     attributes(logLikValue)$df <- nParam(logLikValue) + df;
@@ -114,7 +128,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         }
         # Include the new element in the original model
         testFormula <- paste0(testFormula,"+",newElement);
-        testModel <- lm(as.formula(testFormula),data=ourData);
+        listToCall$formula <- as.formula(testFormula);
+        listToCall$data <- ourData;
+        testModel <- do.call(lmCall,listToCall);
         # Modify logLik
         logLikValue <- logLik(testModel);
         attributes(logLikValue)$df <- nParam(logLikValue) + df;

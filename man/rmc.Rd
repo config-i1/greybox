@@ -47,8 +47,9 @@ variables:
 \itemize{
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
-\item{p.value}{p-value for the test of the significance of the model. In
-case of distribution="norm" F-test is done. Otherwise Chisq is done.}
+\item{p.value}{p-value for the test of the significance of the model. This is a
+log-likelihood ratios chi-squared test, comparing the model with the one with
+intercept only.}
 \item{importance}{The weights of the estimated model in comparison with the
 model with the constant only. 0 means that the constant is better, 1 means that
 the estimated model is the best.}

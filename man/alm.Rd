@@ -4,8 +4,8 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset = NULL, na.action, distribution = c("laplace",
-  "s", "fnorm", "chisq"))
+alm(formula, data, subset = NULL, na.action, distribution = c("norm",
+  "fnorm", "lnorm", "laplace", "s", "chisq"))
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -26,7 +26,25 @@ is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 }
 \value{
 Function returns \code{model} - the final model of the class
-"alm".
+"alm", which contains:
+\itemize{
+\item coefficients - estimated parameters of the model,
+\item vcov - covariance matrix of parameters of the model (based on Fisher Information),
+\item actuals - actual values of the response variable,
+\item fitted.values - fitted values,
+\item residuals - residuals of the model,
+\item mu - the estimated location parameter of the distribution,
+\item scale - the estimated scale parameter of the distribution,
+\item distribution - distribution used in the estimation,
+\item logLik - log-likelihood of the model,
+\item df.residual - number of degrees of freedom of the residuals of the model,
+\item df - number of degrees of freedom of the model,
+\item call - how the model was called,
+\item rank - rank of the model,
+\item model - data on which the model was fitted,
+\item qr - QR decomposition of the data,
+\item terms - terms of the model.
+}
 }
 \description{
 Function estimates model based on the selected distribution
@@ -35,11 +53,17 @@ Function estimates model based on the selected distribution
 This is a function, similar to \link[stats]{lm}, but for the cases of several
 non-normal distributions. These include:
 \enumerate{
+\item Normal distribution, \link[stats]{dnorm},
+\item Folded normal distribution, \link[greybox]{dfnorm},
+\item Log normal distribution, \link[stats]{dlnorm},
 \item Laplace distribution, \link[greybox]{dlaplace},
 \item S-distribution, \link[greybox]{ds},
-\item Folded-normal distribution, \link[greybox]{dfnorm},
 \item Chi-Squared Distribution, \link[stats]{dchisq}.
 }
+
+This function is slower than \code{lm}, because it relies on likelihood estimation
+of parameters, hessian calculation and matrix multiplication. So think twice when
+using \code{distribution="norm"} here.
 
 Probably some other distributions will be added to this function at some point...
 
