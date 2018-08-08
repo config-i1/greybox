@@ -35,12 +35,18 @@
 #' factory-fresh default is \link[stats]{na.omit}. Another possible value
 #' is NULL, no action. Value \link[stats]{na.exclude} can be useful.
 #' @param distribution What density function to use in the process.
+#' @param A Vector of parameters of the linear model. When \code{NULL}, it
+#' is estimated.
+#' @param vcovProduce Whether to produce variance-covariance matrix of
+#' coefficients or not. This is done via hessian calculation, so might be
+#' computationally costly.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "alm", which contains:
 #' \itemize{
 #' \item coefficients - estimated parameters of the model,
-#' \item vcov - covariance matrix of parameters of the model (based on Fisher Information),
+#' \item vcov - covariance matrix of parameters of the model (based on Fisher
+#' Information). Returned only when \code{vcovProduce=TRUE}.
 #' \item actuals - actual values of the response variable,
 #' \item fitted.values - fitted values,
 #' \item residuals - residuals of the model,
@@ -76,7 +82,8 @@
 #' @importFrom stats model.frame sd terms dchisq dlnorm dnorm
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
+                distribution=c("norm","fnorm","lnorm","laplace","s","chisq"),
+                A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
 
@@ -211,24 +218,59 @@ alm <- function(formula, data, subset=NULL,  na.action,
         return(CFReturn);
     }
 
-    if(distribution=="lnorm"){
-        A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% log(y));
+    if(is.null(A)){
+        if(distribution=="lnorm"){
+            A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% log(y));
+        }
+        else{
+            A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
+        }
+
+        # Although this is not needed in case of distribution="norm", we do that in a way, for the code consistency purposes
+        res <- nloptr(A, CF,
+                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
+                      distribution=distribution, y=y, matrixXreg=matrixXreg);
+
+        # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
+        #               distribution=distribution, y=y, matrixXreg=matrixXreg);
+        # res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
+        #               distribution=distribution, y=y, matrixXreg=matrixXreg);
+        A <- res$solution;
+        CFValue <- res$objective;
     }
     else{
-        A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
+        CFValue <- CF(A, distribution, y, matrixXreg);
     }
 
-    # Although this is not needed in case of distribution="norm", we do that in a way, for the code consistency purposes
-    res <- nloptr(A, CF,
-                  opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
-                  distribution=distribution, y=y, matrixXreg=matrixXreg);
+    if(vcovProduce){
+        vcovMatrix <- hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg);
 
-    # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
-    #               distribution=distribution, y=y, matrixXreg=matrixXreg);
-    # res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
-    #               distribution=distribution, y=y, matrixXreg=matrixXreg);
-    A <- res$solution;
-    CFValue <- res$objective;
+        if(any(is.nan(vcovMatrix))){
+            warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                           "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                           "Try a different distribution maybe?"), call.=FALSE);
+            vcovMatrix <- diag(nVariables);
+        }
+        else{
+            if(any(vcovMatrix==0)){
+                warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                               "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                               "Try a different distribution maybe?"), call.=FALSE);
+                vcovMatrix <- diag(nVariables);
+            }
+            else{
+                vcovMatrix <- solve(vcovMatrix);
+            }
+
+            # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
+            if(any(diag(vcovMatrix)<0)){
+                diag(vcovMatrix) <- abs(diag(vcovMatrix));
+            }
+        }
+    }
+    else{
+        vcovMatrix <- NULL;
+    }
 
     fitterReturn <- fitter(A, distribution, y, matrixXreg);
     mu <- fitterReturn$mu;
@@ -237,36 +279,10 @@ alm <- function(formula, data, subset=NULL,  na.action,
     # Parameters of the model + scale
     df <- nVariables + 1;
 
-    vcovMatrix <- hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg);
-
-    if(any(is.nan(vcovMatrix))){
-        warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
-                       "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
-                       "Try a different distribution maybe?"), call.=FALSE);
-        vcovMatrix <- diag(nVariables);
-    }
-    else{
-        if(any(vcovMatrix==0)){
-            warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
-                           "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
-                           "Try a different distribution maybe?"), call.=FALSE);
-            vcovMatrix <- diag(nVariables+(distribution=="fnorm"));
-        }
-        else{
-            vcovMatrix <- solve(vcovMatrix);
-        }
-
-        # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
-        if(any(diag(vcovMatrix)<0)){
-            diag(vcovMatrix) <- abs(diag(vcovMatrix));
-        }
-    }
-
     if(distribution=="fnorm"){
         # Correction so that the the expectation of the folded is returned
         # Calculate the conditional expectation based on the parameters of the distribution
         yFitted <- sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale));
-        vcovMatrix <- vcovMatrix[1:nVariables,1:nVariables];
     }
     else if(distribution=="lnorm"){
         yFitted <- exp(mu);
@@ -280,11 +296,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
     errors <- y - yFitted;
 
     names(A) <- variablesNames;
-    if(nVariables>1){
-        dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
-    }
-    else{
-        names(vcovMatrix) <- variablesNames;
+    if(vcovProduce){
+        if(nVariables>1){
+            dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
+        }
+        else{
+            names(vcovMatrix) <- variablesNames;
+        }
     }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),

@@ -763,7 +763,18 @@ print.summary.greybox <- function(x, ...){
     else{
         digits <- ellipsis$digits;
     }
-    cat("Coefficients:\n");
+
+    distrib <- switch(x$distribution,
+                      "norm" = "Normal",
+                      "fnorm" = "Folded Normal",
+                      "lnorm" = "Log Normal",
+                      "laplace" = "Laplace",
+                      "s" = "S",
+                      "chisq" = "Chi-Squared"
+    );
+
+    cat(paste0("Distribution used in the estimation: ", distrib));
+    cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("---\n");
     cat(paste0("Residual standard error: ",round(x$sigma,digits)," on ",
@@ -781,7 +792,18 @@ print.summary.greyboxC <- function(x, ...){
     else{
         digits <- ellipsis$digits;
     }
-    cat("Coefficients:\n");
+
+    distrib <- switch(x$distribution,
+                      "norm" = "Normal",
+                      "fnorm" = "Folded Normal",
+                      "lnorm" = "Log Normal",
+                      "laplace" = "Laplace",
+                      "s" = "S",
+                      "chisq" = "Chi-Squared"
+    );
+
+    cat(paste0("Distribution used in the estimation: ", distrib));
+    cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("---\n");
     cat(paste0("Residual standard error: ",round(x$sigma,digits)," on ",
@@ -862,6 +884,7 @@ summary.greybox <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
     ourReturn$ICs <- ICs;
+    ourReturn$distribution <- object$distribution;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
@@ -894,7 +917,8 @@ summary.greyboxC <- function(object, level=0.95, ...){
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
-                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
+                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
+                                distribution=object$distribution),
                            class="summary.greyboxC");
     return(ourReturn);
 }
@@ -929,7 +953,8 @@ summary.greyboxD <- function(object, level=0.95, ...){
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
-                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj),
+                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
+                                distribution=object$distribution),
                            class="summary.greyboxC");
     return(ourReturn);
 }
@@ -937,9 +962,12 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
+    # Recall alm to get hessian
+    object <- alm(object$call$formula, object$model, distribution=object$distribution,
+                  A=coef(object), vcovProduce=TRUE);
     vcov <- object$vcov;
     if(!is.matrix(vcov)){
-        vcov <- as.matrix(object$vcov);
+        vcov <- as.matrix(vcov);
         colnames(vcov) <- rownames(vcov);
     }
     return(vcov);

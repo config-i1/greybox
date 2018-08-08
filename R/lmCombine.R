@@ -84,7 +84,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     distribution <- distribution[1];
     if(distribution=="norm"){
         lmCall <- lm;
-        listToCall <- list(NULL);
+        listToCall <- vector("list");
     }
     else{
         lmCall <- alm;
@@ -135,16 +135,16 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             if(!silent){
                 cat("Selecting the best model...\n");
             }
-            bestModel <- stepwise(ourData, ic=ic, method="kendall");
+            bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
         }
         else{
-            bestModel <- stepwise(ourData, ic=ic);
+            bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
         }
 
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent));
+            return(lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution));
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -251,7 +251,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     # Create an object of the same name as the original data
     # If it was a call on its own, make it one string
     assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
-    testModel <- do.call("lm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data)));
+    testModel <- do.call("alm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data),
+                                     distribution=distribution));
 
     #Calcualte logLik
     logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
@@ -259,11 +260,11 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     ourTerms <- testModel$terms;
 
     finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=df, se=parametersSECombined, importance=importance,
+                       df.residual=df, se=parametersSECombined, importance=importance, distribution=distribution,
                        IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
                        model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance)+1);
 
-    return(structure(finalModel,class=c("greyboxC","greybox","lm")));
+    return(structure(finalModel,class=c("greyboxC","greybox","alm")));
 }
 
 #' @export

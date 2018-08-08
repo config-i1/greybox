@@ -26,7 +26,7 @@ Tau, which should be applicable to a wide range of data in different scales.}
 \item{distribution}{Distribution to pass to \code{alm()}.}
 }
 \value{
-Function returns \code{model} - the final model of the class "lm".
+Function returns \code{model} - the final model of the class "alm".
 }
 \description{
 Function selects variables that give linear regression with the lowest

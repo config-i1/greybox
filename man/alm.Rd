@@ -5,7 +5,7 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset = NULL, na.action, distribution = c("norm",
-  "fnorm", "lnorm", "laplace", "s", "chisq"))
+  "fnorm", "lnorm", "laplace", "s", "chisq"), A = NULL, vcovProduce = FALSE)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -23,13 +23,21 @@ factory-fresh default is \link[stats]{na.omit}. Another possible value
 is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 
 \item{distribution}{What density function to use in the process.}
+
+\item{A}{Vector of parameters of the linear model. When \code{NULL}, it
+is estimated.}
+
+\item{vcovProduce}{Whether to produce variance-covariance matrix of
+coefficients or not. This is done via hessian calculation, so might be
+computationally costly.}
 }
 \value{
 Function returns \code{model} - the final model of the class
 "alm", which contains:
 \itemize{
 \item coefficients - estimated parameters of the model,
-\item vcov - covariance matrix of parameters of the model (based on Fisher Information),
+\item vcov - covariance matrix of parameters of the model (based on Fisher
+Information). Returned only when \code{vcovProduce=TRUE}.
 \item actuals - actual values of the response variable,
 \item fitted.values - fitted values,
 \item residuals - residuals of the model,

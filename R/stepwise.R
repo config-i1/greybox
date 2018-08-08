@@ -23,7 +23,7 @@
 #' Tau, which should be applicable to a wide range of data in different scales.
 #' @param distribution Distribution to pass to \code{alm()}.
 #'
-#' @return Function returns \code{model} - the final model of the class "lm".
+#' @return Function returns \code{model} - the final model of the class "alm".
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
 #' \link[greybox]{combine}}
@@ -77,7 +77,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     distribution <- distribution[1];
     if(distribution=="norm"){
         lmCall <- lm;
-        listToCall <- list(NULL);
+        listToCall <- vector("list");
     }
     else{
         lmCall <- alm;
@@ -168,10 +168,11 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
 
-    bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
-                                    data=substitute(data)));
+    bestModel <- do.call("alm", list(formula=as.formula(bestFormula),
+                                    data=substitute(data),
+                                    distribution=distribution));
 
     bestModel$ICs <- unlist(allICs);
-    class(bestModel) <- c("greybox","lm");
+    class(bestModel) <- c("alm","greybox");
     return(model=bestModel);
 }
