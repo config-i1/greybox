@@ -233,7 +233,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
                       opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
 
-        # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8),
+        # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8, print_level=1),
         #               distribution=distribution, y=y, matrixXreg=matrixXreg);
         # res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
         #               distribution=distribution, y=y, matrixXreg=matrixXreg);
