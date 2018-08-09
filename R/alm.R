@@ -220,10 +220,12 @@ alm <- function(formula, data, subset=NULL,  na.action,
 
     if(is.null(A)){
         if(distribution=="lnorm"){
-            A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% log(y));
+            # A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, t(matrixXreg) %*% log(y)));
+            A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% log(y));
         }
         else{
-            A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, tol=1e-10) %*% t(matrixXreg) %*% y);
+            # A <- as.vector(solve(t(matrixXreg) %*% matrixXreg, t(matrixXreg) %*% y));
+            A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% y);
         }
 
         # Although this is not needed in case of distribution="norm", we do that in a way, for the code consistency purposes
@@ -259,7 +261,8 @@ alm <- function(formula, data, subset=NULL,  na.action,
                 vcovMatrix <- diag(nVariables);
             }
             else{
-                vcovMatrix <- solve(vcovMatrix);
+                # vcovMatrix <- solve(vcovMatrix, diag(nVariables));
+                vcovMatrix <- chol2inv(chol(vcovMatrix));
             }
 
             # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...

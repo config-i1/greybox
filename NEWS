@@ -11,6 +11,7 @@ Changes:
 * alm() can be constructed with the provided vector of parameters (needed for vcov method).
 * We now use well-known analytical solutions for the cases of distribution="norm" of alm() and other functions.
 * Code of lmCombine and lmDynamic is slightly simplified.
+* We now use Choleski decomposition for the calculation of the inverse of matrices in alm.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
