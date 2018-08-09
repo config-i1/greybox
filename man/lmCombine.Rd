@@ -27,7 +27,24 @@ out. \code{TRUE} means that nothing is produced.}
 }
 \value{
 Function returns \code{model} - the final model of the class
-"lm.combined".
+"greyboxC". The list of variables:
+\itemize{
+\item coefficients - combined parameters of the model,
+\item se - combined standard errors of the parameters of the model,
+\item actuals - actual values of the response variable,
+\item fitted.values - the fitted values,
+\item residuals - residual of the model,
+\item distribution - distribution used in the estimation,
+\item logLik - combined log-likelihood of the model,
+\item IC - the values of the combined information criterion,
+\item df.residual - number of degrees of freedom of the residuals of
+the combined model,
+\item df - number of degrees of freedom of the combined model,
+\item importance - importance of the parameters,
+\item call - call used in the function,
+\item rank - rank of the combined model,
+\item model - the data used in the model.
+}
 }
 \description{
 Function combines parameters of linear regressions of the first variable

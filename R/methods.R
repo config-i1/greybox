@@ -266,7 +266,7 @@ coef.greybox <- function(object, ...){
 #' @export
 coef.greyboxD <- function(object, ...){
     coefReturned <- list(coefficients=object$coefficients,se=object$se,
-                         dynamic=object$dynamic,importance=object$importance);
+                         dynamic=object$coefficientsDynamic,importance=object$importance);
     return(structure(coefReturned,class="coef.greyboxD"));
 }
 
@@ -962,13 +962,23 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    # Recall alm to get hessian
-    object <- alm(object$call$formula, object$model, distribution=object$distribution,
-                  A=coef(object), vcovProduce=TRUE);
-    vcov <- object$vcov;
-    if(!is.matrix(vcov)){
-        vcov <- as.matrix(vcov);
-        colnames(vcov) <- rownames(vcov);
+    if(object$distribution!="norm"){
+        # Recall alm to get hessian
+        object <- alm(object$call$formula, object$model, distribution=object$distribution,
+                      A=coef(object), vcovProduce=TRUE);
+        vcov <- object$vcov;
+        if(!is.matrix(vcov)){
+            vcov <- as.matrix(vcov);
+            colnames(vcov) <- rownames(vcov);
+        }
+    }
+    else{
+        matrixXreg <- as.matrix(object$model[,-1]);
+        if(attr(object$terms,"intercept")==1){
+            matrixXreg <- cbind(1,matrixXreg);
+        }
+        colnames(matrixXreg) <- names(coef(object));
+        vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
     }
     return(vcov);
 }

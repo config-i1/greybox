@@ -24,9 +24,10 @@
 #' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class "alm".
+#' See \link[greybox]{alm} for details of the output.
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
-#' \link[greybox]{combine}}
+#' \link[greybox]{lmCombine}}
 #'
 #' @examples
 #'
@@ -168,9 +169,17 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
 
-    bestModel <- do.call("alm", list(formula=as.formula(bestFormula),
-                                    data=substitute(data),
-                                    distribution=distribution));
+    if(distribution=="norm"){
+        bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
+                                         data=substitute(data)));
+        bestModel$distribution <- distribution;
+        bestModel$logLik <- logLik(bestModel);
+    }
+    else{
+        bestModel <- do.call("alm", list(formula=as.formula(bestFormula),
+                                         data=substitute(data),
+                                         distribution=distribution));
+    }
 
     bestModel$ICs <- unlist(allICs);
     class(bestModel) <- c("alm","greybox");

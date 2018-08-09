@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-08)
+greybox v0.3.1 (Release data: 2018-08-09)
 ==============
 
 Changes:
@@ -9,6 +9,8 @@ Changes:
 * stepwise(), lmCombine() and lmDynamic() can now also be constructed with distributions from alm(). They use lm() in case of "norm" and alm() otherwise.
 * alm() now does not return vcov if you didn't ask for it (should increase speed of computation for large datasets).
 * alm() can be constructed with the provided vector of parameters (needed for vcov method).
+* We now use well-known analytical solutions for the cases of distribution="norm" of alm() and other functions.
+* Code of lmCombine and lmDynamic is slightly simplified.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.

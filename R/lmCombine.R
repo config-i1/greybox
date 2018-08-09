@@ -21,7 +21,24 @@
 #' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "lm.combined".
+#' "greyboxC". The list of variables:
+#' \itemize{
+#' \item coefficients - combined parameters of the model,
+#' \item se - combined standard errors of the parameters of the model,
+#' \item actuals - actual values of the response variable,
+#' \item fitted.values - the fitted values,
+#' \item residuals - residual of the model,
+#' \item distribution - distribution used in the estimation,
+#' \item logLik - combined log-likelihood of the model,
+#' \item IC - the values of the combined information criterion,
+#' \item df.residual - number of degrees of freedom of the residuals of
+#' the combined model,
+#' \item df - number of degrees of freedom of the combined model,
+#' \item importance - importance of the parameters,
+#' \item call - call used in the function,
+#' \item rank - rank of the combined model,
+#' \item model - the data used in the model.
+#' }
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
 #' \link[greybox]{stepwise}}
@@ -57,6 +74,8 @@
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
     # Function combines linear regression models and produces the combined lm object.
+    cl <- match.call();
+
     ourData <- data;
     if(!is.data.frame(ourData)){
         ourData <- as.data.frame(ourData);
@@ -144,7 +163,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution));
+            bestModel <- lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution);
+            bestModel$call <- cl;
+            return(bestModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -248,21 +269,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
     names(parametersSECombined) <- exoNames;
 
-    # Create an object of the same name as the original data
-    # If it was a call on its own, make it one string
-    assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
-    testModel <- do.call("alm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data),
-                                     distribution=distribution));
-
     #Calcualte logLik
     logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
 
-    ourTerms <- testModel$terms;
-
-    finalModel <- list(coefficients=parametersCombined, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=df, se=parametersSECombined, importance=importance, distribution=distribution,
-                       IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
-                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(importance)+1);
+    finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, actuals=data[,1], fitted.values=as.vector(yFitted),
+                       residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
+                       df.residual=df, df=sum(importance)+1, importance=importance,
+                       call=cl, rank=nVariables+1, model=ourData);
 
     return(structure(finalModel,class=c("greyboxC","greybox","alm")));
 }

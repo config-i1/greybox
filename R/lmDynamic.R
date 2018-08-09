@@ -22,8 +22,29 @@
 #' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "lm.combined", which includes time varying parameters and dynamic importance
-#' of each variable.
+#' "gryboxD", which includes time varying parameters and dynamic importance
+#' of each variable. The list of variables:
+#' \itemize{
+#' \item coefficients - mean (over time) parameters of the model,
+#' \item se - mean standard errors of the parameters of the model,
+#' \item actuals - actual values of the response variable,
+#' \item fitted.values - the fitted values,
+#' \item residuals - residual of the model,
+#' \item distribution - distribution used in the estimation,
+#' \item logLik - mean (over time) log-likelihood of the model,
+#' \item IC - dynamic values of the information criterion (pIC),
+#' \item df.residual - mean number of degrees of freedom of the residuals of
+#' the model,
+#' \item df - mean number of degrees of freedom of the model,
+#' \item importance - dynamic importance of the parameters,
+#' \item coefficientsDynamic - table with parameters of the model, varying over
+#' the time,
+#' \item df.residualDynamic - dynamic df.residual,
+#' \item dfDynamic - dynamic df,
+#' \item call - call used in the function,
+#' \item rank - rank of the combined model,
+#' \item model - the data used in the model.
+#' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 #'
@@ -44,6 +65,8 @@
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
     # Function combines linear regression models and produces the combined lm object.
+    cl <- match.call();
+
     ourData <- data;
     if(!is.data.frame(ourData)){
         ourData <- as.data.frame(ourData);
@@ -131,7 +154,9 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # If the number of variables is small, do bruteForce
         if(ncol(bestModel$model)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            return(lmDynamic(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution));
+            bestModel <- lmDynamic(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution);
+            bestModel$call <- cl;
+            return(bestModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -238,22 +263,14 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     parametersSECombined <- pICWeights %*% sqrt(parametersSE +(parameters - matrix(parametersMean,nrow(parameters),ncol(parameters),byrow=T))^2);
     colnames(parametersSECombined) <- exoNames;
 
-    # Create an object of the same name as the original data
-    # If it was a call on its own, make it one string
-    assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
-    testModel <- do.call("alm", list(formula=as.formula(paste0(responseName,"~.")), data=substitute(data),
-                                     distribution=distribution));
-
     #Calcualte logLik
     logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
 
-    ourTerms <- testModel$terms;
+    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, actuals=data[,1], fitted.values=as.vector(yFitted),
+                       residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
+                       df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
+                       coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
+                       call=cl, rank=nVariables+1, model=ourData);
 
-    finalModel <- list(coefficients=parametersMean, residuals=as.vector(errors), fitted.values=as.vector(yFitted),
-                       df.residual=mean(df), se=parametersSECombined, dynamic=parametersWeighted, distribution=distribution,
-                       importance=importance, IC=ICValue, call=testModel$call, logLik=logLikCombined, rank=nVariables+1,
-                       model=ourData, terms=ourTerms, qr=qr(ourData), df=sum(apply(importance,2,mean))+1,
-                       df.residualDynamic=df,dfDynamic=apply(importance,1,sum)+1);
-
-    return(structure(finalModel,class=c("greyboxD","greybox","lm")));
+    return(structure(finalModel,class=c("greyboxD","greybox","alm")));
 }

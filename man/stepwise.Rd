@@ -27,6 +27,7 @@ Tau, which should be applicable to a wide range of data in different scales.}
 }
 \value{
 Function returns \code{model} - the final model of the class "alm".
+See \link[greybox]{alm} for details of the output.
 }
 \description{
 Function selects variables that give linear regression with the lowest
@@ -65,7 +66,7 @@ Springer-Verlag New York. DOI: [10.1007/b97636](http://dx.doi.org/10.1007/b97636
 }
 \seealso{
 \code{\link[stats]{step}, \link[greybox]{xregExpander},
-\link[greybox]{combine}}
+\link[greybox]{lmCombine}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

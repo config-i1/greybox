@@ -25,8 +25,29 @@ out. \code{TRUE} means that nothing is produced.}
 }
 \value{
 Function returns \code{model} - the final model of the class
-"lm.combined", which includes time varying parameters and dynamic importance
-of each variable.
+"gryboxD", which includes time varying parameters and dynamic importance
+of each variable. The list of variables:
+\itemize{
+\item coefficients - mean (over time) parameters of the model,
+\item se - mean standard errors of the parameters of the model,
+\item actuals - actual values of the response variable,
+\item fitted.values - the fitted values,
+\item residuals - residual of the model,
+\item distribution - distribution used in the estimation,
+\item logLik - mean (over time) log-likelihood of the model,
+\item IC - dynamic values of the information criterion (pIC),
+\item df.residual - mean number of degrees of freedom of the residuals of
+the model,
+\item df - mean number of degrees of freedom of the model,
+\item importance - dynamic importance of the parameters,
+\item coefficientsDynamic - table with parameters of the model, varying over
+the time,
+\item df.residualDynamic - dynamic df.residual,
+\item dfDynamic - dynamic df,
+\item call - call used in the function,
+\item rank - rank of the combined model,
+\item model - the data used in the model.
+}
 }
 \description{
 Function combines parameters of linear regressions of the first variable
