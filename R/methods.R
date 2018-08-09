@@ -974,7 +974,7 @@ vcov.alm <- function(object, ...){
     }
     else{
         matrixXreg <- as.matrix(object$model[,-1]);
-        if(attr(object$terms,"intercept")==1){
+        if(attr(object$terms,"intercept")!=0){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
