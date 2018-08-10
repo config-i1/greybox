@@ -208,7 +208,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
         if(distribution=="f"){
-            if(any(fitterReturn$mu>=2 | fitterReturn$mu<0)){
+            if(any(fitterReturn$mu >= 2 | fitterReturn$mu < 0)){
                 return(1E+300);
             }
             df2 <- 2 * fitterReturn$mu / (fitterReturn$mu - 1);
@@ -266,20 +266,21 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
 
     if(vcovProduce){
-        vcovMatrix <- hessian(CF, A, distribution=distribution, y=y, matrixXreg=matrixXreg);
+        vcovMatrix <- hessian(CF, A, #method.args=list(d=1e-9,r=6),
+                              distribution=distribution, y=y, matrixXreg=matrixXreg);
 
         if(any(is.nan(vcovMatrix))){
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                            "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                            "Try a different distribution maybe?"), call.=FALSE);
-            vcovMatrix <- diag(nVariables);
+            vcovMatrix <- 1e-10*diag(nVariables);
         }
         else{
             if(any(vcovMatrix==0)){
                 warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                                "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                                "Try a different distribution maybe?"), call.=FALSE);
-                vcovMatrix <- diag(nVariables);
+                vcovMatrix <- 1e-10*diag(nVariables);
             }
             else{
                 # vcovMatrix <- solve(vcovMatrix, diag(nVariables));
