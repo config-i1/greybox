@@ -86,12 +86,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
                 A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
-    # F distribution example
-    # test <- rmc((t((t(ourData)-apply(ourData, 2, mean))^2) / (ourData[,1]-mean(ourData[,1]))^2), distribution="f", level=0.95)
-
 
     distribution <- distribution[1];
-    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq","f"))){
+    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq"))){
         stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
     }
     if(!is.data.frame(data)){
@@ -192,7 +189,6 @@ alm <- function(formula, data, subset=NULL,  na.action,
         mu <- matrixXreg %*% A;
 
         scale <- switch(distribution,
-                        "f"=,
                         "norm"=,
                         "fnorm" = sqrt(mean((y-mu)^2)),
                         "lnorm"= sqrt(mean((log(y)-mu)^2)),
@@ -207,19 +203,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     CF <- function(A, distribution, y, matrixXreg){
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
-        if(distribution=="f"){
-            if(any(fitterReturn$mu >= 2 | fitterReturn$mu < 0)){
-                return(1E+300);
-            }
-            df2 <- 2 * fitterReturn$mu / (fitterReturn$mu - 1);
-            df1 <- 2 * df2^2 * (df2 - 2) / (fitterReturn$scale^2 * (df2 - 2)^2 * (df2 - 4) - 2*df2^2);
-            if(any(df1<0) | any(df2<0)){
-                return(1E+300);
-            }
-        }
-
         CFReturn <- switch(distribution,
-                           "f" = df(y, df1=df1, df2=df2, log=TRUE),
                            "norm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
                            "fnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
                            "lnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
@@ -240,10 +224,6 @@ alm <- function(formula, data, subset=NULL,  na.action,
     if(is.null(A)){
         if(distribution=="lnorm"){
             A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% log(y));
-        }
-        else if(distribution=="f"){
-            # Response for F needs to be in a very small bound of (0, 2) in order for this to work
-            A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% (y/(1+y)*2));
         }
         else{
             A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% y);
@@ -266,7 +246,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
 
     if(vcovProduce){
-        vcovMatrix <- hessian(CF, A, #method.args=list(d=1e-9,r=6),
+        vcovMatrix <- hessian(CF, A, #method.args=list(d=1e-10,r=6),
                               distribution=distribution, y=y, matrixXreg=matrixXreg);
 
         if(any(is.nan(vcovMatrix))){
