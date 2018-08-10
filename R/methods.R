@@ -739,6 +739,7 @@ print.summary.alm <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
+                      # "f" = "F",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",
@@ -765,6 +766,7 @@ print.summary.greybox <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
+                      # "f" = "F",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",
@@ -794,6 +796,7 @@ print.summary.greyboxC <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
+                      # "f" = "F",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",

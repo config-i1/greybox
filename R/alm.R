@@ -88,6 +88,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
     cl <- match.call();
 
     distribution <- distribution[1];
+    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq"))){
+        stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
+    }
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
     }
@@ -186,6 +189,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         mu <- matrixXreg %*% A;
 
         scale <- switch(distribution,
+                        # "f"=,
                         "norm"=,
                         "fnorm" = sqrt(mean((y-mu)^2)),
                         "lnorm"= sqrt(mean((log(y)-mu)^2)),
@@ -200,7 +204,19 @@ alm <- function(formula, data, subset=NULL,  na.action,
     CF <- function(A, distribution, y, matrixXreg){
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
+        # if(distribution=="f"){
+        #     if(any(fitterReturn$mu>=2 | fitterReturn$mu<0)){
+        #         return(1E+300);
+        #     }
+        #     df2 <- 2 * fitterReturn$mu / (fitterReturn$mu - 1);
+        #     df1 <- 2 * df2^2 * (df2 - 2) / (fitterReturn$scale^2 * (df2 - 2)^2 * (df2 - 4) - 2*df2^2);
+        #     if(any(df1<0) | any(df2<0)){
+        #         return(1E+300);
+        #     }
+        # }
+
         CFReturn <- switch(distribution,
+                           # "f" = df(y, df1=df1, df2=df2, log=TRUE),
                            "norm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
                            "fnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
                            "lnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
