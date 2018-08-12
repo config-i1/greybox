@@ -34,10 +34,17 @@
 #' \link[base]{options}, and is \link[stats]{na.fail} if that is unset. The
 #' factory-fresh default is \link[stats]{na.omit}. Another possible value
 #' is NULL, no action. Value \link[stats]{na.exclude} can be useful.
-#' @param distribution What density function to use in the process.
-#' @param A Vector of parameters of the linear model. When \code{NULL}, it
+#' @param distribution what density function to use in the process. The full
+#' name of the distribution should be providede here.
+#' @param occurrence what distribution to use for occurrence variable. Can be
+#' \code{"none"}, then nothing happens; \code{"bernoulli"} - then the model
+#' with fixed probability is constructed; \code{"logis"} - then logistic
+#' regression is constructed for the occurrence part. If this is not
+#' \code{"none"}, then the model is estimated in two steps: 1. Occurrence part
+#' of the model; 2. Sizes part of the model (excluding zeroes from the data).
+#' @param A vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
-#' @param vcovProduce Whether to produce variance-covariance matrix of
+#' @param vcovProduce whether to produce variance-covariance matrix of
 #' coefficients or not. This is done via hessian calculation, so might be
 #' computationally costly.
 #'
@@ -79,18 +86,22 @@
 #'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
-#' @importFrom stats model.frame sd terms dchisq dlnorm dnorm
+#' @importFrom stats model.frame sd terms dchisq dlnorm dnorm dlogis
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("norm","fnorm","lnorm","laplace","s","chisq"),
+                distribution=c("norm","fnorm","lnorm","laplace","s","chisq","logis"),
+                occurrence=c("none","bernoulli","logistic"),
                 A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq"))){
+    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
         stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
     }
+
+    occurrence <- match.arg(occurrence[1], c("none","bernoulli","logis"));
+
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
     }
@@ -102,6 +113,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
     matrixXreg <- as.matrix(dataWork[,-1]);
     nVariables <- length(variablesNames);
     colnames(matrixXreg) <- variablesNames;
+
+    y <- as.matrix(dataWork[,1]);
+
+    if(any(y<0) & any(distribution==c("fnorm","lnorm","chisq"))){
+        stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
+             call.=FALSE);
+    }
 
     #### Checks of the exogenous variables ####
     # Remove the data for which sd=0
@@ -174,8 +192,6 @@ alm <- function(formula, data, subset=NULL,  na.action,
         colnames(matrixXreg) <- variablesNames;
     }
 
-    y <- as.matrix(dataWork[,1]);
-
     ifelseFast <- function(condition, yes, no){
         if(condition){
             return(yes);
@@ -194,7 +210,8 @@ alm <- function(formula, data, subset=NULL,  na.action,
                         "lnorm"= sqrt(mean((log(y)-mu)^2)),
                         "laplace" = mean(abs(y-mu)),
                         "s" = mean(sqrt(abs(y-mu))) / 2,
-                        "chisq" = 2*mu
+                        "chisq" = 2*mu,
+                        "logis" = sqrt(mean((y-mu)^2) * 3 / pi^2)
         );
 
         return(list(mu=mu,scale=scale));
@@ -209,7 +226,8 @@ alm <- function(formula, data, subset=NULL,  na.action,
                            "lnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
                            "laplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "s" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "chisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE))
+                           "chisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE)),
+                           "logis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE)
         );
 
         CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);

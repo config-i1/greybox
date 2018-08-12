@@ -5,7 +5,8 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset = NULL, na.action, distribution = c("norm",
-  "fnorm", "lnorm", "laplace", "s", "chisq"), A = NULL, vcovProduce = FALSE)
+  "fnorm", "lnorm", "laplace", "s", "chisq", "logis"), occurrence = c("none",
+  "bernoulli", "logistic"), A = NULL, vcovProduce = FALSE)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -22,12 +23,20 @@ data contain NAs. The default is set by the na.action setting of
 factory-fresh default is \link[stats]{na.omit}. Another possible value
 is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 
-\item{distribution}{What density function to use in the process.}
+\item{distribution}{what density function to use in the process. The full
+name of the distribution should be providede here.}
 
-\item{A}{Vector of parameters of the linear model. When \code{NULL}, it
+\item{occurrence}{what distribution to use for occurrence variable. Can be
+\code{"none"}, then nothing happens; \code{"bernoulli"} - then the model
+with fixed probability is constructed; \code{"logis"} - then logistic
+regression is constructed for the occurrence part. If this is not
+\code{"none"}, then the model is estimated in two steps: 1. Occurrence part
+of the model; 2. Sizes part of the model (excluding zeroes from the data).}
+
+\item{A}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
 
-\item{vcovProduce}{Whether to produce variance-covariance matrix of
+\item{vcovProduce}{whether to produce variance-covariance matrix of
 coefficients or not. This is done via hessian calculation, so might be
 computationally costly.}
 }

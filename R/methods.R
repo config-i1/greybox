@@ -350,7 +350,7 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
     return(confintValues[,parm,]);
 }
 
-#' @importFrom stats predict qchisq qlnorm
+#' @importFrom stats predict qchisq qlnorm qlogis
 #' @export
 predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, ...){
@@ -395,6 +395,12 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         greyboxForecast$lower <- qlnorm((1-level)/2,greyboxForecast$mean,sdlog);
         greyboxForecast$upper <- qlnorm((1+level)/2,greyboxForecast$mean,sdlog);
         greyboxForecast$mean <- exp(greyboxForecast$mean);
+    }
+    else if(object$distribution=="logis"){
+        # Use the connection between the variance and scale in logistic distribution
+        scale <- sqrt(greyboxForecast$variances * 3 / pi^2);
+        greyboxForecast$lower <- qlogis((1-level)/2,greyboxForecast$mean,scale);
+        greyboxForecast$upper <- qlogis((1+level)/2,greyboxForecast$mean,scale);
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
@@ -739,7 +745,7 @@ print.summary.alm <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      # "f" = "F",
+                      "logis" = "Logistic",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",
@@ -766,7 +772,7 @@ print.summary.greybox <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      # "f" = "F",
+                      "logis" = "Logistic",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",
@@ -796,7 +802,7 @@ print.summary.greyboxC <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      # "f" = "F",
+                      "logis" = "Logistic",
                       "norm" = "Normal",
                       "fnorm" = "Folded Normal",
                       "lnorm" = "Log Normal",
