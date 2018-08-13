@@ -16,7 +16,7 @@ columns.}
 then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
 regression. \code{"dfnorm"} would lead to a alm model with folded normal
 distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
-squared distribution.}
+squared distribution. This value is passed to \code{alm()} function.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 

@@ -24,7 +24,10 @@ factory-fresh default is \link[stats]{na.omit}. Another possible value
 is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 
 \item{distribution}{what density function to use in the process. The full
-name of the distribution should be providede here.}
+name of the distribution should be providede here. Values with "d" in the
+beginning of the name refer to the density function, while "p" stands for
+"probability" (cumulative distribution function). The names align with the
+names of distribution functions in R. For example, see \link[stats]{dnorm}.}
 
 \item{A}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
