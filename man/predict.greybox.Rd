@@ -65,7 +65,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 
-ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
+ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
 
 predict(ourModel,outSample)
 predict(ourModel,outSample,interval="c")

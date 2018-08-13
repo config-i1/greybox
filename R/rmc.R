@@ -19,10 +19,10 @@
 #'
 #' Depending on the provided data, it might make sense to use different types of
 #' regressions. The function supports Gausian linear regression
-#' (\code{distribution="norm"}, when the data is normal), advanced linear regression with
-#' folded normal distribution (\code{distribution="fnorm"}, for example, absolute errors,
+#' (\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
+#' folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
 #' assuming that the original errors are normally distributed) and advanced linear
-#' regression with Chi-Squared distribution (\code{distribution="chisq"}, when the data is
+#' regression with Chi-Squared distribution (\code{distribution="dchisq"}, when the data is
 #' distributed as Chi^2, for example squared normal standard errors).
 #'
 #' The advisable error measures to use in the test are RelMAE and RelMSE, which are
@@ -37,7 +37,7 @@
 #'
 #' Still, given large samples, the parameters of the regression on logarithms of
 #' the both RelMAE and RelMSE should have normal distribution. Thus
-#' \code{distribution="norm"} can be used in this case (see examples).
+#' \code{distribution="dnorm"} can be used in this case (see examples).
 #'
 #' The test is equivalent to nemenyi test, when applied to the ranks of the error
 #' measures on large samples.
@@ -45,9 +45,9 @@
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
 #' @param distribution Type of the distribution to use. If this is a clear forecast error,
-#' then \code{"norm"} is appropriate, leading to a simple Gausian linear
-#' regression. \code{"fnorm"} would lead to a alm model with folded normal
-#' distribution. Finally, \code{"chisq"} would lead to the alm with Chi
+#' then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
+#' regression. \code{"dfnorm"} would lead to a alm model with folded normal
+#' distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
 #' squared distribution.
 #' @param level The width of the confidence interval. Default is 0.95.
 #' @param sort If \code{TRUE} function sorts the final values of mean ranks.
@@ -63,9 +63,9 @@
 #' @param ... Other parameters passed to plot function
 #
 #' @return If \code{plot=TRUE}, then the function plots the results after all
-#' the calculations. In case of \code{distribution="norm"}, the closer to zero the
-#' intervals are, the better model performs. When \code{distribution="fnorm"} or
-#' \code{distribution="chisq"}, the smaller, the better.
+#' the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
+#' intervals are, the better model performs. When \code{distribution="dfnorm"} or
+#' \code{distribution="dchisq"}, the smaller, the better.
 #'
 #' Function returns a list of a class "rmc", which contains the following
 #' variables:
@@ -111,14 +111,14 @@
 #' ourData[,3] <- ourData[,3]+0.7
 #' ourData[,4] <- ourData[,4]+0.5
 #' colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
-#' rmc(ourData, distribution="norm", level=0.95)
+#' rmc(ourData, distribution="dnorm", level=0.95)
 #
 #' # In case of AE-based measures, distribution="fnorm" should be selected
-#' rmc(abs(ourData), distribution="fnorm", level=0.95)
+#' rmc(abs(ourData), distribution="dfnorm", level=0.95)
 #'
 #' # In case of SE-based measures, distribution="chisq" should be selected
 #' rmc((ourData-matrix(apply(ourData,2,mean),nrow(ourData),ncol(ourData),
-#'                     byrow=TRUE))^2, distribution="chisq", level=0.95)
+#'                     byrow=TRUE))^2, distribution="dchisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
@@ -126,15 +126,15 @@
 #' # distribution="norm" and provide logarithms of the RelMAE, which can be approximated by
 #' # normal distribution
 #' ourData <- abs(ourData)
-#' rmc(ourData / ourData[,1], distribution="norm", level=0.95)
+#' rmc(ourData / ourData[,1], distribution="dnorm", level=0.95)
 #'
 #' # The following example should give similar results to nemenyi test on
 #' # large samples, which compares medians of the distributions:
-#' rmc(t(apply(ourData,1,rank)), distribution="norm", level=0.95)
+#' rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
 #'
 #' @importFrom stats pchisq
 #' @export rmc
-rmc <- function(data, distribution=c("norm","fnorm","chisq"),
+rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
                 level=0.95, sort=TRUE, style=c("mcb","lines"),
                 select=NULL, plot=TRUE, ...){
 
@@ -368,7 +368,11 @@ plot.rmc <- function(x, ...){
 
 #' @export
 print.rmc <- function(x, ...){
-    cat(paste0("Regression for Multiple Comparison with ",x$distribution,".\n"));
+    cat(paste0("Regression for Multiple Comparison with ",switch(x$distribution,
+                                                                 "dnorm"="normal",
+                                                                 "dfnorm"="folded normal",
+                                                                 "dchisq"="Chi-Squared"),
+               " distribution.\n"));
     cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
     cat(paste0("Number of observations is ",nobs(x$model)," and number of dummies is ",length(x$mean),"\n"));
     cat(paste0("Significance test p-value: ",round(x$p.value,5),"\n"));

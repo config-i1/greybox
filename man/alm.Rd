@@ -4,8 +4,8 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset = NULL, na.action, distribution = c("norm",
-  "fnorm", "lnorm", "laplace", "s", "chisq", "logis", "plogis", "pnorm"),
+alm(formula, data, subset = NULL, na.action, distribution = c("dnorm",
+  "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis", "pnorm"),
   A = NULL, vcovProduce = FALSE)
 }
 \arguments{
@@ -68,12 +68,13 @@ non-normal distributions. These include:
 \item Log normal distribution, \link[stats]{dlnorm},
 \item Laplace distribution, \link[greybox]{dlaplace},
 \item S-distribution, \link[greybox]{ds},
-\item Chi-Squared Distribution, \link[stats]{dchisq}.
+\item Chi-Squared Distribution, \link[stats]{dchisq},
+\item Logistic Distribution, \link[stats]{dlogis}.
 }
 
 This function is slower than \code{lm}, because it relies on likelihood estimation
 of parameters, hessian calculation and matrix multiplication. So think twice when
-using \code{distribution="norm"} here.
+using \code{distribution="dnorm"} here.
 
 Probably some other distributions will be added to this function at some point...
 
@@ -87,7 +88,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 
-ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
+ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
 summary(ourModel)
 plot(predict(ourModel,outSample))
 

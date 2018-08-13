@@ -10,12 +10,13 @@
 #' \item Log normal distribution, \link[stats]{dlnorm},
 #' \item Laplace distribution, \link[greybox]{dlaplace},
 #' \item S-distribution, \link[greybox]{ds},
-#' \item Chi-Squared Distribution, \link[stats]{dchisq}.
+#' \item Chi-Squared Distribution, \link[stats]{dchisq},
+#' \item Logistic Distribution, \link[stats]{dlogis}.
 #' }
 #'
 #' This function is slower than \code{lm}, because it relies on likelihood estimation
 #' of parameters, hessian calculation and matrix multiplication. So think twice when
-#' using \code{distribution="norm"} here.
+#' using \code{distribution="dnorm"} here.
 #'
 #' Probably some other distributions will be added to this function at some point...
 #'
@@ -74,7 +75,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #'
-#' ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
+#' ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
 #' summary(ourModel)
 #' plot(predict(ourModel,outSample))
 #'
@@ -101,15 +102,23 @@
 #' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("norm","fnorm","lnorm","laplace","s","chisq","logis",
+                distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                "plogis","pnorm"),
                 A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq","logis","plogis","pnorm"))){
-        stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
+    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis","plogis","pnorm"))){
+        if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
+            warning(paste0("You are using the old value of the distribution parameter.\n",
+                           "Use distribution='d",distribution,"' instead."),
+                    call.=FALSE);
+            distribution <- paste0("d",distribution);
+        }
+        else{
+            stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
+        }
     }
 
     # occurrence <- substr(occurrence[1],1,1);
@@ -133,7 +142,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
 
     y <- as.matrix(dataWork[,1]);
 
-    if(any(y<0) & any(distribution==c("fnorm","lnorm","chisq"))){
+    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dchisq"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
@@ -244,13 +253,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
         mu <- matrixXreg %*% A;
 
         scale <- switch(distribution,
-                        "norm"=,
-                        "fnorm" = sqrt(mean((y-mu)^2)),
-                        "lnorm"= sqrt(mean((log(y)-mu)^2)),
-                        "laplace" = mean(abs(y-mu)),
-                        "s" = mean(sqrt(abs(y-mu))) / 2,
-                        "chisq" = 2*mu,
-                        "logis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
+                        "dnorm"=,
+                        "dfnorm" = sqrt(mean((y-mu)^2)),
+                        "dlnorm"= sqrt(mean((log(y)-mu)^2)),
+                        "dlaplace" = mean(abs(y-mu)),
+                        "ds" = mean(sqrt(abs(y-mu))) / 2,
+                        "dchisq" = 2*mu,
+                        "dlogis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
                         "pnorm" = sqrt(mean(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(mean(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -262,13 +271,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
         fitterReturn <- fitter(A, distribution, y, matrixXreg);
 
         CFReturn <- switch(distribution,
-                           "norm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
-                           "fnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
-                           "lnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
-                           "laplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "s" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "chisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE)),
-                           "logis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
+                           "dnorm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
+                           "dfnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
+                           "dlnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
+                           "dlaplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "dchisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE)),
+                           "dlogis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
                            "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
                                         plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                            "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -285,22 +294,18 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
 
     if(is.null(A)){
-        if(distribution=="lnorm"){
+        if(distribution=="dlnorm"){
             A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% log(y));
         }
         else{
             A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% y);
         }
 
-        # Although this is not needed in case of distribution="norm", we do that in a way, for the code consistency purposes
+        # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(A, CF,
                       opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
 
-        # res <- nloptr(A, CF, opts=list("algorithm"="NLOPT_LN_BOBYQA", xtol_rel=1e-8, print_level=1),
-        #               distribution=distribution, y=y, matrixXreg=matrixXreg);
-        # res <- nloptr(res$solution, CF, opts=list("algorithm"="NLOPT_LN_NELDERMEAD", xtol_rel=1e-6),
-        #               distribution=distribution, y=y, matrixXreg=matrixXreg);
         A <- res$solution;
         CFValue <- res$objective;
     }
@@ -369,12 +374,12 @@ alm <- function(formula, data, subset=NULL,  na.action,
     # Parameters of the model + scale
     df <- nVariables + 1;
 
-    if(distribution=="fnorm"){
+    if(distribution=="dfnorm"){
         # Correction so that the the expectation of the folded is returned
         # Calculate the conditional expectation based on the parameters of the distribution
         yFitted <- sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale));
     }
-    else if(distribution=="lnorm"){
+    else if(distribution=="dlnorm"){
         yFitted <- exp(mu);
     }
     else if(distribution=="plogis"){
@@ -386,7 +391,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
     else{
         yFitted <- mu;
-        if(distribution=="chisq"){
+        if(distribution=="dchisq"){
             scale <- mu * 2;
         }
     }

@@ -507,7 +507,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #'
-#' ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
+#' ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
 #'
 #' predict(ourModel,outSample)
 #' predict(ourModel,outSample,interval="c")
@@ -806,13 +806,13 @@ print.summary.alm <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "logis" = "Logistic",
-                      "norm" = "Normal",
-                      "fnorm" = "Folded Normal",
-                      "lnorm" = "Log Normal",
-                      "laplace" = "Laplace",
-                      "s" = "S",
-                      "chisq" = "Chi-Squared",
+                      "dlogis" = "Logistic",
+                      "dnorm" = "Normal",
+                      "dfnorm" = "Folded Normal",
+                      "dlnorm" = "Log Normal",
+                      "dlaplace" = "Laplace",
+                      "ds" = "S",
+                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -835,13 +835,13 @@ print.summary.greybox <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "logis" = "Logistic",
-                      "norm" = "Normal",
-                      "fnorm" = "Folded Normal",
-                      "lnorm" = "Log Normal",
-                      "laplace" = "Laplace",
-                      "s" = "S",
-                      "chisq" = "Chi-Squared",
+                      "dlogis" = "Logistic",
+                      "dnorm" = "Normal",
+                      "dfnorm" = "Folded Normal",
+                      "dlnorm" = "Log Normal",
+                      "dlaplace" = "Laplace",
+                      "ds" = "S",
+                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -867,12 +867,12 @@ print.summary.greyboxC <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "logis" = "Logistic",
-                      "norm" = "Normal",
-                      "fnorm" = "Folded Normal",
-                      "lnorm" = "Log Normal",
-                      "laplace" = "Laplace",
-                      "s" = "S",
+                      "dlogis" = "Logistic",
+                      "dnorm" = "Normal",
+                      "dfnorm" = "Folded Normal",
+                      "dlnorm" = "Log Normal",
+                      "dlaplace" = "Laplace",
+                      "ds" = "S",
                       "chisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -928,7 +928,7 @@ sigma.alm <- function(object, ...){
         return(object$scale);
     }
     else{
-        return(sqrt(sum(residuals(object)^2)/(nobs(object)-nParam(object))));
+        return(sigma.greybox(object));
     }
 }
 
