@@ -4,8 +4,8 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset = NULL, na.action, distribution = c("dnorm",
-  "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis", "pnorm"),
+alm(formula, data, subset, na.action, distribution = c("dnorm", "dfnorm",
+  "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis", "pnorm"),
   A = NULL, vcovProduce = FALSE)
 }
 \arguments{
