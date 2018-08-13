@@ -236,6 +236,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         }
     }
 
+    #### Form the matrix of exogenous variables ####
     if(attr(ourTerms,"intercept")!=0){
         matrixXreg <- cbind(1,matrixXreg);
         variablesNames <- c("(Intercept)",variablesNames);
@@ -243,6 +244,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         colnames(matrixXreg) <- variablesNames;
     }
 
+    #### Functions used in the estimation ####
     ifelseFast <- function(condition, yes, no){
         if(condition){
             return(yes);
@@ -296,6 +298,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         return(CFReturn);
     }
 
+    #### Estimate parameters of the model ####
     if(is.null(A)){
         if(distribution=="dlnorm"){
             A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% log(y));
@@ -315,7 +318,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
     else{
         CFValue <- CF(A, distribution, y, matrixXreg);
     }
+    names(A) <- variablesNames;
 
+    #### Produce covariance matrix using hessian ####
     if(vcovProduce){
         if(CDF){
             method.args <- list(d=1e-6, r=6);
@@ -370,6 +375,7 @@ alm <- function(formula, data, subset=NULL,  na.action,
         vcovMatrix <- NULL;
     }
 
+    #### Form the fitted values, location and scale ####
     fitterReturn <- fitter(A, distribution, y, matrixXreg);
     mu <- fitterReturn$mu;
     scale <- fitterReturn$scale;
@@ -399,8 +405,6 @@ alm <- function(formula, data, subset=NULL,  na.action,
         }
     }
     errors <- y - yFitted;
-
-    names(A) <- variablesNames;
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
