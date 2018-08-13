@@ -6,7 +6,8 @@
 \usage{
 stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, method = c("pearson", "kendall", "spearman"),
-  distribution = c("norm", "fnorm", "lnorm", "laplace", "s", "chisq"))
+  distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq",
+  "dlogis", "plogis", "pnorm"))
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and

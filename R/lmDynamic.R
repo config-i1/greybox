@@ -63,7 +63,8 @@
 #'
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
-                      distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
+                      distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
+                                    "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
 
@@ -92,7 +93,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
 
     distribution <- distribution[1];
-    if(distribution=="norm"){
+    if(distribution=="dnorm"){
         lmCall <- lm;
         listToCall <- vector("list");
     }

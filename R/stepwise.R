@@ -49,7 +49,8 @@
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
-                     distribution=c("norm","fnorm","lnorm","laplace","s","chisq")){
+                     distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
+                                    "plogis","pnorm")){
 ##### Function that selects variables based on IC and using partial correlations
     ourData <- data;
     ourData <- ourData[apply(!is.na(ourData),1,all),]
@@ -76,7 +77,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     distribution <- distribution[1];
-    if(distribution=="norm"){
+    if(distribution=="dnorm"){
         lmCall <- lm;
         listToCall <- vector("list");
     }
@@ -169,7 +170,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
 
-    if(distribution=="norm"){
+    if(distribution=="dnorm"){
         bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
                                          data=substitute(data)));
         bestModel$distribution <- distribution;
