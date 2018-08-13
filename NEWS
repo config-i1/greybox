@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-12)
+greybox v0.3.1 (Release data: 2018-08-13)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Changes:
 * Code of lmCombine and lmDynamic is slightly simplified.
 * We now use Choleski decomposition for the calculation of the inverse of matrices in alm.
 * distribution="logis" is now available for alm().
+* alm() now also supports logit and probit models, which are called using distribution="plogis" and distribution="pnorm" respectively (reference to the names of respective CDFs in R).
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.

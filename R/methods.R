@@ -292,10 +292,14 @@ confint.alm <- function(object, parm, level=0.95, ...){
     }
     confintValues <- confintValues[parm,];
     if(!is.matrix(confintValues)){
-        confintValues <- matrix(confintValues,1,2,);
+        confintValues <- matrix(confintValues,1,2);
         colnames(confintValues) <- confintNames;
         rownames(confintValues) <- names(parameters);
     }
+
+    # Return S.E. as well, so not to repeat the thing twice...
+    confintValues <- cbind(parametersSE, confintValues);
+    colnames(confintValues)[1] <- "S.E.";
     return(confintValues);
 }
 
@@ -350,30 +354,43 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
     return(confintValues[,parm,]);
 }
 
+#' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis
 #' @export
 predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, ...){
+    interval <- substr(interval[1],1,1);
     greyboxForecast <- predict.greybox(object, newdata, interval, level, ...);
+    greyboxForecast$location <- greyboxForecast$mean;
+    greyboxForecast$scale <- sqrt(greyboxForecast$variance);
+    greyboxForecast$distribution <- object$distribution;
 
     if(object$distribution=="laplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         bValues <- sqrt(greyboxForecast$variances/2);
-        greyboxForecast$lower <- diag(qlaplace((1-level)/2,greyboxForecast$mean,bValues));
-        greyboxForecast$upper <- diag(qlaplace((1+level)/2,greyboxForecast$mean,bValues));
+        if(interval!="n"){
+            greyboxForecast$lower <- diag(qlaplace((1-level)/2,greyboxForecast$mean,bValues));
+            greyboxForecast$upper <- diag(qlaplace((1+level)/2,greyboxForecast$mean,bValues));
+        }
+        greyboxForecast$scale <- bValues;
     }
     else if(object$distribution=="s"){
         # Use the connection between the variance and b in S distribution
         bValues <- (greyboxForecast$variances/120)^0.25;
-        greyboxForecast$lower <- diag(qs((1-level)/2,greyboxForecast$mean,bValues));
-        greyboxForecast$upper <- diag(qs((1+level)/2,greyboxForecast$mean,bValues));
+        if(interval!="n"){
+            greyboxForecast$lower <- diag(qs((1-level)/2,greyboxForecast$mean,bValues));
+            greyboxForecast$upper <- diag(qs((1+level)/2,greyboxForecast$mean,bValues));
+        }
+        greyboxForecast$scale <- bValues;
     }
     else if(object$distribution=="fnorm"){
-        if(any(greyboxForecast$lower<0)){
-            greyboxForecast$lower <- rep(0, nrow(newdata));
-            # qfnorm is slow, so it's faster to extract the values in a loop
-            for(i in 1:nrow(newdata)){
-                greyboxForecast$upper[i] <- qfnorm(level,greyboxForecast$mean[i],sqrt(greyboxForecast$variance[i]));
+        if(interval!="n"){
+            if(any(greyboxForecast$lower<0)){
+                greyboxForecast$lower <- rep(0, nrow(newdata));
+                # qfnorm is slow, so it's faster to extract the values in a loop
+                for(i in 1:nrow(newdata)){
+                    greyboxForecast$upper[i] <- qfnorm(level,greyboxForecast$mean[i],sqrt(greyboxForecast$variance[i]));
+                }
             }
         }
         # Correct the mean value
@@ -382,8 +399,11 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
                                      greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
     }
     else if(object$distribution=="chisq"){
-        greyboxForecast$lower <- 0;
-        greyboxForecast$upper <- qchisq(level,greyboxForecast$mean);
+        if(interval!="n"){
+            greyboxForecast$lower <- 0;
+            greyboxForecast$upper <- qchisq(level,greyboxForecast$mean);
+        }
+        greyboxForecast$scale <- 2*greyboxForecast$mean;
     }
     else if(object$distribution=="lnorm"){
         if(interval=="p"){
@@ -392,15 +412,47 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         else{
             sdlog <- sqrt(greyboxForecast$variance);
         }
-        greyboxForecast$lower <- qlnorm((1-level)/2,greyboxForecast$mean,sdlog);
-        greyboxForecast$upper <- qlnorm((1+level)/2,greyboxForecast$mean,sdlog);
+        if(interval!="n"){
+            greyboxForecast$lower <- qlnorm((1-level)/2,greyboxForecast$mean,sdlog);
+            greyboxForecast$upper <- qlnorm((1+level)/2,greyboxForecast$mean,sdlog);
+        }
         greyboxForecast$mean <- exp(greyboxForecast$mean);
+        greyboxForecast$scale <- sdlog;
     }
     else if(object$distribution=="logis"){
         # Use the connection between the variance and scale in logistic distribution
         scale <- sqrt(greyboxForecast$variances * 3 / pi^2);
-        greyboxForecast$lower <- qlogis((1-level)/2,greyboxForecast$mean,scale);
-        greyboxForecast$upper <- qlogis((1+level)/2,greyboxForecast$mean,scale);
+        if(interval!="n"){
+            greyboxForecast$lower <- qlogis((1-level)/2,greyboxForecast$mean,scale);
+            greyboxForecast$upper <- qlogis((1+level)/2,greyboxForecast$mean,scale);
+        }
+        greyboxForecast$scale <- scale;
+    }
+    else if(object$distribution=="plogis"){
+        # The intervals are based on the assumption that a~N(0, sigma^2), and p=exp(a) / (1 + exp(a))
+        greyboxForecast$scale <- object$scale;
+
+        greyboxForecast$mean <- plogis(greyboxForecast$location, location=0, scale=1);
+
+        if(interval!="n"){
+            greyboxForecast$lower <- plogis(qnorm((1-level)/2, greyboxForecast$location, sqrt(greyboxForecast$variances)),
+                                            location=0, scale=1);
+            greyboxForecast$upper <- plogis(qnorm((1+level)/2, greyboxForecast$location, sqrt(greyboxForecast$variances)),
+                                            location=0, scale=1);
+        }
+    }
+    else if(object$distribution=="pnorm"){
+        # The intervals are based on the assumption that a~N(0, sigma^2), and pnorm link
+        greyboxForecast$scale <- object$scale;
+
+        greyboxForecast$mean <- pnorm(greyboxForecast$location, mean=0, sd=1);
+
+        if(interval!="n"){
+            greyboxForecast$lower <- pnorm(qnorm((1-level)/2, greyboxForecast$location, sqrt(greyboxForecast$variances)),
+                                            mean=0, sd=1);
+            greyboxForecast$upper <- pnorm(qnorm((1+level)/2, greyboxForecast$location, sqrt(greyboxForecast$variances)),
+                                            mean=0, sd=1);
+        }
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
@@ -415,15 +467,15 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #' Although this function is called "forecast", it has functionality similar to
 #' "predict" function.
 #'
-#' @aliases forecast forecast.smooth
+#' @aliases forecast forecast.greybox
 #' @param object Time series model for which forecasts are required.
 #' @param newdata Forecast horizon
 #' @param interval Type of intervals to construct: either "confidence" or
 #' "prediction". Can be abbreviated
 #' @param level Confidence level. Defines width of prediction interval.
 #' @param ...  Other arguments.
-#' @return Returns object of class "predict.greybox", which contains:
-#'
+#' @return \code{predict.greybox()} returns object of class "predict.greybox",
+#' which contains:
 #' \itemize{
 #' \item \code{model} - the estimated model.
 #' \item \code{mean} - the expected values.
@@ -434,6 +486,14 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #' \item \code{newdata} - the data provided in the call to the function.
 #' \item \code{variances} - conditional variance for the holdout sample.
 #' In case of \code{interval="prediction"} includes variance of the error.
+#' }
+#'
+#' \code{predict.alm()} is based on \code{predict.greybox()} and returns
+#' object of class "predict.alm", which in addition contains:
+#' \itemize{
+#' \item \code{location} - the location parameter of the distribution.
+#' \item \code{scale} - the scale parameter of the distribution.
+#' \item \code{distribution} - name of the fitted distribution.
 #' }
 #'
 #' @template author
@@ -453,6 +513,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #' predict(ourModel,outSample,interval="c")
 #' plot(predict(ourModel,outSample,interval="p"))
 #'
+#' @rdname predict.greybox
 #' @export
 predict.greybox <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, ...){
@@ -751,7 +812,9 @@ print.summary.alm <- function(x, ...){
                       "lnorm" = "Log Normal",
                       "laplace" = "Laplace",
                       "s" = "S",
-                      "chisq" = "Chi-Squared"
+                      "chisq" = "Chi-Squared",
+                      "plogis" = "Cumulative logistic",
+                      "pnorm" = "Cumulative normal"
     );
 
     cat(paste0("Distribution used in the estimation: ", distrib));
@@ -778,7 +841,9 @@ print.summary.greybox <- function(x, ...){
                       "lnorm" = "Log Normal",
                       "laplace" = "Laplace",
                       "s" = "S",
-                      "chisq" = "Chi-Squared"
+                      "chisq" = "Chi-Squared",
+                      "plogis" = "Cumulative logistic",
+                      "pnorm" = "Cumulative normal"
     );
 
     cat(paste0("Distribution used in the estimation: ", distrib));
@@ -808,7 +873,9 @@ print.summary.greyboxC <- function(x, ...){
                       "lnorm" = "Log Normal",
                       "laplace" = "Laplace",
                       "s" = "S",
-                      "chisq" = "Chi-Squared"
+                      "chisq" = "Chi-Squared",
+                      "plogis" = "Cumulative logistic",
+                      "pnorm" = "Cumulative normal"
     );
 
     cat(paste0("Distribution used in the estimation: ", distrib));
@@ -856,11 +923,22 @@ sigma.greybox <- function(object, ...){
 }
 
 #' @export
+sigma.alm <- function(object, ...){
+    if(any(object$distribution==c("plogis","pnorm"))){
+        return(object$scale);
+    }
+    else{
+        return(sqrt(sum(residuals(object)^2)/(nobs(object)-nParam(object))));
+    }
+}
+
+#' @export
 summary.alm <- function(object, level=0.95, ...){
 
     # Collect parameters and their standard errors
-    parametersTable <- cbind(coef(object),sqrt(diag(vcov(object))));
-    parametersTable <- cbind(parametersTable,confint(object, level=level));
+    confIntValues <- confint(object, level=level);
+    parametersTable <- cbind(coef(object),confIntValues[,1]);
+    parametersTable <- cbind(parametersTable,confIntValues[,-1]);
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
                                    paste0("Lower ",(1-level)/2*100,"%"),
@@ -971,7 +1049,24 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    if(object$distribution!="norm"){
+    if(any(object$distribution==c("plogis","pnorm"))){
+        # This is based on the underlying normal distribution of logit / probit model
+        matrixXreg <- as.matrix(object$model[,-1]);
+        if(attr(object$terms,"intercept")!=0){
+            matrixXreg <- cbind(1,matrixXreg);
+        }
+        colnames(matrixXreg) <- names(coef(object));
+        vcov <- object$scale^2 * solve(crossprod(matrixXreg));
+    }
+    else if(object$distribution=="norm"){
+        matrixXreg <- as.matrix(object$model[,-1]);
+        if(attr(object$terms,"intercept")!=0){
+            matrixXreg <- cbind(1,matrixXreg);
+        }
+        colnames(matrixXreg) <- names(coef(object));
+        vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
+    }
+    else{
         # Recall alm to get hessian
         object <- alm(object$call$formula, object$model, distribution=object$distribution,
                       A=coef(object), vcovProduce=TRUE);
@@ -980,14 +1075,6 @@ vcov.alm <- function(object, ...){
             vcov <- as.matrix(vcov);
             colnames(vcov) <- rownames(vcov);
         }
-    }
-    else{
-        matrixXreg <- as.matrix(object$model[,-1]);
-        if(attr(object$terms,"intercept")!=0){
-            matrixXreg <- cbind(1,matrixXreg);
-        }
-        colnames(matrixXreg) <- names(coef(object));
-        vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
     }
     return(vcov);
 }

@@ -5,8 +5,8 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset = NULL, na.action, distribution = c("norm",
-  "fnorm", "lnorm", "laplace", "s", "chisq", "logis"), occurrence = c("none",
-  "bernoulli", "logistic"), A = NULL, vcovProduce = FALSE)
+  "fnorm", "lnorm", "laplace", "s", "chisq", "logis", "plogis", "pnorm"),
+  A = NULL, vcovProduce = FALSE)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -25,13 +25,6 @@ is NULL, no action. Value \link[stats]{na.exclude} can be useful.}
 
 \item{distribution}{what density function to use in the process. The full
 name of the distribution should be providede here.}
-
-\item{occurrence}{what distribution to use for occurrence variable. Can be
-\code{"none"}, then nothing happens; \code{"bernoulli"} - then the model
-with fixed probability is constructed; \code{"logis"} - then logistic
-regression is constructed for the occurrence part. If this is not
-\code{"none"}, then the model is estimated in two steps: 1. Occurrence part
-of the model; 2. Sizes part of the model (excluding zeroes from the data).}
 
 \item{A}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
@@ -97,6 +90,22 @@ outSample <- xreg[-c(1:80),]
 ourModel <- alm(y~x1+x2, inSample, distribution="laplace")
 summary(ourModel)
 plot(predict(ourModel,outSample))
+
+# An example with binary response variable
+xreg[,1] <- round(exp(xreg[,1]) / (1 + exp(xreg[,1])),0)
+colnames(xreg) <- c("y","x1","x2","Noise")
+inSample <- xreg[1:80,]
+outSample <- xreg[-c(1:80),]
+
+# Logistic distribution (logit regression)
+ourModel <- alm(y~x1+x2, inSample, distribution="plogis")
+summary(ourModel)
+plot(predict(ourModel,outSample,interval="c"))
+
+# Normal distribution (probit regression)
+ourModel <- alm(y~x1+x2, inSample, distribution="pnorm")
+summary(ourModel)
+plot(predict(ourModel,outSample,interval="p"))
 
 }
 \seealso{

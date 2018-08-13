@@ -165,7 +165,7 @@ rmc <- function(data, distribution=c("norm","fnorm","chisq"),
     lmSummary <- summary(lmModel, level=level);
     # Construct intervals
     lmCoefs <- coef(lmModel);
-    lmIntervals <- confint(lmModel, level=level);
+    lmIntervals <- confint(lmModel, level=level)[,-1];
     names(lmCoefs)[1] <- colnames(dataNew)[2];
     rownames(lmIntervals)[1] <- colnames(dataNew)[2];
     lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];

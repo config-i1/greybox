@@ -36,12 +36,6 @@
 #' is NULL, no action. Value \link[stats]{na.exclude} can be useful.
 #' @param distribution what density function to use in the process. The full
 #' name of the distribution should be providede here.
-#' @param occurrence what distribution to use for occurrence variable. Can be
-#' \code{"none"}, then nothing happens; \code{"bernoulli"} - then the model
-#' with fixed probability is constructed; \code{"logis"} - then logistic
-#' regression is constructed for the occurrence part. If this is not
-#' \code{"none"}, then the model is estimated in two steps: 1. Occurrence part
-#' of the model; 2. Sizes part of the model (excluding zeroes from the data).
 #' @param A vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
 #' @param vcovProduce whether to produce variance-covariance matrix of
@@ -84,23 +78,46 @@
 #' summary(ourModel)
 #' plot(predict(ourModel,outSample))
 #'
+#' # An example with binary response variable
+#' xreg[,1] <- round(exp(xreg[,1]) / (1 + exp(xreg[,1])),0)
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' inSample <- xreg[1:80,]
+#' outSample <- xreg[-c(1:80),]
+#'
+#' # Logistic distribution (logit regression)
+#' ourModel <- alm(y~x1+x2, inSample, distribution="plogis")
+#' summary(ourModel)
+#' plot(predict(ourModel,outSample,interval="c"))
+#'
+#' # Normal distribution (probit regression)
+#' ourModel <- alm(y~x1+x2, inSample, distribution="pnorm")
+#' summary(ourModel)
+#' plot(predict(ourModel,outSample,interval="p"))
+#'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
-#' @importFrom stats model.frame sd terms dchisq dlnorm dnorm dlogis
+#' @importFrom stats model.frame sd terms
+#' @importFrom stats dchisq dlnorm dnorm dlogis
+#' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset=NULL,  na.action,
-                distribution=c("norm","fnorm","lnorm","laplace","s","chisq","logis"),
-                occurrence=c("none","bernoulli","logistic"),
+                distribution=c("norm","fnorm","lnorm","laplace","s","chisq","logis",
+                               "plogis","pnorm"),
                 A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
+    if(all(distribution!=c("norm","fnorm","lnorm","laplace","s","chisq","logis","plogis","pnorm"))){
         stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
     }
 
-    occurrence <- match.arg(occurrence[1], c("none","bernoulli","logis"));
+    # occurrence <- substr(occurrence[1],1,1);
+    # if(all(occurrence!=c("n","f","l"))){
+    #     stop(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
+    #                 "'. Switching to 'none'."), call.=FALSE);
+    #     occurrence <- "n";
+    # }
 
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
@@ -119,6 +136,28 @@ alm <- function(formula, data, subset=NULL,  na.action,
     if(any(y<0) & any(distribution==c("fnorm","lnorm","chisq"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
+    }
+
+    if(any(distribution==c("plogis","pnorm"))){
+        CDF <- TRUE;
+    }
+    else{
+        CDF <- FALSE;
+    }
+
+    if(CDF & !any(y==0 | y==1)){
+        warning(paste0("You have defined CDF `",distribution,"`` as a distribution.\n",
+                       "This means that the response variable needs to be binary with values of 0 and 1.\n",
+                       "Don't worry, we will encode it for you. But, please, be careful next time!"),
+                call.=FALSE);
+        y <- (y!=0)*1;
+    }
+
+    if(CDF){
+        ot <- y!=0;
+    }
+    else{
+        ot <- rep(TRUE,obsInsample);
     }
 
     #### Checks of the exogenous variables ####
@@ -211,7 +250,9 @@ alm <- function(formula, data, subset=NULL,  na.action,
                         "laplace" = mean(abs(y-mu)),
                         "s" = mean(sqrt(abs(y-mu))) / 2,
                         "chisq" = 2*mu,
-                        "logis" = sqrt(mean((y-mu)^2) * 3 / pi^2)
+                        "logis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
+                        "pnorm" = sqrt(mean(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
+                        "plogis" = sqrt(mean(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
 
         return(list(mu=mu,scale=scale));
@@ -227,7 +268,11 @@ alm <- function(formula, data, subset=NULL,  na.action,
                            "laplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "s" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "chisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE)),
-                           "logis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE)
+                           "logis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
+                           "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+                                        plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                           "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+                                       pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
         );
 
         CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);
@@ -264,7 +309,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
 
     if(vcovProduce){
-        vcovMatrix <- hessian(CF, A, #method.args=list(d=1e-10,r=6),
+        if(CDF){
+            method.args <- list(d=1e-6, r=6);
+        }
+        else{
+            method.args <- list(d=1e-4, r=4);
+        }
+        vcovMatrix <- hessian(CF, A, method.args=method.args,
                               distribution=distribution, y=y, matrixXreg=matrixXreg);
 
         if(any(is.nan(vcovMatrix))){
@@ -281,8 +332,17 @@ alm <- function(formula, data, subset=NULL,  na.action,
                 vcovMatrix <- 1e-10*diag(nVariables);
             }
             else{
-                # vcovMatrix <- solve(vcovMatrix, diag(nVariables));
-                vcovMatrix <- chol2inv(chol(vcovMatrix));
+                # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+                vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
+                if(class(vcovMatrixTry)=="try-error"){
+                    warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                                   "The estimate of the covariance matrix of parameters might be inacurate."),
+                            call.=FALSE);
+                    vcovMatrix <- solve(vcovMatrix, diag(nVariables));
+                }
+                else{
+                    vcovMatrixTry <- vcovMatrix;
+                }
             }
 
             # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
@@ -316,6 +376,13 @@ alm <- function(formula, data, subset=NULL,  na.action,
     }
     else if(distribution=="lnorm"){
         yFitted <- exp(mu);
+    }
+    else if(distribution=="plogis"){
+        # -mu is needed for this to look similar to the classical logit
+        yFitted <- plogis(mu, location=0, scale=1);
+    }
+    else if(distribution=="pnorm"){
+        yFitted <- pnorm(mu, mean=0, sd=1);
     }
     else{
         yFitted <- mu;
