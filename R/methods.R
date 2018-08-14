@@ -459,9 +459,11 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     if(any(class(object$occurrence)=="alm")){
         occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, ...);
         greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
-        #### This is obviously wrong and needs to be changed. But not today... ###
-        greyboxForecast$lower <- greyboxForecast$lower * occurrence$lower;
-        greyboxForecast$upper <- greyboxForecast$upper * occurrence$upper;
+        if(interval!="n"){
+            #### This is obviously wrong and needs to be changed. But not today... ###
+            greyboxForecast$lower <- greyboxForecast$lower * occurrence$lower;
+            greyboxForecast$upper <- greyboxForecast$upper * occurrence$upper;
+        }
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
