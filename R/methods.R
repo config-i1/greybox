@@ -365,7 +365,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     greyboxForecast$scale <- sqrt(greyboxForecast$variance);
     greyboxForecast$distribution <- object$distribution;
 
-    if(object$distribution=="laplace"){
+    if(object$distribution=="dlaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         bValues <- sqrt(greyboxForecast$variances/2);
         if(interval!="n"){
@@ -374,7 +374,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         }
         greyboxForecast$scale <- bValues;
     }
-    else if(object$distribution=="s"){
+    else if(object$distribution=="ds"){
         # Use the connection between the variance and b in S distribution
         bValues <- (greyboxForecast$variances/120)^0.25;
         if(interval!="n"){
@@ -383,7 +383,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         }
         greyboxForecast$scale <- bValues;
     }
-    else if(object$distribution=="fnorm"){
+    else if(object$distribution=="dfnorm"){
         if(interval!="n"){
             if(any(greyboxForecast$lower<0)){
                 greyboxForecast$lower <- rep(0, nrow(newdata));
@@ -398,14 +398,14 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
                                                                                    (2*sqrt(greyboxForecast$variance)^2)) +
                                      greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
     }
-    else if(object$distribution=="chisq"){
+    else if(object$distribution=="dchisq"){
         if(interval!="n"){
             greyboxForecast$lower <- 0;
             greyboxForecast$upper <- qchisq(level,greyboxForecast$mean);
         }
         greyboxForecast$scale <- 2*greyboxForecast$mean;
     }
-    else if(object$distribution=="lnorm"){
+    else if(object$distribution=="dlnorm"){
         if(interval=="p"){
             sdlog <- sqrt(greyboxForecast$variance - sigma(object)^2 + object$scale^2);
         }
@@ -419,7 +419,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- sdlog;
     }
-    else if(object$distribution=="logis"){
+    else if(object$distribution=="dlogis"){
         # Use the connection between the variance and scale in logistic distribution
         scale <- sqrt(greyboxForecast$variances * 3 / pi^2);
         if(interval!="n"){
@@ -453,6 +453,15 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
             greyboxForecast$upper <- pnorm(qnorm((1+level)/2, greyboxForecast$location, sqrt(greyboxForecast$variances)),
                                             mean=0, sd=1);
         }
+    }
+
+    # If there is an occurrence part of the model, use it
+    if(any(class(object$occurrence)=="alm")){
+        occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, ...);
+        greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
+        #### This is obviously wrong and needs to be changed. But not today... ###
+        greyboxForecast$lower <- greyboxForecast$lower * occurrence$lower;
+        greyboxForecast$upper <- greyboxForecast$upper * occurrence$upper;
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
@@ -569,7 +578,7 @@ forecast.alm <- function(object, newdata, ...){
 
 #' @export
 getResponse.greybox <- function(object, ...){
-    responseVariable <- object$model[,1];
+    responseVariable <- object$actuals;
     names(responseVariable) <- c(1:length(responseVariable));
     return(responseVariable);
 }
@@ -1058,7 +1067,7 @@ vcov.alm <- function(object, ...){
         colnames(matrixXreg) <- names(coef(object));
         vcov <- object$scale^2 * solve(crossprod(matrixXreg));
     }
-    else if(object$distribution=="norm"){
+    else if(object$distribution=="dnorm"){
         matrixXreg <- as.matrix(object$model[,-1]);
         if(attr(object$terms,"intercept")!=0){
             matrixXreg <- cbind(1,matrixXreg);
@@ -1069,7 +1078,7 @@ vcov.alm <- function(object, ...){
     else{
         # Recall alm to get hessian
         object <- alm(object$call$formula, object$model, distribution=object$distribution,
-                      A=coef(object), vcovProduce=TRUE);
+                      A=coef(object), vcovProduce=TRUE, occurrence=object$occurrence);
         vcov <- object$vcov;
         if(!is.matrix(vcov)){
             vcov <- as.matrix(vcov);

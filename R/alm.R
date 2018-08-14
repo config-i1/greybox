@@ -40,6 +40,17 @@
 #' beginning of the name refer to the density function, while "p" stands for
 #' "probability" (cumulative distribution function). The names align with the
 #' names of distribution functions in R. For example, see \link[stats]{dnorm}.
+#' @param occurrence what distribution to use for occurrence variable. Can be
+#' \code{"none"}, then nothing happens; \code{"plogis"} - then the logistic
+#' regression using \code{alm()} is estimated for the occurrence part;
+#' \code{"pnorm"} - then probit is constructed via \code{alm()} for the
+#' occurrence part. In both of the latter cases, the formula used is the same
+#' as the formula for the sizes. Finally, an "alm" model can be provided and
+#' its estimates will be used in the model construction.
+#'
+#' If this is not \code{"none"}, then the model is estimated
+#' in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
+#' (excluding zeroes from the data).
 #' @param A vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
 #' @param vcovProduce whether to produce variance-covariance matrix of
@@ -83,7 +94,7 @@
 #' plot(predict(ourModel,outSample))
 #'
 #' # An example with binary response variable
-#' xreg[,1] <- round(exp(xreg[,1]) / (1 + exp(xreg[,1])),0)
+#' xreg[,1] <- round(exp(xreg[,1]-70) / (1 + exp(xreg[,1]-70)),0)
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
@@ -107,6 +118,7 @@
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                "plogis","pnorm"),
+                occurrence=c("none","plogis","pnorm"),
                 A=NULL, vcovProduce=FALSE){
 
     cl <- match.call();
@@ -124,12 +136,27 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    # occurrence <- substr(occurrence[1],1,1);
-    # if(all(occurrence!=c("n","f","l"))){
-    #     stop(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
-    #                 "'. Switching to 'none'."), call.=FALSE);
-    #     occurrence <- "n";
-    # }
+    if(any(class(occurrence)=="alm")){
+        occurrenceModel <- TRUE;
+        occurrenceProvided <- TRUE;
+    }
+    else{
+        occurrence <- occurrence[1];
+        occurrenceProvided <- FALSE;
+        if(all(occurrence!=c("none","plogis","pnorm"))){
+            warning(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
+                        "'. Switching to 'none'."), call.=FALSE);
+            occurrence <- "none";
+        }
+
+        if(any(occurrence==c("plogis","pnorm"))){
+            occurrenceModel <- TRUE;
+        }
+        else{
+            occurrenceModel <- FALSE;
+            occurrence <- NULL;
+        }
+    }
 
     #### Form the necessary matrices ####
     # Call similar to lm in order to form appropriate data.frame
@@ -142,6 +169,12 @@ alm <- function(formula, data, subset, na.action,
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
         mf$data <- data;
+    }
+
+    # If this is a model with occurrence, use only non-zero observations
+    if(occurrenceModel){
+        occurrenceNonZero <- data[,as.character(formula[[2]])]!=0;
+        mf$subset <- occurrenceNonZero;
     }
 
     dataWork <- eval(mf, parent.frame());
@@ -422,9 +455,24 @@ alm <- function(formula, data, subset, na.action,
         vcovMatrix <- NULL;
     }
 
+    if(occurrenceModel){
+        mf$subset <- NULL;
+        dataWorkNew <- eval(mf, parent.frame());
+        y <- as.matrix(dataWorkNew[,1]);
+        yFittedNew <- rep(0,length(y));
+        yFittedNew[y!=0] <- yFitted;
+        yFitted <- yFittedNew;
+
+        if(!occurrenceProvided){
+            newData <- cbind((y!=0)*1, dataWorkNew[,-1]);
+            colnames(newData)[1] <- as.character(formula[[2]]);
+            occurrence <- alm(formula, newData, distribution=occurrence);
+        }
+    }
+
     finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
                        df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork,
-                       qr=qr(dataWork), terms=ourTerms);
+                       qr=qr(dataWork), terms=ourTerms, occurrence=occurrence);
     return(structure(finalModel,class=c("alm","greybox")));
 }

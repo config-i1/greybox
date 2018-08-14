@@ -175,6 +175,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                                          data=substitute(data)));
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
+        bestModel$actuals <- ourData[,1];
     }
     else{
         bestModel <- do.call("alm", list(formula=as.formula(bestFormula),

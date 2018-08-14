@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-13)
+greybox v0.3.1 (Release data: 2018-08-14)
 ==============
 
 Changes:
@@ -6,14 +6,15 @@ Changes:
 * predict() and forecast() functions now produce confidence and prediction intervals for the provided holdout sample data. forecast() is just a wrapper around predict().
 * Normal and log-normal distributions are now available in alm().
 * rmc() now uses alm().
-* stepwise(), lmCombine() and lmDynamic() can now also be constructed with distributions from alm(). They use lm() in case of "norm" and alm() otherwise.
+* stepwise(), lmCombine() and lmDynamic() can now also be constructed with distributions from alm(). They use lm() in case of "dnorm" and alm() otherwise.
 * alm() now does not return vcov if you didn't ask for it (should increase speed of computation for large datasets).
 * alm() can be constructed with the provided vector of parameters (needed for vcov method).
-* We now use well-known analytical solutions for the cases of distribution="norm" of alm() and other functions.
+* We now use well-known analytical solutions for the cases of distribution="dnorm" of alm() and other functions.
 * Code of lmCombine and lmDynamic is slightly simplified.
 * We now use Choleski decomposition for the calculation of the inverse of matrices in alm.
-* distribution="logis" is now available for alm().
+* distribution="dlogis" is now available for alm().
 * alm() now also supports logit and probit models, which are called using distribution="plogis" and distribution="pnorm" respectively (reference to the names of respective CDFs in R).
+* alm() now has occurrence parameter, which allows dealing with zeroes in the data. In this case, a mixture distribution can be used.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
