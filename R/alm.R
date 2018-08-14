@@ -457,22 +457,24 @@ alm <- function(formula, data, subset, na.action,
 
     if(occurrenceModel){
         mf$subset <- NULL;
-        dataWorkNew <- eval(mf, parent.frame());
-        y <- as.matrix(dataWorkNew[,1]);
+
+        dataNew <- as.matrix(data);
+        y <- as.matrix(dataNew[,as.character(formula[[2]])]);
+        dataNew[,1] <- (y!=0)*1;
+
         yFittedNew <- rep(0,length(y));
         yFittedNew[y!=0] <- yFitted;
         yFitted <- yFittedNew;
+        # errors <- y - yFitted;
 
         if(!occurrenceProvided){
-            newData <- cbind((y!=0)*1, dataWorkNew[,-1]);
-            colnames(newData)[1] <- as.character(formula[[2]]);
-            occurrence <- alm(formula, newData, distribution=occurrence);
+            occurrence <- alm(formula, dataNew, distribution=occurrence);
         }
     }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
-                       df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork,
+                       df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork, data=data,
                        qr=qr(dataWork), terms=ourTerms, occurrence=occurrence);
     return(structure(finalModel,class=c("alm","greybox")));
 }

@@ -103,7 +103,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     distribution <- distribution[1];
     if(distribution=="dnorm"){
-        lmCall <- lm;
+        lmCall <- function(formula, data){
+            x <- as.matrix(cbind(1,data[,as.character(all.vars(formula[[3]]))]));
+            model <- .lm.fit(x,
+                             as.matrix(data[,as.character(formula[[2]])]));
+            model$x <- x;
+            return(structure(model,class=c("lmGreybox","lm")));
+        }
         listToCall <- vector("list");
     }
     else{

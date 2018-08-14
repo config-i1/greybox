@@ -1058,7 +1058,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    if(any(object$distribution==c("plogis","pnorm"))){
+    if(any(object$distribution==c("dlnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
         matrixXreg <- as.matrix(object$model[,-1]);
         if(attr(object$terms,"intercept")!=0){
@@ -1077,7 +1077,7 @@ vcov.alm <- function(object, ...){
     }
     else{
         # Recall alm to get hessian
-        object <- alm(object$call$formula, object$model, distribution=object$distribution,
+        object <- alm(object$call$formula, object$data, distribution=object$distribution,
                       A=coef(object), vcovProduce=TRUE, occurrence=object$occurrence);
         vcov <- object$vcov;
         if(!is.matrix(vcov)){
@@ -1112,4 +1112,10 @@ vcov.greyboxD <- function(object, ...){
     vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
     warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
     return(vcovValue);
+}
+
+#' @export
+vcov.lmGreybox <- function(object, ...){
+    vcov <- sigma(object)^2 * solve(crossprod(object$x));
+    return(vcov);
 }

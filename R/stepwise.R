@@ -46,6 +46,7 @@
 #' points(ourModel$ICs)
 #' text(c(1:length(ourModel$ICs))+0.1,ourModel$ICs+5,names(ourModel$ICs))
 #'
+#' @importFrom stats .lm.fit
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
@@ -78,7 +79,11 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     distribution <- distribution[1];
     if(distribution=="dnorm"){
-        lmCall <- lm;
+        lmCall <- function(formula, data){
+            model <- .lm.fit(as.matrix(cbind(1,data[,as.character(all.vars(formula[[3]]))])),
+                             as.matrix(data[,as.character(formula[[2]])]));
+            return(structure(model,class="lm"));
+        }
         listToCall <- vector("list");
     }
     else{
@@ -106,7 +111,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     allICs[[1]] <- currentIC;
     # Add residuals to the ourData
     ourData <- cbind(ourData,residuals(testModel));
-    colnames(ourData)[ncol(ourData)] <- "const resid";
+    colnames(ourData)[ncol(ourData)] <- "resid";
     bestFormula <- testFormula;
     if(!silent){
         cat(testFormula); cat(", "); cat(currentIC); cat("\n\n");
