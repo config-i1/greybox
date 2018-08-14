@@ -31,7 +31,6 @@ Suggests:
     doMC,
     doParallel,
     foreach,
-    truncreg,
     testthat,
     rmarkdown,
     knitr
