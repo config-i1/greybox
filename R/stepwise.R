@@ -188,5 +188,6 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     bestModel$ICs <- unlist(allICs);
+
     return(structure(bestModel,class=c("alm","greybox")));
 }
