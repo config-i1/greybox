@@ -304,19 +304,23 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
+    meanFast <- function(x){
+        return(sum(x) / length(x));
+    }
+
     fitter <- function(A, distribution, y, matrixXreg){
         mu[] <- matrixXreg %*% A;
 
         scale <- switch(distribution,
                         "dnorm"=,
-                        "dfnorm" = sqrt(mean((y-mu)^2)),
-                        "dlnorm"= sqrt(mean((log(y)-mu)^2)),
-                        "dlaplace" = mean(abs(y-mu)),
-                        "ds" = mean(sqrt(abs(y-mu))) / 2,
+                        "dfnorm" = sqrt(meanFast((y-mu)^2)),
+                        "dlnorm"= sqrt(meanFast((log(y)-mu)^2)),
+                        "dlaplace" = meanFast(abs(y-mu)),
+                        "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" = 2*mu,
-                        "dlogis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
-                        "pnorm" = sqrt(mean(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
-                        "plogis" = sqrt(mean(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
+                        "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
+                        "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
+                        "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
 
         return(list(mu=mu,scale=scale));

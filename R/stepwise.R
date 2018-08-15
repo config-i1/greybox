@@ -93,7 +93,6 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     method <- method[1];
 
-    ourncols <- ncol(ourData) - 1;
     bestICNotFound <- TRUE;
     allICs <- list(NA);
     # Run the simplest model y = const
@@ -112,6 +111,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Add residuals to the ourData
     ourData <- cbind(ourData,residuals(testModel));
     colnames(ourData)[ncol(ourData)] <- "resid";
+    nCols <- ncol(ourData);
+
     bestFormula <- testFormula;
     if(!silent){
         cat(testFormula); cat(", "); cat(currentIC); cat("\n\n");
@@ -120,14 +121,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     m <- 2;
     # Start the loop
     while(bestICNotFound){
-        ourCorrelation <- cor(ourData,use="complete.obs",method=method);
-        # Extract the last row of the correlation matrix
-        ourCorrelation <- ourCorrelation[-1,-1];
-        ourCorrelation <- ourCorrelation[nrow(ourCorrelation),];
-        ourCorrelation <- ourCorrelation[1:ourncols];
-        # Find the highest correlation coefficient
-        newElement <- which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1];
-        newElement <- names(ourCorrelation)[newElement];
+        ourCorrelation <- cor(ourData[,nCols],ourData,use="complete.obs",method=method)[-c(1,nCols)];
+        newElement <- names(ourData)[which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1] + 1];
         # If the newElement is the same as before, stop
         if(any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
@@ -175,6 +170,10 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
 
+    # listToCall$formula <- as.formula(bestFormula);
+    # listToCall$data <- substitute(data);
+    # bestModel <- do.call(lmCall,listToCall);
+
     if(distribution=="dnorm"){
         bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
                                          data=substitute(data)));
@@ -189,6 +188,5 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     bestModel$ICs <- unlist(allICs);
-    class(bestModel) <- c("alm","greybox");
-    return(model=bestModel);
+    return(structure(bestModel,class=c("alm","greybox")));
 }
