@@ -15,17 +15,26 @@ included in the package:
 \itemize{
 \item \link[greybox]{AICc} and \link[greybox]{BICc} - AIC / BIC corrected for the
 sample size.
+\item \link[greybox]{pointLik} - point likelihood of the function.
+\item \link[greybox]{pAIC}, \link[greybox]{pAICc}, \link[greybox]{pBIC},
+\link[greybox]{pBICc} - point versions of respective information criteria.
 \item \link[greybox]{determination} - Coefficients of determination between different
 exogenous variables.
+\item \link[greybox]{alm} - Advanced Linear Model - regression, estimated using
+likelihood with specified distribution (e.g. Laplace or Chi-Squared).
 \item \link[greybox]{stepwise} - Stepwise based on information criteria and partial
 correlations. Efficient and fast.
 \item \link[greybox]{xregExpander} - Function that expands the provided data into
 the data with lags and leads.
 \item \link[greybox]{lmCombine} - Function combines lm models from the estimated
 based on information criteria weights.
+\item \link[greybox]{lmDynamic} - Dynamic regression based on point AIC.
 \item \link[greybox]{ro} - Rolling origin evaluation.
 \item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
 \link[greybox]{plaplace}, \link[greybox]{rlaplace} - Laplace distribution and the
+respective functions.
+\item \link[greybox]{qfnorm}, \link[greybox]{dfnorm},
+\link[greybox]{pfnorm}, \link[greybox]{rfnorm} - Folded normal distribution and the
 respective functions.
 \item \link[greybox]{qs}, \link[greybox]{ds}, \link[greybox]{ps},
 \link[greybox]{rs} - S distribution and the respective functions.

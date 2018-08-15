@@ -136,7 +136,7 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    if(any(class(occurrence)=="alm")){
+    if(is.alm(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
     }

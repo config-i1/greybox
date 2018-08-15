@@ -270,7 +270,7 @@ coef.greyboxD <- function(object, ...){
     return(structure(coefReturned,class="coef.greyboxD"));
 }
 
-#' @importFrom stats confint
+#' @importFrom stats confint qt
 #' @export
 confint.alm <- function(object, parm, level=0.95, ...){
     # Extract parameters
@@ -456,7 +456,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     }
 
     # If there is an occurrence part of the model, use it
-    if(any(class(object$occurrence)=="alm")){
+    if(is.alm(object$occurrence)){
         occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, ...);
         greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
         if(interval!="n"){

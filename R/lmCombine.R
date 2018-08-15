@@ -286,15 +286,3 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     return(structure(finalModel,class=c("greyboxC","greybox","alm")));
 }
-
-#' @export
-combiner <- function(...){
-    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
-    lmCombine(...);
-}
-
-#' @export
-combine <- function(...){
-    warning("This is the old name of the function. Please use `lmCombine` instead.",call.=FALSE);
-    lmCombine(...);
-}

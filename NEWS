@@ -17,6 +17,7 @@ Changes:
 * alm() now has occurrence parameter, which allows dealing with zeroes in the data. In this case, a mixture distribution can be used.
 * alm() with dlnorm now also returns analytical covariance matrix instead of hessian based one.
 * stepwise(), lmCombine() and lmDynamic() now rely on .lm.fit() function, when distribution="dnorm", so the speed of calculation should be substantially higher.
+* New functions for class checks: is.greybox(), is.alm(), is.greyboxC(), is.greyboxD(), is.rmc() and is.rollingOrigin().
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
