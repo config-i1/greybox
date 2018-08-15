@@ -224,7 +224,7 @@ alm <- function(formula, data, subset, na.action,
     #### Checks of the exogenous variables ####
     # Remove the data for which sd=0
     noVariability <- vector("logical",nVariables);
-    noVariability[] <- apply(matrixXreg,2,sd)==0;
+    noVariability[] <- apply(matrixXreg==matrix(matrixXreg[1,],obsInsample,nVariables,byrow=TRUE),2,all);
     if(any(noVariability)){
         if(all(noVariability)){
             warning("None of exogenous variables has variability. Fitting the straight line.",
