@@ -18,6 +18,8 @@ Changes:
 * alm() with dlnorm now also returns analytical covariance matrix instead of hessian based one.
 * stepwise(), lmCombine() and lmDynamic() now rely on .lm.fit() function, when distribution="dnorm", so the speed of calculation should be substantially higher.
 * New functions for class checks: is.greybox(), is.alm(), is.greyboxC(), is.greyboxD(), is.rmc() and is.rollingOrigin().
+* stepwise() now calculates only the necessary correlations. This allows further inceasing the speed of computation.
+* alm() uses its own mean function, so this should also increas its speed.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
