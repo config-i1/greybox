@@ -53,28 +53,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                      distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                     "plogis","pnorm")){
 ##### Function that selects variables based on IC and using partial correlations
-    ourData <- data;
-    ourData <- ourData[apply(!is.na(ourData),1,all),]
-    obs <- nrow(ourData)
     if(is.null(df)){
         df <- 0;
-    }
-    if(!is.data.frame(ourData)){
-        ourData <- as.data.frame(ourData);
-    }
-    # Select IC
-    ic <- ic[1];
-    if(ic=="AIC"){
-        IC <- AIC;
-    }
-    else if(ic=="AICc"){
-        IC <- AICc;
-    }
-    else if(ic=="BIC"){
-        IC <- BIC;
-    }
-    else if(ic=="BICc"){
-        IC <- BICc;
     }
 
     distribution <- distribution[1];
@@ -91,14 +71,63 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         listToCall <- list(distribution=distribution);
     }
 
+    nCols <- ncol(data)+1;
+    if(any(is.na(data))){
+        nonNARows <- apply(!is.na(data),1,all);
+        nRows <- sum(nonNARows);
+    }
+    else{
+        nonNARows <- rep(TRUE,nrow(data));
+        nRows <- sum(nonNARows);
+    }
+
+    # Names of the variables
+    ourDataNames <- colnames(data);
+
+    # Create data frame to work with
+    listToCall$data <- as.data.frame(matrix(0, nRows, nCols, dimnames=list(NULL,c(ourDataNames,"resid"))));
+
+    # Fill it in
+    listToCall$data[,1:(nCols-1)] <- data[nonNARows,];
+
+    responseName <- ourDataNames[1];
+    ourDataNames <- ourDataNames[-1];
+#
+#     if(any(sapply(data, is.factor))){
+#         if(any(sapply(data, is.ordered))){
+#             association
+#         }
+#         else{
+#             association
+#         }
+#     }
+#     else{
+#         association <- cor;
+#     }
+#
+
+    # Select IC
+    ic <- ic[1];
+    if(ic=="AIC"){
+        IC <- AIC;
+    }
+    else if(ic=="AICc"){
+        IC <- AICc;
+    }
+    else if(ic=="BIC"){
+        IC <- BIC;
+    }
+    else if(ic=="BICc"){
+        IC <- BICc;
+    }
+
     method <- method[1];
 
     bestICNotFound <- TRUE;
     allICs <- list(NA);
     # Run the simplest model y = const
-    testFormula <- paste0(colnames(ourData)[1],"~ 1");
+    testFormula <- paste0(responseName,"~ 1");
     listToCall$formula <- as.formula(testFormula);
-    listToCall$data <- ourData;
     testModel <- do.call(lmCall,listToCall);
     # Write down the logLik and take df into account
     logLikValue <- logLik(testModel);
@@ -109,9 +138,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     names(currentIC) <- "Intercept";
     allICs[[1]] <- currentIC;
     # Add residuals to the ourData
-    ourData <- cbind(ourData,residuals(testModel));
-    colnames(ourData)[ncol(ourData)] <- "resid";
-    nCols <- ncol(ourData);
+    listToCall$data$resid <- residuals(testModel);
 
     bestFormula <- testFormula;
     if(!silent){
@@ -121,8 +148,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     m <- 2;
     # Start the loop
     while(bestICNotFound){
-        ourCorrelation <- cor(ourData[,nCols],ourData,use="complete.obs",method=method)[-c(1,nCols)];
-        newElement <- names(ourData)[which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1] + 1];
+        ourCorrelation <- cor(listToCall$data$resid,listToCall$data,use="complete.obs",method=method)[-c(1,nCols)];
+        newElement <- ourDataNames[which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1]];
         # If the newElement is the same as before, stop
         if(any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
@@ -131,12 +158,11 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         # Include the new element in the original model
         testFormula <- paste0(testFormula,"+",newElement);
         listToCall$formula <- as.formula(testFormula);
-        listToCall$data <- ourData;
         testModel <- do.call(lmCall,listToCall);
         # Modify logLik
         logLikValue <- logLik(testModel);
         attributes(logLikValue)$df <- nParam(logLikValue) + df;
-        if(attributes(logLikValue)$df >= (obs+1)){
+        if(attributes(logLikValue)$df >= (nRows+1)){
             if(!silent){
                 warning("Number of degrees of freedom is greater than number of observations. Cannot proceed.");
             }
@@ -157,7 +183,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         else{
             bestIC <- currentIC;
             bestFormula <- testFormula;
-            ourData[,ncol(ourData)] <- residuals(testModel);
+            listToCall$data$resid <- residuals(testModel);
         }
         names(currentIC) <- newElement;
         allICs[[m]] <- currentIC;
@@ -179,7 +205,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                                          data=substitute(data)));
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
-        bestModel$actuals <- ourData[,1];
+        bestModel$actuals <- data[,1];
     }
     else{
         bestModel <- do.call("alm", list(formula=as.formula(bestFormula),
