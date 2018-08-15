@@ -38,6 +38,10 @@ determination <- function(xreg, ...){
                 call.=FALSE);
         xreg <- xreg[,colMeans(xreg,na.rm=TRUE)!=xreg[1,]]
     }
+    ##### Options: #####
+    ##### 1. use .lm.fit and extract R^2
+    ##### 2. calculate cor between the metric scales, ICC between metric / non-metric and Kendall / Cramer between the categorical ones.
+
     # Produce correlation matrix
     matrixCorrelations <- cor(xreg, ...);
     # Calculate its determinant

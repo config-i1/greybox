@@ -74,12 +74,11 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     nCols <- ncol(data)+1;
     if(any(is.na(data))){
         nonNARows <- apply(!is.na(data),1,all);
-        nRows <- sum(nonNARows);
     }
     else{
         nonNARows <- rep(TRUE,nrow(data));
-        nRows <- sum(nonNARows);
     }
+    nRows <- sum(nonNARows);
 
     # Names of the variables
     ourDataNames <- colnames(data);
@@ -95,10 +94,10 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 #
 #     if(any(sapply(data, is.factor))){
 #         if(any(sapply(data, is.ordered))){
-#             association
+#             association <- Kendall
 #         }
 #         else{
-#             association
+#             association <- Cramer's V
 #         }
 #     }
 #     else{
