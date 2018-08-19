@@ -371,7 +371,9 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     if(is.alm(object$occurrence)){
         occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, side=side, ...);
         # The probability of having zero should be subtracted from that thing...
-        level <- (level - (1 - occurrence$mean)) / occurrence$mean;
+        if(interval=="p"){
+            level <- (level - (1 - occurrence$mean)) / occurrence$mean;
+        }
         greyboxForecast$occurrence <- occurrence;
     }
 
@@ -489,6 +491,11 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     # If there is an occurrence part of the model, use it
     if(is.alm(object$occurrence)){
         greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
+        #### This is weird and probably wrong. But I don't know yet what the confidence intervals mean in case of occurrence model.
+        if(interval=="c"){
+            greyboxForecast$lower <- greyboxForecast$lower * occurrence$lower;
+            greyboxForecast$upper <- greyboxForecast$upper * occurrence$upper;
+        }
     }
 
     return(structure(greyboxForecast,class="predict.greybox"));
