@@ -8,10 +8,10 @@
 \title{Forecasting using greybox functions}
 \usage{
 \method{predict}{alm}(object, newdata, interval = c("none", "confidence",
-  "prediction"), level = 0.95, ...)
+  "prediction"), level = 0.95, side = c("both", "upper", "lower"), ...)
 
 \method{predict}{greybox}(object, newdata, interval = c("none", "confidence",
-  "prediction"), level = 0.95, ...)
+  "prediction"), level = 0.95, side = c("both", "upper", "lower"), ...)
 }
 \arguments{
 \item{object}{Time series model for which forecasts are required.}
@@ -22,6 +22,13 @@
 "prediction". Can be abbreviated}
 
 \item{level}{Confidence level. Defines width of prediction interval.}
+
+\item{side}{What type of interval to produce: \code{"both"} - produces both
+lower and upper bounds of the interval, \code{"upper"} - upper only, \code{"lower"}
+- respectively lower only. In the \code{"both"} case the probability is split into
+two parts: ((1-level)/2, (1+level)/2). When \code{"upper"} is specified, then
+the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
+for (1-level, 1) is returned.}
 
 \item{...}{Other arguments.}
 }
