@@ -60,8 +60,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     distribution <- distribution[1];
     if(distribution=="dnorm"){
         lmCall <- function(formula, data){
-            model <- .lm.fit(as.matrix(cbind(1,data[,as.character(all.vars(formula[[3]]))])),
-                             as.matrix(data[,as.character(formula[[2]])]));
+            model <- .lm.fit(as.matrix(cbind(1,data[,all.vars(formula)[-1]])),
+                             as.matrix(data[,all.vars(formula)[1]]));
             return(structure(model,class="lm"));
         }
         listToCall <- vector("list");
@@ -84,10 +84,12 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     ourDataNames <- colnames(data);
 
     # Create data frame to work with
-    listToCall$data <- as.data.frame(matrix(0, nRows, nCols, dimnames=list(NULL,c(ourDataNames,"resid"))));
+    listToCall$data <- as.data.frame(data);
+    listToCall$data$resid <- 0;
 
-    # Fill it in
-    listToCall$data[,1:(nCols-1)] <- data[nonNARows,];
+    # Create substitute and remove the original data
+    dataSubstitute <- substitute(data);
+    rm(data)
 
     responseName <- ourDataNames[1];
     ourDataNames <- ourDataNames[-1];
@@ -189,43 +191,41 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         m <- m+1;
     }
 
-    # Create an object of the same name as the original data
-    # If it was a call on its own, make it one string
-    assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
     bestFormula <- as.formula(bestFormula);
 
     # If this is a big data just wrap up the stuff using lmCall
-    if(nRows>100000){
-        varsNames <- all.vars(bestFormula[[3]]);
+    if(distribution=="dnorm"){
+        varsNames <- all.vars(bestFormula)[-1];
+
         listToCall$formula <- bestFormula;
-        listToCall$data <- substitute(data);
+
         bestModel <- do.call(lmCall,listToCall);
-        bestModel$formula <- bestFormula;
+        bestModel$data <- listToCall$data[,all.vars(bestFormula)];
+        rm(listToCall);
+
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
-        bestModel$actuals <- data[,1];
-        bestModel$fitted <- bestModel$actuals - c(bestModel$residuals);
-        bestModel$x <- as.matrix(cbind(1,data[,varsNames]));
+        bestModel$fitted.values <- bestModel$data[,1] - c(bestModel$residuals);
         bestModel$df <- length(varsNames) + 1;
         bestModel$df.residual <- nRows - bestModel$df;
         names(bestModel$coefficients) <- c("(Intercept)",varsNames);
-        class(bestModel) <- c("lmGreybox","alm","greybox");
+        # Remove redundant bits
+        bestModel$effects <- NULL;
+        bestModel$qr <- NULL;
+        bestModel$qraux <- NULL;
+        bestModel$pivot <- NULL;
+        bestModel$tol <- NULL;
+        # Form the pseudocall to alm
+        bestModel$call <- quote(alm(formula=bestFormula, data=data, distribution="dnorm"));
+        bestModel$call$formula <- bestFormula;
+        class(bestModel) <- c("alm","greybox");
     }
     else{
-        if(distribution=="dnorm"){
-            bestModel <- do.call("lm", list(formula=bestFormula,
-                                            data=substitute(data)));
-            bestModel$distribution <- distribution;
-            bestModel$logLik <- logLik(bestModel);
-            bestModel$actuals <- data[,1];
-        }
-        else{
-            bestModel <- do.call("alm", list(formula=bestFormula,
-                                             data=substitute(data),
-                                             distribution=distribution));
-        }
+        bestModel <- do.call("alm", list(formula=bestFormula,
+                                         data=dataSubstitute,
+                                         distribution=distribution));
         class(bestModel) <- c("alm","greybox");
     }
 

@@ -630,10 +630,9 @@ forecast.alm <- function(object, newdata, ...){
 }
 
 #' @importFrom forecast getResponse
-
 #' @export
 getResponse.greybox <- function(object, ...){
-    responseVariable <- object$actuals;
+    responseVariable <- fitted(object) + residuals(object);
     names(responseVariable) <- c(1:length(responseVariable));
     return(responseVariable);
 }
@@ -745,7 +744,7 @@ plot.greybox <- function(x, ...){
         ellipsis$type <- "l";
     }
     if(!any(names(ellipsis)=="ylab")){
-        ellipsis$ylab <- colnames(x$model)[1];
+        ellipsis$ylab <- all.vars(x$call$formula)[1];
     }
 
     ellipsis$x <- getResponse(x);
@@ -770,7 +769,7 @@ plot.predict.greybox <- function(x, ...){
     yForecastStart <- time(yActuals)[length(yActuals)]+deltat(yActuals);
 
     if(!is.null(x$newdata)){
-        yName <- colnames(x$model$model)[1];
+        yName <- all.vars(x$model$call$formula)[1];
         if(any(colnames(x$newdata)==yName)){
             yHoldout <- x$newdata[,yName];
             if(!any(is.na(yHoldout))){
@@ -1076,7 +1075,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
+    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
@@ -1111,7 +1110,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((object$model[,1]-mean(object$model[,1]))^2)
+    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
@@ -1127,25 +1126,31 @@ summary.greyboxD <- function(object, level=0.95, ...){
 vcov.alm <- function(object, ...){
     if(any(object$distribution==c("dlnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
-        matrixXreg <- as.matrix(object$model[,-1]);
-        if(attr(object$terms,"intercept")!=0){
+        matrixXreg <- as.matrix(object$data[,-1]);
+        if(any(names(coef(object))=="(Intercept)")){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
         vcov <- object$scale^2 * solve(crossprod(matrixXreg));
     }
     else if(object$distribution=="dnorm"){
-        matrixXreg <- as.matrix(object$model[,-1]);
-        if(attr(object$terms,"intercept")!=0){
+        matrixXreg <- as.matrix(object$data[,-1]);
+        if(any(names(coef(object))=="(Intercept)")){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
         vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
     }
     else{
+        newCall <- object$call;
+        newCall$distribution <- object$distribution;
+        newCall$A <- coef(object);
+        newCall$vcovProduce <- TRUE;
+        newCall$occurrence <- object$occurrence;
+        object <- eval.parent(newCall);
         # Recall alm to get hessian
-        object <- alm(object$call$formula, object$data, distribution=object$distribution,
-                      A=coef(object), vcovProduce=TRUE, occurrence=object$occurrence);
+        # object <- alm(object$call$formula, object$data, distribution=object$distribution,
+                      # A=coef(object), vcovProduce=TRUE, occurrence=object$occurrence);
         vcov <- object$vcov;
         if(!is.matrix(vcov)){
             vcov <- as.matrix(vcov);
@@ -1158,7 +1163,7 @@ vcov.alm <- function(object, ...){
 #' @export
 vcov.greyboxC <- function(object, ...){
     s2 <- sigma(object)^2;
-    xreg <- as.matrix(object$model[,-1]);
+    xreg <- as.matrix(object$data[,-1]);
     xreg <- cbind(1,xreg);
     colnames(xreg)[1] <- "Intercept";
     importance <- object$importance;
@@ -1171,7 +1176,7 @@ vcov.greyboxC <- function(object, ...){
 #' @export
 vcov.greyboxD <- function(object, ...){
     s2 <- sigma(object)^2;
-    xreg <- as.matrix(object$model[,-1]);
+    xreg <- as.matrix(object$data[,-1]);
     xreg <- cbind(1,xreg);
     colnames(xreg)[1] <- "Intercept";
     importance <- apply(object$importance,2,mean);
@@ -1183,6 +1188,6 @@ vcov.greyboxD <- function(object, ...){
 
 #' @export
 vcov.lmGreybox <- function(object, ...){
-    vcov <- sigma(object)^2 * solve(crossprod(object$x));
+    vcov <- sigma(object)^2 * solve(crossprod(object$xreg));
     return(vcov);
 }

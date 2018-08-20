@@ -74,9 +74,8 @@
 #' \item df - number of degrees of freedom of the model,
 #' \item call - how the model was called,
 #' \item rank - rank of the model,
-#' \item model - data on which the model was fitted,
-#' \item qr - QR decomposition of the data,
-#' \item terms - terms of the model.
+#' \item data - data used for the model construction,
+#' \item occurrence - the occurrence model used in the estimation.
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
@@ -173,7 +172,7 @@ alm <- function(formula, data, subset, na.action,
 
     # If this is a model with occurrence, use only non-zero observations
     if(occurrenceModel){
-        occurrenceNonZero <- data[,as.character(formula[[2]])]!=0;
+        occurrenceNonZero <- data[,all.vars(formula)[1]]!=0;
         mf$subset <- occurrenceNonZero;
     }
 
@@ -206,8 +205,8 @@ alm <- function(formula, data, subset, na.action,
         CDF <- FALSE;
     }
 
-    if(CDF & !any(y==0 | y==1)){
-        warning(paste0("You have defined CDF `",distribution,"`` as a distribution.\n",
+    if(CDF & any(y!=0 & y!=1)){
+        warning(paste0("You have defined CDF '",distribution,"' as a distribution.\n",
                        "This means that the response variable needs to be binary with values of 0 and 1.\n",
                        "Don't worry, we will encode it for you. But, please, be careful next time!"),
                 call.=FALSE);
@@ -355,10 +354,10 @@ alm <- function(formula, data, subset, na.action,
     #### Estimate parameters of the model ####
     if(is.null(A)){
         if(distribution=="dlnorm"){
-            A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% log(y));
+            A <- .lm.fit(matrixXreg,log(y))$coefficients
         }
         else{
-            A <- as.vector(chol2inv(chol(t(matrixXreg) %*% matrixXreg)) %*% t(matrixXreg) %*% y);
+            A <- .lm.fit(matrixXreg,y)$coefficients;
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
@@ -463,22 +462,21 @@ alm <- function(formula, data, subset, na.action,
         mf$subset <- NULL;
 
         dataNew <- as.matrix(data);
-        y <- as.matrix(dataNew[,as.character(formula[[2]])]);
+        y <- as.matrix(dataNew[,all.vars(formula)[1]]);
         dataNew[,1] <- (y!=0)*1;
 
         yFittedNew <- rep(0,length(y));
         yFittedNew[y!=0] <- yFitted;
         yFitted <- yFittedNew;
-        # errors <- y - yFitted;
 
         if(!occurrenceProvided){
             occurrence <- alm(formula, dataNew, distribution=occurrence);
         }
     }
 
-    finalModel <- list(coefficients=A, vcov=vcovMatrix, actuals=y, fitted.values=yFitted, residuals=as.vector(errors),
+    finalModel <- list(coefficients=A, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
-                       df.residual=obsInsample-df, df=df, call=cl, rank=df, model=dataWork, data=data,
-                       qr=qr(dataWork), terms=ourTerms, occurrence=occurrence);
+                       df.residual=obsInsample-df, df=df, call=cl, rank=df, data=dataWork,
+                       occurrence=occurrence);
     return(structure(finalModel,class=c("alm","greybox")));
 }

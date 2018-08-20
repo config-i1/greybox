@@ -67,9 +67,8 @@ Information). Returned only when \code{vcovProduce=TRUE}.
 \item df - number of degrees of freedom of the model,
 \item call - how the model was called,
 \item rank - rank of the model,
-\item model - data on which the model was fitted,
-\item qr - QR decomposition of the data,
-\item terms - terms of the model.
+\item data - data used for the model construction,
+\item occurrence - the occurrence model used in the estimation.
 }
 }
 \description{

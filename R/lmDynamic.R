@@ -67,6 +67,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                                     "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
+    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
 
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -153,7 +154,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
 
         # If the number of variables is small, do bruteForce
-        if(ncol(bestModel$model)<16){
+        if(nParam(bestModel)<16){
             newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
             bestModel <- lmDynamic(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution);
             bestModel$call <- cl;
@@ -162,7 +163,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # If we have too many variables, use "stress" analysis
         else{
             # Extract names of the used variables
-            bestExoNames <- colnames(bestModel$model)[-1];
+            bestExoNames <- names(coef(bestModel))[-1];
             nVariablesInModel <- length(bestExoNames);
             # Define number of combinations:
             # 1. Best model
@@ -267,11 +268,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     #Calcualte logLik
     logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
 
-    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, actuals=data[,1], fitted.values=as.vector(yFitted),
+    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                       call=cl, rank=nVariables+1, model=ourData);
+                       call=cl, rank=nVariables+1, data=ourData);
 
     return(structure(finalModel,class=c("greyboxD","greybox","alm")));
 }

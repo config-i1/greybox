@@ -113,17 +113,17 @@
 #' colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
 #' rmc(ourData, distribution="dnorm", level=0.95)
 #
-#' # In case of AE-based measures, distribution="fnorm" should be selected
+#' # In case of AE-based measures, distribution="dfnorm" should be selected
 #' rmc(abs(ourData), distribution="dfnorm", level=0.95)
 #'
-#' # In case of SE-based measures, distribution="chisq" should be selected
+#' # In case of SE-based measures, distribution="dchisq" should be selected
 #' rmc((ourData-matrix(apply(ourData,2,mean),nrow(ourData),ncol(ourData),
 #'                     byrow=TRUE))^2, distribution="dchisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
 #' # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
-#' # distribution="norm" and provide logarithms of the RelMAE, which can be approximated by
+#' # distribution="dnorm" and provide logarithms of the RelMAE, which can be approximated by
 #' # normal distribution
 #' ourData <- abs(ourData)
 #' rmc(ourData / ourData[,1], distribution="dnorm", level=0.95)
@@ -162,9 +162,10 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
     # This is the model used for the confidence intervals calculation
     lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution);
 
-    lmSummary <- summary(lmModel, level=level);
     # Construct intervals
     lmCoefs <- coef(lmModel);
+    # Force confint to be estimated inside the function
+    environment(confint.alm) <- environment();
     lmIntervals <- confint(lmModel, level=level)[,-1];
     names(lmCoefs)[1] <- colnames(dataNew)[2];
     rownames(lmIntervals)[1] <- colnames(dataNew)[2];
