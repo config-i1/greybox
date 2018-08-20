@@ -194,25 +194,42 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     assign(paste0(deparse(substitute(data)),collapse=""),as.data.frame(data));
     # Remove "1+" from the best formula
     bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
+    bestFormula <- as.formula(bestFormula);
 
-    # listToCall$formula <- as.formula(bestFormula);
-    # listToCall$data <- substitute(data);
-    # bestModel <- do.call(lmCall,listToCall);
-
-    if(distribution=="dnorm"){
-        bestModel <- do.call("lm", list(formula=as.formula(bestFormula),
-                                         data=substitute(data)));
+    # If this is a big data just wrap up the stuff using lmCall
+    if(nRows>100000){
+        varsNames <- all.vars(bestFormula[[3]]);
+        listToCall$formula <- bestFormula;
+        listToCall$data <- substitute(data);
+        bestModel <- do.call(lmCall,listToCall);
+        bestModel$formula <- bestFormula;
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
         bestModel$actuals <- data[,1];
+        bestModel$fitted <- bestModel$actuals - c(bestModel$residuals);
+        bestModel$x <- as.matrix(cbind(1,data[,varsNames]));
+        bestModel$df <- length(varsNames) + 1;
+        bestModel$df.residual <- nRows - bestModel$df;
+        names(bestModel$coefficients) <- c("(Intercept)",varsNames);
+        class(bestModel) <- c("lmGreybox","alm","greybox");
     }
     else{
-        bestModel <- do.call("alm", list(formula=as.formula(bestFormula),
-                                         data=substitute(data),
-                                         distribution=distribution));
+        if(distribution=="dnorm"){
+            bestModel <- do.call("lm", list(formula=bestFormula,
+                                            data=substitute(data)));
+            bestModel$distribution <- distribution;
+            bestModel$logLik <- logLik(bestModel);
+            bestModel$actuals <- data[,1];
+        }
+        else{
+            bestModel <- do.call("alm", list(formula=bestFormula,
+                                             data=substitute(data),
+                                             distribution=distribution));
+        }
+        class(bestModel) <- c("alm","greybox");
     }
 
     bestModel$ICs <- unlist(allICs);
 
-    return(structure(bestModel,class=c("alm","greybox")));
+    return(bestModel);
 }

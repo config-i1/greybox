@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-14)
+greybox v0.3.1 (Release data: 2018-08-15)
 ==============
 
 Changes:
@@ -21,6 +21,7 @@ Changes:
 * stepwise() now calculates only the necessary correlations. This allows further inceasing the speed of computation.
 * alm() uses its own mean function, so this should also increas its speed.
 * Correct prediction intervals for the model with the occurrence part and a new parameter in prediction function - side - which allows producing one-sided PIs.
+* stepwise() should now work better with big data.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
