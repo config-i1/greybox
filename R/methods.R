@@ -1142,16 +1142,16 @@ vcov.alm <- function(object, ...){
         vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
     }
     else{
+        # Form the call for alm
         newCall <- object$call;
+        newCall$data = object$data;
         newCall$distribution <- object$distribution;
         newCall$A <- coef(object);
         newCall$vcovProduce <- TRUE;
         newCall$occurrence <- object$occurrence;
-        object <- eval.parent(newCall);
         # Recall alm to get hessian
-        # object <- alm(object$call$formula, object$data, distribution=object$distribution,
-                      # A=coef(object), vcovProduce=TRUE, occurrence=object$occurrence);
-        vcov <- object$vcov;
+        vcov <- eval(newCall)$vcov;
+
         if(!is.matrix(vcov)){
             vcov <- as.matrix(vcov);
             colnames(vcov) <- rownames(vcov);

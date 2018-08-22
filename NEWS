@@ -25,6 +25,8 @@ Changes:
 * Futher optimisation of stepwise in order to decrease the used memory.
 * alm() and all the other functions now return "data" instead of "model" and don't produce terms and qr. This should save some space.
 * vcov.alm() now uses call in order to reestimate the model.
+* rmc() now returns groups of methods. This can be used for analytical purposes.
+* alm() now uses a more refined parameters for vcov calculation for "dchisq" and returns a slightly different call with vcov.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.

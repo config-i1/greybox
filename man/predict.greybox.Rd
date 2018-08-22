@@ -10,8 +10,9 @@
 \method{predict}{alm}(object, newdata, interval = c("none", "confidence",
   "prediction"), level = 0.95, side = c("both", "upper", "lower"), ...)
 
-\method{predict}{greybox}(object, newdata, interval = c("none", "confidence",
-  "prediction"), level = 0.95, side = c("both", "upper", "lower"), ...)
+\method{predict}{greybox}(object, newdata, interval = c("none",
+  "confidence", "prediction"), level = 0.95, side = c("both", "upper",
+  "lower"), ...)
 }
 \arguments{
 \item{object}{Time series model for which forecasts are required.}

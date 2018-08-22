@@ -6,9 +6,10 @@
 \alias{combiner}
 \title{Combine regressions based on information criteria}
 \usage{
-lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteForce = FALSE,
-  silent = TRUE, distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace",
-  "ds", "dchisq", "dlogis", "plogis", "pnorm"))
+lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
+  bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
+  "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
+  "pnorm"))
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and

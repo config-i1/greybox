@@ -41,6 +41,9 @@
 #'
 #' The test is equivalent to nemenyi test, when applied to the ranks of the error
 #' measures on large samples.
+#'
+#' There is also a \code{plot()} method that allows producing either "mcb" or "lines"
+#' style of plot. This can be regulated via \code{plot(x, style="lines")}.
 #
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
@@ -50,9 +53,6 @@
 #' distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
 #' squared distribution. This value is passed to \code{alm()} function.
 #' @param level The width of the confidence interval. Default is 0.95.
-#' @param sort If \code{TRUE} function sorts the final values of mean ranks.
-#' If plots are requested via \code{type} parameter, then this is forced to
-#' \code{TRUE}.
 #' @param style What style of plot to use after the calculations. This can be
 #' either "MCB" style or "Vertical lines" one.
 #' @param select What column of data to highlight on the plot. If NULL, then
@@ -72,6 +72,9 @@
 #' \itemize{
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
+#' \item{vlines}{Coordinates used for style="l", marking the groups of methods.}
+#' \item{groups}{The table containing the groups. 1 - methods are in the same group,
+#' 0 - they are not.}
 #' \item{p.value}{p-value for the test of the significance of the model. This is a
 #' log-likelihood ratios chi-squared test, comparing the model with the one with
 #' intercept only.}
@@ -135,8 +138,7 @@
 #' @importFrom stats pchisq
 #' @export rmc
 rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
-                level=0.95, sort=TRUE, style=c("mcb","lines"),
-                select=NULL, plot=TRUE, ...){
+                level=0.95, style=c("mcb","lines"), select=NULL, plot=TRUE, ...){
 
     distribution <- distribution[1];
     style <- substr(style[1],1,1);
@@ -165,7 +167,6 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
     # Construct intervals
     lmCoefs <- coef(lmModel);
     # Force confint to be estimated inside the function
-    environment(confint.alm) <- environment();
     lmIntervals <- confint(lmModel, level=level)[,-1];
     names(lmCoefs)[1] <- colnames(dataNew)[2];
     rownames(lmIntervals)[1] <- colnames(dataNew)[2];
@@ -187,18 +188,41 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
         select <- which.min(lmCoefs);
     }
 
-    if(sort){
-        select <- which(namesMethods[order(lmCoefs)]==namesMethods[select]);
-        lmIntervals <- lmIntervals[order(lmCoefs),];
-        lmCoefs <- lmCoefs[order(lmCoefs)];
-    }
+    select <- which(namesMethods[order(lmCoefs)]==namesMethods[select]);
+    lmIntervals <- lmIntervals[order(lmCoefs),];
+    lmCoefs <- lmCoefs[order(lmCoefs)];
 
     # Remove `` symbols in case of spaces in names
     names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
     rownames(lmIntervals) <- names(lmCoefs);
 
-    returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, importance=importance, p.value=p.value, level=level,
-                                    model=lmModel, style=style, select=select,distribution=distribution),
+    ### Prepare things for the groups for "lines" plot
+    # Find groups
+    vlines <- matrix(NA, nrow=nMethods, ncol=2);
+    for(i in 1:nMethods){
+        intersections <- which(!(lmIntervals[,2]<lmIntervals[i,1] | lmIntervals[,1]>lmIntervals[i,2]));
+        vlines[i,] <- c(min(intersections),max(intersections));
+    }
+
+    # Get rid of duplicates and single member groups
+    vlines <- unique(vlines);
+    # Re-convert to matrix if necessary and find number of remaining groups
+    if(length(vlines)==2){
+        vlines <- matrix(vlines,1,2);
+    }
+
+    nGroups <- nrow(vlines);
+    colnames(vlines) <- c("Group starts","Group ends");
+    rownames(vlines) <- paste0("Group",c(1:nGroups));
+
+    groups <- matrix(0, nMethods, nGroups, dimnames=list(names(lmCoefs), rownames(vlines)));
+    for(i in 1:nGroups){
+        groups[c(vlines[i,1]:vlines[i,2]),i] <- 1;
+    }
+
+    returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,
+                                    importance=importance, p.value=p.value, level=level, model=lmModel,
+                                    style=style, select=select, distribution=distribution),
                                class="rmc");
     if(plot){
         plot(returnedClass, ...);
@@ -231,8 +255,6 @@ plot.rmc <- function(x, ...){
                          x$level*100,"% confidence intervals constructed.");
     }
 
-    style <- x$style;
-
     # Save the current par() values
     parDefault <- par(no.readonly=TRUE);
     parMar <- parDefault$mar;
@@ -246,7 +268,15 @@ plot.rmc <- function(x, ...){
         lineCol <- "#0DA0DC";
     }
 
-    if(x$style=="m"){
+    if(("style" %in% argsNames)){
+        style <- substr(args$style,1,1);
+        args$style <- NULL;
+    }
+    else{
+        style <- x$style;
+    }
+
+    if(style=="m"){
         if(!("xlab" %in% argsNames)){
             args$xlab <- "";
         }
@@ -288,31 +318,14 @@ plot.rmc <- function(x, ...){
 
         abline(h=x$interval[x$select,], lwd=2, lty=2, col="grey");
     }
-    else if(x$style=="l"){
-        #Sort things, just in case
-        lmIntervals <- x$interval[order(x$mean),];
-        lmCoefs <- x$mean[order(x$mean)];
+    else if(style=="l"){
+        vlines <- x$vlines;
 
-        # Find groups
-        vlines <- matrix(NA, nrow=nMethods, ncol=2);
-        for(i in 1:nMethods){
-            intersections <- which(!(lmIntervals[,2]<lmIntervals[i,1] | lmIntervals[,1]>lmIntervals[i,2]));
-            vlines[i,] <- c(min(intersections),max(intersections));
-        }
-
-        # Get rid of duplicates and single member groups
-        vlines <- unique(vlines);
-        # vlines <- vlines[apply(vlines,1,min) != apply(vlines,1,max),];
-        # Re-convert to matrix if necessary and find number of remaining groups
-        if(length(vlines)==2){
-            vlines <- as.matrix(vlines);
-            vlines <- t(vlines);
-        }
         k <- nrow(vlines);
         colours <- c("#0DA0DC","#17850C","#EA3921","#E1C513","#BB6ECE","#5DAD9D");
         colours <- rep(colours,ceiling(k/length(colours)))[1:k];
 
-        labelSize <- max(nchar(names(lmCoefs)));
+        labelSize <- max(nchar(namesMethods));
 
         if(!("ylab" %in% argsNames)){
             args$ylab <- "";

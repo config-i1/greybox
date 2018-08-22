@@ -5,8 +5,7 @@
 \title{RMC test}
 \usage{
 rmc(data, distribution = c("dnorm", "dfnorm", "dchisq"), level = 0.95,
-  sort = TRUE, style = c("mcb", "lines"), select = NULL, plot = TRUE,
-  ...)
+  style = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
 }
 \arguments{
 \item{data}{Matrix or data frame with observations in rows and variables in
@@ -19,10 +18,6 @@ distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
 squared distribution. This value is passed to \code{alm()} function.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
-
-\item{sort}{If \code{TRUE} function sorts the final values of mean ranks.
-If plots are requested via \code{type} parameter, then this is forced to
-\code{TRUE}.}
 
 \item{style}{What style of plot to use after the calculations. This can be
 either "MCB" style or "Vertical lines" one.}
@@ -47,6 +42,9 @@ variables:
 \itemize{
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
+\item{vlines}{Coordinates used for style="l", marking the groups of methods.}
+\item{groups}{The table containing the groups. 1 - methods are in the same group,
+0 - they are not.}
 \item{p.value}{p-value for the test of the significance of the model. This is a
 log-likelihood ratios chi-squared test, comparing the model with the one with
 intercept only.}
@@ -101,6 +99,9 @@ the both RelMAE and RelMSE should have normal distribution. Thus
 
 The test is equivalent to nemenyi test, when applied to the ranks of the error
 measures on large samples.
+
+There is also a \code{plot()} method that allows producing either "mcb" or "lines"
+style of plot. This can be regulated via \code{plot(x, style="lines")}.
 }
 \examples{
 N <- 50

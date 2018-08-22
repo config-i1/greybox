@@ -409,7 +409,12 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            method.args <- list(d=1e-4, r=4);
+            if(distribution=="dchisq"){
+                method.args <- list(d=1e-5, r=4);
+            }
+            else{
+                method.args <- list(d=1e-4, r=4);
+            }
         }
         vcovMatrix <- hessian(CF, A, method.args=method.args,
                               distribution=distribution, y=y, matrixXreg=matrixXreg);
