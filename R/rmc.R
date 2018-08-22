@@ -73,8 +73,8 @@
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
 #' \item{vlines}{Coordinates used for style="l", marking the groups of methods.}
-#' \item{groups}{The table containing the groups. 1 - methods are in the same group,
-#' 0 - they are not.}
+#' \item{groups}{The table containing the groups. \code{TRUE} - methods are in the
+#' same group, \code{FALSE} - they are not.}
 #' \item{p.value}{p-value for the test of the significance of the model. This is a
 #' log-likelihood ratios chi-squared test, comparing the model with the one with
 #' intercept only.}
@@ -215,9 +215,9 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dchisq"),
     colnames(vlines) <- c("Group starts","Group ends");
     rownames(vlines) <- paste0("Group",c(1:nGroups));
 
-    groups <- matrix(0, nMethods, nGroups, dimnames=list(names(lmCoefs), rownames(vlines)));
+    groups <- matrix(FALSE, nMethods, nGroups, dimnames=list(names(lmCoefs), rownames(vlines)));
     for(i in 1:nGroups){
-        groups[c(vlines[i,1]:vlines[i,2]),i] <- 1;
+        groups[c(vlines[i,1]:vlines[i,2]),i] <- TRUE;
     }
 
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,

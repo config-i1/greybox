@@ -43,8 +43,8 @@ variables:
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
 \item{vlines}{Coordinates used for style="l", marking the groups of methods.}
-\item{groups}{The table containing the groups. 1 - methods are in the same group,
-0 - they are not.}
+\item{groups}{The table containing the groups. \code{TRUE} - methods are in the
+same group, \code{FALSE} - they are not.}
 \item{p.value}{p-value for the test of the significance of the model. This is a
 log-likelihood ratios chi-squared test, comparing the model with the one with
 intercept only.}
