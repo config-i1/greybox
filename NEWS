@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-16)
+greybox v0.3.1 (Release data: 2018-08-25)
 ==============
 
 Changes:
@@ -27,9 +27,11 @@ Changes:
 * vcov.alm() now uses call in order to reestimate the model.
 * rmc() now returns groups of methods. This can be used for analytical purposes.
 * alm() now uses a more refined parameters for vcov calculation for "dchisq" and returns a slightly different call with vcov.
+* pointLik.alm() method for alm class.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
+* logLik previously was not calculated correctly for the mixture models.
 
 
 greybox v0.3.0 (Release data: 2018-08-05)

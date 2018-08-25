@@ -468,7 +468,7 @@ alm <- function(formula, data, subset, na.action,
 
         dataNew <- as.matrix(data);
         y <- as.matrix(dataNew[,all.vars(formula)[1]]);
-        dataNew[,1] <- (y!=0)*1;
+        dataNew[,all.vars(formula)[1]] <- (y!=0)*1;
 
         yFittedNew <- rep(0,length(y));
         yFittedNew[y!=0] <- yFitted;
@@ -477,6 +477,8 @@ alm <- function(formula, data, subset, na.action,
         if(!occurrenceProvided){
             occurrence <- alm(formula, dataNew, distribution=occurrence);
         }
+        errors <- y - yFitted;
+        CFValue <- CFValue - occurrence$logLik;
     }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),

@@ -120,7 +120,12 @@ errorType.ets <- function(object, ...){
 #' @importFrom stats logLik
 #' @export
 logLik.alm <- function(object, ...){
-    return(structure(object$logLik,nobs=nobs(object),df=nParam(object),class="logLik"));
+    if(is.alm(object$occurrence)){
+        return(structure(object$logLik,nobs=nobs(object),df=nParam(object)+nParam(object$occurrence),class="logLik"));
+    }
+    else{
+        return(structure(object$logLik,nobs=nobs(object),df=nParam(object),class="logLik"));
+    }
 }
 
 
@@ -166,9 +171,45 @@ pointLik <- function(object, ...) UseMethod("pointLik")
 
 #' @export
 pointLik.default <- function(object, ...){
-    obs <- nobs(object);
-    errors <- residuals(object);
-    likValues <- dnorm(errors, 0, sigma(object), TRUE);
+    likValues <- dnorm(residuals(object), mean=0, sd=sigma(object), log=TRUE);
+
+    return(likValues);
+}
+
+#' @export
+pointLik.alm <- function(object, ...){
+    distribution <- object$distribution;
+    y <- getResponse(object);
+    ot <- y!=0;
+    mu <- object$mu;
+    scale <- object$scale;
+
+    likValues <- switch(distribution,
+                        "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
+                        "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
+                        "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                        "dlaplace" = dlaplace(y, mu=mu, b=scale, log=TRUE),
+                        "ds" = ds(y, mu=mu, b=scale, log=TRUE),
+                        "dchisq" = ifelse(any(mu<=0),-1E+300,dchisq(y, df=mu, log=TRUE)),
+                        "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                        "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
+                                     plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                        "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
+                                    pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+    );
+
+    # Sort values if plogis or pnorm was used
+    if(any(distribution==c("plogis","pnorm"))){
+        likValuesNew <- likValues;
+        likValues[ot] <- likValuesNew[1:sum(ot)];
+        likValues[!ot] <- likValuesNew[-c(1:sum(ot))];
+    }
+
+    # If this is a mixture model, take the respective probabilities into account
+    if(is.alm(object$occurrence)){
+        likValues[!ot] <- 0;
+        likValues[] <- likValues + pointLik(object$occurrence);
+    }
 
     return(likValues);
 }
@@ -177,7 +218,7 @@ pointLik.default <- function(object, ...){
 pointLik.ets <- function(object, ...){
     likValues <- pointLik.default(object);
     if(errorType(object)=="M"){
-        likValues <- likValues - log(abs(fitted(object)));
+        likValues[] <- likValues - log(abs(fitted(object)));
     }
 
     return(likValues);
