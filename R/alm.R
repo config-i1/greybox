@@ -170,15 +170,17 @@ alm <- function(formula, data, subset, na.action,
         mf$data <- data;
     }
 
+    responseName <- all.vars(formula)[1];
     # If this is a model with occurrence, use only non-zero observations
     if(occurrenceModel){
-        occurrenceNonZero <- data[,all.vars(formula)[1]]!=0;
+        occurrenceNonZero <- data[,responseName]!=0;
         mf$subset <- occurrenceNonZero;
     }
 
     dataWork <- eval(mf, parent.frame());
+    y <- dataWork[,1];
 
-    ourTerms <- terms(dataWork);
+    interceptIsNeeded <- attr(terms(dataWork),"intercept")!=0;
     obsInsample <- nrow(dataWork);
     variablesNames <- colnames(dataWork)[-1];
 
@@ -186,8 +188,6 @@ alm <- function(formula, data, subset, na.action,
     nVariables <- length(variablesNames);
     colnames(matrixXreg) <- variablesNames;
 
-    y <- vector("numeric", obsInsample);
-    y[] <- as.matrix(dataWork[,1]);
     mu <- vector("numeric", obsInsample);
     yFitted <- vector("numeric", obsInsample);
     errors <- vector("numeric", obsInsample);
@@ -286,7 +286,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Finish forming the matrix of exogenous variables ####
-    if(attr(ourTerms,"intercept")!=0){
+    if(interceptIsNeeded){
         matrixXreg <- cbind(1,matrixXreg);
         variablesNames <- c("(Intercept)",variablesNames);
         nVariables <- length(variablesNames);
