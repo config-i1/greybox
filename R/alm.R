@@ -311,9 +311,9 @@ alm <- function(formula, data, subset, na.action,
         mu[] <- matrixXreg %*% A;
 
         scale <- switch(distribution,
-                        "dnorm"=,
+                        "dnorm" =,
                         "dfnorm" = sqrt(meanFast((y-mu)^2)),
-                        "dlnorm"= sqrt(meanFast((log(y)-mu)^2)),
+                        "dlnorm" = sqrt(meanFast((log(y)-mu)^2)),
                         "dlaplace" = meanFast(abs(y-mu)),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" = 2*mu,
@@ -380,28 +380,31 @@ alm <- function(formula, data, subset, na.action,
     # Parameters of the model + scale
     df <- nVariables + 1;
 
-    if(distribution=="dfnorm"){
-        # Correction so that the the expectation of the folded is returned
-        # Calculate the conditional expectation based on the parameters of the distribution
-        yFitted[] <- sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale));
-    }
-    else if(distribution=="dlnorm"){
-        yFitted[] <- exp(mu);
-    }
-    else if(distribution=="plogis"){
-        # -mu is needed for this to look similar to the classical logit
-        yFitted[] <- plogis(mu, location=0, scale=1);
-    }
-    else if(distribution=="pnorm"){
-        yFitted[] <- pnorm(mu, mean=0, sd=1);
-    }
-    else{
-        yFitted[] <- mu;
-        if(distribution=="dchisq"){
-            scale <- mu * 2;
-        }
-    }
-    errors[] <- y - yFitted;
+    ### Fitted values in the scale of the original variable
+    yFitted[] <- switch(distribution,
+                       "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
+                       "dlaplace" =,
+                       "ds" =,
+                       "dlogis" =,
+                       "dchisq" =,
+                       "dnorm" = mu,
+                       "dlnorm" = exp(mu),
+                       "pnorm" = pnorm(mu, mean=0, sd=1),
+                       "plogis" = plogis(mu, location=0, scale=1)
+    );
+
+    ### Error term in the transformed scale
+    errors[] <- switch(distribution,
+                       "dfnorm" =,
+                       "dlaplace" =,
+                       "ds" =,
+                       "dlogis" =,
+                       "dnorm" = y - mu,
+                       "dchisq" =,
+                       "dlnorm"= log(y) - mu,
+                       "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
+                       "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
+    );
 
     #### Produce covariance matrix using hessian ####
     if(vcovProduce){
@@ -466,18 +469,29 @@ alm <- function(formula, data, subset, na.action,
     if(occurrenceModel){
         mf$subset <- NULL;
 
+        # New data and new response variable
         dataNew <- as.matrix(data);
         y <- as.matrix(dataNew[,all.vars(formula)[1]]);
-        dataNew[,all.vars(formula)[1]] <- (y!=0)*1;
-
-        yFittedNew <- rep(0,length(y));
-        yFittedNew[y!=0] <- yFitted;
-        yFitted <- yFittedNew;
+        ot <- y!=0;
+        dataNew[,all.vars(formula)[1]] <- (ot)*1;
 
         if(!occurrenceProvided){
             occurrence <- alm(formula, dataNew, distribution=occurrence);
         }
-        errors <- y - yFitted;
+
+        # Corrected fitted (with zeroes, when y=0)
+        yFittedNew <- yFitted;
+        yFitted <- vector("numeric",length(y));
+        yFitted[] <- 0;
+        yFitted[ot] <- yFittedNew;
+
+        # Corrected errors (with zeroes, when y=0)
+        errorsNew <- errors;
+        errors <- vector("numeric",length(y));
+        errors[] <- 0;
+        errors[ot] <- errorsNew;
+
+        # Correction of the likelihood
         CFValue <- CFValue - occurrence$logLik;
     }
 

@@ -7,7 +7,8 @@
 stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, method = c("pearson", "kendall", "spearman"),
   distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace", "ds",
-  "dchisq", "dlogis", "plogis", "pnorm"))
+  "dchisq", "dlogis", "plogis", "pnorm"), occurrence = c("none",
+  "plogis", "pnorm"))
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and
@@ -25,6 +26,9 @@ used on residuals).}
 Tau, which should be applicable to a wide range of data in different scales.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
+
+\item{occurrence}{what distribution to use for occurrence part. See
+\link[greybox]{alm} for details.}
 }
 \value{
 Function returns \code{model} - the final model of the class "alm".

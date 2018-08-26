@@ -28,6 +28,8 @@ Changes:
 * rmc() now returns groups of methods. This can be used for analytical purposes.
 * alm() now uses a more refined parameters for vcov calculation for "dchisq" and returns a slightly different call with vcov.
 * pointLik.alm() method for alm class.
+* alm() now extracts meaningful residuals depending on the distribution used. e.g. dnorm -> y - mu, dlnorm -> log(y) - mu
+* stepwise() now allows defining occurrence model. So now you can do something like: stepwise(ourData, distribution="dlnorm", occurrence=stepwise(ourData, distribution="plogis"))
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.

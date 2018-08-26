@@ -932,6 +932,13 @@ print.summary.alm <- function(x, ...){
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
+    if(is.alm(x$occurrence)){
+        distribOccurrence <- switch(x$occurrence$distribution,
+                                    "plogis" = "Cumulative logistic",
+                                    "pnorm" = "Cumulative normal"
+        );
+        distrib <- paste0("Mixture of ", distrib," and ", distribOccurrence);
+    }
 
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
@@ -1065,6 +1072,7 @@ summary.alm <- function(object, level=0.95, ...){
     names(ICs) <- c("AIC","AICc","BIC","BICc");
     ourReturn$ICs <- ICs;
     ourReturn$distribution <- object$distribution;
+    ourReturn$occurrence <- object$occurrence;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);

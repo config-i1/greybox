@@ -22,6 +22,8 @@
 #' @param method Method of correlations calculation. The default is Kendall's
 #' Tau, which should be applicable to a wide range of data in different scales.
 #' @param distribution Distribution to pass to \code{alm()}.
+#' @param occurrence what distribution to use for occurrence part. See
+#' \link[greybox]{alm} for details.
 #'
 #' @return Function returns \code{model} - the final model of the class "alm".
 #' See \link[greybox]{alm} for details of the output.
@@ -51,7 +53,8 @@
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
                      distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                    "plogis","pnorm")){
+                                    "plogis","pnorm"),
+                     occurrence=c("none","plogis","pnorm")){
 ##### Function that selects variables based on IC and using partial correlations
     if(is.null(df)){
         df <- 0;
@@ -59,6 +62,46 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     distribution <- distribution[1];
     if(distribution=="dnorm"){
+        useALM <- FALSE;
+    }
+    else{
+        useALM <- TRUE;
+    }
+
+    # Check the data for NAs
+    if(any(is.na(data))){
+        rowsSelected <- apply(!is.na(data),1,all);
+    }
+    else{
+        rowsSelected <- rep(TRUE,nrow(data));
+    }
+
+    if(is.alm(occurrence)){
+        useALM <- TRUE;
+        rowsSelected <- rowsSelected & (data[,1]!=0);
+    }
+    else{
+        occurrence <- occurrence[1];
+        if(all(occurrence!=c("none","plogis","pnorm"))){
+            warning(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
+                        "'. Switching to 'none'."), call.=FALSE);
+            occurrence <- "none";
+        }
+
+        if(any(occurrence==c("plogis","pnorm"))){
+            useALM <- TRUE;
+            rowsSelected <- rowsSelected | (data[,1]!=0);
+        }
+        else{
+            useALM <- FALSE;
+        }
+    }
+
+    if(useALM){
+        lmCall <- alm;
+        listToCall <- list(distribution=distribution);
+    }
+    else{
         lmCall <- function(formula, data){
             model <- .lm.fit(as.matrix(cbind(1,data[,all.vars(formula)[-1]])),
                              as.matrix(data[,all.vars(formula)[1]]));
@@ -66,25 +109,15 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         }
         listToCall <- vector("list");
     }
-    else{
-        lmCall <- alm;
-        listToCall <- list(distribution=distribution);
-    }
 
     nCols <- ncol(data)+1;
-    if(any(is.na(data))){
-        nonNARows <- apply(!is.na(data),1,all);
-    }
-    else{
-        nonNARows <- rep(TRUE,nrow(data));
-    }
-    nRows <- sum(nonNARows);
+    nRows <- sum(rowsSelected);
 
     # Names of the variables
     ourDataNames <- colnames(data);
 
     # Create data frame to work with
-    listToCall$data <- as.data.frame(data);
+    listToCall$data <- as.data.frame(data[rowsSelected,]);
     listToCall$data$resid <- 0;
 
     # Create substitute and remove the original data
@@ -143,7 +176,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     bestFormula <- testFormula;
     if(!silent){
-        cat(testFormula); cat(", "); cat(currentIC); cat("\n\n");
+        cat("Formula: "); cat(testFormula);
+        cat(", IC: "); cat(currentIC); cat("\n\n");
     }
 
     m <- 2;
@@ -174,8 +208,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         # Calculate the IC
         currentIC <- IC(logLikValue);
         if(!silent){
-            cat(testFormula); cat(", "); cat(currentIC); cat("\n");
-            cat(round(ourCorrelation,3)); cat("\n\n");
+            cat("Formula: "); cat(testFormula);
+            cat(", IC: "); cat(currentIC);
+            cat("\nCorrelations: "); cat(round(ourCorrelation,3)); cat("\n\n");
         }
         # If IC is greater than the previous, then the previous model is the best
         if(currentIC >= bestIC){
@@ -225,7 +260,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     else{
         bestModel <- do.call("alm", list(formula=bestFormula,
                                          data=dataSubstitute,
-                                         distribution=distribution));
+                                         distribution=distribution,
+                                         occurrence=occurrence));
+        bestModel$call$occurrence <- substitute(occurrence);
         class(bestModel) <- c("alm","greybox");
     }
 
