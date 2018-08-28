@@ -445,15 +445,25 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            if(any(distribution==c("dpois","dnbinom"))){
+            if(any(distribution==c("dnbinom"))){
                 method.args <- list(d=1e-8, r=4);
             }
             else{
                 method.args <- list(d=1e-4, r=4);
             }
         }
-        vcovMatrix <- hessian(CF, A, method.args=method.args,
-                              distribution=distribution, y=y, matrixXreg=matrixXreg);
+
+        if(distribution=="dpois"){
+            # Produce analytical hessian for Poisson distribution
+            vcovMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * mu[1];
+            for(i in 2:obsInsample){
+                vcovMatrix <- vcovMatrix + matrixXreg[i,] %*% t(matrixXreg[i,]) * mu[i];
+            }
+        }
+        else{
+            vcovMatrix <- hessian(CF, A, method.args=method.args,
+                                  distribution=distribution, y=y, matrixXreg=matrixXreg);
+        }
 
         if(any(is.nan(vcovMatrix))){
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
@@ -478,7 +488,7 @@ alm <- function(formula, data, subset, na.action,
                     vcovMatrix <- solve(vcovMatrix, diag(nVariables));
                 }
                 else{
-                    vcovMatrixTry <- vcovMatrix;
+                    vcovMatrix <- vcovMatrixTry;
                 }
             }
 
