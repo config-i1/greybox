@@ -185,6 +185,14 @@ alm <- function(formula, data, subset, na.action,
     obsInsample <- nrow(dataWork);
     variablesNames <- colnames(dataWork)[-1];
 
+    # Record the subset used in the model
+    if(is.null(mf$subset)){
+        subset <- rep(TRUE, obsInsample);
+    }
+    else{
+        subset <- mf$subset;
+    }
+
     matrixXreg <- as.matrix(dataWork[,-1]);
     nVariables <- length(variablesNames);
     colnames(matrixXreg) <- variablesNames;
@@ -418,8 +426,8 @@ alm <- function(formula, data, subset, na.action,
                        "ds" =,
                        "dchisq" =,
                        "dpois" =,
-                       "dnbinom" =,
-                       "dlnorm" = mu,
+                       "dnbinom" = mu,
+                       "dlnorm" = exp(mu),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
     );
@@ -536,11 +544,13 @@ alm <- function(formula, data, subset, na.action,
 
         # Correction of the likelihood
         CFValue <- CFValue - occurrence$logLik;
+
+        dataWork <- eval(mf, parent.frame());
     }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
                        df.residual=obsInsample-df, df=df, call=cl, rank=df, data=dataWork,
-                       occurrence=occurrence);
+                       occurrence=occurrence, subset=subset);
     return(structure(finalModel,class=c("alm","greybox")));
 }

@@ -480,6 +480,10 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
             greyboxForecast$lower <- qchisq(levelLow,greyboxForecast$mean);
             greyboxForecast$upper <- qchisq(levelUp,greyboxForecast$mean);
         }
+        else if(interval=="c"){
+            greyboxForecast$lower <- exp(greyboxForecast$lower);
+            greyboxForecast$upper <- exp(greyboxForecast$upper);
+        }
         greyboxForecast$scale <- 2*greyboxForecast$mean;
     }
     else if(object$distribution=="dlnorm"){
@@ -511,6 +515,10 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
             greyboxForecast$lower <- qpois(levelLow,greyboxForecast$mean);
             greyboxForecast$upper <- qpois(levelUp,greyboxForecast$mean);
         }
+        else if(interval=="c"){
+            greyboxForecast$lower <- exp(greyboxForecast$lower);
+            greyboxForecast$upper <- exp(greyboxForecast$upper);
+        }
         greyboxForecast$scale <- greyboxForecast$mean;
     }
     else if(object$distribution=="dnbinom"){
@@ -519,6 +527,10 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         if(interval=="p"){
             greyboxForecast$lower <- qnbinom(levelLow,mu=greyboxForecast$mean,size=greyboxForecast$scale);
             greyboxForecast$upper <- qnbinom(levelUp,mu=greyboxForecast$mean,size=greyboxForecast$scale);
+        }
+        else if(interval=="c"){
+            greyboxForecast$lower <- exp(greyboxForecast$lower);
+            greyboxForecast$upper <- exp(greyboxForecast$upper);
         }
     }
     else if(object$distribution=="plogis"){
@@ -863,14 +875,21 @@ plot.predict.greybox <- function(x, ...){
             lines(yUpper, col="gray", lwd=2);
         }
         else{
-            if(any(is.infinite(yLower))){
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=NA, upper=yUpper, level=diff(x$level));
-            }
-            else if(any(is.infinite(yUpper))){
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=diff(x$level));
+            if(length(x$level)>2){
+                level <- round(max(x$level[-c(1:(length(x$level)/2))]-x$level[1:(length(x$level)/2)]),2);
             }
             else{
-                smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=diff(x$level));
+                level <- diff(x$level);
+            }
+            if(any(is.infinite(yLower)) | any(is.na(yLower))){
+                yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
+                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level);
+            }
+            else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
+                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level);
+            }
+            else{
+                smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level);
             }
         }
     }
@@ -1208,7 +1227,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
 vcov.alm <- function(object, ...){
     if(any(object$distribution==c("dlnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
-        matrixXreg <- as.matrix(object$data[,-1]);
+        matrixXreg <- as.matrix(object$data[object$subset,-1]);
         if(any(names(coef(object))=="(Intercept)")){
             matrixXreg <- cbind(1,matrixXreg);
         }
@@ -1216,7 +1235,7 @@ vcov.alm <- function(object, ...){
         vcov <- object$scale^2 * solve(crossprod(matrixXreg));
     }
     else if(object$distribution=="dnorm"){
-        matrixXreg <- as.matrix(object$data[,-1]);
+        matrixXreg <- as.matrix(object$data[object$subset,-1]);
         if(any(names(coef(object))=="(Intercept)")){
             matrixXreg <- cbind(1,matrixXreg);
         }

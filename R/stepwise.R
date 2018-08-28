@@ -262,6 +262,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         # Form the pseudocall to alm
         bestModel$call <- quote(alm(formula=bestFormula, data=data, distribution="dnorm"));
         bestModel$call$formula <- bestFormula;
+        bestModel$subset <- rep(TRUE, nRows);
         class(bestModel) <- c("alm","greybox");
     }
     else{
