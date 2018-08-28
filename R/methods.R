@@ -189,9 +189,11 @@ pointLik.alm <- function(object, ...){
                         "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                         "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
                         "dlaplace" = dlaplace(y, mu=mu, b=scale, log=TRUE),
-                        "ds" = ds(y, mu=mu, b=scale, log=TRUE),
-                        "dchisq" = ifelse(any(mu<=0),-1E+300,dchisq(y, df=mu, log=TRUE)),
                         "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                        "ds" = ds(y, mu=mu, b=scale, log=TRUE),
+                        "dpois" = dpois(y, lambda=mu, log=TRUE),
+                        "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
+                        "dchisq" = dchisq(y, df=mu, log=TRUE),
                         "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                      plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                         "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -396,7 +398,7 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
 }
 
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom
 #' @export
 predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
@@ -473,6 +475,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
                                      greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
     }
     else if(object$distribution=="dchisq"){
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval!="n"){
             greyboxForecast$lower <- qchisq(levelLow,greyboxForecast$mean);
             greyboxForecast$upper <- qchisq(levelUp,greyboxForecast$mean);
@@ -501,6 +504,22 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
             greyboxForecast$upper <- qlogis(levelUp,greyboxForecast$mean,scale);
         }
         greyboxForecast$scale <- scale;
+    }
+    else if(object$distribution=="dpois"){
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
+        if(interval=="p"){
+            greyboxForecast$lower <- qpois(levelLow,greyboxForecast$mean);
+            greyboxForecast$upper <- qpois(levelUp,greyboxForecast$mean);
+        }
+        greyboxForecast$scale <- greyboxForecast$mean;
+    }
+    else if(object$distribution=="dnbinom"){
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
+        greyboxForecast$scale <- greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean);
+        if(interval=="p"){
+            greyboxForecast$lower <- qnbinom(levelLow,mu=greyboxForecast$mean,size=greyboxForecast$scale);
+            greyboxForecast$upper <- qnbinom(levelUp,mu=greyboxForecast$mean,size=greyboxForecast$scale);
+        }
     }
     else if(object$distribution=="plogis"){
         # The intervals are based on the assumption that a~N(0, sigma^2), and p=exp(a) / (1 + exp(a))
@@ -539,6 +558,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         }
     }
 
+    greyboxForecast$level <- c(levelLow, levelUp);
     return(structure(greyboxForecast,class="predict.greybox"));
 }
 
@@ -653,7 +673,8 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
         lower <- NULL;
         upper <- NULL;
     }
-    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=level, newdata=newdata,
+
+    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
                      variances=vectorOfVariances);
     return(structure(ourModel,class="predict.greybox"));
 }
@@ -675,6 +696,12 @@ forecast.alm <- function(object, newdata, ...){
 getResponse.greybox <- function(object, ...){
     responseVariable <- fitted(object) + residuals(object);
     names(responseVariable) <- c(1:length(responseVariable));
+    return(responseVariable);
+}
+
+#' @export
+getResponse.alm <- function(object, ...){
+    responseVariable <- object$data[,1];
     return(responseVariable);
 }
 
@@ -837,13 +864,13 @@ plot.predict.greybox <- function(x, ...){
         }
         else{
             if(any(is.infinite(yLower))){
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=NA, upper=yUpper, level=x$level);
+                smooth::graphmaker(yActuals, yForecast, yFitted, lower=NA, upper=yUpper, level=diff(x$level));
             }
             else if(any(is.infinite(yUpper))){
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=x$level);
+                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=diff(x$level));
             }
             else{
-                smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=x$level);
+                smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=diff(x$level));
             }
         }
     }
@@ -922,12 +949,14 @@ print.summary.alm <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "dlogis" = "Logistic",
                       "dnorm" = "Normal",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dlaplace" = "Laplace",
+                      "dlogis" = "Logistic",
                       "ds" = "S",
+                      "dpois" = "Poisson",
+                      "dnbinom" = "Negative Binomial",
                       "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -958,12 +987,14 @@ print.summary.greybox <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "dlogis" = "Logistic",
                       "dnorm" = "Normal",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dlaplace" = "Laplace",
+                      "dlogis" = "Logistic",
                       "ds" = "S",
+                      "dpois" = "Poisson",
+                      "dnbinom" = "Negative Binomial",
                       "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -990,13 +1021,15 @@ print.summary.greyboxC <- function(x, ...){
     }
 
     distrib <- switch(x$distribution,
-                      "dlogis" = "Logistic",
                       "dnorm" = "Normal",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dlaplace" = "Laplace",
+                      "dlogis" = "Logistic",
                       "ds" = "S",
-                      "chisq" = "Chi-Squared",
+                      "dpois" = "Poisson",
+                      "dnbinom" = "Negative Binomial",
+                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1018,7 +1051,7 @@ print.predict.greybox <- function(x, ...){
     if(!is.null(x$lower)){
         ourMatrix <- cbind(ourMatrix, x$lower, x$upper);
         level <- x$level;
-        colnames(ourMatrix)[2:3] <- c(paste0("Lower ",round((1-level)/2,3)*100,"%"),paste0("Upper ",round((1+level)/2,3)*100,"%"));
+        colnames(ourMatrix)[2:3] <- c(paste0("Lower ",round(level[1],3)*100,"%"),paste0("Upper ",round(level[2],3)*100,"%"));
     }
     print(ourMatrix);
 }

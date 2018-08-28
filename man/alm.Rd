@@ -5,9 +5,9 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dfnorm",
-  "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis", "pnorm"),
-  occurrence = c("none", "plogis", "pnorm"), A = NULL,
-  vcovProduce = FALSE)
+  "dlnorm", "dlaplace", "dlogis", "ds", "dchisq", "dpois", "dnbinom",
+  "plogis", "pnorm"), occurrence = c("none", "plogis", "pnorm"),
+  A = NULL, vcovProduce = FALSE)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to

@@ -111,11 +111,12 @@
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms
-#' @importFrom stats dchisq dlnorm dnorm dlogis
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom
 #' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset, na.action,
-                distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
+                distribution=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq",
+                               "dpois","dnbinom",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
                 A=NULL, vcovProduce=FALSE){
@@ -123,7 +124,7 @@ alm <- function(formula, data, subset, na.action,
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis","plogis","pnorm"))){
+    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq","dpois","dnbinom","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
                            "Use distribution='d",distribution,"' instead."),
@@ -193,9 +194,17 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dchisq"))){
+    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dchisq","dpois","dnbinom"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
+    }
+
+    if(any(distribution==c("dpois","dnbinom"))){
+        if(any(y!=trunc(y))){
+            stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
+                        "Maybe you should try some other distribution?"),
+                 call.=FALSE);
+        }
     }
 
     if(any(distribution==c("plogis","pnorm"))){
@@ -308,16 +317,29 @@ alm <- function(formula, data, subset, na.action,
     }
 
     fitter <- function(A, distribution, y, matrixXreg){
-        mu[] <- matrixXreg %*% A;
+        mu[] <- switch(distribution,
+                       "dchisq" =,
+                       "dpois" =,
+                       "dnbinom" = exp(matrixXreg %*% A),
+                       "dnorm" =,
+                       "dfnorm" =,
+                       "dlnorm" =,
+                       "dlaplace" =,
+                       "dlogis" =,
+                       "ds" =,
+                       "pnorm" =,
+                       "plogis" = matrixXreg %*% A);
 
         scale <- switch(distribution,
                         "dnorm" =,
                         "dfnorm" = sqrt(meanFast((y-mu)^2)),
                         "dlnorm" = sqrt(meanFast((log(y)-mu)^2)),
                         "dlaplace" = meanFast(abs(y-mu)),
+                        "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" = 2*mu,
-                        "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
+                        "dpois" = mu,
+                        "dnbinom" = mu^2 / (meanFast((y-mu)^2) - mu),
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -333,13 +355,16 @@ alm <- function(formula, data, subset, na.action,
                            "dfnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
                            "dlnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
                            "dlaplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "dchisq" = ifelseFast(any(fitterReturn$mu<=0),-1E+300,dchisq(y, df=fitterReturn$mu, log=TRUE)),
                            "dlogis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
-                           "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
-                                        plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                           "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "dchisq" = dchisq(y, df=fitterReturn$mu, log=TRUE),
+                           "dpois" = dpois(y, lambda=fitterReturn$mu, log=TRUE),
+                           "dnbinom" = ifelseFast(any(fitterReturn$scale<=0),-1E+300,
+                                                  dnbinom(y, mu=fitterReturn$mu, size=fitterReturn$scale, log=TRUE)),
                            "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
-                                       pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+                                       pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                           "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+                                        plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
         );
 
         CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);
@@ -353,8 +378,12 @@ alm <- function(formula, data, subset, na.action,
 
     #### Estimate parameters of the model ####
     if(is.null(A)){
-        if(distribution=="dlnorm"){
+        if(any(distribution==c("dlnorm","dchisq"))){
             A <- .lm.fit(matrixXreg,log(y))$coefficients
+        }
+        else if(any(distribution==c("dpois","dnbinom"))){
+            # We use a crude approximation here to get closer to log(y)... This is Box-Cox transformation with lambda=0.001
+            A <- .lm.fit(matrixXreg,(y^0.001-1) / 0.001)$coefficients;
         }
         else{
             A <- .lm.fit(matrixXreg,y)$coefficients;
@@ -383,12 +412,14 @@ alm <- function(formula, data, subset, na.action,
     ### Fitted values in the scale of the original variable
     yFitted[] <- switch(distribution,
                        "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
+                       "dnorm" =,
                        "dlaplace" =,
-                       "ds" =,
                        "dlogis" =,
+                       "ds" =,
                        "dchisq" =,
-                       "dnorm" = mu,
-                       "dlnorm" = exp(mu),
+                       "dpois" =,
+                       "dnbinom" =,
+                       "dlnorm" = mu,
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
     );
@@ -397,10 +428,12 @@ alm <- function(formula, data, subset, na.action,
     errors[] <- switch(distribution,
                        "dfnorm" =,
                        "dlaplace" =,
-                       "ds" =,
                        "dlogis" =,
-                       "dnorm" = y - mu,
-                       "dchisq" =,
+                       "ds" =,
+                       "dnorm" =,
+                       "dpois" =,
+                       "dnbinom" =,
+                       "dchisq" = y - mu,
                        "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
@@ -412,8 +445,8 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            if(distribution=="dchisq"){
-                method.args <- list(d=1e-5, r=4);
+            if(any(distribution==c("dpois","dnbinom"))){
+                method.args <- list(d=1e-8, r=4);
             }
             else{
                 method.args <- list(d=1e-4, r=4);

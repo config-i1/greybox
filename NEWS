@@ -30,6 +30,8 @@ Changes:
 * pointLik.alm() method for alm class.
 * alm() now extracts meaningful residuals depending on the distribution used. e.g. dnorm -> y - mu, dlnorm -> log(y) - mu
 * stepwise() now allows defining occurrence model. So now you can do something like: stepwise(ourData, distribution="dlnorm", occurrence=stepwise(ourData, distribution="plogis"))
+* predict function now returns probabilities for the lower and upper intervals. So if you had side="upper", then the lower will be "0", and the upper will be the specified level.
+* dpois and dnbinom distributions in alm. alm() allows producing prediction intervals for both of them. But covariance matrix of parameters might be tough here...
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
