@@ -51,7 +51,7 @@
 #' If this is not \code{"none"}, then the model is estimated
 #' in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 #' (excluding zeroes from the data).
-#' @param A vector of parameters of the linear model. When \code{NULL}, it
+#' @param B vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
 #' @param vcovProduce whether to produce variance-covariance matrix of
 #' coefficients or not. This is done via hessian calculation, so might be
@@ -119,7 +119,7 @@ alm <- function(formula, data, subset, na.action,
                                "dpois","dnbinom",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
-                A=NULL, vcovProduce=FALSE){
+                B=NULL, vcovProduce=FALSE){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     cl <- match.call();
@@ -325,11 +325,11 @@ alm <- function(formula, data, subset, na.action,
         return(sum(x) / length(x));
     }
 
-    fitter <- function(A, distribution, y, matrixXreg){
+    fitter <- function(B, distribution, y, matrixXreg){
         mu[] <- switch(distribution,
                        "dchisq" =,
-                       "dpois" = exp(matrixXreg %*% A),
-                       "dnbinom" = exp(matrixXreg %*% A[-1]),
+                       "dpois" = exp(matrixXreg %*% B),
+                       "dnbinom" = exp(matrixXreg %*% B[-1]),
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
@@ -337,7 +337,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlogis" =,
                        "ds" =,
                        "pnorm" =,
-                       "plogis" = matrixXreg %*% A);
+                       "plogis" = matrixXreg %*% B);
 
         scale <- switch(distribution,
                         "dnorm" =,
@@ -348,7 +348,7 @@ alm <- function(formula, data, subset, na.action,
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" = 2*mu,
                         "dpois" = mu,
-                        "dnbinom" = A[1],
+                        "dnbinom" = B[1],
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -356,8 +356,8 @@ alm <- function(formula, data, subset, na.action,
         return(list(mu=mu,scale=scale));
     }
 
-    CF <- function(A, distribution, y, matrixXreg){
-        fitterReturn <- fitter(A, distribution, y, matrixXreg);
+    CF <- function(B, distribution, y, matrixXreg){
+        fitterReturn <- fitter(B, distribution, y, matrixXreg);
 
         CFReturn <- switch(distribution,
                            "dnorm" = dnorm(y, mean=fitterReturn$mu, sd=fitterReturn$scale, log=TRUE),
@@ -386,40 +386,40 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Estimate parameters of the model ####
-    if(is.null(A)){
+    if(is.null(B)){
         if(any(distribution==c("dlnorm","dchisq"))){
-            A <- .lm.fit(matrixXreg,log(y))$coefficients
+            B <- .lm.fit(matrixXreg,log(y))$coefficients
         }
         else{
-            A <- .lm.fit(matrixXreg,y)$coefficients;
+            B <- .lm.fit(matrixXreg,y)$coefficients;
         }
 
         if(distribution=="dnbinom"){
-            A <- c(var(y), A);
+            B <- c(var(y), B);
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
-        res <- nloptr(A, CF,
+        res <- nloptr(B, CF,
                       opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=100, print_level=0),
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
-        A[] <- res$solution;
+        B[] <- res$solution;
 
         CFValue <- res$objective;
     }
     else{
-        CFValue <- CF(A, distribution, y, matrixXreg);
+        CFValue <- CF(B, distribution, y, matrixXreg);
     }
 
     #### Form the fitted values, location and scale ####
-    fitterReturn <- fitter(A, distribution, y, matrixXreg);
+    fitterReturn <- fitter(B, distribution, y, matrixXreg);
     mu[] <- fitterReturn$mu;
     scale <- fitterReturn$scale;
 
     if(distribution=="dnbinom"){
-        names(A) <- c("size",variablesNames);
+        names(B) <- c("size",variablesNames);
     }
     else{
-        names(A) <- variablesNames;
+        names(B) <- variablesNames;
     }
 
     # Parameters of the model + scale
@@ -472,7 +472,7 @@ alm <- function(formula, data, subset, na.action,
             }
         }
         else{
-            vcovMatrix <- hessian(CF, A, method.args=method.args,
+            vcovMatrix <- hessian(CF, B, method.args=method.args,
                                   distribution=distribution, y=y, matrixXreg=matrixXreg);
         }
 
@@ -556,10 +556,10 @@ alm <- function(formula, data, subset, na.action,
     }
 
     if(distribution=="dnbinom"){
-        A <- A[-1];
+        B <- B[-1];
     }
 
-    finalModel <- list(coefficients=A, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
+    finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
                        df.residual=obsInsample-df, df=df, call=cl, rank=df, data=dataWork,
                        occurrence=occurrence, subset=subset);

@@ -1253,9 +1253,9 @@ vcov.alm <- function(object, ...){
         newCall$data <- object$data;
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
-        newCall$A <- coef(object);
+        newCall$B <- coef(object);
         if(object$distribution=="dnbinom"){
-            newCall$A <- c(object$scale, newCall$A);
+            newCall$B <- c(object$scale, newCall$B);
         }
         newCall$vcovProduce <- TRUE;
         newCall$occurrence <- object$occurrence;

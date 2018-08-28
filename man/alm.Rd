@@ -7,7 +7,7 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dfnorm",
   "dlnorm", "dlaplace", "dlogis", "ds", "dchisq", "dpois", "dnbinom",
   "plogis", "pnorm"), occurrence = c("none", "plogis", "pnorm"),
-  A = NULL, vcovProduce = FALSE)
+  B = NULL, vcovProduce = FALSE)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -42,7 +42,7 @@ If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 (excluding zeroes from the data).}
 
-\item{A}{vector of parameters of the linear model. When \code{NULL}, it
+\item{B}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
 
 \item{vcovProduce}{whether to produce variance-covariance matrix of
