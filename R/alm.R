@@ -120,6 +120,7 @@ alm <- function(formula, data, subset, na.action,
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
                 A=NULL, vcovProduce=FALSE){
+# Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     cl <- match.call();
 
@@ -327,8 +328,8 @@ alm <- function(formula, data, subset, na.action,
     fitter <- function(A, distribution, y, matrixXreg){
         mu[] <- switch(distribution,
                        "dchisq" =,
-                       "dpois" =,
-                       "dnbinom" = exp(matrixXreg %*% A),
+                       "dpois" = exp(matrixXreg %*% A),
+                       "dnbinom" = exp(matrixXreg %*% A[-1]),
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
@@ -347,7 +348,7 @@ alm <- function(formula, data, subset, na.action,
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" = 2*mu,
                         "dpois" = mu,
-                        "dnbinom" = mu^2 / (meanFast((y-mu)^2) - mu),
+                        "dnbinom" = A[1],
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -375,7 +376,7 @@ alm <- function(formula, data, subset, na.action,
                                         plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
         );
 
-        CFReturn <- -sum(CFReturn[is.finite(CFReturn)]);
+        CFReturn <- -sum(CFReturn);
 
         if(is.nan(CFReturn) | is.na(CFReturn) | is.infinite(CFReturn)){
             CFReturn <- 1E+300;
@@ -389,30 +390,37 @@ alm <- function(formula, data, subset, na.action,
         if(any(distribution==c("dlnorm","dchisq"))){
             A <- .lm.fit(matrixXreg,log(y))$coefficients
         }
-        else if(any(distribution==c("dpois","dnbinom"))){
-            # We use a crude approximation here to get closer to log(y)... This is Box-Cox transformation with lambda=0.001
-            A <- .lm.fit(matrixXreg,(y^0.001-1) / 0.001)$coefficients;
-        }
         else{
             A <- .lm.fit(matrixXreg,y)$coefficients;
         }
 
+        if(distribution=="dnbinom"){
+            A <- c(var(y), A);
+        }
+
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(A, CF,
-                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-8, maxeval=500),
+                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=100, print_level=0),
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
         A[] <- res$solution;
+
         CFValue <- res$objective;
     }
     else{
         CFValue <- CF(A, distribution, y, matrixXreg);
     }
-    names(A) <- variablesNames;
 
     #### Form the fitted values, location and scale ####
     fitterReturn <- fitter(A, distribution, y, matrixXreg);
     mu[] <- fitterReturn$mu;
     scale <- fitterReturn$scale;
+
+    if(distribution=="dnbinom"){
+        names(A) <- c("size",variablesNames);
+    }
+    else{
+        names(A) <- variablesNames;
+    }
 
     # Parameters of the model + scale
     df <- nVariables + 1;
@@ -453,12 +461,7 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            if(any(distribution==c("dnbinom"))){
-                method.args <- list(d=1e-8, r=4);
-            }
-            else{
-                method.args <- list(d=1e-4, r=4);
-            }
+            method.args <- list(d=1e-4, r=4);
         }
 
         if(distribution=="dpois"){
@@ -471,6 +474,10 @@ alm <- function(formula, data, subset, na.action,
         else{
             vcovMatrix <- hessian(CF, A, method.args=method.args,
                                   distribution=distribution, y=y, matrixXreg=matrixXreg);
+        }
+
+        if(distribution=="dnbinom"){
+            vcovMatrix <- vcovMatrix[-1,-1];
         }
 
         if(any(is.nan(vcovMatrix))){
@@ -546,6 +553,10 @@ alm <- function(formula, data, subset, na.action,
         CFValue <- CFValue - occurrence$logLik;
 
         dataWork <- eval(mf, parent.frame());
+    }
+
+    if(distribution=="dnbinom"){
+        A <- A[-1];
     }
 
     finalModel <- list(coefficients=A, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),

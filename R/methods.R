@@ -181,6 +181,9 @@ pointLik.alm <- function(object, ...){
     distribution <- object$distribution;
     y <- getResponse(object);
     ot <- y!=0;
+    if(is.alm(object$occurrence)){
+        y <- y[ot];
+    }
     mu <- object$mu;
     scale <- object$scale;
 
@@ -209,8 +212,9 @@ pointLik.alm <- function(object, ...){
 
     # If this is a mixture model, take the respective probabilities into account
     if(is.alm(object$occurrence)){
-        likValues[!ot] <- 0;
-        likValues[] <- likValues + pointLik(object$occurrence);
+        likValuesNew <- pointLik(object$occurrence);
+        likValuesNew[ot] <- likValuesNew[ot] + likValues;
+        likValues <- likValuesNew;
     }
 
     return(likValues);
@@ -523,7 +527,8 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     }
     else if(object$distribution=="dnbinom"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
-        greyboxForecast$scale <- greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean);
+        # greyboxForecast$scale <- greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean);
+        greyboxForecast$scale <- object$scale;
         if(interval=="p"){
             greyboxForecast$lower <- qnbinom(levelLow,mu=greyboxForecast$mean,size=greyboxForecast$scale);
             greyboxForecast$upper <- qnbinom(levelUp,mu=greyboxForecast$mean,size=greyboxForecast$scale);
@@ -1245,9 +1250,13 @@ vcov.alm <- function(object, ...){
     else{
         # Form the call for alm
         newCall <- object$call;
-        newCall$data = object$data;
+        newCall$data <- object$data;
+        newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
         newCall$A <- coef(object);
+        if(object$distribution=="dnbinom"){
+            newCall$A <- c(object$scale, newCall$A);
+        }
         newCall$vcovProduce <- TRUE;
         newCall$occurrence <- object$occurrence;
         # Recall alm to get hessian

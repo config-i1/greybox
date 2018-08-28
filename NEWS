@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-25)
+greybox v0.3.1 (Release data: 2018-08-29)
 ==============
 
 Changes:
@@ -32,11 +32,13 @@ Changes:
 * stepwise() now allows defining occurrence model. So now you can do something like: stepwise(ourData, distribution="dlnorm", occurrence=stepwise(ourData, distribution="plogis"))
 * predict function now returns probabilities for the lower and upper intervals. So if you had side="upper", then the lower will be "0", and the upper will be the specified level.
 * dpois and dnbinom distributions in alm. alm() allows producing prediction intervals for both of them. But covariance matrix of parameters for dnbinom might be hard to calculate...
+* The dispersion parameter of dnbinom in alm() is now estimated separately, which now solves a lot of problems.
 
 Bugfixes:
 * Fixed a bug with the style="line" in rmc(), where the grouping would be wrong in cases, when one method significantly differs from the others.
 * logLik previously was not calculated correctly for the mixture models.
 * Bugfix in hessian calculation, when Choleski decomposition works...
+* Bugfix in pointLik for the models with occurrence.
 
 
 greybox v0.3.0 (Release data: 2018-08-05)
