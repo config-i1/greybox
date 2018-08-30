@@ -644,9 +644,6 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #' @export
 predict.greybox <- function(object, newdata, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
-    if(!is.data.frame(newdata)){
-        newdata <- as.data.frame(newdata);
-    }
     interval <- substr(interval[1],1,1);
 
     side <- substr(side[1],1,1);
@@ -664,12 +661,29 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
         levelUp <- (1 + level) / 2;
     }
 
+    if(!is.data.frame(newdata)){
+        if(is.vector(newdata)){
+            newdataNames <- names(newdata);
+            newdata <- matrix(newdata, nrow=1, dimnames=list(NULL, newdataNames));
+        }
+        newdata <- as.data.frame(newdata);
+    }
+    nRows <- nrow(newdata);
+
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
 
-    matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
-    colnames(matrixOfxreg)[1] <- parametersNames[1];
+    if(any(parametersNames=="(Intercept)")){
+        matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+        colnames(matrixOfxreg)[1] <- parametersNames[1];
+    }
+
     matrixOfxreg <- matrixOfxreg[,parametersNames];
+
+    if(nRows==1){
+        matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
+    }
+
     ourForecast <- as.vector(matrixOfxreg %*% coef.greybox(object));
 
     paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);

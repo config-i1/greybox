@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-29)
+greybox v0.3.1 (Release data: 2018-08-30)
 ==============
 
 Changes:
@@ -40,6 +40,7 @@ Bugfixes:
 * logLik previously was not calculated correctly for the mixture models.
 * Bugfix in hessian calculation, when Choleski decomposition works...
 * Bugfix in pointLik for the models with occurrence.
+* predict() function failed with newdata with one observation.
 
 
 greybox v0.3.0 (Release data: 2018-08-05)
