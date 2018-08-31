@@ -327,7 +327,7 @@ alm <- function(formula, data, subset, na.action,
 
     fitter <- function(B, distribution, y, matrixXreg){
         mu[] <- switch(distribution,
-                       "dchisq" =,
+                       "dchisq" = abs(matrixXreg %*% B[-1])^2,
                        "dpois" = exp(matrixXreg %*% B),
                        "dnbinom" = exp(matrixXreg %*% B[-1]),
                        "dnorm" =,
@@ -346,9 +346,9 @@ alm <- function(formula, data, subset, na.action,
                         "dlaplace" = meanFast(abs(y-mu)),
                         "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
-                        "dchisq" = 2*mu,
+                        "dchisq" = abs(B[1]),
                         "dpois" = mu,
-                        "dnbinom" = B[1],
+                        "dnbinom" = abs(B[1]),
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -366,10 +366,9 @@ alm <- function(formula, data, subset, na.action,
                            "dlaplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "dlogis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
                            "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
-                           "dchisq" = dchisq(y, df=fitterReturn$mu, log=TRUE),
+                           "dchisq" = dchisq(y, df=fitterReturn$scale, ncp=fitterReturn$mu, log=TRUE),
                            "dpois" = dpois(y, lambda=fitterReturn$mu, log=TRUE),
-                           "dnbinom" = ifelseFast(any(fitterReturn$scale<=0),-1E+300,
-                                                  dnbinom(y, mu=fitterReturn$mu, size=fitterReturn$scale, log=TRUE)),
+                           "dnbinom" = dnbinom(y, mu=fitterReturn$mu, size=fitterReturn$scale, log=TRUE),
                            "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
                                        pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
                            "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
@@ -387,8 +386,11 @@ alm <- function(formula, data, subset, na.action,
 
     #### Estimate parameters of the model ####
     if(is.null(B)){
-        if(any(distribution==c("dlnorm","dchisq"))){
-            B <- .lm.fit(matrixXreg,log(y))$coefficients
+        if(distribution=="dlnorm"){
+            B <- .lm.fit(matrixXreg,log(y))$coefficients;
+        }
+        else if(distribution=="dchisq"){
+            B <- .lm.fit(matrixXreg,sqrt(y))$coefficients;
         }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
@@ -396,6 +398,9 @@ alm <- function(formula, data, subset, na.action,
 
         if(distribution=="dnbinom"){
             B <- c(var(y), B);
+        }
+        else if(distribution=="dchisq"){
+            B <- c(1, B);
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
@@ -418,6 +423,10 @@ alm <- function(formula, data, subset, na.action,
     if(distribution=="dnbinom"){
         names(B) <- c("size",variablesNames);
     }
+    else if(distribution==c("dchisq")){
+        scale <- abs(B[1]);
+        names(B) <- c("df",variablesNames);
+    }
     else{
         names(B) <- variablesNames;
     }
@@ -432,9 +441,9 @@ alm <- function(formula, data, subset, na.action,
                        "dlaplace" =,
                        "dlogis" =,
                        "ds" =,
-                       "dchisq" =,
                        "dpois" =,
                        "dnbinom" = mu,
+                       "dchisq" = mu + scale,
                        "dlnorm" = exp(mu),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
@@ -476,7 +485,7 @@ alm <- function(formula, data, subset, na.action,
                                   distribution=distribution, y=y, matrixXreg=matrixXreg);
         }
 
-        if(distribution=="dnbinom"){
+        if(any(distribution==c("dchisq","dnbinom"))){
             vcovMatrix <- vcovMatrix[-1,-1];
         }
 
@@ -555,7 +564,7 @@ alm <- function(formula, data, subset, na.action,
         dataWork <- eval(mf, parent.frame());
     }
 
-    if(distribution=="dnbinom"){
+    if(any(distribution==c("dchisq","dnbinom"))){
         B <- B[-1];
     }
 

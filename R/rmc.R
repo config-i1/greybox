@@ -259,13 +259,13 @@ plot.rmc <- function(x, ...){
     parDefault <- par(no.readonly=TRUE);
     parMar <- parDefault$mar;
 
-    if(x$p.value > 1-x$level){
-        pointCol <- "darkgrey";
-        lineCol <- "grey";
-    }
-    else{
+    if(ncol(x$groups)>1){
         pointCol <- "#0C6385";
         lineCol <- "#0DA0DC";
+    }
+    else{
+        pointCol <- "darkgrey";
+        lineCol <- "grey";
     }
 
     if(("style" %in% argsNames)){

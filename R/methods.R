@@ -196,7 +196,7 @@ pointLik.alm <- function(object, ...){
                         "ds" = ds(y, mu=mu, b=scale, log=TRUE),
                         "dpois" = dpois(y, lambda=mu, log=TRUE),
                         "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
-                        "dchisq" = dchisq(y, df=mu, log=TRUE),
+                        "dchisq" = dchisq(y, df=scale, ncp=mu, log=TRUE),
                         "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                      plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                         "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -479,16 +479,17 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
                                      greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
     }
     else if(object$distribution=="dchisq"){
-        greyboxForecast$mean <- exp(greyboxForecast$mean);
-        if(interval!="n"){
-            greyboxForecast$lower <- qchisq(levelLow,greyboxForecast$mean);
-            greyboxForecast$upper <- qchisq(levelUp,greyboxForecast$mean);
+        greyboxForecast$mean <- greyboxForecast$mean^2;
+        if(interval=="p"){
+            greyboxForecast$lower <- qchisq(levelLow,df=object$scale,ncp=greyboxForecast$mean);
+            greyboxForecast$upper <- qchisq(levelUp,df=object$scale,ncp=greyboxForecast$mean);
         }
         else if(interval=="c"){
-            greyboxForecast$lower <- exp(greyboxForecast$lower);
-            greyboxForecast$upper <- exp(greyboxForecast$upper);
+            greyboxForecast$lower <- (greyboxForecast$lower)^2;
+            greyboxForecast$upper <- (greyboxForecast$upper)^2;
         }
-        greyboxForecast$scale <- 2*greyboxForecast$mean;
+        greyboxForecast$mean <- greyboxForecast$mean + object$scale;
+        greyboxForecast$scale <- object$scale;
     }
     else if(object$distribution=="dlnorm"){
         if(interval=="p"){
@@ -1268,7 +1269,7 @@ vcov.alm <- function(object, ...){
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
         newCall$B <- coef(object);
-        if(object$distribution=="dnbinom"){
+        if(any(object$distribution==c("dchisq","dnbinom"))){
             newCall$B <- c(object$scale, newCall$B);
         }
         newCall$vcovProduce <- TRUE;
