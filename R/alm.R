@@ -327,8 +327,8 @@ alm <- function(formula, data, subset, na.action,
 
     fitter <- function(B, distribution, y, matrixXreg){
         mu[] <- switch(distribution,
-                       "dchisq" = abs(matrixXreg %*% B[-1])^2,
                        "dpois" = exp(matrixXreg %*% B),
+                       "dchisq" =,
                        "dnbinom" = exp(matrixXreg %*% B[-1]),
                        "dnorm" =,
                        "dfnorm" =,
@@ -337,7 +337,8 @@ alm <- function(formula, data, subset, na.action,
                        "dlogis" =,
                        "ds" =,
                        "pnorm" =,
-                       "plogis" = matrixXreg %*% B);
+                       "plogis" = matrixXreg %*% B
+        );
 
         scale <- switch(distribution,
                         "dnorm" =,
@@ -346,9 +347,9 @@ alm <- function(formula, data, subset, na.action,
                         "dlaplace" = meanFast(abs(y-mu)),
                         "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
-                        "dchisq" = abs(B[1]),
-                        "dpois" = mu,
+                        "dchisq" =,
                         "dnbinom" = abs(B[1]),
+                        "dpois" = mu,
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
         );
@@ -386,11 +387,8 @@ alm <- function(formula, data, subset, na.action,
 
     #### Estimate parameters of the model ####
     if(is.null(B)){
-        if(distribution=="dlnorm"){
+        if(any(distribution==c("dlnorm","dchisq"))){
             B <- .lm.fit(matrixXreg,log(y))$coefficients;
-        }
-        else if(distribution=="dchisq"){
-            B <- .lm.fit(matrixXreg,sqrt(y))$coefficients;
         }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
@@ -457,9 +455,9 @@ alm <- function(formula, data, subset, na.action,
                        "ds" =,
                        "dnorm" =,
                        "dpois" =,
-                       "dnbinom" =,
-                       "dchisq" = y - mu,
-                       "dlnorm"= log(y) - mu,
+                       "dnbinom" = y - mu,
+                       "dchisq" =,
+                       "dlnorm"= log(y) - log(mu),
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );

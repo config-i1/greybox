@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-08-30)
+greybox v0.3.1 (Release data: 2018-09-02)
 ==============
 
 Changes:
@@ -34,7 +34,7 @@ Changes:
 * dpois and dnbinom distributions in alm. alm() allows producing prediction intervals for both of them. But covariance matrix of parameters for dnbinom might be hard to calculate...
 * The dispersion parameter of dnbinom in alm() is now estimated separately, which now solves a lot of problems.
 * Renamed parameter A into B for alm(). Very serious thing!
-* distribution="dchisq" in alm() now estimates the non-central Chi Squared distribution. The returned scale corresponds to the estimated number of degrees of freedom, while mu is the squared expectation.
+* distribution="dchisq" in alm() now estimates the non-central Chi Squared distribution. The returned scale corresponds to the estimated number of degrees of freedom, while mu is the exponent of the expectation.
 * rmc() now colours the lines depending on the number of groups. If there's only one, then there's one group and the differences are not significant.
 
 Bugfixes:
