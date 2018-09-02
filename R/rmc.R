@@ -120,8 +120,7 @@
 #' rmc(abs(ourData), distribution="dfnorm", level=0.95)
 #'
 #' # In case of SE-based measures, distribution="dchisq" should be selected
-#' rmc((ourData-matrix(apply(ourData,2,mean),nrow(ourData),ncol(ourData),
-#'                     byrow=TRUE))^2, distribution="dchisq", level=0.95)
+#' rmc(ourData^2, distribution="dchisq", level=0.95)
 #'
 #' # APE-based measures should not be used in general...
 #'
