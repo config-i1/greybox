@@ -388,7 +388,12 @@ alm <- function(formula, data, subset, na.action,
     #### Estimate parameters of the model ####
     if(is.null(B)){
         if(any(distribution==c("dlnorm","dchisq"))){
-            B <- .lm.fit(matrixXreg,log(y))$coefficients;
+            if(any(y[ot]==0)){
+                B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
+            }
+            else{
+                B <- .lm.fit(matrixXreg,log(y))$coefficients;
+            }
         }
         else if(any(distribution==c("dpois","dnbinom")) & all(y[ot]!=0)){
             # Use log in case of no zeroes...
