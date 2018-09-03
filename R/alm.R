@@ -465,8 +465,8 @@ alm <- function(formula, data, subset, na.action,
                        "dnorm" =,
                        "dpois" =,
                        "dnbinom" = y - mu,
-                       "dchisq" =,
-                       "dlnorm"= log(y) - log(mu),
+                       "dchisq" = log(y) - log(mu),
+                       "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );
