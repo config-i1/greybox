@@ -390,6 +390,10 @@ alm <- function(formula, data, subset, na.action,
         if(any(distribution==c("dlnorm","dchisq"))){
             B <- .lm.fit(matrixXreg,log(y))$coefficients;
         }
+        else if(any(distribution==c("dpois","dnbinom")) & all(y[ot]!=0)){
+            # Use log in case of no zeroes...
+            B <- .lm.fit(matrixXreg,log(y))$coefficients;
+        }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
         }

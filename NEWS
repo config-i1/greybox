@@ -1,4 +1,4 @@
-greybox v0.3.1 (Release data: 2018-09-02)
+greybox v0.3.1 (Release data: 2018-09-03)
 ==============
 
 Changes:
@@ -43,6 +43,7 @@ Bugfixes:
 * Bugfix in hessian calculation, when Choleski decomposition works...
 * Bugfix in pointLik for the models with occurrence.
 * predict() function failed with newdata with one observation.
+* Initials of both Poisson and NegBin in case of non-zero data are now taken with logs. This leads to more robust starting points.
 
 
 greybox v0.3.0 (Release data: 2018-08-05)
