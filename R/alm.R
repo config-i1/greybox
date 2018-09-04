@@ -125,7 +125,8 @@ alm <- function(formula, data, subset, na.action,
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq","dpois","dnbinom","plogis","pnorm"))){
+    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq",
+                           "dpois","dnbinom","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
                            "Use distribution='d",distribution,"' instead."),
@@ -465,7 +466,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnorm" =,
                        "dpois" =,
                        "dnbinom" = y - mu,
-                       "dchisq" = log(y) - log(mu),
+                       "dchisq" = log(y) - log(yFitted),
                        "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
