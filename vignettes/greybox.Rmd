@@ -23,18 +23,19 @@ There are three well-known notions of "boxes" in modelling:
 
 The whiteboxes are usually used in optimisations (e.g. linear programming), while blackboxes are popular in machine learning. As for the greybox models, they are more often used in analysis and forecasting. So the package greybox contains models that are used for these purposes.
 
-At the moment the package contains several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing.
+At the moment the package contains advanced linear model function and several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing. This is the main philosophical point of `greybox`.
 
 ## Main functions
 
 The package includes the following functions:
 
-1. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
-2. `lmCombine()` - combine the linear models into one using IC weights;
-3. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
-4. `xregExpander()` - expand the provided data by including leads and lags of the variables.
-5. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-6. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples.
+1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage.
+2. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
+3. `lmCombine()` - combine the linear models into one using IC weights;
+4. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
+5. `xregExpander()` - expand the provided data by including leads and lags of the variables.
+6. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
+7. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
