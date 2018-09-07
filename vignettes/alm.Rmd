@@ -42,7 +42,7 @@ where $y_t$ is a value of the response variable, $x_t$ is a vector of exogenous 
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
         o_t ~ \text{Bernoulli}(p_t) \\
-        p_t = g(z_t' A, \varepsilon_t)
+        p_t = g(z_t' A, \eta_t)
     \end{matrix},
 \end{equation}
 where $o_t$ is a binary variable, $p_t$ is the probability of occurrence, $z_t$ is a vector of exogenous variables, $A$ is a vector of parameters and $\varepsilon$ is a the error term for the $p_t$.
@@ -186,7 +186,7 @@ The density function of Noncentral Chi Squared distribution is quite difficult. 
 \begin{equation} \label{eq:NCChiSquared}
     f(y_t) = \frac{1}{2} \exp \left( -\frac{y_t + \lambda_t}{2} \right) \left(\frac{y_t}{\lambda_t} \right)^{\frac{k}{4}-0.5} I_{\frac{k}{2}-1}(\sqrt{\lambda_t y_t}),
 \end{equation}
-where $I_k(x)$ is a Bessel function of the first kind. The $lambda_t$ parameter is estimated from a regression with exogenous variables:
+where $I_k(x)$ is a Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables:
 \begin{equation} \label{eq:lambdaValue}
     \lambda_t = \exp ( x_t' B ) ,
 \end{equation}
@@ -230,7 +230,7 @@ In both of them it is assumed that the response variable is binary and can be ei
 \begin{equation} \label{eq:basicALMCumulative}
     \begin{matrix}
         o_t ~ \text{Bernoulli}(p_t) \\
-        p_t = g(z_t' A, \varepsilon_t)
+        p_t = g(x_t' A, \eta_t)
     \end{matrix},
 \end{equation}
 where $o_t$ is the binary response variable and $g(\cdot)$ is the cumulative distribution function. Given that we work with the probability of occurrence, the `predict()` method produces forecasts for the probability of occurrence rather than the binary variable itself. Finally, although many other cumulative distribution functions can be used for this transformation (e.g. `plaplace()` or `plnorm()`), the most popular ones are logistic and normal CDFs.
@@ -241,22 +241,22 @@ Given that the binary variable has Bernoulli distribution, its log-likelihood is
 \end{equation}
 So the estimation of parameters for all the CDFs can be done maximising this likelihood.
 
-In all the functions it is assumed that there is an actual level $\alpha_t$ that underlies the probability $p_t$. This level can be modelled as:
+In all the functions it is assumed that there is an actual level $q_t$ that underlies the probability $p_t$. This level can be modelled as:
 \begin{equation} \label{eq:CDFLevelALM}
-    \alpha_t = \nu_t + \varepsilon_t ,
+    q_t = a_t + \eta_t ,
 \end{equation}
-and it can be transformed to the probability with $p_t = g(\alpha_t)$. So the aim of all the functions is to estimate the $\nu_t$ and transform it to the estimate of the probability $\hat{p}_t$.
+and it can be transformed to the probability with $p_t = g(q_t)$. So the aim of all the functions is to estimate the $a_t$ and transform it to the estimate of the probability $\hat{p}_t$.
 
-In order to estimate the error $\varepsilon_t$, we assume that $o_t=1$ happens mainly when the respective estimated probability $\hat{p}_t$ is very close to one as well. Based on that the error can be calculated as:
+In order to estimate the error $\eta_t$, we assume that $o_t=1$ happens mainly when the respective estimated probability $\hat{p}_t$ is very close to one as well. Based on that the error can be calculated as:
 \begin{equation} \label{eq:BinaryError}
     u_t' = o_t - \hat{p}_t .
 \end{equation}
-However this error is not useful and should be somehow transformed into the scale of the underlying unobserved variable $\alpha_t$. Given that both $o_t \in (0, 1)$ and $\hat{p}_t \in (0, 1)$, the error will lie in $(-1, 1)$. We therefore standardise it so that it lies in the region of $(0, 1)$:
+However this error is not useful and should be somehow transformed into the scale of the underlying unobserved variable $q_t$. Given that both $o_t \in (0, 1)$ and $\hat{p}_t \in (0, 1)$, the error will lie in $(-1, 1)$. We therefore standardise it so that it lies in the region of $(0, 1)$:
 \begin{equation} \label{eq:BinaryErrorBounded}
     u_t = \frac{u_t' + 1}{2} = \frac{o_t - \hat{p}_t + 1}{2}.
 \end{equation}
 
-This transformation means that, when $o_t=\hat{p}_t$, then the error $u_t=0.5$, when $o_t=1$ and $\hat{p}_t=0$ then $u_t=1$ and finally, in the opposite case of $o_t=0$ and $\hat{p}_t=1$, it is $u_t=0$. After that this error is transformed using either Logistic or Normal quantile generation function into the scale of $\alpha_t$, making sure that the case of $u_t=0.5$ corresponds to zero, the $u_t>0.5$ corresponds to the positive and $u_t<0.5$ corresponds to the negative errors.
+This transformation means that, when $o_t=\hat{p}_t$, then the error $u_t=0.5$, when $o_t=1$ and $\hat{p}_t=0$ then $u_t=1$ and finally, in the opposite case of $o_t=0$ and $\hat{p}_t=1$, it is $u_t=0$. After that this error is transformed using either Logistic or Normal quantile generation function into the scale of $q_t$, making sure that the case of $u_t=0.5$ corresponds to zero, the $u_t>0.5$ corresponds to the positive and $u_t<0.5$ corresponds to the negative errors.
 
 ### Cumulative Logistic distribution
 We have previously discussed the density function of logistic distribution. The standardised cumulative distribution function used in `alm()` is:
