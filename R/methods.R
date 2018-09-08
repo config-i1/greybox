@@ -887,41 +887,26 @@ plot.predict.greybox <- function(x, ...){
     if(!is.null(x$lower)){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
-        if(!requireNamespace("smooth", quietly = TRUE)){
-            plot(yActuals, type="l", xlim=range(start(yActuals),end(yForecast)), ...);
-            lines(yFitted, col="purple", lwd=2);
-            lines(yForecast, col="blue", lwd=2);
-            lines(yLower, col="gray", lwd=2);
-            lines(yUpper, col="gray", lwd=2);
+
+        if(length(x$level)>2){
+            level <- round(max(x$level[-c(1:(length(x$level)/2))]-x$level[1:(length(x$level)/2)]),2);
         }
         else{
-            if(length(x$level)>2){
-                level <- round(max(x$level[-c(1:(length(x$level)/2))]-x$level[1:(length(x$level)/2)]),2);
-            }
-            else{
-                level <- diff(x$level);
-            }
-            if(any(is.infinite(yLower)) | any(is.na(yLower))){
-                yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level);
-            }
-            else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
-                smooth::graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level);
-            }
-            else{
-                smooth::graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level);
-            }
+            level <- diff(x$level);
+        }
+        if(any(is.infinite(yLower)) | any(is.na(yLower))){
+            yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
+            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level);
+        }
+        else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
+            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level);
+        }
+        else{
+            graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level);
         }
     }
     else{
-        if(!requireNamespace("smooth", quietly = TRUE)){
-            plot(yActuals, type="l", xlim=range(start(yActuals),end(yForecast)), ...);
-            lines(yForecast, col="blue", lwd=2);
-            lines(yFitted, col="purple", lwd=2);
-        }
-        else{
-            smooth::graphmaker(yActuals, yForecast, yFitted);
-        }
+        graphmaker(yActuals, yForecast, yFitted);
     }
 }
 
