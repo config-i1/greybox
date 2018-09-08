@@ -41,19 +41,19 @@ where $y_t$ is a value of the response variable, $x_t$ is a vector of exogenous 
 \begin{equation} \label{eq:basicALMMixture}
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
-        o_t ~ \text{Bernoulli}(p_t) \\
+        o_t \sim \text{Bernoulli}(p_t) \\
         p_t = g(z_t' A, \eta_t)
     \end{matrix},
 \end{equation}
-where $o_t$ is a binary variable, $p_t$ is the probability of occurrence, $z_t$ is a vector of exogenous variables, $A$ is a vector of parameters and $\varepsilon$ is a the error term for the $p_t$.
+where $o_t$ is a binary variable, $p_t$ is the probability of occurrence, $z_t$ is a vector of exogenous variables, $A$ is a vector of parameters and $\eta$ is a the error term for the $p_t$.
 
-The `alm()` function returns, along with the set of common for `lm()` variables (such as `coefficient` and `fitted.values`), the variable `mu`, which corresponds to the conditional mean used inside the distribution, and `scale` -- the second parameter, which usually corresponds to standard error or dispersion parameter. The values of these two variables vary from distribution to distribution.
+The `alm()` function returns, along with the set of common for `lm()` variables (such as `coefficient` and `fitted.values`), the variable `mu`, which corresponds to the conditional mean used inside the distribution, and `scale` -- the second parameter, which usually corresponds to standard error or dispersion parameter. The values of these two variables vary from distribution to distribution. Note, however, that the `model` variable returned by `lm()` function was renamed into `data` in `alm()`, and that `alm()` does not return `terms` and QR decomposition.
 
 Given that the parameters of any model in `alm()` are estimated via likelihood, it can be assumed that they have assymptotically normal distribution, thus the confidence intervals for any model rely on the normality and are constructed based on the unbiased estimate of variance, extracted using `sigma()` function.
 
-The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution funtion.
+The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution funtion. The exclusions are Normal, Log-Normal, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
 
-Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually.
+Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
 ## General continuous density distributions
 This group of functions includes:
@@ -229,7 +229,7 @@ The final class of models includes two cases:
 In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with a binary one. As a reminder, all the models eventually assume that:
 \begin{equation} \label{eq:basicALMCumulative}
     \begin{matrix}
-        o_t ~ \text{Bernoulli}(p_t) \\
+        o_t \sim \text{Bernoulli}(p_t) \\
         p_t = g(x_t' A, \eta_t)
     \end{matrix},
 \end{equation}
