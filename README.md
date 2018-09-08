@@ -17,6 +17,7 @@ The list of included functions:
 9. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 10. qs, ds, rs, ps - functions for S distribution.
 11. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
+12. graphmaker - plots the original series, the fitted values and the forecasts.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
@@ -27,7 +28,7 @@ Methods already implemented:
 3. summary - returns summary of the regression (either selected or combined).
 4. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
 5. confint - confidence intervals for combined models.
-6. forecast - point and interval forecasts for the response variable.
+6. predict, forecast - point and interval forecasts for the response variable.
 7. nParam - returns number of parameters of a model.
 8. getResponse - returns the response variable from the model.
 9. plot - plots the basic linear graph of actuals and fitted. Similar thing plots graphs for forecasts of greybox functions.
