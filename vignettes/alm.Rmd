@@ -177,6 +177,12 @@ Conditional mean and variance of Folded Normal are estimated in `alm()` (with `d
 \end{equation}
 where $\Phi(\cdot)$ is the CDF of Normal distribution.
 
+The model with Folded Normal distribution can be also summarised as:
+\begin{equation} \label{eq:foldedNormalModel}
+    y_t = \left| \mu_t + \epsilon_t \right| ,
+\end{equation}
+where $\epsilon_t$ is normally distributed error term.
+
 The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
 ### Noncentral Chi Squared distribution
@@ -190,7 +196,15 @@ where $I_k(x)$ is a Bessel function of the first kind. The $\lambda_t$ parameter
 \begin{equation} \label{eq:lambdaValue}
     \lambda_t = \exp ( x_t' B ) ,
 \end{equation}
-where $\exp$ is taken in order to make $\lambda_t$ strictly positive, while $k$ is estimated directly by maximising the likelihood. In order to avoid the negative values of $k$, it's absolute value is used. $\lambda_t$ is then returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \log y_t - \log \mu_t$.
+where $\exp$ is taken in order to make $\lambda_t$ strictly positive, while $k$ is estimated directly by maximising the likelihood. In order to avoid the negative values of $k$, it's absolute value is used.
+
+The model with Chi Squared distribution can be also summarised as:
+\begin{equation} \label{eq:chiSquaredModel}
+    y_t = \left( \mu_t + \epsilon_t \right) ^2,
+\end{equation}
+where $\epsilon_t$ is normally distributed error term.
+
+$\lambda_t$ is then returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \log y_t - \log \mu_t$.
 
 
 ## Discrete density functions
