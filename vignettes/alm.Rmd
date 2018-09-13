@@ -257,9 +257,9 @@ So the estimation of parameters for all the CDFs can be done maximising this lik
 
 In all the functions it is assumed that there is an actual level $q_t$ that underlies the probability $p_t$. This level can be modelled as:
 \begin{equation} \label{eq:CDFLevelALM}
-    q_t = a_t + \eta_t ,
+    q_t = \nu_t + \eta_t ,
 \end{equation}
-and it can be transformed to the probability with $p_t = g(q_t)$. So the aim of all the functions is to estimate the $a_t$ and transform it to the estimate of the probability $\hat{p}_t$.
+and it can be transformed to the probability with $p_t = g(q_t)$. So the aim of all the functions is to estimate the expectation $\nu_t$ and transform it to the estimate of the probability $\hat{p}_t$.
 
 In order to estimate the error $\eta_t$, we assume that $o_t=1$ happens mainly when the respective estimated probability $\hat{p}_t$ is very close to one as well. Based on that the error can be calculated as:
 \begin{equation} \label{eq:BinaryError}
