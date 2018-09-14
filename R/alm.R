@@ -501,14 +501,14 @@ alm <- function(formula, data, subset, na.action,
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                            "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                            "Try a different distribution maybe?"), call.=FALSE);
-            vcovMatrix <- 1e-10*diag(nVariables);
+            vcovMatrix <- 1e+100*diag(nVariables);
         }
         else{
             if(any(vcovMatrix==0)){
                 warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                                "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                                "Try a different distribution maybe?"), call.=FALSE);
-                vcovMatrix <- 1e-10*diag(nVariables);
+                vcovMatrix <- 1e+100*diag(nVariables);
             }
             else{
                 # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
