@@ -329,7 +329,7 @@ alm <- function(formula, data, subset, na.action,
     fitter <- function(B, distribution, y, matrixXreg){
         mu[] <- switch(distribution,
                        "dpois" = exp(matrixXreg %*% B),
-                       "dchisq" =,
+                       "dchisq" = ifelseFast(any(matrixXreg %*% B[-1] <0),1E+100,(matrixXreg %*% B[-1])^2),
                        "dnbinom" = exp(matrixXreg %*% B[-1]),
                        "dnorm" =,
                        "dfnorm" =,
@@ -388,7 +388,7 @@ alm <- function(formula, data, subset, na.action,
 
     #### Estimate parameters of the model ####
     if(is.null(B)){
-        if(any(distribution==c("dlnorm","dchisq"))){
+        if(any(distribution==c("dlnorm"))){
             if(any(y[ot]==0)){
                 B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
             }
@@ -465,8 +465,8 @@ alm <- function(formula, data, subset, na.action,
                        "ds" =,
                        "dnorm" = y - mu,
                        "dpois" =,
-                       "dnbinom" =,
-                       "dchisq" = log(y) - log(yFitted),
+                       "dnbinom" = log(y) - log(yFitted),
+                       "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)

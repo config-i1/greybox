@@ -168,20 +168,19 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 ### Folded Normal distribution
 Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
-\begin{equation} \label{eq:foldNormal}
+\begin{equation} \label{eq:foldedNormal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
 \end{equation}
 Conditional mean and variance of Folded Normal are estimated in `alm()` (with `distribution="dfnorm"`) similarly to how this is done for Normal distribution. They are returned in the variables `mu` and `scale` respectively. In order to produce the fitted value (which is returned in `fitted.values`), the following correction is done:
-\begin{equation} \label{eq:foldNormalFitted}
+\begin{equation} \label{eq:foldedNormalFitted}
     \hat{y_t} = \sqrt{\frac{2}{\pi}} \sigma \exp \left( -\frac{\mu_t^2}{2 \sigma^2} \right) + \mu_t \left(1 - 2 \Phi \left(-\frac{\mu_t}{\sigma} \right) \right),
 \end{equation}
 where $\Phi(\cdot)$ is the CDF of Normal distribution.
 
-The model with Folded Normal distribution can be also summarised as:
+The model that is assumed in the case of Folded Normal distribution can be summarised as:
 \begin{equation} \label{eq:foldedNormalModel}
-    y_t = \left| \mu_t + \epsilon_t \right| ,
+    y_t = \left| \mu_t + \epsilon_t \right|.
 \end{equation}
-where $\epsilon_t$ is normally distributed error term.
 
 The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
@@ -194,17 +193,17 @@ The density function of Noncentral Chi Squared distribution is quite difficult. 
 \end{equation}
 where $I_k(x)$ is a Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables:
 \begin{equation} \label{eq:lambdaValue}
-    \lambda_t = \exp ( x_t' B ) ,
+    \lambda_t = ( x_t' B )^2 ,
 \end{equation}
 where $\exp$ is taken in order to make $\lambda_t$ strictly positive, while $k$ is estimated directly by maximising the likelihood. In order to avoid the negative values of $k$, it's absolute value is used.
 
-The model with Chi Squared distribution can be also summarised as:
+The model that is assumed in the case of Noncentral Chi Squared distribution is:
 \begin{equation} \label{eq:chiSquaredModel}
-    y_t = \left( \mu_t + \epsilon_t \right) ^2,
+    y_t = \left( \mu_t + \epsilon_t \right)^2.
 \end{equation}
-where $\epsilon_t$ is normally distributed error term.
+Given that square function is not monotonic, there are always two sets of parameters that give exactly the same $\lambda_t$ with positive and negative $\mu_t$. The `alm()` function returns the positive one (due to the restrictions imposed on the solver).
 
-$\lambda_t$ is then returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \log y_t - \log \mu_t$.
+$\lambda_t$ is returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \sqrt{y_t} - \sqrt{\mu_t}$.
 
 
 ## Discrete density functions

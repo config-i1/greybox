@@ -3,6 +3,7 @@ greybox v0.3.2 (Release data: 2018-09-13)
 
 Changes:
 * Updates in the vignette of alm.
+* Although the square link is tricky in case of Chi Squared distribution, it is the correct thing to do. The alm() function now checks if the generated mu_t is positive, and if not, it returns a big number, forcing the solver to stick with the positive solution.
 
 Bugfixes:
 *
