@@ -421,6 +421,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         if(interval=="p"){
             level <- (level - (1 - occurrence$mean)) / occurrence$mean;
         }
+        level[level<0] <- 0;
         greyboxForecast$occurrence <- occurrence;
     }
 
@@ -437,8 +438,8 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         levelUp <- (1 + level) / 2;
     }
 
-    levelLow[level<0] <- 0;
-    levelUp[level<0] <- 0;
+    levelLow[levelLow<0] <- 0;
+    levelUp[levelUp<0] <- 0;
 
     if(object$distribution=="dlaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
@@ -889,7 +890,7 @@ plot.predict.greybox <- function(x, ...){
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
 
         if(length(x$level)>2){
-            level <- round(max(x$level[-c(1:(length(x$level)/2))]-x$level[1:(length(x$level)/2)]),2);
+            level <- round(max(x$level),2);
         }
         else{
             level <- diff(x$level);
