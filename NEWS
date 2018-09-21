@@ -1,4 +1,4 @@
-greybox v0.3.2 (Release data: 2018-09-19)
+greybox v0.3.2 (Release data: 2018-09-22)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 Bugfixes:
 * predict.alm() sometimes produced NAs in the lower bound.
 * When having varying probability, plot.predict sometimes struggled to use the correct value.
+* plot.predict.greybox() now passes values from ellipsis to graphmaker.
 
 
 greybox v0.3.1 (Release data: 2018-09-07)

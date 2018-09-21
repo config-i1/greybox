@@ -897,17 +897,17 @@ plot.predict.greybox <- function(x, ...){
         }
         if(any(is.infinite(yLower)) | any(is.na(yLower))){
             yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
-            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level);
+            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level, ...);
         }
         else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
-            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level);
+            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level, ...);
         }
         else{
-            graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level);
+            graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level, ...);
         }
     }
     else{
-        graphmaker(yActuals, yForecast, yFitted);
+        graphmaker(yActuals, yForecast, yFitted, ...);
     }
 }
 
