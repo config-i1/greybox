@@ -409,6 +409,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     interval <- substr(interval[1],1,1);
     side <- substr(side[1],1,1);
     h <- nrow(newdata);
+    levelOriginal <- level;
     greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
     greyboxForecast$location <- greyboxForecast$mean;
     greyboxForecast$scale <- sqrt(greyboxForecast$variance);
@@ -426,12 +427,12 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     }
 
     if(side=="u"){
-        levelLow <- 0;
+        levelLow <- rep(0,length(level));
         levelUp <- level;
     }
     else if(side=="l"){
         levelLow <- 1-level;
-        levelUp <- 1;
+        levelUp <- rep(1,length(level));
     }
     else{
         levelLow <- (1 - level) / 2;
@@ -441,7 +442,13 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     levelLow[levelLow<0] <- 0;
     levelUp[levelUp<0] <- 0;
 
-    if(object$distribution=="dlaplace"){
+    if(object$distribution=="dnorm"){
+        if(is.alm(object$occurrence) & interval!="n"){
+            greyboxForecast$lower <- qnorm(levelLow,greyboxForecast$mean,scale);
+            greyboxForecast$upper <- qnorm(levelUp,greyboxForecast$mean,scale);
+        }
+    }
+    else if(object$distribution=="dlaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         bValues <- sqrt(greyboxForecast$variances/2);
         if(interval!="n"){
@@ -577,7 +584,8 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         }
     }
 
-    greyboxForecast$level <- c(levelLow, levelUp);
+    greyboxForecast$level <- cbind(levelOriginal,levelLow, levelUp);
+    colnames(greyboxForecast$level) <- c("Original","Lower","Upper");
     return(structure(greyboxForecast,class="predict.greybox"));
 }
 
@@ -894,13 +902,19 @@ plot.predict.greybox <- function(x, ...){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
         yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
 
-        if(length(x$level)>2){
-            level <- round(max(x$level),2);
+        if(is.matrix(x$level)){
+            level <- x$level[1];
         }
         else{
-            level <- diff(x$level);
+            level <- x$level;
         }
-        if(any(is.infinite(yLower)) | any(is.na(yLower))){
+
+        if((any(is.infinite(yLower)) & any(is.infinite(yUpper))) | (any(is.na(yLower)) & any(is.na(yUpper)))){
+            yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
+            yUpper[is.infinite(yUpper) | is.na(yUpper)] <- 0;
+            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level, ...);
+        }
+        else if(any(is.infinite(yLower)) | any(is.na(yLower))){
             yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
             graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level, ...);
         }
@@ -1080,7 +1094,12 @@ print.predict.greybox <- function(x, ...){
     colnames(ourMatrix) <- "Mean";
     if(!is.null(x$lower)){
         ourMatrix <- cbind(ourMatrix, x$lower, x$upper);
-        level <- x$level;
+        if(is.matrix(x$level)){
+            level <- colMeans(x$level)[-1];
+        }
+        else{
+            level <- x$level;
+        }
         colnames(ourMatrix)[2:3] <- c(paste0("Lower ",round(level[1],3)*100,"%"),paste0("Upper ",round(level[2],3)*100,"%"));
     }
     print(ourMatrix);
