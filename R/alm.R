@@ -586,7 +586,7 @@ alm <- function(formula, data, subset, na.action,
 
     finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
-                       df.residual=obsInsample-df, df=df, call=cl, rank=df, data=dataWork,
+                       df.residual=obsInsample-df, df=df, call=cl, rank=df, data=dataWork[,c(responseName,variablesNames[-1])],
                        occurrence=occurrence, subset=subset);
     return(structure(finalModel,class=c("alm","greybox")));
 }
