@@ -677,7 +677,12 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
 
     if(any(parametersNames=="(Intercept)")){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
-        colnames(matrixOfxreg)[1] <- parametersNames[1];
+        if(ncol(matrixOfxreg)==2){
+            colnames(matrixOfxreg) <- parametersNames;
+        }
+        else{
+            colnames(matrixOfxreg)[1] <- parametersNames[1];
+        }
     }
 
     matrixOfxreg <- matrixOfxreg[,parametersNames];
