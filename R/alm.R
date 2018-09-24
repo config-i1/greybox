@@ -388,17 +388,18 @@ alm <- function(formula, data, subset, na.action,
 
     #### Estimate parameters of the model ####
     if(is.null(B)){
-        if(any(distribution==c("dlnorm"))){
+        if(any(distribution==c("dlnorm","dpois","dnbinom"))){
             if(any(y[ot]==0)){
+                # Use Box-Cox if there are zeroes
                 B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
             }
             else{
                 B <- .lm.fit(matrixXreg,log(y))$coefficients;
             }
         }
-        else if(any(distribution==c("dpois","dnbinom")) & all(y[ot]!=0)){
-            # Use log in case of no zeroes...
-            B <- .lm.fit(matrixXreg,log(y))$coefficients;
+        else if(any(distribution==c("plogis","pnorm"))){
+            # Box-Cox transform in order to get meaningful initials
+            B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
         }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
@@ -411,9 +412,16 @@ alm <- function(formula, data, subset, na.action,
             B <- c(1, B);
         }
 
+        if(any(distribution==c("dpois","dnbinom","plogos","pnorm"))){
+            maxeval <- 500;
+        }
+        else{
+            maxeval <- 100;
+        }
+
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
-                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=100, print_level=0),
+                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=maxeval, print_level=0),
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
         B[] <- res$solution;
 
