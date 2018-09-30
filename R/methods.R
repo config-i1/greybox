@@ -227,6 +227,7 @@ pointLik.ets <- function(object, ...){
     if(errorType(object)=="M"){
         likValues[] <- likValues - log(abs(fitted(object)));
     }
+    # This correction is needed so that logLik(object) ~ sum(pointLik(object))
     likValues[] <- likValues + 0.5 * (log(2 * pi) + 1 - log(nobs(object)));
 
     return(likValues);
