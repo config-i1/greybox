@@ -22,7 +22,7 @@
 #' @param distribution Distribution to pass to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "gryboxD", which includes time varying parameters and dynamic importance
+#' "greyboxD", which includes time varying parameters and dynamic importance
 #' of each variable. The list of variables:
 #' \itemize{
 #' \item coefficients - mean (over time) parameters of the model,
@@ -43,7 +43,8 @@
 #' \item dfDynamic - dynamic df,
 #' \item call - call used in the function,
 #' \item rank - rank of the combined model,
-#' \item model - the data used in the model.
+#' \item data - the data used in the model,
+#' \item mu - the location value of the distribution.
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
@@ -111,6 +112,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
+    listToCall$data <- ourData;
 
     # If this is a simple one, go through all the models
     if(bruteForce){
@@ -134,24 +136,18 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         parametersSE <- matrix(0,nCombinations,nVariables+1);
 
         # Starting estimating the models with just a constant
-        # ourModel <- alm(as.formula(paste0(responseName,"~1")),data=ourData,distribution=distribution);
         listToCall$formula <- as.formula(paste0(responseName,"~1"));
-        listToCall$data <- ourData;
+        # listToCall$data <- ourData;
         ourModel <- do.call(lmCall,listToCall);
-        pICs[,1] <- pAIC(ourModel);
+        pICs[,1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
         parametersSE[1,1] <- diag(vcov(ourModel));
     }
     else{
-        if(nVariables>=obsInsample){
-            if(!silent){
-                cat("Selecting the best model...\n");
-            }
-            bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
+        if(!silent){
+            cat("Selecting the best model...\n");
         }
-        else{
-            bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
-        }
+        bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
 
         # If the number of variables is small, do bruteForce
         if(nParam(bestModel)<16){
@@ -211,7 +207,6 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
     }
 
-
     if(!silent){
         cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
     }
@@ -224,7 +219,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
         # ourModel <- alm(as.formula(lmFormula),data=ourData,distribution=distribution);
         listToCall$formula <- as.formula(lmFormula);
-        listToCall$data <- ourData;
+        # listToCall$data <- ourData;
         ourModel <- do.call(lmCall,listToCall);
         pICs[,i] <- pAIC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
@@ -246,9 +241,23 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
     colnames(ourDataExo) <- exoNames;
 
-    yFitted <- parametersWeighted * as.matrix(ourDataExo);
-    yFitted <- apply(yFitted,1,sum)
-    errors <- ourData[,1] - yFitted;
+    mu <- parametersWeighted * as.matrix(ourDataExo);
+    mu <- apply(mu,1,sum)
+    errors <- ourData[,1] - mu;
+
+    yFitted <- switch(distribution,
+                       "dfnorm" =,
+                       "dnorm" =,
+                       "dlaplace" =,
+                       "dlogis" =,
+                       "ds" = mu,
+                       "dchisq" = mu^2,
+                       "dpois" =,
+                       "dnbinom" =,
+                       "dlnorm" = exp(mu),
+                       "pnorm" = pnorm(mu, mean=0, sd=1),
+                       "plogis" = plogis(mu, location=0, scale=1)
+    );
 
     # Relative importance of variables
     importance <- cbind(1,pICWeights %*% variablesCombinations);
@@ -272,7 +281,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                       call=cl, rank=nVariables+1, data=ourData);
+                       call=cl, rank=nVariables+1, data=ourData, mu=mu);
 
-    return(structure(finalModel,class=c("greyboxD","greybox","alm")));
+    return(structure(finalModel,class=c("greyboxD","alm","greybox")));
 }

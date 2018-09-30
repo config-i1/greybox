@@ -740,13 +740,6 @@ forecast.alm <- function(object, newdata, ...){
 #' @importFrom forecast getResponse
 #' @export
 getResponse.greybox <- function(object, ...){
-    responseVariable <- fitted(object) + residuals(object);
-    names(responseVariable) <- c(1:length(responseVariable));
-    return(responseVariable);
-}
-
-#' @export
-getResponse.alm <- function(object, ...){
     responseVariable <- object$data[,1];
     return(responseVariable);
 }
@@ -1141,9 +1134,10 @@ sigma.alm <- function(object, ...){
 summary.alm <- function(object, level=0.95, ...){
 
     # Collect parameters and their standard errors
-    confIntValues <- confint(object, level=level);
-    parametersTable <- cbind(coef(object),confIntValues[,1]);
-    parametersTable <- cbind(parametersTable,confIntValues[,-1]);
+    parametersConfint <- confint(object, level=level);
+    parametersTable <- cbind(coef(object),parametersConfint);
+    # parametersTable <- cbind(coef(object),parametersConfint[,1]);
+    # parametersTable <- cbind(parametersTable,parametersConfint[,-1]);
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
                                    paste0("Lower ",(1-level)/2*100,"%"),

@@ -1,4 +1,4 @@
-greybox v0.3.2 (Release data: 2018-09-24)
+greybox v0.3.2 (Release data: 2018-09-30)
 ==============
 
 Changes:
@@ -9,6 +9,8 @@ Changes:
 * New initialisation for plogis, pnorm, dpois and dnbinom in alm().
 * dpois, plogis, pnorm and dnbinom now use maxeval=500. All the others have 100. This should improve the estimates of parameters in difficult cases.
 * We now return only that data, that was used in the model construction in alm().
+* lmCombine and lmDynamic now should work with the distributions of alm(). The only two that are not 100% correct are dchisq and dfnorm - the fitted values of those are incorrect.
+* removed getResponse.alm. Now getResponse.greybox does what is necessary.
 
 Bugfixes:
 * predict.alm() sometimes produced NAs in the lower bound.
@@ -17,6 +19,7 @@ Bugfixes:
 * The intervals for dnorm are now corrected for the cases of occurrence model.
 * plot.predict works differently when there are Inf values in the bounds.
 * predict() did not work correctly for simple linear regression.
+* alm() returned a vector in data for cases of the model with intercept only.
 
 
 greybox v0.3.1 (Release data: 2018-09-07)

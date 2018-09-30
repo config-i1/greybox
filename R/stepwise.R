@@ -269,7 +269,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel <- do.call("alm", list(formula=bestFormula,
                                          data=dataSubstitute,
                                          distribution=distribution,
-                                         occurrence=occurrence));
+                                         occurrence=occurrence),
+                             envir = parent.frame());
         bestModel$call$occurrence <- substitute(occurrence);
         class(bestModel) <- c("alm","greybox");
     }

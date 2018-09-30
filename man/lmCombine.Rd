@@ -44,7 +44,8 @@ the combined model,
 \item importance - importance of the parameters,
 \item call - call used in the function,
 \item rank - rank of the combined model,
-\item model - the data used in the model.
+\item data - the data used in the model,
+\item mu - the location value of the distribution.
 }
 }
 \description{

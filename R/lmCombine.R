@@ -37,7 +37,8 @@
 #' \item importance - importance of the parameters,
 #' \item call - call used in the function,
 #' \item rank - rank of the combined model,
-#' \item model - the data used in the model.
+#' \item data - the data used in the model,
+#' \item mu - the location value of the distribution.
 #' }
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
@@ -124,6 +125,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
+    listToCall$data <- ourData;
 
     # If this is a simple one, go through all the models
     if(bruteForce){
@@ -149,7 +151,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # Starting estimating the models with just a constant
         # ourModel <- alm(as.formula(paste0(responseName,"~1")),data=ourData,distribution=distribution);
         listToCall$formula <- as.formula(paste0(responseName,"~1"));
-        listToCall$data <- ourData;
+        # listToCall$data <- ourData;
         ourModel <- do.call(lmCall,listToCall);
         ICs[1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
@@ -232,8 +234,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
         # ourModel <- alm(as.formula(lmFormula),data=ourData,distribution=distribution);
         listToCall$formula <- as.formula(lmFormula);
-        listToCall$data <- ourData;
+        # listToCall$data <- ourData;
         ourModel <- do.call(lmCall,listToCall);
+        # print(ourModel$data)
         ICs[i] <- IC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
@@ -253,8 +256,22 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
     colnames(ourDataExo) <- exoNames;
 
-    yFitted <- as.matrix(ourDataExo) %*% parametersCombined;
-    errors <- ourData[,1] - yFitted;
+    mu <- as.matrix(ourDataExo) %*% parametersCombined;
+    errors <- ourData[,1] - mu;
+
+    yFitted <- switch(distribution,
+                       "dfnorm" =,
+                       "dnorm" =,
+                       "dlaplace" =,
+                       "dlogis" =,
+                       "ds" = mu,
+                       "dchisq" = mu^2,
+                       "dpois" =,
+                       "dnbinom" =,
+                       "dlnorm" = exp(mu),
+                       "pnorm" = pnorm(mu, mean=0, sd=1),
+                       "plogis" = plogis(mu, location=0, scale=1)
+    );
 
     # Relative importance of variables
     importance <- c(1,round(ICWeights %*% variablesCombinations,3));
@@ -276,7 +293,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=ourData);
+                       call=cl, rank=nVariables+1, data=ourData, mu=mu);
 
-    return(structure(finalModel,class=c("greyboxC","greybox","alm")));
+    return(structure(finalModel,class=c("greyboxC","alm","greybox")));
 }

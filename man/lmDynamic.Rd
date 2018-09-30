@@ -26,7 +26,7 @@ out. \code{TRUE} means that nothing is produced.}
 }
 \value{
 Function returns \code{model} - the final model of the class
-"gryboxD", which includes time varying parameters and dynamic importance
+"greyboxD", which includes time varying parameters and dynamic importance
 of each variable. The list of variables:
 \itemize{
 \item coefficients - mean (over time) parameters of the model,
@@ -47,7 +47,8 @@ the time,
 \item dfDynamic - dynamic df,
 \item call - call used in the function,
 \item rank - rank of the combined model,
-\item model - the data used in the model.
+\item data - the data used in the model,
+\item mu - the location value of the distribution.
 }
 }
 \description{
