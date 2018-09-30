@@ -452,6 +452,10 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         # Use the connection between the variance and MAE in Laplace distribution
         bValues <- sqrt(greyboxForecast$variances/2);
         if(interval!="n"){
+            if(length(levelUp)==1){
+                levelUp <- rep(levelUp, length(greyboxForecast$mean));
+                levelLow <- rep(levelLow, length(greyboxForecast$mean));
+            }
             for(i in 1:h){
                 greyboxForecast$lower[i] <- qlaplace(levelLow[i],greyboxForecast$mean[i],bValues[i]);
                 greyboxForecast$upper[i] <- qlaplace(levelUp[i],greyboxForecast$mean[i],bValues[i]);
@@ -463,6 +467,10 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         # Use the connection between the variance and b in S distribution
         bValues <- (greyboxForecast$variances/120)^0.25;
         if(interval!="n"){
+            if(length(levelUp)==1){
+                levelUp <- rep(levelUp, length(greyboxForecast$mean));
+                levelLow <- rep(levelLow, length(greyboxForecast$mean));
+            }
             for(i in 1:h){
                 greyboxForecast$lower[i] <- qs(levelLow[i],greyboxForecast$mean[i],bValues[i]);
                 greyboxForecast$upper[i] <- qs(levelUp[i],greyboxForecast$mean[i],bValues[i]);
@@ -475,6 +483,9 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
             wrongBounds <- greyboxForecast$lower<0;
             if(any(wrongBounds)){
                 greyboxForecast$lower[wrongBounds] <- 0;
+                if(length(levelUp)==1){
+                    levelUp <- rep(levelUp, length(greyboxForecast$mean));
+                }
                 # qfnorm is slow, so it's faster to extract the values in a loop
                 for(i in which(wrongBounds)){
                     greyboxForecast$upper[i] <- qfnorm(levelUp[i],greyboxForecast$mean[i],sqrt(greyboxForecast$variance[i]));
@@ -536,8 +547,13 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     }
     else if(object$distribution=="dnbinom"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
-        # greyboxForecast$scale <- greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean);
-        greyboxForecast$scale <- object$scale;
+        if(is.null(object$scale)){
+            # This is a very approximate thing in order for something to work...
+            greyboxForecast$scale <- abs(greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean));
+        }
+        else{
+            greyboxForecast$scale <- object$scale;
+        }
         if(interval=="p"){
             greyboxForecast$lower <- qnbinom(levelLow,mu=greyboxForecast$mean,size=greyboxForecast$scale);
             greyboxForecast$upper <- qnbinom(levelUp,mu=greyboxForecast$mean,size=greyboxForecast$scale);
@@ -1294,7 +1310,7 @@ vcov.greyboxC <- function(object, ...){
     s2 <- sigma(object)^2;
     xreg <- as.matrix(object$data[,-1]);
     xreg <- cbind(1,xreg);
-    colnames(xreg)[1] <- "Intercept";
+    colnames(xreg)[1] <- "(Intercept)";
     importance <- object$importance;
 
     vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
@@ -1307,7 +1323,7 @@ vcov.greyboxD <- function(object, ...){
     s2 <- sigma(object)^2;
     xreg <- as.matrix(object$data[,-1]);
     xreg <- cbind(1,xreg);
-    colnames(xreg)[1] <- "Intercept";
+    colnames(xreg)[1] <- "(Intercept)";
     importance <- apply(object$importance,2,mean);
 
     vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);

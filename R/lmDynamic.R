@@ -243,20 +243,33 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     mu <- parametersWeighted * as.matrix(ourDataExo);
     mu <- apply(mu,1,sum)
-    errors <- ourData[,1] - mu;
 
     yFitted <- switch(distribution,
-                       "dfnorm" =,
-                       "dnorm" =,
-                       "dlaplace" =,
-                       "dlogis" =,
-                       "ds" = mu,
-                       "dchisq" = mu^2,
-                       "dpois" =,
-                       "dnbinom" =,
-                       "dlnorm" = exp(mu),
-                       "pnorm" = pnorm(mu, mean=0, sd=1),
-                       "plogis" = plogis(mu, location=0, scale=1)
+                      "dfnorm" =,
+                      "dnorm" =,
+                      "dlaplace" =,
+                      "dlogis" =,
+                      "ds" = mu,
+                      "dchisq" = mu^2,
+                      "dpois" =,
+                      "dnbinom" =,
+                      "dlnorm" = exp(mu),
+                      "pnorm" = pnorm(mu, mean=0, sd=1),
+                      "plogis" = plogis(mu, location=0, scale=1)
+    );
+
+    errors <- switch(distribution,
+                     "dfnorm" =,
+                     "dlaplace" =,
+                     "dlogis" =,
+                     "ds" =,
+                     "dnorm" =,
+                     "dpois" =,
+                     "dnbinom" = ourData[,1] - yFitted,
+                     "dchisq" = sqrt(ourData[,1]) - sqrt(mu),
+                     "dlnorm"= log(ourData[,1]) - mu,
+                     "pnorm" = qnorm((ourData[,1] - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
+                     "plogis" = log((1 + ourData[,1] * (1 + exp(mu))) / (1 + exp(mu) * (2 - ourData[,1]) - ourData[,1])) # Here we use the proxy from Svetunkov et al. (2018)
     );
 
     # Relative importance of variables

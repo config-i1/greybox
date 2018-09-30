@@ -471,9 +471,9 @@ alm <- function(formula, data, subset, na.action,
                        "dlaplace" =,
                        "dlogis" =,
                        "ds" =,
-                       "dnorm" = y - mu,
+                       "dnorm" =,
                        "dpois" =,
-                       "dnbinom" = log(y) - log(yFitted),
+                       "dnbinom" = y - mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
@@ -482,7 +482,7 @@ alm <- function(formula, data, subset, na.action,
 
     #### Produce covariance matrix using hessian ####
     if(vcovProduce){
-        if(CDF){
+        if(CDF | any(distribution==c("dnbinom","dpois"))){
             method.args <- list(d=1e-6, r=6);
         }
         else{
@@ -509,27 +509,25 @@ alm <- function(formula, data, subset, na.action,
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                            "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                            "Try a different distribution maybe?"), call.=FALSE);
-            vcovMatrix <- 1e+100*diag(nVariables);
+            vcovMatrix <- diag(1e+100,nVariables);
         }
         else{
-            if(any(vcovMatrix==0)){
-                warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
-                               "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
-                               "Try a different distribution maybe?"), call.=FALSE);
-                vcovMatrix <- 1e+100*diag(nVariables);
-            }
-            else{
-                # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
-                vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
-                if(class(vcovMatrixTry)=="try-error"){
-                    warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+            # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+            vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
+            if(class(vcovMatrixTry)=="try-error"){
+                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                               "The estimate of the covariance matrix of parameters might be inacurate."),
+                        call.=FALSE);
+                vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+                if(class(vcovMatrix)=="try-error"){
+                    warning(paste0("Sorry, but the Hessian is singular, so we could not invert it.\n",
                                    "The estimate of the covariance matrix of parameters might be inacurate."),
                             call.=FALSE);
-                    vcovMatrix <- solve(vcovMatrix, diag(nVariables));
+                    vcovMatrix <- diag(1e+100,nVariables);
                 }
-                else{
-                    vcovMatrix <- vcovMatrixTry;
-                }
+            }
+            else{
+                vcovMatrix <- vcovMatrixTry;
             }
 
             # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...

@@ -11,6 +11,8 @@ Changes:
 * We now return only that data, that was used in the model construction in alm().
 * lmCombine and lmDynamic now should work with the distributions of alm(). The only two that are not 100% correct are dchisq and dfnorm - the fitted values of those are incorrect.
 * removed getResponse.alm. Now getResponse.greybox does what is necessary.
+* Residuals of dnbinom and dpois are now calculated as y - fitted.
+* predict with distriubion=dnbinom in cases, when scale is not available, is now calculated based on the definition of scale via variance and mean.
 
 Bugfixes:
 * predict.alm() sometimes produced NAs in the lower bound.
@@ -20,6 +22,7 @@ Bugfixes:
 * plot.predict works differently when there are Inf values in the bounds.
 * predict() did not work correctly for simple linear regression.
 * alm() returned a vector in data for cases of the model with intercept only.
+* predict.alm() with distribution=c(dlaplace, ds, dfnorm) did not work in some cases of fixed level of probability.
 
 
 greybox v0.3.1 (Release data: 2018-09-07)
