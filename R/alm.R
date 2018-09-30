@@ -482,11 +482,16 @@ alm <- function(formula, data, subset, na.action,
 
     #### Produce covariance matrix using hessian ####
     if(vcovProduce){
-        if(CDF | any(distribution==c("dnbinom","dpois"))){
+        if(CDF){
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            method.args <- list(d=1e-4, r=4);
+            if(any(distribution==c("dnbinom","dlaplace"))){
+                method.args <- list(d=1e-6, r=6);
+            }
+            else{
+                method.args <- list(d=1e-4, r=4);
+            }
         }
 
         if(distribution=="dpois"){
@@ -520,7 +525,7 @@ alm <- function(formula, data, subset, na.action,
                         call.=FALSE);
                 vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
                 if(class(vcovMatrix)=="try-error"){
-                    warning(paste0("Sorry, but the Hessian is singular, so we could not invert it.\n",
+                    warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "The estimate of the covariance matrix of parameters might be inacurate."),
                             call.=FALSE);
                     vcovMatrix <- diag(1e+100,nVariables);
