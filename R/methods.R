@@ -222,10 +222,12 @@ pointLik.alm <- function(object, ...){
 
 #' @export
 pointLik.ets <- function(object, ...){
+
     likValues <- pointLik.default(object);
     if(errorType(object)=="M"){
         likValues[] <- likValues - log(abs(fitted(object)));
     }
+    likValues[] <- likValues + 0.5 * (log(2 * pi) + 1 - log(nobs(object)));
 
     return(likValues);
 }
@@ -1144,6 +1146,11 @@ sigma.alm <- function(object, ...){
     else{
         return(sigma.greybox(object));
     }
+}
+
+#' @export
+sigma.ets <- function(object, ...){
+    return(sqrt(object$sigma2));
 }
 
 #' @export
