@@ -221,7 +221,7 @@ Poisson distribution used in ALM has the following standard probability mass fun
 \end{equation}
 where $\lambda_t = \mu_t = \sigma^2_t = \exp(x_t' B)$. As it can be noticed, here we assume that the variance of the model varies in time and depends on the values of the exogenous variables, which is a specific case of heteroscedasticity. The exponent of $x_t' B$ is needed in order to avoid the negative values in $\lambda_t$.
 
-`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The qunatiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $\log y_t - \log \mu_t$, which is not really helpful or meaningful...
+`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The qunatiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful...
 
 ### Negative Binomial distribution
 Negative Binomial distribution implemented in `alm()` is parameterised in terms of mean and variance:
@@ -230,7 +230,7 @@ Negative Binomial distribution implemented in `alm()` is parameterised in terms 
 \end{equation}
 where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optimisation process. These values are then used in the `dnbinom()` function in order to calculate the log-likelihood based on the distribution function.
 
-`alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $\log y_t - \log \mu_t$.
+`alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$.
 
 
 ## Cumulative functions for binary variables
