@@ -20,7 +20,7 @@ rs(n = 1, mu = 0, b = 1)
 
 \item{mu}{vector of location parameters (means).}
 
-\item{b}{vector of scaling parameter (which equals to ham/2).}
+\item{b}{vector of scaling parameter (which are equal to ham/2).}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}
@@ -59,6 +59,9 @@ density function:
 f(x) = 1/(4b^2) exp(-sqrt(abs(x-mu)) / b)
 
 The S distribution has fat tails and large excess.
+
+Both \code{ps} and \code{qs} are returned for the lower tail of
+the distribution.
 }
 \examples{
 x <- ds(c(-1000:1000)/10, 0, 1)

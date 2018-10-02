@@ -56,6 +56,8 @@
 #' @param vcovProduce whether to produce variance-covariance matrix of
 #' coefficients or not. This is done via hessian calculation, so might be
 #' computationally costly.
+#' @param ... additional parameters to pass to distribution functions
+#' (e.g. \code{alpha} value for Asymmetric Laplace distribution).
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "alm", which contains:
@@ -119,7 +121,7 @@ alm <- function(formula, data, subset, na.action,
                                "dpois","dnbinom",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
-                B=NULL, vcovProduce=FALSE){
+                B=NULL, vcovProduce=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     cl <- match.call();

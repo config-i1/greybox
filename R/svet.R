@@ -12,6 +12,9 @@
 #'
 #' The S distribution has fat tails and large excess.
 #'
+#' Both \code{ps} and \code{qs} are returned for the lower tail of
+#' the distribution.
+#'
 #' @template author
 #' @keywords distribution
 #'
@@ -19,7 +22,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
-#' @param b vector of scaling parameter (which equals to ham/2).
+#' @param b vector of scaling parameter (which are equal to ham/2).
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'

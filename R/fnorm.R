@@ -9,6 +9,9 @@
 #'
 #' f(x) = 1/sqrt(2 pi) (exp(-(x-mu)^2 / (2 sigma^2)) + exp(-(x+mu)^2 / (2 sigma^2)))
 #'
+#' Both \code{pfnorm} and \code{qfnorm} are returned for the lower
+#' tail of the distribution.
+#'
 #' @template author
 #' @keywords distribution
 #'

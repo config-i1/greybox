@@ -52,16 +52,19 @@ generation for the Laplace distribution with the location parameter mu
 and Mean Absolute Error (or Mean Absolute Deviation) equal to b.
 }
 \details{
-When mu=0 and b=1, the Laplace distribution becomes standardized with.
+When mu=0 and b=1, the Laplace distribution becomes standardized.
 The distribution has the following density function:
 
 f(x) = 1/(2b) exp(-abs(x-mu) / b)
+
+Both \code{plaplace} and \code{qlaplace} are returned for the lower
+tail of the distribution.
 }
 \examples{
-x <- dlaplace(c(-1000:1000)/10, 0, 1)
+x <- dlaplace(c(-100:100)/10, 0, 1)
 plot(x, type="l")
 
-x <- plaplace(c(-1000:1000)/10, 0, 1)
+x <- plaplace(c(-100:100)/10, 0, 1)
 plot(x, type="l")
 
 qlaplace(c(0.025,0.975), 0, c(1,2))

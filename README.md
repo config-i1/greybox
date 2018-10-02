@@ -15,9 +15,10 @@ The list of included functions:
 7. lmDynamic - linear regression with time varying parameters based on pAIC.
 8. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
 9. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
-10. qs, ds, rs, ps - functions for S distribution.
-11. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
-12. graphmaker - plots the original series, the fitted values and the forecasts.
+10. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
+11. qs, ds, rs, ps - functions for S distribution.
+12. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
+13. graphmaker - plots the original series, the fitted values and the forecasts.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
@@ -25,6 +26,7 @@ Future functions:
 Methods already implemented:
 1. pointLik - point likelihood method for the time series models.
 2. pAIC - point AIC based on pointLik.
+3. pAICc, pBIC, pBICc - respective point values for the information criteria.
 3. summary - returns summary of the regression (either selected or combined).
 4. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
 5. confint - confidence intervals for combined models.
