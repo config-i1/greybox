@@ -1,4 +1,4 @@
-greybox v0.3.2 (Release data: 2018-01-03)
+greybox v0.3.2 (Release data: 2018-10-03)
 ==============
 
 Changes:
@@ -17,6 +17,7 @@ Changes:
 * New set of distribution functions - for Asymmetric Laplace Distribution (ALD).
 * alm() now estimates models with Asymmetric Laplace Distribution with predefined alpha parameter. This is equivalent to the quantile regression with alpha quantile, but is done from the likelihood point of view. It also allows estimating alpha in sample.
 * The correct prediction and confidence intervals for the alm() with ALD.
+* predict function now also works, when newdata is not provided (although why would you want to do that?).
 
 Bugfixes:
 * predict.alm() sometimes produced NAs in the lower bound.
