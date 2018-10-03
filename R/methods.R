@@ -462,11 +462,12 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
     }
     else if(object$distribution=="dalaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
-        bValues <- rep(object$scale, length(greyboxForecast$mean));
+        alpha <- object$other$alpha;
+        bValues <- sqrt(greyboxForecast$variances * alpha^2 * (1-alpha)^2 / (alpha^2 + (1-alpha)^2));
         if(interval!="n"){
-            warning("We don't have the proper prediction intervals for ALD yet. The uncertainty is underestimated!", call.=FALSE);
-            greyboxForecast$lower <- qalaplace(levelLow,greyboxForecast$mean,bValues,object$other$alpha);
-            greyboxForecast$upper <- qalaplace(levelUp,greyboxForecast$mean,bValues,object$other$alpha);
+            # warning("We don't have the proper prediction intervals for ALD yet. The uncertainty is underestimated!", call.=FALSE);
+            greyboxForecast$lower <- qalaplace(levelLow,greyboxForecast$mean,bValues,alpha);
+            greyboxForecast$upper <- qalaplace(levelUp,greyboxForecast$mean,bValues,alpha);
         }
         greyboxForecast$scale <- bValues;
     }
@@ -720,7 +721,8 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
 
     paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
 
-    vectorOfVariances <- diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg));
+    # abs is needed for some cases, when the likelihood was not fully optimised
+    vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
 
     if(interval=="c"){
         lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
@@ -1166,8 +1168,6 @@ summary.alm <- function(object, level=0.95, ...){
     # Collect parameters and their standard errors
     parametersConfint <- confint(object, level=level);
     parametersTable <- cbind(coef(object),parametersConfint);
-    # parametersTable <- cbind(coef(object),parametersConfint[,1]);
-    # parametersTable <- cbind(parametersTable,parametersConfint[,-1]);
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
                                    paste0("Lower ",(1-level)/2*100,"%"),
