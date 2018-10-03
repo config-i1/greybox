@@ -433,18 +433,34 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
+            BLower <- -Inf;
+            BUpper <- Inf;
         }
 
         if(distribution=="dnbinom"){
             B <- c(var(y), B);
+            BLower <- c(0,rep(-Inf,length(B)-1));
+            BUpper <- rep(Inf,length(B));
         }
         else if(distribution=="dchisq"){
             B <- c(1, B);
+            BLower <- c(0,rep(-Inf,length(B)-1));
+            BUpper <- rep(Inf,length(B));
         }
         else if(distribution=="dalaplace"){
             if(alphaEstimate){
                 B <- c(alpha, B);
+                BLower <- c(0,rep(-Inf,length(B)-1));
+                BUpper <- c(1,rep(Inf,length(B)-1));
             }
+            else{
+                BLower <- rep(-Inf,length(B));
+                BUpper <- rep(Inf,length(B));
+            }
+        }
+        else{
+            BLower <- rep(-Inf,length(B));
+            BUpper <- rep(Inf,length(B));
         }
 
         if(any(distribution==c("dpois","dnbinom","plogos","pnorm"))){
@@ -457,6 +473,7 @@ alm <- function(formula, data, subset, na.action,
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
                       opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=maxeval, print_level=0),
+                      lb=BLower, ub=BUpper,
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
         B[] <- res$solution;
 
