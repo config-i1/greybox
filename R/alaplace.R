@@ -100,13 +100,39 @@ palaplace <- function(q, mu=0, b=1, alpha=0.5){
 #' @export qalaplace
 #' @aliases qalaplace
 qalaplace <- function(p, mu=0, b=1, alpha=0.5){
-    Ie <- (p<=alpha)*1;
-    alaplaceReturn <- mu + b / (Ie - alpha) * log((1-Ie-p)/(1-Ie-alpha));
-    if(any(p==0)){
-        alaplaceReturn[p==0] <- -Inf;
+    p <- unique(p);
+    mu <- unique(mu);
+    b <- unique(b);
+    alpha <- unique(alpha);
+    lengthMax <- max(length(p),length(mu),length(b),length(alpha));
+    # If length of p, mu, b and alpha differs, then go difficult. Otherwise do simple stuff
+    if(any(!c(length(p),length(mu),length(b),length(alpha)) %in% c(lengthMax, 1))){
+        alaplaceReturn <- array(0,c(length(p),length(mu),length(b),length(alpha)),
+                               dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b),paste0("alpha=",alpha)));
+        alaplaceReturn[p==0.5,,,] <- 1;
+        alaplaceReturn[p==0,,,] <- -Inf;
+        alaplaceReturn[p==1,,,] <- Inf;
+        probsToEstimate <- which(alaplaceReturn[,1,1,1]==0);
+        alaplaceReturn[alaplaceReturn==1] <- 0;
+        for(k in 1:length(b)){
+            for(i in 1:length(alpha)){
+                Ie <- (p[probsToEstimate]<=alpha[i])*1;
+                alaplaceReturn[probsToEstimate,,k,i] <- b[k] / (Ie - alpha[i]) * log((1-Ie-p[probsToEstimate])/(1-Ie-alpha[i]));
+            }
+        }
+        alaplaceReturn <- alaplaceReturn + rep(mu,each=length(p));
+        # Drop the redundant dimensions
+        alaplaceReturn <- alaplaceReturn[,,,];
     }
-    if(any(p==1)){
-        alaplaceReturn[p==1] <- Inf;
+    else{
+        Ie <- (p<=alpha)*1;
+        alaplaceReturn <- mu + b / (Ie - alpha) * log((1-Ie-p)/(1-Ie-alpha));
+        if(any(p==0)){
+            alaplaceReturn[p==0] <- -Inf;
+        }
+        if(any(p==1)){
+            alaplaceReturn[p==1] <- Inf;
+        }
     }
 
     return(alaplaceReturn);

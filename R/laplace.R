@@ -81,32 +81,29 @@ plaplace <- function(q, mu=0, b=1){
 #' @export qlaplace
 #' @aliases qlaplace
 qlaplace <- function(p, mu=0, b=1){
-    laplaceReturn <- array(0,c(length(p),length(mu),length(b)),
-                        dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b)));
-    laplaceReturn[p==0.5,,] <- 1;
-    laplaceReturn[p==0,,] <- -Inf;
-    laplaceReturn[p==1,,] <- Inf;
-    probsToEstimate <- which(laplaceReturn[,1,1]==0);
-    laplaceReturn[laplaceReturn==1] <- 0;
-    for(k in 1:length(b)){
-        laplaceReturn[probsToEstimate,,k] <- (-b[k] * sign(p[probsToEstimate]-0.5) *
-                                                  log(1-2*abs(p[probsToEstimate]-0.5)));
+    p <- unique(p);
+    mu <- unique(mu);
+    b <- unique(b);
+    lengthMax <- max(length(p),length(mu),length(b));
+    # If length of p, mu and b differs, then go difficult. Otherwise do simple stuff
+    if(any(!c(length(p),length(mu),length(b)) %in% c(lengthMax, 1))){
+        laplaceReturn <- array(0,c(length(p),length(mu),length(b)),
+                               dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b)));
+        laplaceReturn[p==0.5,,] <- 1;
+        laplaceReturn[p==0,,] <- -Inf;
+        laplaceReturn[p==1,,] <- Inf;
+        probsToEstimate <- which(laplaceReturn[,1,1]==0);
+        laplaceReturn[laplaceReturn==1] <- 0;
+        for(k in 1:length(b)){
+            laplaceReturn[probsToEstimate,,k] <- (-b[k] * sign(p[probsToEstimate]-0.5) *
+                                                      log(1-2*abs(p[probsToEstimate]-0.5)));
+        }
+        laplaceReturn <- laplaceReturn + rep(mu,each=length(p));
+        # Drop the redundant dimensions
+        laplaceReturn <- laplaceReturn[,,];
     }
-    laplaceReturn <- laplaceReturn + rep(mu,each=length(p));
-    if(any(dim(laplaceReturn)==1)){
-        if(dim(laplaceReturn)[1]==1){
-            laplaceReturn <- laplaceReturn[1,,];
-        }
-        else if(dim(laplaceReturn)[2]==1){
-            laplaceReturn <- laplaceReturn[,1,];
-        }
-        else if(dim(laplaceReturn)[3]==1){
-            laplaceReturn <- laplaceReturn[,,1];
-        }
-
-        if(any(dim(laplaceReturn)==1)){
-            laplaceReturn <- c(laplaceReturn);
-        }
+    else{
+        laplaceReturn <- mu - b * sign(p-0.5) * log(1-2*abs(p-0.5));
     }
     return(laplaceReturn);
 }

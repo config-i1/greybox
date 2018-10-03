@@ -85,40 +85,53 @@ pfnorm <- function(q, mu=0, sigma=1){
 #' @export qfnorm
 #' @aliases qfnorm
 qfnorm <- function(p, mu=0, sigma=1){
+    p <- unique(p);
+    mu <- unique(mu);
+    sigma <- unique(sigma);
     CF <- function(A, P, mu, sigma){
         probability <- pfnorm(A, mu, sigma);
         return((P-probability)^2);
     }
 
-    fnormReturn <- array(0,c(length(p),length(mu),length(sigma)),
-                        dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("sigma=",sigma)));
-    fnormReturn[p==0,,] <- 1;
-    fnormReturn[p==1,,] <- Inf;
-    probsToEstimate <- which(fnormReturn[,1,1]==0);
-    fnormReturn[fnormReturn==1] <- 0;
+    lengthMax <- max(length(p),length(mu),length(sigma));
+    # If length of p, mu and sigma differs, then go difficult. Otherwise do simple stuff
+    if(any(!c(length(p),length(mu),length(sigma)) %in% c(lengthMax, 1))){
+        fnormReturn <- array(0,c(length(p),length(mu),length(sigma)),
+                             dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("sigma=",sigma)));
+        fnormReturn[p==0,,] <- 1;
+        fnormReturn[p==1,,] <- Inf;
+        probsToEstimate <- which(fnormReturn[,1,1]==0);
+        fnormReturn[fnormReturn==1] <- 0;
 
-    for(j in probsToEstimate){
-        for(k in 1:length(sigma)){
-            for(i in 1:length(mu)){
-                fnormReturn[j,i,k] <- optim(abs(qnorm(p[j],mu[i],sigma[k])), CF, method="L-BFGS-B", lower=0,
-                                            P=p[j], mu=mu[i], sigma=sigma[k])$par;
+        for(j in probsToEstimate){
+            for(k in 1:length(sigma)){
+                for(i in 1:length(mu)){
+                    fnormReturn[j,i,k] <- optim(abs(qnorm(p[j],mu[i],sigma[k])), CF, method="L-BFGS-B", lower=0,
+                                                P=p[j], mu=mu[i], sigma=sigma[k])$par;
+                }
             }
         }
+
+        # Drop the redundant dimensions
+        fnormReturn <- fnormReturn[,,];
     }
+    else{
+        fnormReturn <- rep(0,lengthMax);
+        p <- rep(p,lengthMax)[1:lengthMax];
+        mu <- rep(mu,lengthMax)[1:lengthMax];
+        sigma <- rep(sigma,lengthMax)[1:lengthMax];
 
-    if(any(dim(fnormReturn)==1)){
-        if(dim(fnormReturn)[1]==1){
-            fnormReturn <- fnormReturn[1,,];
-        }
-        else if(dim(fnormReturn)[2]==1){
-            fnormReturn <- fnormReturn[,1,];
-        }
-        else if(dim(fnormReturn)[3]==1){
-            fnormReturn <- fnormReturn[,,1];
-        }
-
-        if(any(dim(fnormReturn)==1)){
-            fnormReturn <- c(fnormReturn);
+        for(i in 1:lengthMax){
+            if(p[i]==0){
+                fnormReturn[i] <- 0;
+            }
+            else if(p[i]==1){
+                fnormReturn[i] <- Inf;
+            }
+            else{
+                fnormReturn[i] <- optim(abs(qnorm(p[i],mu[i],sigma[i])), CF, method="L-BFGS-B", lower=0,
+                                        P=p[i], mu=mu[i], sigma=sigma[i])$par;
+            }
         }
     }
     return(fnormReturn);
