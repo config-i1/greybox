@@ -1,4 +1,4 @@
-greybox v0.3.2 (Release data: 2018-01-02)
+greybox v0.3.2 (Release data: 2018-01-03)
 ==============
 
 Changes:
@@ -15,6 +15,7 @@ Changes:
 * predict with distriubion=dnbinom in cases, when scale is not available, is now calculated based on the definition of scale via variance and mean.
 * pointLik.ets() is now calculated differently, so that sum(pointLik) is close to the logLik produced by ets() function. The problem with logLik of ets() is that it is not calculated correctly, chopping off some parts of normal distribution. Total disaster!
 * New set of distribution functions - for Asymmetric Laplace Distribution.
+* alm() now estimates models with Asymmetric Laplace Distribution with predefined alpha parameter. This is equivalent to the quantile regression with alpha quantile, but is done from the likelihood point of view. It also allows estimating alpha in sample.
 
 Bugfixes:
 * predict.alm() sometimes produced NAs in the lower bound.

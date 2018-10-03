@@ -60,8 +60,9 @@ This group of functions includes:
 
 1. Normal distribution,
 2. Laplace distribution,
-3. Logistic distribution,
-4. S distribution,
+3. Asymmetric Laplace distribution,
+4. Logistic distribution,
+5. S distribution,
 
 ### Normal distribution
 The density of normal distribution is:
@@ -89,7 +90,7 @@ $\mu_t$ is returned as is in `mu` variable, and the fitted values are set equiva
 ### Laplace distribution
 Laplace distribution has some similarities with the Normal one:
 \begin{equation} \label{eq:Laplace}
-    f(y_t) = \frac{1}{\sqrt{2 b}} \exp \left( -\frac{\left| y_t - \mu_t \right|}{b} \right) ,
+    f(y_t) = \frac{1}{2 b} \exp \left( -\frac{\left| y_t - \mu_t \right|}{b} \right) ,
 \end{equation}
 where $b$ is the scale parameter, which, when estimated using liklihood, is equal to the mean absolute error:
 \begin{equation} \label{eq:bLaplace}
@@ -101,6 +102,21 @@ So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the 
 \begin{equation} \label{eq:bLaplaceAndSigma}
     b = \sqrt{\frac{\sigma^2}{2}}.
 \end{equation}
+
+### Asymmetric Laplace distribution
+Asymmetric Laplace distribution can be considered as a two Laplace distributions with different parameters $b$ for left and right side. There are several ways to summarise the probability density function, the one used in `alm()` relies on the asymmetry parameter $\alpha$ (Yu & Zhang, 2005):
+\begin{equation} \label{eq:ALaplace}
+    f(y_t) = \frac{\alpha (1- \alpha)}{b} \exp \left( -\frac{y_t - \mu_t}{b} (\alpha - I(y_t \leq \mu_t)) \right) ,
+\end{equation}
+where $b$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $b$ estimated using liklihood is equal to the quantile loss:
+\begin{equation} \label{eq:bALaplace}
+    b = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
+\end{equation}
+Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \text{ALaplace}(0, b, \alpha)$ (Yu & Zhang, 2005). The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
+
+In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $b=\frac{1}{2}\text{MAE}$.
+
+`alm()` function with `distribution="dlaplace"` accepts an additional parameter `alpha` in ellipsis, which defines the quantile $\alpha$. If it is not provided, then the function will estimated it maximising the likelihood and return it as the first coefficient. `alm()` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $b$ is returned in the `scale` variable. The parameter $\alpha$ is returned in the variable `other` of the final model. The prediction intervals currently assume that both scale and asymmetry parameters will be the same in the holdout sample as in-sample (which is not a correct assumption).
 
 ### Logistic distribution
 The density function of Logistic distribution is:
@@ -331,3 +347,5 @@ After that we can produce forecasts using the data from the holdout sample:
 predict(modelMixture,outSample,interval="p")
 ```
 
+### References
+1. Yu, K., & Zhang, J. (2005). A three-parameter asymmetric laplace distribution and its extension. Communications in Statistics - Theory and Methods, 34, 1867-1879. \url{https://doi.org/10.1080/03610920500199018}

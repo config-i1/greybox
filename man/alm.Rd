@@ -4,10 +4,10 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset, na.action, distribution = c("dnorm", "dfnorm",
-  "dlnorm", "dlaplace", "dlogis", "ds", "dchisq", "dpois", "dnbinom",
-  "plogis", "pnorm"), occurrence = c("none", "plogis", "pnorm"),
-  B = NULL, vcovProduce = FALSE)
+alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
+  "dlaplace", "dalaplace", "ds", "dfnorm", "dlnorm", "dchisq", "dpois",
+  "dnbinom", "plogis", "pnorm"), occurrence = c("none", "plogis",
+  "pnorm"), B = NULL, vcovProduce = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -48,6 +48,9 @@ is estimated.}
 \item{vcovProduce}{whether to produce variance-covariance matrix of
 coefficients or not. This is done via hessian calculation, so might be
 computationally costly.}
+
+\item{...}{additional parameters to pass to distribution functions
+(e.g. \code{alpha} value for Asymmetric Laplace distribution).}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -68,7 +71,10 @@ Information). Returned only when \code{vcovProduce=TRUE}.
 \item call - how the model was called,
 \item rank - rank of the model,
 \item data - data used for the model construction,
-\item occurrence - the occurrence model used in the estimation.
+\item occurrence - the occurrence model used in the estimation,
+\item other - the list of all the other parameters either passed to the
+function or estimated in the process, but not included in the standard output
+(e.g. \code{alpha} for Asymmetric Laplace).
 }
 }
 \description{

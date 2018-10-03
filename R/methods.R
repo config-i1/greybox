@@ -466,6 +466,22 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         }
         greyboxForecast$scale <- bValues;
     }
+    else if(object$distribution=="dalaplace"){
+        # Use the connection between the variance and MAE in Laplace distribution
+        bValues <- rep(object$scale, length(greyboxForecast$mean));
+        if(interval!="n"){
+            warning("We don't have the proper prediction intervals for ALD yet. The uncertainty is underestimated!", call.=FALSE);
+            if(length(levelUp)==1){
+                levelUp <- rep(levelUp, length(greyboxForecast$mean));
+                levelLow <- rep(levelLow, length(greyboxForecast$mean));
+            }
+            for(i in 1:h){
+                greyboxForecast$lower[i] <- qalaplace(levelLow[i],greyboxForecast$mean[i],bValues[i],object$other$alpha);
+                greyboxForecast$upper[i] <- qalaplace(levelUp[i],greyboxForecast$mean[i],bValues[i],object$other$alpha);
+            }
+        }
+        greyboxForecast$scale <- bValues;
+    }
     else if(object$distribution=="ds"){
         # Use the connection between the variance and b in S distribution
         bValues <- (greyboxForecast$variances/120)^0.25;
@@ -701,6 +717,15 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
 
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
+    ourVcov <- vcov(object);
+
+    if(object$distribution=="dalaplace"){
+        if(parametersNames[1]=="alpha"){
+            parametersNames <- parametersNames[-1];
+            parameters <- parameters[-1];
+            ourVcov <- ourVcov[-1,-1];
+        }
+    }
 
     if(any(parametersNames=="(Intercept)")){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
@@ -718,11 +743,10 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
     }
 
-    ourForecast <- as.vector(matrixOfxreg %*% coef.greybox(object));
+    ourForecast <- as.vector(matrixOfxreg %*% parameters);
 
     paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
 
-    ourVcov <- vcov(object);
     vectorOfVariances <- diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg));
 
     if(interval=="c"){
@@ -802,6 +826,12 @@ nParam <- function(object, ...) UseMethod("nParam")
 nParam.default <- function(object, ...){
     # The length of the vector of parameters + variance
     return(length(coef(object))+1);
+}
+
+#' @export
+nParam.alm <- function(object, ...){
+    # The length of the vector of parameters + variance
+    return(object$df);
 }
 
 #' @export
@@ -1006,14 +1036,15 @@ print.summary.alm <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dlogis" = "Logistic",
+                      "dlaplace" = "Laplace",
+                      "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,2)),
+                      "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
-                      "dlaplace" = "Laplace",
-                      "dlogis" = "Logistic",
-                      "ds" = "S",
+                      "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
-                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1044,14 +1075,15 @@ print.summary.greybox <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dlogis" = "Logistic",
+                      "dlaplace" = "Laplace",
+                      "dalaplace" = "Asymmetric Laplace",
+                      "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
-                      "dlaplace" = "Laplace",
-                      "dlogis" = "Logistic",
-                      "ds" = "S",
+                      "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
-                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1078,14 +1110,15 @@ print.summary.greyboxC <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dlogis" = "Logistic",
+                      "dlaplace" = "Laplace",
+                      "dalaplace" = "Asymmetric Laplace",
+                      "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
-                      "dlaplace" = "Laplace",
-                      "dlogis" = "Logistic",
-                      "ds" = "S",
+                      "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
-                      "dchisq" = "Chi-Squared",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1173,6 +1206,7 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$ICs <- ICs;
     ourReturn$distribution <- object$distribution;
     ourReturn$occurrence <- object$occurrence;
+    ourReturn$other <- object$other;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);

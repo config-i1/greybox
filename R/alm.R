@@ -77,7 +77,10 @@
 #' \item call - how the model was called,
 #' \item rank - rank of the model,
 #' \item data - data used for the model construction,
-#' \item occurrence - the occurrence model used in the estimation.
+#' \item occurrence - the occurrence model used in the estimation,
+#' \item other - the list of all the other parameters either passed to the
+#' function or estimated in the process, but not included in the standard output
+#' (e.g. \code{alpha} for Asymmetric Laplace).
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
@@ -117,7 +120,8 @@
 #' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset, na.action,
-                distribution=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq",
+                distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds",
+                               "dfnorm","dlnorm","dchisq",
                                "dpois","dnbinom",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
@@ -127,7 +131,7 @@ alm <- function(formula, data, subset, na.action,
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dfnorm","dlnorm","dlaplace","dlogis","ds","dchisq",
+    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dfnorm","dlnorm","dchisq",
                            "dpois","dnbinom","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
@@ -137,6 +141,20 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             stop(paste0("Sorry, but the distribution '",distribution,"' is not yet supported"), call.=FALSE);
+        }
+    }
+
+    ellipsis <- list(...);
+
+    # If this is ALD, then see if alpha was provided. Otherwise estimate it.
+    if(distribution=="dalaplace"){
+        if(is.null(ellipsis$alpha)){
+            ellipsis$alpha <- alpha <- 0.5
+            alphaEstimate <- TRUE;
+        }
+        else{
+            alpha <- ellipsis$alpha;
+            alphaEstimate <- FALSE;
         }
     }
 
@@ -329,6 +347,13 @@ alm <- function(formula, data, subset, na.action,
     }
 
     fitter <- function(B, distribution, y, matrixXreg){
+        if(distribution=="dalaplace"){
+            if(alphaEstimate){
+                alpha <- B[1];
+                B <- B[-1];
+            }
+        }
+
         mu[] <- switch(distribution,
                        "dpois" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B[-1] <0),1E+100,(matrixXreg %*% B[-1])^2),
@@ -337,6 +362,7 @@ alm <- function(formula, data, subset, na.action,
                        "dfnorm" =,
                        "dlnorm" =,
                        "dlaplace" =,
+                       "dalaplace" =,
                        "dlogis" =,
                        "ds" =,
                        "pnorm" =,
@@ -348,6 +374,7 @@ alm <- function(formula, data, subset, na.action,
                         "dfnorm" = sqrt(meanFast((y-mu)^2)),
                         "dlnorm" = sqrt(meanFast((log(y)-mu)^2)),
                         "dlaplace" = meanFast(abs(y-mu)),
+                        "dalaplace" = meanFast((y-mu) * (alpha - (y<=mu)*1)),
                         "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
                         "dchisq" =,
@@ -368,6 +395,7 @@ alm <- function(formula, data, subset, na.action,
                            "dfnorm" = dfnorm(y, mu=fitterReturn$mu, sigma=fitterReturn$scale, log=TRUE),
                            "dlnorm" = dlnorm(y, meanlog=fitterReturn$mu, sdlog=fitterReturn$scale, log=TRUE),
                            "dlaplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
+                           "dalaplace" = dalaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, alpha=alpha, log=TRUE),
                            "dlogis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
                            "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "dchisq" = dchisq(y, df=fitterReturn$scale, ncp=fitterReturn$mu, log=TRUE),
@@ -413,6 +441,11 @@ alm <- function(formula, data, subset, na.action,
         else if(distribution=="dchisq"){
             B <- c(1, B);
         }
+        else if(distribution=="dalaplace"){
+            if(alphaEstimate){
+                B <- c(alpha, B);
+            }
+        }
 
         if(any(distribution==c("dpois","dnbinom","plogos","pnorm"))){
             maxeval <- 500;
@@ -445,6 +478,16 @@ alm <- function(formula, data, subset, na.action,
         scale <- abs(B[1]);
         names(B) <- c("df",variablesNames);
     }
+    else if(distribution=="dalaplace"){
+        if(alphaEstimate){
+            ellipsis$alpha <- alpha <- B[1];
+            variablesNames <- c("alpha",variablesNames);
+            names(B) <- variablesNames;
+        }
+        else{
+            names(B) <- variablesNames;
+        }
+    }
     else{
         names(B) <- variablesNames;
     }
@@ -452,11 +495,19 @@ alm <- function(formula, data, subset, na.action,
     # Parameters of the model + scale
     df <- nVariables + 1;
 
+    if(distribution=="dalaplace"){
+        if(alphaEstimate){
+            df <- df + 1;
+            nVariables <- nVariables + 1;
+        }
+    }
+
     ### Fitted values in the scale of the original variable
     yFitted[] <- switch(distribution,
                        "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
                        "dnorm" =,
                        "dlaplace" =,
+                       "dalaplace" =,
                        "dlogis" =,
                        "ds" =,
                        "dpois" =,
@@ -471,6 +522,7 @@ alm <- function(formula, data, subset, na.action,
     errors[] <- switch(distribution,
                        "dfnorm" =,
                        "dlaplace" =,
+                       "dalaplace" =,
                        "dlogis" =,
                        "ds" =,
                        "dnorm" =,
@@ -488,7 +540,7 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            if(any(distribution==c("dnbinom","dlaplace"))){
+            if(any(distribution==c("dnbinom","dlaplace","dalaplace"))){
                 method.args <- list(d=1e-6, r=6);
             }
             else{
@@ -588,12 +640,18 @@ alm <- function(formula, data, subset, na.action,
     if(any(distribution==c("dchisq","dnbinom"))){
         B <- B[-1];
     }
+    else if(distribution=="dalaplace"){
+        if(alphaEstimate){
+            variablesNames <- variablesNames[-1];
+            nVariables <- nVariables - 1;
+        }
+    }
 
     finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
                        df.residual=obsInsample-df, df=df, call=cl, rank=df,
                        data=matrix(as.matrix(dataWork[,c(responseName,variablesNames[-1])]), ncol=nVariables,
                                    dimnames=list(NULL, c(responseName,variablesNames[-1]))),
-                       occurrence=occurrence, subset=subset);
+                       occurrence=occurrence, subset=subset, other=ellipsis);
     return(structure(finalModel,class=c("alm","greybox")));
 }
