@@ -455,14 +455,8 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         # Use the connection between the variance and MAE in Laplace distribution
         bValues <- sqrt(greyboxForecast$variances/2);
         if(interval!="n"){
-            if(length(levelUp)==1){
-                levelUp <- rep(levelUp, length(greyboxForecast$mean));
-                levelLow <- rep(levelLow, length(greyboxForecast$mean));
-            }
-            for(i in 1:h){
-                greyboxForecast$lower[i] <- qlaplace(levelLow[i],greyboxForecast$mean[i],bValues[i]);
-                greyboxForecast$upper[i] <- qlaplace(levelUp[i],greyboxForecast$mean[i],bValues[i]);
-            }
+            greyboxForecast$lower <- qlaplace(levelLow,greyboxForecast$mean,bValues);
+            greyboxForecast$upper <- qlaplace(levelUp,greyboxForecast$mean,bValues);
         }
         greyboxForecast$scale <- bValues;
     }
@@ -471,14 +465,8 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         bValues <- rep(object$scale, length(greyboxForecast$mean));
         if(interval!="n"){
             warning("We don't have the proper prediction intervals for ALD yet. The uncertainty is underestimated!", call.=FALSE);
-            if(length(levelUp)==1){
-                levelUp <- rep(levelUp, length(greyboxForecast$mean));
-                levelLow <- rep(levelLow, length(greyboxForecast$mean));
-            }
-            for(i in 1:h){
-                greyboxForecast$lower[i] <- qalaplace(levelLow[i],greyboxForecast$mean[i],bValues[i],object$other$alpha);
-                greyboxForecast$upper[i] <- qalaplace(levelUp[i],greyboxForecast$mean[i],bValues[i],object$other$alpha);
-            }
+            greyboxForecast$lower <- qalaplace(levelLow,greyboxForecast$mean,bValues,object$other$alpha);
+            greyboxForecast$upper <- qalaplace(levelUp,greyboxForecast$mean,bValues,object$other$alpha);
         }
         greyboxForecast$scale <- bValues;
     }
@@ -486,30 +474,15 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
         # Use the connection between the variance and b in S distribution
         bValues <- (greyboxForecast$variances/120)^0.25;
         if(interval!="n"){
-            if(length(levelUp)==1){
-                levelUp <- rep(levelUp, length(greyboxForecast$mean));
-                levelLow <- rep(levelLow, length(greyboxForecast$mean));
-            }
-            for(i in 1:h){
-                greyboxForecast$lower[i] <- qs(levelLow[i],greyboxForecast$mean[i],bValues[i]);
-                greyboxForecast$upper[i] <- qs(levelUp[i],greyboxForecast$mean[i],bValues[i]);
-            }
+            greyboxForecast$lower <- qs(levelLow,greyboxForecast$mean,bValues);
+            greyboxForecast$upper <- qs(levelUp,greyboxForecast$mean,bValues);
         }
         greyboxForecast$scale <- bValues;
     }
     else if(object$distribution=="dfnorm"){
         if(interval!="n"){
-            wrongBounds <- greyboxForecast$lower<0;
-            if(any(wrongBounds)){
-                greyboxForecast$lower[wrongBounds] <- 0;
-                if(length(levelUp)==1){
-                    levelUp <- rep(levelUp, length(greyboxForecast$mean));
-                }
-                # qfnorm is slow, so it's faster to extract the values in a loop
-                for(i in which(wrongBounds)){
-                    greyboxForecast$upper[i] <- qfnorm(levelUp[i],greyboxForecast$mean[i],sqrt(greyboxForecast$variance[i]));
-                }
-            }
+            greyboxForecast$lower <- qfnorm(levelLow,greyboxForecast$mean,sqrt(greyboxForecast$variance));
+            greyboxForecast$upper <- qfnorm(levelUp,greyboxForecast$mean,sqrt(greyboxForecast$variance));
         }
         # Correct the mean value
         greyboxForecast$mean <- (sqrt(2/pi)*sqrt(greyboxForecast$variance)*exp(-greyboxForecast$mean^2 /
