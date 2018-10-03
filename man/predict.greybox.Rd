@@ -7,10 +7,11 @@
 \alias{forecast.greybox}
 \title{Forecasting using greybox functions}
 \usage{
-\method{predict}{alm}(object, newdata, interval = c("none", "confidence",
-  "prediction"), level = 0.95, side = c("both", "upper", "lower"), ...)
+\method{predict}{alm}(object, newdata = NULL, interval = c("none",
+  "confidence", "prediction"), level = 0.95, side = c("both", "upper",
+  "lower"), ...)
 
-\method{predict}{greybox}(object, newdata, interval = c("none",
+\method{predict}{greybox}(object, newdata = NULL, interval = c("none",
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
   "lower"), ...)
 }

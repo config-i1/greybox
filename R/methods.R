@@ -407,8 +407,15 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom
 #' @export
-predict.alm <- function(object, newdata, interval=c("none", "confidence", "prediction"),
+predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
+    if(is.null(newdata)){
+        newdata <- object$data;
+        newdataProvided <- FALSE;
+    }
+    else{
+        newdataProvided <- TRUE;
+    }
     interval <- substr(interval[1],1,1);
     side <- substr(side[1],1,1);
     h <- nrow(newdata);
@@ -595,6 +602,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 
     greyboxForecast$level <- cbind(levelOriginal,levelLow, levelUp);
     colnames(greyboxForecast$level) <- c("Original","Lower","Upper");
+    greyboxForecast$newdataProvided <- newdataProvided;
     return(structure(greyboxForecast,class="predict.greybox"));
 }
 
@@ -661,7 +669,7 @@ predict.alm <- function(object, newdata, interval=c("none", "confidence", "predi
 #'
 #' @rdname predict.greybox
 #' @export
-predict.greybox <- function(object, newdata, interval=c("none", "confidence", "prediction"),
+predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
     interval <- substr(interval[1],1,1);
 
@@ -680,6 +688,13 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
         levelUp <- (1 + level) / 2;
     }
 
+    if(is.null(newdata)){
+        newdata <- object$data;
+        newdataProvided <- FALSE;
+    }
+    else{
+        newdataProvided <- TRUE;
+    }
     if(!is.data.frame(newdata)){
         if(is.vector(newdata)){
             newdataNames <- names(newdata);
@@ -739,7 +754,7 @@ predict.greybox <- function(object, newdata, interval=c("none", "confidence", "p
     }
 
     ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
-                     variances=vectorOfVariances);
+                     variances=vectorOfVariances, newdataProvided=newdataProvided);
     return(structure(ourModel,class="predict.greybox"));
 }
 
@@ -904,7 +919,12 @@ plot.predict.greybox <- function(x, ...){
         if(any(colnames(x$newdata)==yName)){
             yHoldout <- x$newdata[,yName];
             if(!any(is.na(yHoldout))){
-                yActuals <- ts(c(yActuals,yHoldout), start=yStart, frequency=yFrequency);
+                if(x$newdataProvided){
+                    yActuals <- ts(c(yActuals,yHoldout), start=yStart, frequency=yFrequency);
+                }
+                else{
+                    yActuals <- ts(yHoldout, start=yForecastStart, frequency=yFrequency);
+                }
                 # If this is occurrence model, then transform actual to the occurrence
                 if(any(x$distribution==c("pnorm","plogis"))){
                     yActuals <- (yActuals!=0)*1;
@@ -913,7 +933,12 @@ plot.predict.greybox <- function(x, ...){
         }
     }
 
-    yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+    if(x$newdataProvided){
+        yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+    }
+    else{
+        yFitted <- NA;
+    }
     yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
     if(!is.null(x$lower)){
         yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
