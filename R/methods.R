@@ -454,8 +454,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
     if(object$distribution=="dnorm"){
         if(is.alm(object$occurrence) & interval!="n"){
-            greyboxForecast$lower[] <- qnorm(levelLow,greyboxForecast$mean,scale);
-            greyboxForecast$upper[] <- qnorm(levelUp,greyboxForecast$mean,scale);
+            greyboxForecast$lower[] <- qnorm(levelLow,greyboxForecast$mean,greyboxForecast$scale);
+            greyboxForecast$upper[] <- qnorm(levelUp,greyboxForecast$mean,greyboxForecast$scale);
         }
     }
     else if(object$distribution=="dlaplace"){
