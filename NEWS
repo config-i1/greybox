@@ -1,18 +1,18 @@
-greybox v0.3.2 (Release data: 2018-10-03)
+greybox v0.3.2 (Release data: 2018-10-25)
 ==============
 
 Changes:
 * Updates in the vignette of alm.
 * Although the square link is tricky in case of Chi Squared distribution, it is the correct thing to do. The alm() function now checks if the generated mu_t is positive, and if not, it returns a big number, forcing the solver to stick with the positive solution.
-* If inverting Hessian fails, return vary big values (meaning high uncertainty).
-* predict.alm() now saves the original level.
+* If inverting Hessian fails, return very big values (meaning high uncertainty).
+* predict.alm() now saves the original level of probability.
 * New initialisation for plogis, pnorm, dpois and dnbinom in alm().
 * dpois, plogis, pnorm and dnbinom now use maxeval=500. All the others have 100. This should improve the estimates of parameters in difficult cases.
 * We now return only that data, that was used in the model construction in alm().
 * lmCombine and lmDynamic now should work with the distributions of alm(). The only two that are not 100% correct are dchisq and dfnorm - the fitted values of those are incorrect.
 * removed getResponse.alm. Now getResponse.greybox does what is necessary.
 * Residuals of dnbinom and dpois are now calculated as y - fitted.
-* predict with distriubion=dnbinom in cases, when scale is not available, is now calculated based on the definition of scale via variance and mean.
+* predict with distriubion="dnbinom" in cases, when scale is not available, is now calculated based on the definition of scale via variance and mean.
 * pointLik.ets() is now calculated differently, so that sum(pointLik) is close to the logLik produced by ets() function. The problem with logLik of ets() is that it is not calculated correctly, chopping off some parts of normal distribution. Total disaster!
 * New set of distribution functions - for Asymmetric Laplace Distribution (ALD).
 * alm() now estimates models with Asymmetric Laplace Distribution with predefined alpha parameter. This is equivalent to the quantile regression with alpha quantile, but is done from the likelihood point of view. It also allows estimating alpha in sample.
