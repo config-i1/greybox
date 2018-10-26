@@ -894,6 +894,11 @@ plot.greybox <- function(x, ...){
     }
 
     ellipsis$x <- getResponse(x);
+    if(is.alm(x)){
+        if(any(x$distribution==c("plogis","pnorm"))){
+            ellipsis$x <- (ellipsis$x!=0)*1;
+        }
+    }
     yFitted <- fitted(x);
 
     do.call(plot,ellipsis);

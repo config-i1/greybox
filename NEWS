@@ -29,7 +29,8 @@ Bugfixes:
 * alm() returned a vector in data for cases of the model with intercept only.
 * predict.alm() with distribution=c(dlaplace, ds, dfnorm) did not work in some cases of fixed level of probability.
 * predict.alm() now writes lower and upper values in the existing elements of the list instead of creating the new ones.
-* predict.alm() did not produce prediction intervals for "dnorm"
+* predict.alm() did not produce prediction intervals for "dnorm".
+* plot.greybox() now checks whether there is a need to transform the data to the binary variable or not.
 
 
 greybox v0.3.1 (Release data: 2018-09-07)
