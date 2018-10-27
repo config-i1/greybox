@@ -7,6 +7,7 @@ Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("au
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
 URL: https://github.com/config-i1/greybox
 BugReports: https://github.com/config-i1/greybox/issues
+Language: en-GB
 Description: Implements functions and instruments for regression model building and its
              application to forecasting. The main scope of the package is in variables selection
              and models specification for cases of time series data. This includes promotional

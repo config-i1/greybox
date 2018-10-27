@@ -17,11 +17,11 @@ knitr::opts_chunk$set(
 ```
 
 There are three well-known notions of "boxes" in modelling:
-1. Whitebox - the model that is completely transparent and does not have any randomness. One can see how the inputs are transformed into the specific outputs.
-2. Blackbox - the model which does not have an apparent structure. One can only observe inputs and outputs but does not know what happens inside.
-3. Greybox - the model that is in between the first two. We observe inputs and outputs plus have some information about the structure of the model, but there is still a part of unknown. 
+1. White box - the model that is completely transparent and does not have any randomness. One can see how the inputs are transformed into the specific outputs.
+2. Black box - the model which does not have an apparent structure. One can only observe inputs and outputs but does not know what happens inside.
+3. Grey box - the model that is in between the first two. We observe inputs and outputs plus have some information about the structure of the model, but there is still a part of unknown. 
 
-The whiteboxes are usually used in optimisations (e.g. linear programming), while blackboxes are popular in machine learning. As for the greybox models, they are more often used in analysis and forecasting. So the package greybox contains models that are used for these purposes.
+The white boxes are usually used in optimisations (e.g. linear programming), while black boxes are popular in machine learning. As for the grey box models, they are more often used in analysis and forecasting. So the package `greybox` contains models that are used for these purposes.
 
 At the moment the package contains advanced linear model function and several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing. This is the main philosophical point of `greybox`.
 
@@ -51,7 +51,7 @@ The function `xregExpander()` is useful in cases when the exogenous variable may
 BJxreg <- xregExpander(BJsales.lead,lags=c(-5,-10))
 ```
 
-The `BJxreg` is a matrix, which contains the original data, the data with the lag 5 and the data with the lag 10. However, if we just move the original data several observations ahead or backwards, we will have missing values in the begining / end of series, so `xregExpander()` fills in those values with the forecasts using `es()` and `iss()` functions from `smooth` package (depending on the type of variable we are dealing with). This also means that in cases of binary variables you may have weird averaged values as forecasts (e.g. 0.7812), so beware and look at the produced matrix. Maybe in your case it makes sense to just substitute these weird numbers with zeroes...
+The `BJxreg` is a matrix, which contains the original data, the data with the lag 5 and the data with the lag 10. However, if we just move the original data several observations ahead or backwards, we will have missing values in the beginning / end of series, so `xregExpander()` fills in those values with the forecasts using `es()` and `iss()` functions from `smooth` package (depending on the type of variable we are dealing with). This also means that in cases of binary variables you may have weird averaged values as forecasts (e.g. 0.7812), so beware and look at the produced matrix. Maybe in your case it makes sense to just substitute these weird numbers with zeroes...
 
 You may also need leads instead of lags. This is regulated with the same `lags` parameter but with positive values:
 ```{r BJxreg2}
@@ -112,7 +112,7 @@ The more realistic situation is when the number of variables is high. In the fol
 ourModel <- lmCombine(BJxreg,bruteForce=FALSE)
 summary(ourModel)
 ```
-In this case first, the `stepwise()` funciton is used, which finds the best model in the pool. Then each variable that is not in the model is added to the model and then removed iteratively. IC, parameters values and standard errors are all written down for each of these expanded models. Finally, in a similar manner each variable is removed from the optimal model and then added back. As a result the pool of combined models becomes much smaller than it could be in case of the brute force, but it contains only meaningful models, that are close to the optimal. The rationale for this is that the marginal contribution of variables deteriorates with the increase of the number of parameters in case of the stepwise function, and the IC weights become close to each other around the optimal model. So, whenever the models are combined, there is a lot of redundant models with very low weights. By using the mechanism described above we remove those redundant models.
+In this case first, the `stepwise()` function is used, which finds the best model in the pool. Then each variable that is not in the model is added to the model and then removed iteratively. IC, parameters values and standard errors are all written down for each of these expanded models. Finally, in a similar manner each variable is removed from the optimal model and then added back. As a result the pool of combined models becomes much smaller than it could be in case of the brute force, but it contains only meaningful models, that are close to the optimal. The rationale for this is that the marginal contribution of variables deteriorates with the increase of the number of parameters in case of the stepwise function, and the IC weights become close to each other around the optimal model. So, whenever the models are combined, there is a lot of redundant models with very low weights. By using the mechanism described above we remove those redundant models.
 
 There are several methods for the `lm.combined` class, including:
 
@@ -158,7 +158,7 @@ ourSummary
 plot(ourModel)
 ```
 
-The coefficeints in the summary are the averaged out over the whole sample. The more interesting elements are the time varying parameters, their standard errors (and respective confidence intervals) and time varying importance of the parameters. 
+The coefficients in the summary are the averaged out over the whole sample. The more interesting elements are the time varying parameters, their standard errors (and respective confidence intervals) and time varying importance of the parameters. 
 ```{r BJDynamicCoefficients}
 # Coefficients in dynamics
 head(ourModel$dynamic)
