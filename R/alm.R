@@ -6,12 +6,18 @@
 #' non-normal distributions. These include:
 #' \enumerate{
 #' \item Normal distribution, \link[stats]{dnorm},
+#' \item Logistic Distribution, \link[stats]{dlogis},
+#' \item Laplace distribution, \link[greybox]{dlaplace},
+#' \item Asymmetric Laplace distribution, \link[greybox]{dalaplace},
+#' \item T-distribution, \link[stats]{dt},
+#' \item S-distribution, \link[greybox]{ds},
 #' \item Folded normal distribution, \link[greybox]{dfnorm},
 #' \item Log normal distribution, \link[stats]{dlnorm},
-#' \item Laplace distribution, \link[greybox]{dlaplace},
-#' \item S-distribution, \link[greybox]{ds},
 #' \item Chi-Squared Distribution, \link[stats]{dchisq},
-#' \item Logistic Distribution, \link[stats]{dlogis}.
+#' \item Poisson Distribution, \link[stats]{dpois},
+#' \item Negative Binomial Distribution, \link[stats]{dnbinom},
+#' \item Cumulative Logistic Distribution, \link[stats]{plogis},
+#' \item Cumulative Normal distribution, \link[stats]{pnorm}.
 #' }
 #'
 #' This function is slower than \code{lm}, because it relies on likelihood estimation
@@ -116,11 +122,11 @@
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt
 #' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset, na.action,
-                distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds",
+                distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
                                "dfnorm","dlnorm","dchisq",
                                "dpois","dnbinom",
                                "plogis","pnorm"),
@@ -131,7 +137,7 @@ alm <- function(formula, data, subset, na.action,
     cl <- match.call();
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dfnorm","dlnorm","dchisq",
+    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm","dchisq",
                            "dpois","dnbinom","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
@@ -364,6 +370,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
+                       "dt" =,
                        "ds" =,
                        "pnorm" =,
                        "plogis" = matrixXreg %*% B
@@ -377,6 +384,7 @@ alm <- function(formula, data, subset, na.action,
                         "dalaplace" = meanFast((y-mu) * (alpha - (y<=mu)*1)),
                         "dlogis" = sqrt(meanFast((y-mu)^2) * 3 / pi^2),
                         "ds" = meanFast(sqrt(abs(y-mu))) / 2,
+                        "dt" = max(2,2/(1-(meanFast((y-mu)^2))^{-1})),
                         "dchisq" =,
                         "dnbinom" = abs(B[1]),
                         "dpois" = mu,
@@ -397,6 +405,7 @@ alm <- function(formula, data, subset, na.action,
                            "dlaplace" = dlaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "dalaplace" = dalaplace(y, mu=fitterReturn$mu, b=fitterReturn$scale, alpha=alpha, log=TRUE),
                            "dlogis" = dlogis(y, location=fitterReturn$mu, scale=fitterReturn$scale, log=TRUE),
+                           "dt" = dt(y-fitterReturn$mu, df=fitterReturn$scale, log=TRUE),
                            "ds" = ds(y, mu=fitterReturn$mu, b=fitterReturn$scale, log=TRUE),
                            "dchisq" = dchisq(y, df=fitterReturn$scale, ncp=fitterReturn$mu, log=TRUE),
                            "dpois" = dpois(y, lambda=fitterReturn$mu, log=TRUE),
@@ -463,7 +472,7 @@ alm <- function(formula, data, subset, na.action,
             BUpper <- rep(Inf,length(B));
         }
 
-        if(any(distribution==c("dpois","dnbinom","plogos","pnorm"))){
+        if(any(distribution==c("dpois","dnbinom","plogis","pnorm"))){
             maxeval <- 500;
         }
         else{
@@ -526,6 +535,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
+                       "dt" =,
                        "ds" =,
                        "dpois" =,
                        "dnbinom" = mu,
@@ -541,6 +551,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
+                       "dt" =,
                        "ds" =,
                        "dnorm" =,
                        "dpois" =,

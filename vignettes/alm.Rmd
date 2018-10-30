@@ -38,7 +38,7 @@ Every model produced using `alm()` can be represented as:
 \begin{equation} \label{eq:basicALM}
     y_t = f(\mu_t, \epsilon_t) = f(x_t' B, \epsilon_t) ,
 \end{equation}
-where $y_t$ is a value of the response variable, $x_t$ is a vector of exogenous variables, $B$ is a vector of the parameters, $\mu_t$ is the conditional mean (produced based on the exogenous variables and the parameters of the model), $\epsilon_t$ is the error term on the observation $t$ and $f(\cdot)$ is a distribution function that does a transformation of the inputs into the output. In case of a mixture distribution the model becomes slightly more complicated:
+where $y_t$ is the value of the response variable, $x_t$ is the vector of exogenous variables, $B$ is the vector of the parameters, $\mu_t$ is the conditional mean (produced based on the exogenous variables and the parameters of the model), $\epsilon_t$ is the error term on the observation $t$ and $f(\cdot)$ is the distribution function that does a transformation of the inputs into the output. In case of a mixture distribution the model becomes slightly more complicated:
 \begin{equation} \label{eq:basicALMMixture}
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
@@ -46,7 +46,7 @@ where $y_t$ is a value of the response variable, $x_t$ is a vector of exogenous 
         p_t = g(z_t' A, \eta_t)
     \end{matrix},
 \end{equation}
-where $o_t$ is a binary variable, $p_t$ is the probability of occurrence, $z_t$ is a vector of exogenous variables, $A$ is a vector of parameters and $\eta$ is a the error term for the $p_t$.
+where $o_t$ is the binary variable, $p_t$ is the probability of occurrence, $z_t$ is the vector of exogenous variables, $A$ is the vector of parameters and $\eta$ is the error term for the $p_t$.
 
 The `alm()` function returns, along with the set of common for `lm()` variables (such as `coefficient` and `fitted.values`), the variable `mu`, which corresponds to the conditional mean used inside the distribution, and `scale` -- the second parameter, which usually corresponds to standard error or dispersion parameter. The values of these two variables vary from distribution to distribution. Note, however, that the `model` variable returned by `lm()` function was renamed into `data` in `alm()`, and that `alm()` does not return `terms` and QR decomposition.
 
@@ -64,6 +64,9 @@ This group of functions includes:
 3. Asymmetric Laplace distribution,
 4. Logistic distribution,
 5. S distribution,
+6. Student t distribution,
+
+For all the functions in this category `resid()` method returns $e_t = y_t - \mu_t$.
 
 ### Normal distribution
 The density of normal distribution is:
@@ -149,7 +152,7 @@ The density function of Logistic distribution is:
 \begin{equation} \label{eq:Logistic}
     f(y_t) = \frac{\exp \left(- \frac{y_t - \mu_t}{s} \right)} {s \left( 1 + \exp \left(- \frac{y_t - \mu_t}{s} \right) \right)^{2}},
 \end{equation}
-where $s$ is a scale parameter, which is estimated in `alm()` based on the connection between the parameter and the variance in the logistic distribution:
+where $s$ is the scale parameter, which is estimated in `alm()` based on the connection between the parameter and the variance in the logistic distribution:
 \begin{equation} \label{eq:sLogisticAndSigma}
     s = \sigma \sqrt{\frac{3}{\pi^2}}.
 \end{equation}
@@ -164,7 +167,7 @@ The S distribution has the following density function:
 \begin{equation} \label{eq:S}
     f(y_t) = \frac{1}{4b^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{b} \right) ,
 \end{equation}
-where $b$ is a scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
+where $b$ is the scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
 \begin{equation} \label{eq:bS}
     b = \frac{1}{T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
 \end{equation}
@@ -178,7 +181,21 @@ S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distri
 \end{equation}
 where once again $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
-For all the functions in this category `resid()` method returns $e_t = y_t - \mu_t$.
+### Student t distribution
+The Student t distribution has a difficult density function:
+\begin{equation} \label{eq:T}
+    f(y_t) = \frac{\Gamma\left(\frac{d+1}{2}\right)}{\sqrt{d \pi} \Gamma\left(\frac{d}{2}\right)} \left( 1 + \frac{x^2}{d} \right)^{-\frac{d+1}{2}} ,
+\end{equation}
+where $d$ is the number of degrees of freedom, which can also be considered as the scale parameter of the distribution. It has the following connection with the in-sample variance of the error (but only for the case, when $d>2$):
+\begin{equation} \label{eq:scaleOfT}
+    d = \frac{2}{1-\sigma^{-2}}.
+\end{equation}
+Given that the formula \eqref{eq:scaleOfT} holds only for cases of $d>2$ (and respectively for $\sigma^2>1$), the degrees of freedom in this case are restricted by 2 from below.
+
+Kurtosis of Student t distribution depends on the value of $d$, and for the cases of $d>4$ is equal to $\frac{6}{d-4}$.
+
+`alm()` function with `distribution="dt"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the estimated in-sample value of $d$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
+
 
 ## Continuous density functions for positive data
 This group includes:
@@ -234,7 +251,7 @@ The density function of Noncentral Chi Squared distribution is quite difficult. 
 \begin{equation} \label{eq:NCChiSquared}
     f(y_t) = \frac{1}{2} \exp \left( -\frac{y_t + \lambda_t}{2} \right) \left(\frac{y_t}{\lambda_t} \right)^{\frac{k}{4}-0.5} I_{\frac{k}{2}-1}(\sqrt{\lambda_t y_t}),
 \end{equation}
-where $I_k(x)$ is a Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables:
+where $I_k(x)$ is the Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables:
 \begin{equation} \label{eq:lambdaValue}
     \lambda_t = ( x_t' B )^2 ,
 \end{equation}

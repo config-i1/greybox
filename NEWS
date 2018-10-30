@@ -1,3 +1,13 @@
+greybox v0.3.3 (Release data: 2018-10-30)
+==============
+
+Changes:
+* Student t distribution in alm.
+
+Bugfixes:
+* Corrected a typo of "plogos" in alm.
+
+
 greybox v0.3.2 (Release data: 2018-10-25)
 ==============
 

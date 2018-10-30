@@ -193,6 +193,7 @@ pointLik.alm <- function(object, ...){
                         "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
                         "dlaplace" = dlaplace(y, mu=mu, b=scale, log=TRUE),
                         "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                        "dt" = dt(y-mu, df=scale, log=TRUE),
                         "ds" = ds(y, mu=mu, b=scale, log=TRUE),
                         "dpois" = dpois(y, lambda=mu, log=TRUE),
                         "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
@@ -477,6 +478,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$upper[] <- qalaplace(levelUp,greyboxForecast$mean,bValues,alpha);
         }
         greyboxForecast$scale <- bValues;
+    }
+    else if(object$distribution=="dt"){
+        # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
+        df <- object$scale^{-2};
+        if(interval!="n"){
+            greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
+            greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
+        }
     }
     else if(object$distribution=="ds"){
         # Use the connection between the variance and b in S distribution
@@ -1044,6 +1053,7 @@ print.summary.alm <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,2)),
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
@@ -1083,6 +1093,7 @@ print.summary.greybox <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = "Asymmetric Laplace",
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
@@ -1118,6 +1129,7 @@ print.summary.greyboxC <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = "Asymmetric Laplace",
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
