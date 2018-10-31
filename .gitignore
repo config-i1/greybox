@@ -21,3 +21,5 @@ inst/doc/*.Rmd
 vignettes/rsconnect
 vignettes/Figs
 inst/doc
+# Rprofile
+.Rprofile
