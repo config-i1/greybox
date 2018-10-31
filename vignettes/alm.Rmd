@@ -25,10 +25,11 @@ The core of the function is the likelihood approach. The estimation of parameter
 
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
-1. General continuous density functions,
-2. Continuous density functions for positive data,
-3. Discrete density functions,
-4. Cumulative functions for binary variables.
+1. Density functions of continuous distributions,
+2. Density functions for continuous positive data,
+3. Continuous distributions on a specific interval,
+4. Density functions of discrete distributions,
+5. Cumulative functions for binary variables.
 
 All of them rely on respective d- and p- functions in R. For example, Log Normal distribution uses `dlnorm()` function from `stats` package.
 
@@ -56,7 +57,7 @@ The covariance matrix of parameters almost in all the cases is calculated as an 
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
-## General continuous density distributions
+## Density functions of continuous distributions
 This group of functions includes:
 
 1. Normal distribution,
@@ -197,7 +198,7 @@ Kurtosis of Student t distribution depends on the value of $d$, and for the case
 `alm()` function with `distribution="dt"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the estimated in-sample value of $d$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
 
 
-## Continuous density functions for positive data
+## Density functions for continuous positive data
 This group includes:
 
 1. Log Normal distribution,
@@ -266,7 +267,44 @@ Given that square function is not monotonic, there are always two sets of parame
 $\lambda_t$ is returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \sqrt{y_t} - \sqrt{\mu_t}$.
 
 
-## Discrete density functions
+## Continuous distributions on a specific interval
+There is currently onle one distribution in this group:
+
+1. Beta distribution.
+
+Beta distribution is a distribution for a continuous variable that is defined on the interval of $(0, 1)$. Note that the bounds are not included here, because the probability density function is not well defined on them. If the provided data contains either zeroes or ones, the function will modify the values using:
+\begin{equation} \label{eq:BetaWarning}
+    y^\prime_t = y_t (1 - 2 \cdot 10^{-10}),
+\end{equation}
+and it will warn the user about this modification. This correction makes sure that there are no boundary values in the data, and it is quite artificial and needed for estimation purposes only.
+
+The density function of Beta distribution has the form:
+\begin{equation} \label{eq:Beta}
+    f(y_t) = \frac{y_t^{\alpha_t-1}(1-y_t)^{\beta_t-1}}{B(\alpha_t, \beta_t)} ,
+\end{equation}
+where $\alpha_t$ is the first shape parameter and $\beta_t$ is the second one. Note indices for the both shape parameters. This is what makes the `alm()` implementation of Beta distribution different from any other. We assume that both of them have underlying deterministic models, so that:
+\begin{equation} \label{eq:BetaAt}
+    \alpha_t = \exp(x_t' A) ,
+\end{equation}
+and
+\begin{equation} \label{eq:BetaBt}
+    \beta_t = \exp(x_t' B),
+\end{equation}
+where $A$ and $B$ are the vectors of parameters for the respective shape variables. This allows the function to model any shapes depending on the values of exogenous variables. The conditional expectation of the model is calculated using:
+\begin{equation} \label{eq:BetaExpectation}
+    \hat{y}_t = \frac{\alpha_t}{\alpha_t + \beta_t} ,
+\end{equation}
+while the conditional variance is:
+\begin{equation} \label{eq:BetaVariance}
+    \text{V}({y}_t) = \frac{\alpha_t \beta_t}{((\alpha_t + \beta_t)^2 (\alpha_t + \beta_t + 1))} .
+\end{equation}
+
+`alm()` function with `distribution="dbeta"` returns $\hat{y}_t$ in the variables `mu` and `fitted.values`, and $\text{V}({y}_t)$ in the `scale` variable. The shape parameters are returned in the respective variables `other$shape1` and `other$shape2`. You will notice that the output of the model contains twice more parameters than the number of variables in the model. This is because of the estimation of two models: $\alpha_t$ \eqref{eq:BetaAt} and $\beta_t$ \eqref{eq:BetaBt} - instead of one.
+
+Respectively, when `predict()` function is used for the `alm` model with Beta distribution, the two models are used in order to produce predicted values for $\alpha_t$ and $\beta_t$. After that the conditional mean `mu` and conditional variance `variances` are produced using the formulae above. The prediction intervals are generated using `qbeta` function with the provided shape parameters for the holdout. As for the confidence intervals, they are produced assuming normality for the parameters of the model and using the estimate of the variance of the mean based on the `variances` (which is weird and probably wrong).
+
+
+## Density functions of discrete distributions
 This group includes:
 
 1. Poisson distribution,

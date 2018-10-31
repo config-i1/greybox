@@ -1,8 +1,9 @@
-greybox v0.3.3 (Release data: 2018-10-30)
+greybox v0.3.3 (Release data: 2018-10-31)
 ==============
 
 Changes:
 * Student t distribution in alm.
+* Beta distribution in alm. When will I stop? I guess, I'll do that when I stop procrastinating...
 
 Bugfixes:
 * Corrected a typo of "plogos" in alm.

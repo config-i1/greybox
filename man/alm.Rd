@@ -6,7 +6,7 @@
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
-  "dpois", "dnbinom", "plogis", "pnorm"), occurrence = c("none",
+  "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
   "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, ...)
 }
 \arguments{
@@ -93,6 +93,7 @@ non-normal distributions. These include:
 \item Folded normal distribution, \link[greybox]{dfnorm},
 \item Log normal distribution, \link[stats]{dlnorm},
 \item Chi-Squared Distribution, \link[stats]{dchisq},
+\item Beta distribution, \link[stats]{dbeta},
 \item Poisson Distribution, \link[stats]{dpois},
 \item Negative Binomial Distribution, \link[stats]{dnbinom},
 \item Cumulative Logistic Distribution, \link[stats]{plogis},

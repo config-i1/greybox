@@ -14,6 +14,7 @@
 #' \item Folded normal distribution, \link[greybox]{dfnorm},
 #' \item Log normal distribution, \link[stats]{dlnorm},
 #' \item Chi-Squared Distribution, \link[stats]{dchisq},
+#' \item Beta distribution, \link[stats]{dbeta},
 #' \item Poisson Distribution, \link[stats]{dpois},
 #' \item Negative Binomial Distribution, \link[stats]{dnbinom},
 #' \item Cumulative Logistic Distribution, \link[stats]{plogis},
@@ -122,13 +123,14 @@
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
                                "dfnorm","dlnorm","dchisq",
                                "dpois","dnbinom",
+                               "dbeta",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
                 B=NULL, vcovProduce=FALSE, ...){
@@ -138,7 +140,7 @@ alm <- function(formula, data, subset, na.action,
 
     distribution <- distribution[1];
     if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm","dchisq",
-                           "dpois","dnbinom","plogis","pnorm"))){
+                           "dpois","dnbinom","dbeta","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
                            "Use distribution='d",distribution,"' instead."),
@@ -240,6 +242,18 @@ alm <- function(formula, data, subset, na.action,
             stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
                         "Maybe you should try some other distribution?"),
                  call.=FALSE);
+        }
+    }
+
+    if(distribution=="dbeta"){
+        if(any((y>1) | (y<0))){
+            stop("The response variable should lie between 0 and 1 in the Beta distribution", call.=FALSE);
+        }
+        else if(any(y==c(0,1))){
+            warning(paste0("The response variable contains boundary values (either zero or one). ",
+                           "Beta distribution is not estimable in this case. ",
+                           "So we used a minor correction for it, in order to overcome this limitation."), call.=FALSE);
+            y <- y*(1-2*1e-10);
         }
     }
 
@@ -364,6 +378,7 @@ alm <- function(formula, data, subset, na.action,
                        "dpois" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B[-1] <0),1E+100,(matrixXreg %*% B[-1])^2),
                        "dnbinom" = exp(matrixXreg %*% B[-1]),
+                       "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
@@ -377,6 +392,7 @@ alm <- function(formula, data, subset, na.action,
         );
 
         scale <- switch(distribution,
+                        "dbeta" = exp(matrixXreg %*% B[-c(1:(length(B)/2))]),
                         "dnorm" =,
                         "dfnorm" = sqrt(meanFast((y-mu)^2)),
                         "dlnorm" = sqrt(meanFast((log(y)-mu)^2)),
@@ -410,6 +426,7 @@ alm <- function(formula, data, subset, na.action,
                            "dchisq" = dchisq(y, df=fitterReturn$scale, ncp=fitterReturn$mu, log=TRUE),
                            "dpois" = dpois(y, lambda=fitterReturn$mu, log=TRUE),
                            "dnbinom" = dnbinom(y, mu=fitterReturn$mu, size=fitterReturn$scale, log=TRUE),
+                           "dbeta" = dbeta(y, shape1=fitterReturn$mu, shape2=fitterReturn$scale, log=TRUE),
                            "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
                                        pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
                            "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
@@ -439,6 +456,12 @@ alm <- function(formula, data, subset, na.action,
         else if(any(distribution==c("plogis","pnorm"))){
             # Box-Cox transform in order to get meaningful initials
             B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
+        }
+        else if(distribution=="dbeta"){
+            # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
+            # Transform y, just in case, to make sure that it does not hit boundary values
+            B <- .lm.fit(matrixXreg,log(y/(1-y)))$coefficients;
+            B <- c(B, -B);
         }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
@@ -514,6 +537,11 @@ alm <- function(formula, data, subset, na.action,
             names(B) <- variablesNames;
         }
     }
+    else if(distribution=="dbeta"){
+        if(!vcovProduce){
+            names(B) <- c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames));
+        }
+    }
     else{
         names(B) <- variablesNames;
     }
@@ -525,6 +553,12 @@ alm <- function(formula, data, subset, na.action,
         if(alphaEstimate){
             df <- df + 1;
             nVariables <- nVariables + 1;
+        }
+    }
+    else if(distribution=="dbeta"){
+        df <- nVariables*2;
+        if(!vcovProduce){
+            nVariables <- nVariables*2;
         }
     }
 
@@ -541,12 +575,14 @@ alm <- function(formula, data, subset, na.action,
                        "dnbinom" = mu,
                        "dchisq" = mu + scale,
                        "dlnorm" = exp(mu),
+                       "dbeta" = mu / (mu + scale),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
     );
 
     ### Error term in the transformed scale
     errors[] <- switch(distribution,
+                       "dbeta" = y - yFitted,
                        "dfnorm" =,
                        "dlaplace" =,
                        "dalaplace" =,
@@ -624,7 +660,13 @@ alm <- function(formula, data, subset, na.action,
         }
 
         if(nVariables>1){
-            dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
+            if(distribution=="dbeta"){
+                dimnames(vcovMatrix) <- list(c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)),
+                                             c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)));
+            }
+            else{
+                dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
+            }
         }
         else{
             names(vcovMatrix) <- variablesNames;
@@ -674,6 +716,17 @@ alm <- function(formula, data, subset, na.action,
             nVariables <- nVariables - 1;
         }
     }
+    else if(distribution=="dbeta"){
+        variablesNames <- variablesNames[1:(nVariables/2)];
+        nVariables <- nVariables/2;
+
+        # Write down shape parameters
+        ellipsis$shape1 <- mu;
+        ellipsis$shape2 <- scale;
+        # mu and scale are set top be equal to mu and variance.
+        scale <- mu * scale / ((mu+scale)^2 * (mu + scale + 1));
+        mu <- yFitted;
+    }
 
     finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
@@ -681,5 +734,6 @@ alm <- function(formula, data, subset, na.action,
                        data=matrix(as.matrix(dataWork[,c(responseName,variablesNames[-1])]), ncol=nVariables,
                                    dimnames=list(NULL, c(responseName,variablesNames[-1]))),
                        occurrence=occurrence, subset=subset, other=ellipsis);
+
     return(structure(finalModel,class=c("alm","greybox")));
 }
