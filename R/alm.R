@@ -463,6 +463,11 @@ alm <- function(formula, data, subset, na.action,
             B <- .lm.fit(matrixXreg,log(y/(1-y)))$coefficients;
             B <- c(B, -B);
         }
+        else if(distribution=="dchisq"){
+            B <- c(1, .lm.fit(matrixXreg,sqrt(y))$coefficients);
+            BLower <- c(0,rep(-Inf,length(B)-1));
+            BUpper <- rep(Inf,length(B));
+        }
         else{
             B <- .lm.fit(matrixXreg,y)$coefficients;
             BLower <- -Inf;
@@ -471,11 +476,6 @@ alm <- function(formula, data, subset, na.action,
 
         if(distribution=="dnbinom"){
             B <- c(var(y), B);
-            BLower <- c(0,rep(-Inf,length(B)-1));
-            BUpper <- rep(Inf,length(B));
-        }
-        else if(distribution=="dchisq"){
-            B <- c(1, B);
             BLower <- c(0,rep(-Inf,length(B)-1));
             BUpper <- rep(Inf,length(B));
         }
@@ -495,7 +495,7 @@ alm <- function(formula, data, subset, na.action,
             BUpper <- rep(Inf,length(B));
         }
 
-        if(any(distribution==c("dpois","dnbinom","plogis","pnorm"))){
+        if(any(distribution==c("dchisq","dpois","dnbinom","plogis","pnorm"))){
             maxeval <- 500;
         }
         else{

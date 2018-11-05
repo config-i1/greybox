@@ -8,6 +8,7 @@ Changes:
 Bugfixes:
 * Corrected a typo of "plogos" in alm.
 * is functions for greybox now rely on "inherits" function.
+* Some bugfixes in alm() with dchisq. But there's a lot of confusion there, including stuff in predict.alm.
 
 
 greybox v0.3.2 (Release data: 2018-10-25)
