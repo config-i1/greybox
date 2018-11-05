@@ -38,65 +38,35 @@
 #' @rdname isFunctions
 #' @export
 is.greybox <- function(x){
-    if(any(class(x)=="greybox")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"greybox"))
 }
 
 #' @rdname isFunctions
 #' @export
 is.alm <- function(x){
-    if(any(class(x)=="alm")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"alm"))
 }
 
 #' @rdname isFunctions
 #' @export
 is.greyboxC <- function(x){
-    if(any(class(x)=="greyboxC")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"greyboxC"))
 }
 
 #' @rdname isFunctions
 #' @export
 is.greyboxD <- function(x){
-    if(any(class(x)=="greyboxD")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"greyboxD"))
 }
 
 #' @rdname isFunctions
 #' @export
 is.rollingOrigin <- function(x){
-    if(any(class(x)=="rollingOrigin")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"rollingOrigin"))
 }
 
 #' @rdname isFunctions
 #' @export
 is.rmc <- function(x){
-    if(any(class(x)=="rmc")){
-        return(TRUE);
-    }
-    else{
-        return(FALSE);
-    }
+    return(inherits(x,"rmc"))
 }

@@ -1,4 +1,4 @@
-greybox v0.3.3 (Release data: 2018-10-31)
+greybox v0.3.3 (Release data: 2018-11-05)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 
 Bugfixes:
 * Corrected a typo of "plogos" in alm.
+* is functions for greybox now rely on "inherits" function.
 
 
 greybox v0.3.2 (Release data: 2018-10-25)
