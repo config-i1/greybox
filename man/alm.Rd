@@ -5,9 +5,9 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
-  "dlaplace", "dalaplace", "ds", "dfnorm", "dlnorm", "dchisq", "dpois",
-  "dnbinom", "plogis", "pnorm"), occurrence = c("none", "plogis",
-  "pnorm"), B = NULL, vcovProduce = FALSE, ...)
+  "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
+  "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
+  "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -85,12 +85,19 @@ This is a function, similar to \link[stats]{lm}, but for the cases of several
 non-normal distributions. These include:
 \enumerate{
 \item Normal distribution, \link[stats]{dnorm},
+\item Logistic Distribution, \link[stats]{dlogis},
+\item Laplace distribution, \link[greybox]{dlaplace},
+\item Asymmetric Laplace distribution, \link[greybox]{dalaplace},
+\item T-distribution, \link[stats]{dt},
+\item S-distribution, \link[greybox]{ds},
 \item Folded normal distribution, \link[greybox]{dfnorm},
 \item Log normal distribution, \link[stats]{dlnorm},
-\item Laplace distribution, \link[greybox]{dlaplace},
-\item S-distribution, \link[greybox]{ds},
 \item Chi-Squared Distribution, \link[stats]{dchisq},
-\item Logistic Distribution, \link[stats]{dlogis}.
+\item Beta distribution, \link[stats]{dbeta},
+\item Poisson Distribution, \link[stats]{dpois},
+\item Negative Binomial Distribution, \link[stats]{dnbinom},
+\item Cumulative Logistic Distribution, \link[stats]{plogis},
+\item Cumulative Normal distribution, \link[stats]{pnorm}.
 }
 
 This function is slower than \code{lm}, because it relies on likelihood estimation

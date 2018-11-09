@@ -193,10 +193,12 @@ pointLik.alm <- function(object, ...){
                         "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
                         "dlaplace" = dlaplace(y, mu=mu, b=scale, log=TRUE),
                         "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                        "dt" = dt(y-mu, df=scale, log=TRUE),
                         "ds" = ds(y, mu=mu, b=scale, log=TRUE),
                         "dpois" = dpois(y, lambda=mu, log=TRUE),
                         "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
                         "dchisq" = dchisq(y, df=scale, ncp=mu, log=TRUE),
+                        "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
                         "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                      plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                         "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -405,7 +407,7 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
 }
 
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
@@ -477,6 +479,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$upper[] <- qalaplace(levelUp,greyboxForecast$mean,bValues,alpha);
         }
         greyboxForecast$scale <- bValues;
+    }
+    else if(object$distribution=="dt"){
+        # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
+        df <- object$scale^{-2};
+        if(interval!="n"){
+            greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
+            greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
+        }
     }
     else if(object$distribution=="ds"){
         # Use the connection between the variance and b in S distribution
@@ -561,6 +571,24 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         else if(interval=="c"){
             greyboxForecast$lower[] <- exp(greyboxForecast$lower);
             greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
+    }
+    else if(object$distribution=="dbeta"){
+        greyboxForecast$shape1 <- greyboxForecast$mean;
+        greyboxForecast$shape2 <- greyboxForecast$variances;
+        greyboxForecast$mean <- greyboxForecast$shape1 / (greyboxForecast$shape1 + greyboxForecast$shape2);
+        greyboxForecast$variances <- (greyboxForecast$shape1 * greyboxForecast$shape2 /
+                                          ((greyboxForecast$shape1+greyboxForecast$shape2)^2 *
+                                               (greyboxForecast$shape1 + greyboxForecast$shape2 + 1)));
+        if(interval=="p"){
+            greyboxForecast$lower <- qbeta(levelLow,greyboxForecast$shape1,greyboxForecast$shape2);
+            greyboxForecast$upper <- qbeta(levelUp,greyboxForecast$shape1,greyboxForecast$shape2);
+        }
+        else if(interval=="c"){
+            greyboxForecast$lower <- (greyboxForecast$mean + qt(levelLow,df=object$df.residual)*
+                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
+            greyboxForecast$upper <- (greyboxForecast$mean + qt(levelUp,df=object$df.residual)*
+                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
         }
     }
     else if(object$distribution=="plogis"){
@@ -704,6 +732,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     }
     nRows <- nrow(newdata);
 
+    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
     ourVcov <- vcov(object);
@@ -714,6 +743,9 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
             parameters <- parameters[-1];
             ourVcov <- ourVcov[-1,-1];
         }
+    }
+    else if(object$distribution=="dbeta"){
+        parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
     if(any(parametersNames=="(Intercept)")){
@@ -732,25 +764,33 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
     }
 
-    ourForecast <- as.vector(matrixOfxreg %*% parameters);
+    if(object$distribution=="dbeta"){
+        # We predict values for shape1 and shape2 and write them down in mean and variance.
+        ourForecast <- as.vector(exp(matrixOfxreg %*% parameters[1:(length(parameters)/2)]));
+        vectorOfVariances <- as.vector(exp(matrixOfxreg %*% parameters[-c(1:(length(parameters)/2))]));
+        # ourForecast <- ourForecast / (ourForecast + as.vector(exp(matrixOfxreg %*% parameters[-c(1:(length(parameters)/2))])));
 
-    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
-
-    # abs is needed for some cases, when the likelihood was not fully optimised
-    vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
-
-    if(interval=="c"){
-        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
-        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
-    }
-    else if(interval=="p"){
-        vectorOfVariances <- vectorOfVariances + sigma(object)^2;
-        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
-        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
-    }
-    else{
         lower <- NULL;
         upper <- NULL;
+    }
+    else{
+        ourForecast <- as.vector(matrixOfxreg %*% parameters);
+        # abs is needed for some cases, when the likelihood was not fully optimised
+        vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
+
+        if(interval=="c"){
+            lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+            upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+        }
+        else if(interval=="p"){
+            vectorOfVariances <- vectorOfVariances + sigma(object)^2;
+            lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+            upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+        }
+        else{
+            lower <- NULL;
+            upper <- NULL;
+        }
     }
 
     ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
@@ -1044,12 +1084,14 @@ print.summary.alm <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,2)),
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1083,12 +1125,14 @@ print.summary.greybox <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = "Asymmetric Laplace",
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
@@ -1118,12 +1162,14 @@ print.summary.greyboxC <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dalaplace" = "Asymmetric Laplace",
+                      "dt" = "Student t",
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );

@@ -26,7 +26,7 @@ Rolling origin is an evaluation technique according to which the forecasting ori
 
 ## How can this be done?
 
-The figure below (from Svetunkov & Petropoulos, 2018) depicts the basic idea of rolling origin. White cells correspond to the in-sample data, while the light grey cells correspond to the three-steps-ahead forecasts. Time series has 25 observations in that figure, and the forecasts are produced from 8 origins, starting from the origin 15. The model is reestimated on each iteration, and the forecasts are produced. After that a new observation is added at the end of the series and the procedure continues. The process stops when there is no more data to add. This could be considered as a rolling origin with a **constant holdout** sample size. As a result of this procedure 8 one to three steps ahead forecasts are produced. Based on them we can calculate the preferred error measures and choose the best performing model.
+The figure below (from Svetunkov & Petropoulos, 2018) depicts the basic idea of rolling origin. White cells correspond to the in-sample data, while the light grey cells correspond to the three-steps-ahead forecasts. Time series has 25 observations in that figure, and the forecasts are produced from 8 origins, starting from the origin 15. The model is re-estimated on each iteration, and the forecasts are produced. After that a new observation is added at the end of the series and the procedure continues. The process stops when there is no more data to add. This could be considered as a rolling origin with a **constant holdout** sample size. As a result of this procedure 8 one to three steps ahead forecasts are produced. Based on them we can calculate the preferred error measures and choose the best performing model.
 
 ```{r out.width="75%", echo=FALSE}
 # All defaults
@@ -49,7 +49,7 @@ knitr::include_graphics("./img/ROProcessCOCI.gif")
 
 ## What does this have to do with R?
 
-The function `ro()` from `greybox` package (written by Yves Sagaert and Ivan Svetunkov in 2016 on the way to the International Symposium on Forecasting) implements the rolling origin evaluation for any function you like with a predefined `call` and returns the desired `value`. It heavily relies on the two variables: `call` and `value` - so it is quite important to understand how to formulate them in order to get the desired results. Overal, `ro()` is a very flexible function, but, as a result, it is not very simple. Let's see how it works.
+The function `ro()` from `greybox` package (written by Yves Sagaert and Ivan Svetunkov in 2016 on the way to the International Symposium on Forecasting) implements the rolling origin evaluation for any function you like with a predefined `call` and returns the desired `value`. It heavily relies on the two variables: `call` and `value` - so it is quite important to understand how to formulate them in order to get the desired results. Overall, `ro()` is a very flexible function, but, as a result, it is not very simple. Let's see how it works.
 
 We start with a simple example, generating series from normal distribution:
 ```{r}
@@ -94,7 +94,7 @@ If we have a look at the returned matrices, we will notice that they contain NAs
 returnedValues1$holdout
 ```
 
-This is because by defauls the holdout sample is set to be non-constant: `co=FALSE` (constant out-sample = FALSE). The in-sample is also set to non-constant, that is why the model will be reestimated on each iteration on the increasing sample. If we want to change that we might call `ro()` differently:
+This is because by default the holdout sample is set to be non-constant: `co=FALSE` (constant out-sample = FALSE). The in-sample is also set to non-constant, that is why the model will be re-estimated on each iteration on the increasing sample. If we want to change that we might call `ro()` differently:
 ```{r}
 returnedValues2 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=TRUE)
 ```
@@ -112,7 +112,7 @@ Note that we ask here for only one level. If we don't then the `forecast` functi
 
 ## Making things more ~~exciting~~ complicated
 
-As you see, `ro()` is convinient function, when you have one model and one time series. But what if you need to apply different models to different time series? We would need a loop, right? Yes. And there is a simple way to use `ro()` in this case. Let's continue our example but now introduce several time series:
+As you see, `ro()` is a convenient function, when you have one model and one time series. But what if you need to apply different models to different time series? We would need a loop, right? Yes. And there is a simple way to use `ro()` in this case. Let's continue our example but now introduce several time series:
 ```{r}
 x <- matrix(rnorm(120*3,c(100,50,150),c(10,5,15)), 120, 3, byrow=TRUE)
 ```
