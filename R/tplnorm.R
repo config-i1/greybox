@@ -23,6 +23,7 @@
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
 #' @param sigma vector of scale parameters.
+#' @param shift vector of shift parameters.
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'

@@ -22,6 +22,8 @@ rtplnorm(n = 1, mu = 0, sigma = 1, shift = 0)
 
 \item{sigma}{vector of scale parameters.}
 
+\item{shift}{vector of shift parameters.}
+
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}
 
