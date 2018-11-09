@@ -14,11 +14,14 @@ The list of included functions:
 6. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
 7. lmDynamic - linear regression with time varying parameters based on pAIC.
 8. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-9. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
-10. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
-11. qs, ds, rs, ps - functions for S distribution.
-12. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
-13. graphmaker - plots the original series, the fitted values and the forecasts.
+9. graphmaker - plots the original series, the fitted values and the forecasts.
+
+The list of the distribution functions:
+1. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
+2. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
+3. qs, ds, rs, ps - functions for S distribution.
+4. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
+5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
 
 Future functions:
 1. nonlinearExpander - Function produces non-linear transformations of the provided data.
