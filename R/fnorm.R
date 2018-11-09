@@ -1,6 +1,6 @@
 #' Folded Normal Distribution
 #'
-#' Density, cumulative distribution, quantile functions and random
+#' Density, cumulative distribution, quantile functions and random number
 #' generation for the folded normal distribution with the location
 #' parameter mu and the scale sigma (which corresponds to standard
 #' deviation in normal distribution).

@@ -49,7 +49,7 @@ or a matrix or an array.
 }
 }
 \description{
-Density, cumulative distribution, quantile functions and random
+Density, cumulative distribution, quantile functions and random number
 generation for the Asymmetric Laplace distribution with the
 location parameter mu, Mean Absolute Error (or Mean Absolute
 Deviation) equal to 2 b and asymmetry parameter alpha.

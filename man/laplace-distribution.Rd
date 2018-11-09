@@ -47,7 +47,7 @@ or a matrix or an array.
 }
 }
 \description{
-Density, cumulative distribution, quantile functions and random
+Density, cumulative distribution, quantile functions and random number
 generation for the Laplace distribution with the location parameter mu
 and Mean Absolute Error (or Mean Absolute Deviation) equal to b.
 }

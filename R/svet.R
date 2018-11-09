@@ -1,6 +1,6 @@
 #' S Distribution
 #'
-#' Density, cumulative distribution, quantile functions and random
+#' Density, cumulative distribution, quantile functions and random number
 #' generation for the S distribution with the location parameter mu
 #' and a scaling parameter b.
 #'
