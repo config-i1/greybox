@@ -1,14 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "25 October 2018"
+date: "14 November 2018"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.3.2
+This is the release of the package ``greybox``, v0.3.3
 
 ## Test environments
-* local ubuntu 17.10, R 3.4.4
+* local ubuntu 18.10, R 3.5.1
 * ubuntu 14.04.5 (on travis-ci), R 3.5.0
 * win-builder (devel and release)
 

@@ -1,15 +1,18 @@
-greybox v0.3.3 (Release data: 2018-11-05)
+greybox v0.3.3 (Release data: 2018-11-14)
 ==============
 
 Changes:
 * Student t distribution in alm.
 * Beta distribution in alm. When will I stop? I guess, I'll do that when I stop procrastinating...
 * New functions for three parameter log normal distribution.
+* New function for the non-linear transformation of the provided variables - xregTransformer. Use with care!
 
 Bugfixes:
 * Corrected a typo of "plogos" in alm.
 * is functions for greybox now rely on "inherits" function.
 * Some bugfixes in alm() with dchisq. But there's a lot of confusion there, including stuff in predict.alm.
+* Stepwise was not calculating the number of degrees of freedom correctly in case of distribution="dnorm".
+* Stepwise did not call for alm in case of distribution!="dnorm".
 
 
 greybox v0.3.2 (Release data: 2018-10-25)

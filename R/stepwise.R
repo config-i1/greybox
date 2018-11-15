@@ -99,9 +99,6 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
             useALM <- TRUE;
             rowsSelected <- rowsSelected | (data[,1]!=0);
         }
-        else{
-            useALM <- FALSE;
-        }
     }
 
     if(useALM){
@@ -250,7 +247,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
         bestModel$fitted.values <- bestModel$data[[1]] - c(bestModel$residuals);
-        bestModel$df <- length(varsNames) + 1;
+        # This is number of variables + constant + variance
+        bestModel$df <- length(varsNames) + 1 + 1;
         bestModel$df.residual <- nRows - bestModel$df;
         names(bestModel$coefficients) <- c("(Intercept)",varsNames);
         # Remove redundant bits
