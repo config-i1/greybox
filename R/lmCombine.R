@@ -19,6 +19,10 @@
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
+#' @param shrink Defines how to calculate the average for the parameters. If
+#' \code{TRUE}, then the parameters are averaged through all the models, assuming
+#' that in those models, where they don't appear they are equal to zero. If
+#' \code{FALSE}, then the parameters are averaged only when they appear.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "greyboxC". The list of variables:
@@ -74,7 +78,8 @@
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                    "plogis","pnorm")){
+                                    "plogis","pnorm"),
+                      shrink=FALSE){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
@@ -243,13 +248,27 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
 
     # Calculate IC weights
-    ICWeights <- ICs - min(ICs);
-    ICWeights <- exp(-0.5*ICWeights) / sum(exp(-0.5*ICWeights));
+    # is.finite is needed in the case of overfitting the data
+    modelsGood <- is.finite(ICs);
+    ICWeights <- ICs - min(ICs[modelsGood]);
+    ICWeights[modelsGood] <- exp(-0.5*ICWeights[modelsGood]) / sum(exp(-0.5*ICWeights[modelsGood]));
+    # If we awfully overfitted the data with some of models, discard them.
+    if(any(!modelsGood)){
+        ICWeights[!modelsGood] <- 0;
+    }
 
     # Calculate weighted parameters
     parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
+    parametersCombined <- colSums(parametersWeighted);
 
-    parametersCombined <- apply(parametersWeighted,2,sum);
+    # If shrinkage is not needed, then calculate weights for each parameter and modify the combined parameters
+    if(!shrink){
+        modifiedWeights <- colSums(cbind(1,variablesCombinations) * matrix(ICWeights,nrow(parameters),nVariables+1));
+        weightsZero <- (modifiedWeights==0);
+        parametersCombined <- parametersCombined / modifiedWeights;
+        # If some of summary weights were zero, then make parameters zero as well
+        parametersCombined[weightsZero] <- 0;
+    }
     names(parametersCombined) <- exoNames;
 
     # From the matrix of exogenous variables without the response variable
@@ -299,6 +318,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     # Models SE
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
     names(parametersSECombined) <- exoNames;
+
+    if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
+        warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.", call.=FALSE);
+    }
 
     #Calcualte logLik
     logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));

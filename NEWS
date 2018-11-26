@@ -1,4 +1,4 @@
-greybox v0.3.3 (Release data: 2018-11-14)
+greybox v0.3.3 (Release data: 2018-11-26)
 ==============
 
 Changes:
@@ -6,10 +6,11 @@ Changes:
 * Beta distribution in alm. When will I stop? I guess, I'll do that when I stop procrastinating...
 * New functions for three parameter log normal distribution.
 * New function for the non-linear transformation of the provided variables - xregTransformer. Use with care!
+* New parameter in lmCombine and lmDynamic - shrink - it allows deciding, how to average out the parameters: with shrinkage (taking cases with zero parameters into account) or without (only calculating average for cases, when the parameter is non-zero).
 
 Bugfixes:
 * Corrected a typo of "plogos" in alm.
-* is functions for greybox now rely on "inherits" function.
+* is-functions for greybox now rely on "inherits" function.
 * Some bugfixes in alm() with dchisq. But there's a lot of confusion there, including stuff in predict.alm.
 * Stepwise was not calculating the number of degrees of freedom correctly in case of distribution="dnorm".
 * Stepwise did not call for alm in case of distribution!="dnorm".

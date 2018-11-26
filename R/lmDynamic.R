@@ -20,6 +20,10 @@
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
+#' @param shrink Defines how to calculate the average for the parameters. If
+#' \code{TRUE}, then the parameters are averaged through all the models, assuming
+#' that in those models, where they don't appear they are equal to zero. If
+#' \code{FALSE}, then the parameters are averaged only when they appear.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "greyboxD", which includes time varying parameters and dynamic importance
@@ -65,7 +69,8 @@
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                    "plogis","pnorm")){
+                                    "plogis","pnorm"),
+                      shrink=TRUE){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
@@ -232,17 +237,22 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Calculate weighted parameters
     parametersWeighted <- pICWeights %*% parameters;
+    if(!shrink){
+        modifiedWeights <- pICWeights %*% cbind(1,variablesCombinations);
+        parametersWeighted <- parametersWeighted / modifiedWeights;
+    }
     colnames(parametersWeighted) <- exoNames;
 
-    parametersMean <- apply(parametersWeighted,2,mean);
+    parametersMean <- colMeans(parametersWeighted);
     names(parametersMean) <- exoNames;
 
     # From the matrix of exogenous variables without the response variable
     ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
     colnames(ourDataExo) <- exoNames;
 
-    mu <- parametersWeighted * as.matrix(ourDataExo);
-    mu <- apply(mu,1,sum)
+    # Calculate the mean based on the mean values of parameters
+    mu <- as.matrix(ourDataExo) %*% parametersMean;
+    # mu <- rowSums(parametersWeighted * as.matrix(ourDataExo));
 
     yFitted <- switch(distribution,
                       "dfnorm" =,
