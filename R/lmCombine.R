@@ -4,7 +4,9 @@
 #' on all the other provided data.
 #'
 #' The algorithm uses alm() to fit different models and then combines the models
-#' based on the selected IC.
+#' based on the selected IC. The parameters are combined so that if they are not
+#' present in some of models, it is assumed that they are equal to zero. Thus,
+#' there is a shrinkage effect in the combination.
 #'
 #' @template AICRef
 #' @template author
@@ -19,10 +21,6 @@
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
-#' @param shrink Defines how to calculate the average for the parameters. If
-#' \code{TRUE}, then the parameters are averaged through all the models, assuming
-#' that in those models, where they don't appear they are equal to zero. If
-#' \code{FALSE}, then the parameters are averaged only when they appear.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "greyboxC". The list of variables:
@@ -43,6 +41,8 @@
 #' \item rank - rank of the combined model,
 #' \item data - the data used in the model,
 #' \item mu - the location value of the distribution.
+#' \item combination - the table, indicating which variables were used in every
+#' model construction and what were the weights for each model.
 #' }
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
@@ -78,8 +78,7 @@
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                    "plogis","pnorm"),
-                      shrink=FALSE){
+                                    "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
@@ -139,6 +138,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # Matrix of all the combinations
         variablesBinary <- rep(1,nVariables);
         variablesCombinations <- matrix(NA,nCombinations,nVariables);
+        colnames(variablesCombinations) <- variablesNames;
 
         #Produce matrix with binaries for inclusion of variables in the loop
         variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
@@ -262,13 +262,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     parametersCombined <- colSums(parametersWeighted);
 
     # If shrinkage is not needed, then calculate weights for each parameter and modify the combined parameters
-    if(!shrink){
-        modifiedWeights <- colSums(cbind(1,variablesCombinations) * matrix(ICWeights,nrow(parameters),nVariables+1));
-        weightsZero <- (modifiedWeights==0);
-        parametersCombined <- parametersCombined / modifiedWeights;
-        # If some of summary weights were zero, then make parameters zero as well
-        parametersCombined[weightsZero] <- 0;
-    }
+    # if(!shrink){
+    #     modifiedWeights <- colSums(cbind(1,variablesCombinations) * matrix(ICWeights,nrow(parameters),nVariables+1));
+    #     weightsZero <- (modifiedWeights==0);
+    #     parametersCombined <- parametersCombined / modifiedWeights;
+    #     # If some of summary weights were zero, then make parameters zero as well
+    #     parametersCombined[weightsZero] <- 0;
+    # }
     names(parametersCombined) <- exoNames;
 
     # From the matrix of exogenous variables without the response variable
@@ -315,6 +315,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     ICValue <- c(ICWeights %*% ICs);
     names(ICValue) <- ic;
 
+    variablesCombinations <- cbind(variablesCombinations,ICWeights)
+    colnames(variablesCombinations)[nVariables+1] <- "IC weights"
+
     # Models SE
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
     names(parametersSECombined) <- exoNames;
@@ -329,7 +332,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=ourData, mu=mu);
+                       call=cl, rank=nVariables+1, data=ourData, mu=mu, combination=variablesCombinations);
 
     return(structure(finalModel,class=c("greyboxC","alm","greybox")));
 }

@@ -7,7 +7,7 @@
 lmDynamic(data, ic = c("AICc", "AIC", "BIC", "BICc"),
   bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"), shrink = TRUE)
+  "pnorm"))
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -23,11 +23,6 @@ one are produced and then combined.}
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
-
-\item{shrink}{Defines how to calculate the average for the parameters. If
-\code{TRUE}, then the parameters are averaged through all the models, assuming
-that in those models, where they don't appear they are equal to zero. If
-\code{FALSE}, then the parameters are averaged only when they appear.}
 }
 \value{
 Function returns \code{model} - the final model of the class

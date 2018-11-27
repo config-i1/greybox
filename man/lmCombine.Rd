@@ -9,7 +9,7 @@
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
   bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"), shrink = FALSE)
+  "pnorm"))
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -25,11 +25,6 @@ one are produced and then combined.}
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
-
-\item{shrink}{Defines how to calculate the average for the parameters. If
-\code{TRUE}, then the parameters are averaged through all the models, assuming
-that in those models, where they don't appear they are equal to zero. If
-\code{FALSE}, then the parameters are averaged only when they appear.}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -51,6 +46,8 @@ the combined model,
 \item rank - rank of the combined model,
 \item data - the data used in the model,
 \item mu - the location value of the distribution.
+\item combination - the table, indicating which variables were used in every
+model construction and what were the weights for each model.
 }
 }
 \description{
@@ -59,7 +56,9 @@ on all the other provided data.
 }
 \details{
 The algorithm uses alm() to fit different models and then combines the models
-based on the selected IC.
+based on the selected IC. The parameters are combined so that if they are not
+present in some of models, it is assumed that they are equal to zero. Thus,
+there is a shrinkage effect in the combination.
 }
 \examples{
 
