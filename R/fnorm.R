@@ -85,9 +85,9 @@ pfnorm <- function(q, mu=0, sigma=1){
 #' @export qfnorm
 #' @aliases qfnorm
 qfnorm <- function(p, mu=0, sigma=1){
-    p <- unique(p);
-    mu <- unique(mu);
-    sigma <- unique(sigma);
+    # p <- unique(p);
+    # mu <- unique(mu);
+    # sigma <- unique(sigma);
     CF <- function(A, P, mu, sigma){
         probability <- pfnorm(A, mu, sigma);
         return((P-probability)^2);

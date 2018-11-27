@@ -115,36 +115,38 @@ where $k$ is the number of estimated parameters (including the variance itself).
 ### Laplace distribution
 Laplace distribution has some similarities with the Normal one:
 \begin{equation} \label{eq:Laplace}
-    f(y_t) = \frac{1}{2 b} \exp \left( -\frac{\left| y_t - \mu_t \right|}{b} \right) ,
+    f(y_t) = \frac{1}{2 s} \exp \left( -\frac{\left| y_t - \mu_t \right|}{s} \right) ,
 \end{equation}
-where $b$ is the scale parameter, which, when estimated using likelihood, is equal to the mean absolute error:
+where $s$ is the scale parameter, which, when estimated using likelihood, is equal to the mean absolute error:
 \begin{equation} \label{eq:bLaplace}
-    b = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
+    s = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
 \end{equation}
-So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $b$ \eqref{eq:bLaplace}. So when estimating a model via minimising $b$, the assumption imposed on the error term is $\epsilon_t \sim \text{Laplace}(0, b)$. The main difference of Laplace from Normal distribution is its fatter tails.
+So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \text{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails.
 
-`alm()` function with `distribution="dlaplace"` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $b$ is returned in the `scale` variable. The prediction intervals are derived from the quantiles of Laplace distribution after transforming the conditional variance into the conditional scale parameter $b$ using the connection between the two in Laplace distribution:
+`alm()` function with `distribution="dlaplace"` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $s$ is returned in the `scale` variable. The prediction intervals are derived from the quantiles of Laplace distribution after transforming the conditional variance into the conditional scale parameter $s$ using the connection between the two in Laplace distribution:
 \begin{equation} \label{eq:bLaplaceAndSigma}
-    b = \sqrt{\frac{\sigma^2}{2}},
+    s = \sqrt{\frac{\sigma^2}{2}},
 \end{equation}
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
+The kurtosis of Laplace distribution is 6, making it suitable for modelling rarely occurring events.
+
 ### Asymmetric Laplace distribution
-Asymmetric Laplace distribution can be considered as a two Laplace distributions with different parameters $b$ for left and right side. There are several ways to summarise the probability density function, the one used in `alm()` relies on the asymmetry parameter $\alpha$ [@Yu2005]:
+Asymmetric Laplace distribution can be considered as a two Laplace distributions with different parameters $s$ for left and right side. There are several ways to summarise the probability density function, the one used in `alm()` relies on the asymmetry parameter $\alpha$ [@Yu2005]:
 \begin{equation} \label{eq:ALaplace}
-    f(y_t) = \frac{\alpha (1- \alpha)}{b} \exp \left( -\frac{y_t - \mu_t}{b} (\alpha - I(y_t \leq \mu_t)) \right) ,
+    f(y_t) = \frac{\alpha (1- \alpha)}{s} \exp \left( -\frac{y_t - \mu_t}{s} (\alpha - I(y_t \leq \mu_t)) \right) ,
 \end{equation}
-where $b$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $b$ estimated using likelihood is equal to the quantile loss:
+where $s$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $s$ estimated using likelihood is equal to the quantile loss:
 \begin{equation} \label{eq:bALaplace}
-    b = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
+    s = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
 \end{equation}
-Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \text{ALaplace}(0, b, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
+Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \text{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
 
-In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $b=\frac{1}{2}\text{MAE}$.
+In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\frac{1}{2}\text{MAE}$.
 
-`alm()` function with `distribution="dalaplace"` accepts an additional parameter `alpha` in ellipsis, which defines the quantile $\alpha$. If it is not provided, then the function will estimated it maximising the likelihood and return it as the first coefficient. `alm()` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $b$ is returned in the `scale` variable. The parameter $\alpha$ is returned in the variable `other` of the final model. The prediction intervals are produced using `qalaplace()` function. In order to find the values of $b$ for the holdout the following connection between the variance of the variable and the scale in Asymmetric Laplace distribution is used:
+`alm()` function with `distribution="dalaplace"` accepts an additional parameter `alpha` in ellipsis, which defines the quantile $\alpha$. If it is not provided, then the function will estimated it maximising the likelihood and return it as the first coefficient. `alm()` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $s$ is returned in the `scale` variable. The parameter $\alpha$ is returned in the variable `other` of the final model. The prediction intervals are produced using `qalaplace()` function. In order to find the values of $s$ for the holdout the following connection between the variance of the variable and the scale in Asymmetric Laplace distribution is used:
 \begin{equation} \label{eq:bALaplaceAndSigma}
-    b = \sqrt{\sigma^2 \frac{\alpha^2 (1-\alpha)^2}{(1-\alpha)^2 + \alpha^2}},
+    s = \sqrt{\sigma^2 \frac{\alpha^2 (1-\alpha)^2}{(1-\alpha)^2 + \alpha^2}},
 \end{equation}
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
@@ -159,26 +161,26 @@ where $s$ is the scale parameter, which is estimated in `alm()` based on the con
 \end{equation}
 Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \text{Logistic}(0, s)$.
 
-Logistic is considered a fat tailed distribution, but its tails are not as fat as in Laplace. Kurtosis of standard Logistic is 4.2, while in case of Laplace it is 6.
+Logistic is considered a fat tailed distribution, but its tails are not as fat as in Laplace. Kurtosis of standard Logistic is 4.2.
 
 `alm()` function with `distribution="dlogis"` returns $\mu_t$ in `mu` and in `fitted.values` variables, and $s$ in the `scale` variable. Similar to Laplace distribution, the prediction intervals use the connection between the variance and scale, and rely on the `qlogis` function.
 
 ### S distribution
 The S distribution has the following density function:
 \begin{equation} \label{eq:S}
-    f(y_t) = \frac{1}{4b^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{b} \right) ,
+    f(y_t) = \frac{1}{4b^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{s} \right) ,
 \end{equation}
-where $b$ is the scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
+where $s$ is the scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
 \begin{equation} \label{eq:bS}
-    b = \frac{1}{T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
+    s = \frac{1}{T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
 \end{equation}
 which corresponds to the minimisation of "Half Absolute Error" or "Half Absolute Moment", which is equal to $2b$.
 
-S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distribution. It might be useful in cases of randomly occurring incidents and extreme values. 
+S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distribution. It might be useful in cases of randomly occurring incidents and extreme values (Black Swans?).
 
-`alm()` function with `distribution="ds"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $b$ in the `scale` variable. Similarly to the previous functions, the prediction intervals are based on the `qs()` function from `greybox` package and use the connection between the scale and the variance:
+`alm()` function with `distribution="ds"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $s$ in the `scale` variable. Similarly to the previous functions, the prediction intervals are based on the `qs()` function from `greybox` package and use the connection between the scale and the variance:
 \begin{equation} \label{eq:bSAndSigma}
-    b = \left( \frac{\sigma^2}{120} \right) ^{\frac{1}{4}},
+    s = \left( \frac{\sigma^2}{120} \right) ^{\frac{1}{4}},
 \end{equation}
 where once again $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 

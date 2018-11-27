@@ -7,20 +7,20 @@
 \alias{rlaplace}
 \title{Laplace Distribution}
 \usage{
-dlaplace(q, mu = 0, b = 1, log = FALSE)
+dlaplace(q, mu = 0, scale = 1, log = FALSE)
 
-plaplace(q, mu = 0, b = 1)
+plaplace(q, mu = 0, scale = 1)
 
-qlaplace(p, mu = 0, b = 1)
+qlaplace(p, mu = 0, scale = 1)
 
-rlaplace(n = 1, mu = 0, b = 1)
+rlaplace(n = 1, mu = 0, scale = 1)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
 \item{mu}{vector of location parameters (means).}
 
-\item{b}{vector of mean absolute errors.}
+\item{scale}{vector of mean absolute errors.}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}
@@ -38,24 +38,24 @@ provided parameters.
 \item \code{plaplace} returns the value of the cumulative function
 for the provided parameters.
 \item \code{qlaplace} returns quantiles of the distribution. Depending
-on what was provided in \code{p}, \code{mu} and \code{b}, this
+on what was provided in \code{p}, \code{mu} and \code{scale}, this
 can be either a vector or a matrix, or an array.
 \item \code{rlaplace} returns a vector of random variables
 generated from the Laplace distribution. Depending on what was
-provided in \code{mu} and \code{b}, this can be either a vector
+provided in \code{mu} and \code{scale}, this can be either a vector
 or a matrix or an array.
 }
 }
 \description{
 Density, cumulative distribution, quantile functions and random number
 generation for the Laplace distribution with the location parameter mu
-and Mean Absolute Error (or Mean Absolute Deviation) equal to b.
+and Mean Absolute Error (or Mean Absolute Deviation) equal to scale.
 }
 \details{
-When mu=0 and b=1, the Laplace distribution becomes standardized.
+When mu=0 and scale=1, the Laplace distribution becomes standardized.
 The distribution has the following density function:
 
-f(x) = 1/(2b) exp(-abs(x-mu) / b)
+f(x) = 1/(2 scale) exp(-abs(x-mu) / scale)
 
 Both \code{plaplace} and \code{qlaplace} are returned for the lower
 tail of the distribution.

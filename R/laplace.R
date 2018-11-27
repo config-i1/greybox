@@ -2,12 +2,12 @@
 #'
 #' Density, cumulative distribution, quantile functions and random number
 #' generation for the Laplace distribution with the location parameter mu
-#' and Mean Absolute Error (or Mean Absolute Deviation) equal to b.
+#' and Mean Absolute Error (or Mean Absolute Deviation) equal to scale.
 #'
-#' When mu=0 and b=1, the Laplace distribution becomes standardized.
+#' When mu=0 and scale=1, the Laplace distribution becomes standardized.
 #' The distribution has the following density function:
 #'
-#' f(x) = 1/(2b) exp(-abs(x-mu) / b)
+#' f(x) = 1/(2 scale) exp(-abs(x-mu) / scale)
 #'
 #' Both \code{plaplace} and \code{qlaplace} are returned for the lower
 #' tail of the distribution.
@@ -19,7 +19,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
-#' @param b vector of mean absolute errors.
+#' @param scale vector of mean absolute errors.
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'
@@ -31,11 +31,11 @@
 #' \item \code{plaplace} returns the value of the cumulative function
 #' for the provided parameters.
 #' \item \code{qlaplace} returns quantiles of the distribution. Depending
-#' on what was provided in \code{p}, \code{mu} and \code{b}, this
+#' on what was provided in \code{p}, \code{mu} and \code{scale}, this
 #' can be either a vector or a matrix, or an array.
 #' \item \code{rlaplace} returns a vector of random variables
 #' generated from the Laplace distribution. Depending on what was
-#' provided in \code{mu} and \code{b}, this can be either a vector
+#' provided in \code{mu} and \code{scale}, this can be either a vector
 #' or a matrix or an array.
 #' }
 #'
@@ -61,8 +61,8 @@
 #' @rdname laplace-distribution
 #' @export dlaplace
 #' @aliases dlaplace
-dlaplace <- function(q, mu=0, b=1, log=FALSE){
-    laplaceReturn <- 1/(2*b)*exp(-abs(mu-q)/b);
+dlaplace <- function(q, mu=0, scale=1, log=FALSE){
+    laplaceReturn <- 1/(2*scale)*exp(-abs(mu-q)/scale);
     if(log){
         laplaceReturn <- log(laplaceReturn);
     }
@@ -72,30 +72,30 @@ dlaplace <- function(q, mu=0, b=1, log=FALSE){
 #' @rdname laplace-distribution
 #' @export plaplace
 #' @aliases plaplace
-plaplace <- function(q, mu=0, b=1){
-    laplaceReturn <- 0.5 + 0.5*sign(q-mu)*(1-exp(-abs(q-mu)/b));
+plaplace <- function(q, mu=0, scale=1){
+    laplaceReturn <- 0.5 + 0.5*sign(q-mu)*(1-exp(-abs(q-mu)/scale));
     return(laplaceReturn);
 }
 
 #' @rdname laplace-distribution
 #' @export qlaplace
 #' @aliases qlaplace
-qlaplace <- function(p, mu=0, b=1){
-    p <- unique(p);
-    mu <- unique(mu);
-    b <- unique(b);
-    lengthMax <- max(length(p),length(mu),length(b));
-    # If length of p, mu and b differs, then go difficult. Otherwise do simple stuff
-    if(any(!c(length(p),length(mu),length(b)) %in% c(lengthMax, 1))){
-        laplaceReturn <- array(0,c(length(p),length(mu),length(b)),
-                               dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b)));
+qlaplace <- function(p, mu=0, scale=1){
+    # p <- unique(p);
+    # mu <- unique(mu);
+    # scale <- unique(scale);
+    lengthMax <- max(length(p),length(mu),length(scale));
+    # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
+    if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
+        laplaceReturn <- array(0,c(length(p),length(mu),length(scale)),
+                               dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
         laplaceReturn[p==0.5,,] <- 1;
         laplaceReturn[p==0,,] <- -Inf;
         laplaceReturn[p==1,,] <- Inf;
         probsToEstimate <- which(laplaceReturn[,1,1]==0);
         laplaceReturn[laplaceReturn==1] <- 0;
-        for(k in 1:length(b)){
-            laplaceReturn[probsToEstimate,,k] <- (-b[k] * sign(p[probsToEstimate]-0.5) *
+        for(k in 1:length(scale)){
+            laplaceReturn[probsToEstimate,,k] <- (-scale[k] * sign(p[probsToEstimate]-0.5) *
                                                       log(1-2*abs(p[probsToEstimate]-0.5)));
         }
         laplaceReturn <- laplaceReturn + rep(mu,each=length(p));
@@ -103,7 +103,7 @@ qlaplace <- function(p, mu=0, b=1){
         laplaceReturn <- laplaceReturn[,,];
     }
     else{
-        laplaceReturn <- mu - b * sign(p-0.5) * log(1-2*abs(p-0.5));
+        laplaceReturn <- mu - scale * sign(p-0.5) * log(1-2*abs(p-0.5));
     }
     return(laplaceReturn);
 }
@@ -111,7 +111,7 @@ qlaplace <- function(p, mu=0, b=1){
 #' @rdname laplace-distribution
 #' @export rlaplace
 #' @aliases rlaplace
-rlaplace <- function(n=1, mu=0, b=1){
-    laplaceReturn <- qlaplace(runif(n,0,1),mu,b);
+rlaplace <- function(n=1, mu=0, scale=1){
+    laplaceReturn <- qlaplace(runif(n,0,1),mu,scale);
     return(laplaceReturn);
 }

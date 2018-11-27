@@ -2,13 +2,13 @@
 #'
 #' Density, cumulative distribution, quantile functions and random number
 #' generation for the S distribution with the location parameter mu
-#' and a scaling parameter b.
+#' and a scaling parameter scale.
 #'
 #' When mu=0 and ham=2, the S distribution becomes standardized with
-#' b=1 (this is because b=ham/2). The distribution has the following
+#' scale=1 (this is because scale=ham/2). The distribution has the following
 #' density function:
 #'
-#' f(x) = 1/(4b^2) exp(-sqrt(abs(x-mu)) / b)
+#' f(x) = 1/(4 scale^2) exp(-sqrt(abs(x-mu)) / scale)
 #'
 #' The S distribution has fat tails and large excess.
 #'
@@ -22,7 +22,7 @@
 #' @param p vector of probabilities.
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
-#' @param b vector of scaling parameter (which are equal to ham/2).
+#' @param scale vector of scaling parameter (which are equal to ham/2).
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'
@@ -34,11 +34,11 @@
 #' \item \code{ps} returns the value of the cumulative function
 #' for the provided parameters.
 #' \item \code{qs} returns quantiles of the distribution. Depending
-#' on what was provided in \code{p}, \code{mu} and \code{b}, this
+#' on what was provided in \code{p}, \code{mu} and \code{scale}, this
 #' can be either a vector or a matrix, or an array.
 #' \item \code{rs} returns a vector of random variables
 #' generated from the S distribution. Depending on what was provided
-#' in \code{mu} and \code{b}, this can be either a vector or a matrix
+#' in \code{mu} and \code{scale}, this can be either a vector or a matrix
 #' or an array.
 #' }
 #'
@@ -60,8 +60,8 @@
 #' @rdname s-distribution
 #' @export ds
 #' @aliases ds
-ds <- function(q, mu=0, b=1, log=FALSE){
-    svetReturn <- 1/(4*b^2)*exp(-sqrt(abs(mu-q))/b);
+ds <- function(q, mu=0, scale=1, log=FALSE){
+    svetReturn <- 1/(4*scale^2)*exp(-sqrt(abs(mu-q))/scale);
     if(log){
         svetReturn <- log(svetReturn);
     }
@@ -71,8 +71,8 @@ ds <- function(q, mu=0, b=1, log=FALSE){
 #' @rdname s-distribution
 #' @export ps
 #' @aliases ps
-ps <- function(q, mu=0, b=1){
-    svetReturn <- 0.5+0.5*sign(q-mu)*(1-1/b*(sqrt(abs(mu-q))+b)*exp(-sqrt(abs(mu-q))/b))
+ps <- function(q, mu=0, scale=1){
+    svetReturn <- 0.5+0.5*sign(q-mu)*(1-1/scale*(sqrt(abs(mu-q))+scale)*exp(-sqrt(abs(mu-q))/scale))
     return(svetReturn);
 }
 
@@ -80,15 +80,15 @@ ps <- function(q, mu=0, b=1){
 #' @export qs
 #' @importFrom lamW lambertWm1
 #' @aliases qs
-qs <- function(p, mu=0, b=1){
-    p <- unique(p);
-    mu <- unique(mu);
-    b <- unique(b);
-    lengthMax <- max(length(p),length(mu),length(b));
-    # If length of p, mu and b differs, then go difficult. Otherwise do simple stuff
-    if(any(!c(length(p),length(mu),length(b)) %in% c(lengthMax, 1))){
-        svetReturn <- array(0,c(length(p),length(mu),length(b)),
-                            dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("b=",b)));
+qs <- function(p, mu=0, scale=1){
+    # p <- unique(p);
+    # mu <- unique(mu);
+    # scale <- unique(scale);
+    lengthMax <- max(length(p),length(mu),length(scale));
+    # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
+    if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
+        svetReturn <- array(0,c(length(p),length(mu),length(scale)),
+                            dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
         svetReturn[p==0.5,,] <- 1;
         svetReturn[p==0,,] <- -Inf;
         svetReturn[p==1,,] <- Inf;
@@ -97,14 +97,14 @@ qs <- function(p, mu=0, b=1){
         if(length(probsToEstimate)!=0){
             for(i in 1:length(probsToEstimate)){
                 j <- probsToEstimate[i];
-                for(k in 1:length(b)){
+                for(k in 1:length(scale)){
                     if(p[j]<0.5){
-                        svetReturn[j,,k] <- (-b[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
-                                                 2*b[k]^2*lambertWm1(-2*p[j]/exp(1))-b[k]^2);
+                        svetReturn[j,,k] <- (-scale[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
+                                                 2*scale[k]^2*lambertWm1(-2*p[j]/exp(1))-scale[k]^2);
                     }
                     else{
-                        svetReturn[j,,k] <- (b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
-                                                 2*b[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+b[k]^2);
+                        svetReturn[j,,k] <- (scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
+                                                 2*scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+scale[k]^2);
                     }
                 }
             }
@@ -115,9 +115,9 @@ qs <- function(p, mu=0, b=1){
     }
     else{
         Ie <- (p < 0.5)*1;
-        svetReturn <- max(length(p),length(mu),length(b));
-        svetReturn <- mu + ((-1)^Ie * b^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))^2 +
-                                (-1)^Ie*2*b^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))+(-1)^Ie*b^2);
+        svetReturn <- rep(0,max(length(p),length(mu),length(scale)));
+        svetReturn[] <- mu + ((-1)^Ie * scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))^2 +
+                                (-1)^Ie*2*scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))+(-1)^Ie*scale^2);
         if(any(p==0)){
             svetReturn[p==0] <- -Inf;
         }
@@ -128,10 +128,10 @@ qs <- function(p, mu=0, b=1){
     return(svetReturn);
 }
 
-    #' @rdname s-distribution
-    #' @export rs
-    #' @aliases rs
-    rs <- function(n=1, mu=0, b=1){
-        svetReturn <- qs(runif(n,0,1),mu,b);
-        return(svetReturn);
-    }
+#' @rdname s-distribution
+#' @export rs
+#' @aliases rs
+rs <- function(n=1, mu=0, scale=1){
+    svetReturn <- qs(runif(n,0,1),mu,scale);
+    return(svetReturn);
+}

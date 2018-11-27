@@ -7,20 +7,20 @@
 \alias{ralaplace}
 \title{Asymmetric Laplace Distribution}
 \usage{
-dalaplace(q, mu = 0, b = 1, alpha = 0.5, log = FALSE)
+dalaplace(q, mu = 0, scale = 1, alpha = 0.5, log = FALSE)
 
-palaplace(q, mu = 0, b = 1, alpha = 0.5)
+palaplace(q, mu = 0, scale = 1, alpha = 0.5)
 
-qalaplace(p, mu = 0, b = 1, alpha = 0.5)
+qalaplace(p, mu = 0, scale = 1, alpha = 0.5)
 
-ralaplace(n = 1, mu = 0, b = 1, alpha = 0.5)
+ralaplace(n = 1, mu = 0, scale = 1, alpha = 0.5)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
 \item{mu}{vector of location parameters (means).}
 
-\item{b}{vector of scale parameters.}
+\item{scale}{vector of scale parameters.}
 
 \item{alpha}{value of asymmetry parameter. Varies from 0 to 1.}
 
@@ -40,11 +40,11 @@ provided parameters.
 \item \code{palaplace} returns the value of the cumulative function
 for the provided parameters.
 \item \code{qalaplace} returns quantiles of the distribution. Depending
-on what was provided in \code{p}, \code{mu} and \code{b}, this
+on what was provided in \code{p}, \code{mu} and \code{scale}, this
 can be either a vector or a matrix, or an array.
 \item \code{ralaplace} returns a vector of random variables
 generated from the Laplace distribution. Depending on what was
-provided in \code{mu} and \code{b}, this can be either a vector
+provided in \code{mu} and \code{scale}, this can be either a vector
 or a matrix or an array.
 }
 }
@@ -52,19 +52,19 @@ or a matrix or an array.
 Density, cumulative distribution, quantile functions and random number
 generation for the Asymmetric Laplace distribution with the
 location parameter mu, Mean Absolute Error (or Mean Absolute
-Deviation) equal to 2 b and asymmetry parameter alpha.
+Deviation) equal to 2 scale and asymmetry parameter alpha.
 }
 \details{
-When mu=0 and b=1, the Laplace distribution becomes standardized.
+When mu=0 and scale=1, the Laplace distribution becomes standardized.
 The distribution has the following density function:
 
-f(x) = alpha (1-alpha) / b exp(-(x-mu)/b (alpha - I(x<=mu))),
+f(x) = alpha (1-alpha) / scale exp(-(x-mu)/scale (alpha - I(x<=mu))),
 
 where I(.) is the indicator function (equal to 1 if the condition is
 satisfied and zero otherwise).
 
 When alpha=0.5, then the distribution becomes Symmetric Laplace, where
-b = 1/2 MAE.
+scale = 1/2 MAE.
 
 This distribution function aligns with the quantile estimates of
 parameters (Geraci & Bottai, 2007).

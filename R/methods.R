@@ -191,10 +191,11 @@ pointLik.alm <- function(object, ...){
                         "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                         "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                         "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                        "dlaplace" = dlaplace(y, mu=mu, b=scale, log=TRUE),
+                        "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
+                        "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
                         "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
                         "dt" = dt(y-mu, df=scale, log=TRUE),
-                        "ds" = ds(y, mu=mu, b=scale, log=TRUE),
+                        "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
                         "dpois" = dpois(y, lambda=mu, log=TRUE),
                         "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
                         "dchisq" = dchisq(y, df=scale, ncp=mu, log=TRUE),
@@ -462,23 +463,23 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dlaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
-        bValues <- sqrt(greyboxForecast$variances/2);
+        scaleValues <- sqrt(greyboxForecast$variances/2);
         if(interval!="n"){
-            greyboxForecast$lower[] <- qlaplace(levelLow,greyboxForecast$mean,bValues);
-            greyboxForecast$upper[] <- qlaplace(levelUp,greyboxForecast$mean,bValues);
+            greyboxForecast$lower[] <- qlaplace(levelLow,greyboxForecast$mean,scaleValues);
+            greyboxForecast$upper[] <- qlaplace(levelUp,greyboxForecast$mean,scaleValues);
         }
-        greyboxForecast$scale <- bValues;
+        greyboxForecast$scale <- scaleValues;
     }
     else if(object$distribution=="dalaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         alpha <- object$other$alpha;
-        bValues <- sqrt(greyboxForecast$variances * alpha^2 * (1-alpha)^2 / (alpha^2 + (1-alpha)^2));
+        scaleValues <- sqrt(greyboxForecast$variances * alpha^2 * (1-alpha)^2 / (alpha^2 + (1-alpha)^2));
         if(interval!="n"){
             # warning("We don't have the proper prediction intervals for ALD yet. The uncertainty is underestimated!", call.=FALSE);
-            greyboxForecast$lower[] <- qalaplace(levelLow,greyboxForecast$mean,bValues,alpha);
-            greyboxForecast$upper[] <- qalaplace(levelUp,greyboxForecast$mean,bValues,alpha);
+            greyboxForecast$lower[] <- qalaplace(levelLow,greyboxForecast$mean,scaleValues,alpha);
+            greyboxForecast$upper[] <- qalaplace(levelUp,greyboxForecast$mean,scaleValues,alpha);
         }
-        greyboxForecast$scale <- bValues;
+        greyboxForecast$scale <- scaleValues;
     }
     else if(object$distribution=="dt"){
         # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
@@ -489,13 +490,13 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
     }
     else if(object$distribution=="ds"){
-        # Use the connection between the variance and b in S distribution
-        bValues <- (greyboxForecast$variances/120)^0.25;
+        # Use the connection between the variance and scale in S distribution
+        scaleValues <- (greyboxForecast$variances/120)^0.25;
         if(interval!="n"){
-            greyboxForecast$lower[] <- qs(levelLow,greyboxForecast$mean,bValues);
-            greyboxForecast$upper[] <- qs(levelUp,greyboxForecast$mean,bValues);
+            greyboxForecast$lower[] <- qs(levelLow,greyboxForecast$mean,scaleValues);
+            greyboxForecast$upper[] <- qs(levelUp,greyboxForecast$mean,scaleValues);
         }
-        greyboxForecast$scale <- bValues;
+        greyboxForecast$scale <- scaleValues;
     }
     else if(object$distribution=="dfnorm"){
         if(interval!="n"){

@@ -7,20 +7,20 @@
 \alias{rs}
 \title{S Distribution}
 \usage{
-ds(q, mu = 0, b = 1, log = FALSE)
+ds(q, mu = 0, scale = 1, log = FALSE)
 
-ps(q, mu = 0, b = 1)
+ps(q, mu = 0, scale = 1)
 
-qs(p, mu = 0, b = 1)
+qs(p, mu = 0, scale = 1)
 
-rs(n = 1, mu = 0, b = 1)
+rs(n = 1, mu = 0, scale = 1)
 }
 \arguments{
 \item{q}{vector of quantiles.}
 
 \item{mu}{vector of location parameters (means).}
 
-\item{b}{vector of scaling parameter (which are equal to ham/2).}
+\item{scale}{vector of scaling parameter (which are equal to ham/2).}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}
@@ -38,25 +38,25 @@ provided parameters.
 \item \code{ps} returns the value of the cumulative function
 for the provided parameters.
 \item \code{qs} returns quantiles of the distribution. Depending
-on what was provided in \code{p}, \code{mu} and \code{b}, this
+on what was provided in \code{p}, \code{mu} and \code{scale}, this
 can be either a vector or a matrix, or an array.
 \item \code{rs} returns a vector of random variables
 generated from the S distribution. Depending on what was provided
-in \code{mu} and \code{b}, this can be either a vector or a matrix
+in \code{mu} and \code{scale}, this can be either a vector or a matrix
 or an array.
 }
 }
 \description{
 Density, cumulative distribution, quantile functions and random number
 generation for the S distribution with the location parameter mu
-and a scaling parameter b.
+and a scaling parameter scale.
 }
 \details{
 When mu=0 and ham=2, the S distribution becomes standardized with
-b=1 (this is because b=ham/2). The distribution has the following
+scale=1 (this is because scale=ham/2). The distribution has the following
 density function:
 
-f(x) = 1/(4b^2) exp(-sqrt(abs(x-mu)) / b)
+f(x) = 1/(4 scale^2) exp(-sqrt(abs(x-mu)) / scale)
 
 The S distribution has fat tails and large excess.
 
