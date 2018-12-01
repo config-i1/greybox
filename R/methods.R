@@ -1104,11 +1104,14 @@ print.summary.alm <- function(x, ...){
         distrib <- paste0("Mixture of ", distrib," and ", distribOccurrence);
     }
 
+    cat(paste0("Response variable: ", x$responseName,"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("ICs:\n");
     print(round(x$ICs,digits));
+    cat("Sample size, estimated parameters, degrees of freedom:\n")
+    print(x$dfTable);
 }
 
 #' @export
@@ -1138,6 +1141,7 @@ print.summary.greybox <- function(x, ...){
                       "pnorm" = "Cumulative normal"
     );
 
+    cat(paste0("Response variable: ", x$responseName,"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
@@ -1146,6 +1150,8 @@ print.summary.greybox <- function(x, ...){
                round(x$df[2],digits)," degrees of freedom:\n"));
     cat("ICs:\n");
     print(round(x$ICs,digits));
+    cat("Sample size, estimated parameters, degrees of freedom:\n")
+    print(x$dfTable);
 }
 
 #' @export
@@ -1175,6 +1181,7 @@ print.summary.greyboxC <- function(x, ...){
                       "pnorm" = "Cumulative normal"
     );
 
+    cat(paste0("Response variable: ", x$responseName,"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
@@ -1183,6 +1190,8 @@ print.summary.greyboxC <- function(x, ...){
                round(x$df[2],digits)," degrees of freedom:\n"));
     cat("Combined ICs:\n");
     print(round(x$ICs,digits));
+    cat("Sample size, estimated parameters, degrees of freedom:\n")
+    print(x$dfTable);
 }
 
 #' @export
@@ -1257,6 +1266,12 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$distribution <- object$distribution;
     ourReturn$occurrence <- object$occurrence;
     ourReturn$other <- object$other;
+    ourReturn$responseName <- formula(object)[[2]];
+
+    # Table with degrees of freedom
+    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    names(dfTable) <- c("n","k","df");
+    ourReturn$dfTable <- dfTable;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);
@@ -1280,6 +1295,12 @@ summary.greybox <- function(object, level=0.95, ...){
     names(ICs) <- c("AIC","AICc","BIC","BICc");
     ourReturn$ICs <- ICs;
     ourReturn$distribution <- object$distribution;
+    ourReturn$responseName <- formula(object)[[2]];
+
+    # Table with degrees of freedom
+    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    names(dfTable) <- c("n","k","df");
+    ourReturn$dfTable <- dfTable;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
@@ -1311,9 +1332,14 @@ summary.greyboxC <- function(object, level=0.95, ...){
     R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
+    # Table with degrees of freedom
+    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    names(dfTable) <- c("n","k","df");
+
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
-                                distribution=object$distribution),
+                                distribution=object$distribution, responseName=formula(object)[[2]],
+                                dfTable=dfTable),
                            class="summary.greyboxC");
     return(ourReturn);
 }
@@ -1346,10 +1372,15 @@ summary.greyboxD <- function(object, level=0.95, ...){
     R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
+    # Table with degrees of freedom
+    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    names(dfTable) <- c("n","k","df");
+
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
-                                distribution=object$distribution),
+                                distribution=object$distribution, responseName=formula(object)[[2]],
+                                nobs=nobs(object), nParam=nParam(object)),
                            class="summary.greyboxC");
     return(ourReturn);
 }

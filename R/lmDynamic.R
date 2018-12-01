@@ -232,10 +232,6 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Calculate weighted parameters
     parametersWeighted <- pICWeights %*% parameters;
-    # if(!shrink){
-    #     modifiedWeights <- pICWeights %*% cbind(1,variablesCombinations);
-    #     parametersWeighted <- parametersWeighted / modifiedWeights;
-    # }
     colnames(parametersWeighted) <- exoNames;
 
     parametersMean <- colMeans(parametersWeighted);

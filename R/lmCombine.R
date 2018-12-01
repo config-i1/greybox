@@ -78,7 +78,7 @@
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                    "plogis","pnorm")){
+                                     "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
@@ -129,7 +129,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
-    listToCall$data <- ourData;
+    y <- ourData[,1];
+    listToCall$data <- ourData;listToCall$data <- ourData;
 
     # If this is a simple one, go through all the models
     if(bruteForce){
@@ -226,6 +227,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
     }
 
+    if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+        scales <- rep(NA, nCombinations);
+    }
 
     if(!silent){
         cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
@@ -245,6 +249,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         ICs[i] <- IC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
+
+        if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+            scales[i] <- ourModel$scale;
+        }
     }
 
     # Calculate IC weights
@@ -261,34 +269,56 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
     parametersCombined <- colSums(parametersWeighted);
 
-    # If shrinkage is not needed, then calculate weights for each parameter and modify the combined parameters
-    # if(!shrink){
-    #     modifiedWeights <- colSums(cbind(1,variablesCombinations) * matrix(ICWeights,nrow(parameters),nVariables+1));
-    #     weightsZero <- (modifiedWeights==0);
-    #     parametersCombined <- parametersCombined / modifiedWeights;
-    #     # If some of summary weights were zero, then make parameters zero as well
-    #     parametersCombined[weightsZero] <- 0;
-    # }
     names(parametersCombined) <- exoNames;
 
     # From the matrix of exogenous variables without the response variable
     ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
     colnames(ourDataExo) <- exoNames;
 
-    mu <- as.matrix(ourDataExo) %*% parametersCombined;
+    mu <- switch(distribution,
+                 "dpois" = exp(as.matrix(ourDataExo) %*% parametersCombined),
+                 "dchisq" = (as.matrix(ourDataExo) %*% parametersCombined)^2,
+                 "dnbinom" = exp(as.matrix(ourDataExo) %*% parametersCombined),
+                 "dnorm" =,
+                 "dfnorm" =,
+                 "dlnorm" =,
+                 "dlaplace" =,
+                 "dalaplace" =,
+                 "dlogis" =,
+                 "dt" =,
+                 "ds" =,
+                 "pnorm" =,
+                 "plogis" = as.matrix(ourDataExo) %*% parametersCombined
+    );
+
+    scale <- switch(distribution,
+                    "dnorm" =,
+                    "dfnorm" = sqrt(mean((y-mu)^2)),
+                    "dlnorm" = sqrt(mean((log(y)-mu)^2)),
+                    "dlaplace" = mean(abs(y-mu)),
+                    "dalaplace" = mean((y-mu) * (alpha - (y<=mu)*1)),
+                    "dlogis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
+                    "ds" = mean(sqrt(abs(y-mu))) / 2,
+                    "dt" = max(2,2/(1-(mean((y-mu)^2))^{-1})),
+                    "dchisq" = mean(scales),
+                    "dnbinom" = mean(scales),
+                    "dpois" = mu,
+                    "pnorm" = sqrt(mean(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
+                    "plogis" = sqrt(mean(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
+    );
 
     yFitted <- switch(distribution,
-                       "dfnorm" =,
-                       "dnorm" =,
-                       "dlaplace" =,
-                       "dlogis" =,
-                       "ds" = mu,
-                       "dchisq" = mu^2,
-                       "dpois" =,
-                       "dnbinom" =,
-                       "dlnorm" = exp(mu),
-                       "pnorm" = pnorm(mu, mean=0, sd=1),
-                       "plogis" = plogis(mu, location=0, scale=1)
+                      "dfnorm" =,
+                      "dnorm" =,
+                      "dlaplace" =,
+                      "dlogis" =,
+                      "ds" = mu,
+                      "dchisq" = mu^2,
+                      "dpois" =,
+                      "dnbinom" =,
+                      "dlnorm" = exp(mu),
+                      "pnorm" = pnorm(mu, mean=0, sd=1),
+                      "plogis" = plogis(mu, location=0, scale=1)
     );
 
     errors <- switch(distribution,
@@ -298,23 +328,43 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                      "ds" =,
                      "dnorm" =,
                      "dpois" =,
-                     "dnbinom" = ourData[,1] - yFitted,
-                     "dchisq" = sqrt(ourData[,1]) - sqrt(mu),
-                     "dlnorm"= log(ourData[,1]) - mu,
-                     "pnorm" = qnorm((ourData[,1] - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
-                     "plogis" = log((1 + ourData[,1] * (1 + exp(mu))) / (1 + exp(mu) * (2 - ourData[,1]) - ourData[,1])) # Here we use the proxy from Svetunkov et al. (2018)
+                     "dnbinom" = y - yFitted,
+                     "dchisq" = sqrt(y) - sqrt(mu),
+                     "dlnorm"= log(y) - mu,
+                     "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
+                     "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );
 
     # Relative importance of variables
     importance <- c(1,round(ICWeights %*% variablesCombinations,3));
     names(importance) <- exoNames;
 
-    # Some of the variables have partial inclusion, 1 stands for constant
+    # Some of the variables have partial inclusion, 1 stands for sigma
     df <- obsInsample - sum(importance) - 1;
 
+    # Calcualte logLik
+    logLikCombined <- switch(distribution,
+                             "dnorm" = sum(dnorm(y, mean=mu, sd=scale, log=TRUE)),
+                             "dfnorm" = sum(dfnorm(y, mu=mu, sigma=scale, log=TRUE)),
+                             "dlnorm" = sum(dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE)),
+                             "dlaplace" = sum(dlaplace(y, mu=mu, scale=scale, log=TRUE)),
+                             "dalaplace" = sum(dalaplace(y, mu=mu, scale=scale, alpha=mean(scales), log=TRUE)),
+                             "dlogis" = sum(dlogis(y, location=mu, scale=scale, log=TRUE)),
+                             "dt" = sum(dt(y-mu, df=scale, log=TRUE)),
+                             "ds" = sum(ds(y, mu=mu, scale=scale, log=TRUE)),
+                             "dchisq" = sum(dchisq(y, df=scale, ncp=mu, log=TRUE)),
+                             "dpois" = sum(dpois(y, lambda=mu, log=TRUE)),
+                             "dnbinom" = sum(dnbinom(y, mu=mu, size=scale, log=TRUE)),
+                             "dbeta" = sum(dbeta(y, shape1=mu, shape2=scale, log=TRUE)),
+                             "pnorm" = sum(c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
+                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))),
+                             "plogis" = sum(c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
+                                          plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)))
+    );
+
+    # Form matrix for variables combination with weights and ICs
     ICValue <- c(ICWeights %*% ICs);
     names(ICValue) <- ic;
-
     variablesCombinations <- cbind(variablesCombinations,ICWeights,ICs);
     colnames(variablesCombinations)[nVariables+1] <- "IC weights";
 
@@ -325,9 +375,6 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.", call.=FALSE);
     }
-
-    #Calcualte logLik
-    logLikCombined <- sum(dnorm(errors,0,sd=sqrt(sum(errors^2)/df),log=TRUE));
 
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
