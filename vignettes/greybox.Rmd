@@ -7,6 +7,7 @@ vignette: >
   %\VignetteIndexEntry{Greybox main vignette}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: library.bib
 ---
 
 ```{r setup, include = FALSE}
@@ -140,7 +141,7 @@ ourForecast <- predict(ourModel,BJHoldout)
 plot(ourForecast)
 ```
 
-These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend Burnham and Anderson (2002) textbook.
+These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend [@Burnham1998] textbook.
 
 ## lmDynamic
 
@@ -161,7 +162,7 @@ plot(ourModel)
 The coefficients in the summary are the averaged out over the whole sample. The more interesting elements are the time varying parameters, their standard errors (and respective confidence intervals) and time varying importance of the parameters. 
 ```{r BJDynamicCoefficients}
 # Coefficients in dynamics
-head(ourModel$dynamic)
+head(ourModel$coefficientsDynamic)
 # Standard errors of the coefficients in dynamics
 head(ourModel$se)
 # Importance of parameters in dynamics
@@ -187,4 +188,3 @@ This function is currently under development, so stay tuned.
 
 ## References
 
-1. Burnham Kenneth P. and Anderson David R. (2002). Model Selection and Multimodel Inference. A Practical Information-Theoretic Approach. Springer-Verlag New York. \url{http://dx.doi.org/10.1007/b97636}.
