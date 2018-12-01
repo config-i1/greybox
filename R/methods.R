@@ -1110,8 +1110,9 @@ print.summary.alm <- function(x, ...){
     print(round(x$coefficients,digits));
     cat("ICs:\n");
     print(round(x$ICs,digits));
-    cat("Sample size, estimated parameters, degrees of freedom:\n")
-    print(x$dfTable);
+    cat("\nSample size: "); cat(x$dfTable[1]);
+    cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
+    cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
 }
 
 #' @export
@@ -1150,8 +1151,9 @@ print.summary.greybox <- function(x, ...){
                round(x$df[2],digits)," degrees of freedom:\n"));
     cat("ICs:\n");
     print(round(x$ICs,digits));
-    cat("Sample size, estimated parameters, degrees of freedom:\n")
-    print(x$dfTable);
+    cat("\nSample size: "); cat(x$dfTable[1]);
+    cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
+    cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
 }
 
 #' @export
@@ -1190,8 +1192,9 @@ print.summary.greyboxC <- function(x, ...){
                round(x$df[2],digits)," degrees of freedom:\n"));
     cat("Combined ICs:\n");
     print(round(x$ICs,digits));
-    cat("Sample size, estimated parameters, degrees of freedom:\n")
-    print(x$dfTable);
+    cat("\nSample size: "); cat(x$dfTable[1]);
+    cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
+    cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
 }
 
 #' @export
