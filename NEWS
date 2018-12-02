@@ -9,7 +9,7 @@ Changes:
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
-* pointLik() did not work with lmCombine() because scale parameter was not available.
+* pointLik() did not work with lmCombine() because scale parameter was not available. Similarly, it did not work with stepwise() in case of normal distribution.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)
