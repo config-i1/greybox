@@ -1398,7 +1398,24 @@ vcov.alm <- function(object, ...){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
-        vcov <- object$scale^2 * solve(crossprod(matrixXreg));
+        matrixXreg <- crossprod(matrixXreg);
+        vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
+        if(class(vcovMatrixTry)=="try-error"){
+            warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
+                           "The estimate of the covariance matrix of parameters might be inacurate."),
+                    call.=FALSE);
+            vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
+            if(class(vcovMatrix)=="try-error"){
+                warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
+                               "We failed to produce the covariance matrix of parameters."),
+                        call.=FALSE);
+                vcovMatrix <- diag(1e+100,nVariables);
+            }
+        }
+        else{
+            vcovMatrix <- vcovMatrixTry;
+        }
+        vcov <- object$scale^2 * vcovMatrix;
     }
     else if(object$distribution=="dnorm"){
         matrixXreg <- as.matrix(object$data[object$subset,-1]);
@@ -1406,7 +1423,24 @@ vcov.alm <- function(object, ...){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
-        vcov <- sigma(object)^2 * solve(crossprod(matrixXreg));
+        matrixXreg <- crossprod(matrixXreg);
+        vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
+        if(class(vcovMatrixTry)=="try-error"){
+            warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
+                           "The estimate of the covariance matrix of parameters might be inacurate."),
+                    call.=FALSE);
+            vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
+            if(class(vcovMatrix)=="try-error"){
+                warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
+                               "We failed to produce the covariance matrix of parameters."),
+                        call.=FALSE);
+                vcovMatrix <- diag(1e+100,nVariables);
+            }
+        }
+        else{
+            vcovMatrix <- vcovMatrixTry;
+        }
+        vcov <- sigma(object)^2 * vcovMatrix;
     }
     else{
         # Form the call for alm

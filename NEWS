@@ -6,6 +6,7 @@ Changes:
 * summary() now prints the name of the response variable.
 * lmCombine now returns logLik adequate to the selected distribution.
 * Sample size, estimated parameters and degrees of freedom are now also returned in the summary.
+* Use Choleski decomposition in vcov.alm function instead of solve.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

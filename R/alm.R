@@ -644,7 +644,7 @@ alm <- function(formula, data, subset, na.action,
                 vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
                 if(class(vcovMatrix)=="try-error"){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                                   "The estimate of the covariance matrix of parameters might be inacurate."),
+                                   "We failed to produce the covariance matrix of parameters."),
                             call.=FALSE);
                     vcovMatrix <- diag(1e+100,nVariables);
                 }
