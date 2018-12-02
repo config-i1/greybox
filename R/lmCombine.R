@@ -81,7 +81,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                                      "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
-    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
+    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
 
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -129,8 +129,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
-    y <- ourData[,1];
-    listToCall$data <- ourData;listToCall$data <- ourData;
+    y <- as.matrix(ourData[,1]);
+    listToCall$data <- ourData;
 
     # If this is a simple one, go through all the models
     if(bruteForce){
@@ -379,7 +379,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=ourData, mu=mu, combination=variablesCombinations);
+                       call=cl, rank=nVariables+1, data=as.matrix(ourData), mu=mu, combination=variablesCombinations);
 
     return(structure(finalModel,class=c("greyboxC","alm","greybox")));
 }

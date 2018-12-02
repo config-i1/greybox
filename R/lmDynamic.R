@@ -112,6 +112,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     variablesNames <- colnames(ourData)[-1];
     exoNames <- c("(Intercept)",variablesNames);
     responseName <- colnames(ourData)[1];
+    y <- as.matrix(ourData[,1]);
     listToCall$data <- ourData;
 
     # If this is a simple one, go through all the models
@@ -266,11 +267,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                      "ds" =,
                      "dnorm" =,
                      "dpois" =,
-                     "dnbinom" = ourData[,1] - yFitted,
-                     "dchisq" = sqrt(ourData[,1]) - sqrt(mu),
-                     "dlnorm"= log(ourData[,1]) - mu,
-                     "pnorm" = qnorm((ourData[,1] - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
-                     "plogis" = log((1 + ourData[,1] * (1 + exp(mu))) / (1 + exp(mu) * (2 - ourData[,1]) - ourData[,1])) # Here we use the proxy from Svetunkov et al. (2018)
+                     "dnbinom" = y - yFitted,
+                     "dchisq" = sqrt(y) - sqrt(mu),
+                     "dlnorm"= log(y) - mu,
+                     "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
+                     "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );
 
     # Relative importance of variables
@@ -295,7 +296,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                       call=cl, rank=nVariables+1, data=ourData, mu=mu);
+                       call=cl, rank=nVariables+1, data=as.matrix(ourData), mu=mu);
 
     return(structure(finalModel,class=c("greyboxD","alm","greybox")));
 }
