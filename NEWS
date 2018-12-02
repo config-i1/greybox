@@ -8,7 +8,8 @@ Changes:
 * Sample size, estimated parameters and degrees of freedom are now also returned in the summary.
 
 Bugfixes:
-* lmCombine() and lmDynamic()did not work well when the data.frame was provided as data.
+* lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
+* pointLik() did not work with lmCombine() because scale parameter was not available.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)

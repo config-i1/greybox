@@ -379,7 +379,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=as.matrix(ourData), mu=mu, combination=variablesCombinations);
+                       call=cl, rank=nVariables+1, data=as.matrix(ourData), mu=mu, scale=scale,
+                       combination=variablesCombinations);
 
     return(structure(finalModel,class=c("greyboxC","alm","greybox")));
 }
