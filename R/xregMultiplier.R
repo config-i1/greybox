@@ -50,7 +50,12 @@ xregMultiplier <- function(xreg, silent=TRUE){
     obs <- nrow(xreg);
     nExovars <- ncol(xreg);
     nCombinations <- factorial(nExovars)/(factorial(2)*factorial(nExovars-2));
-    xregNew <- matrix(NA,obs,nCombinations+nExovars);
+
+    xregNew <- matrix(0,obs,nCombinations+nExovars);
+    # This is needed fro weird cases, when R fails to create the matrix of the necessary size
+    if(ncol(xregNew)!=nCombinations+nExovars){
+        xregNew <- cbind(xregNew,0);
+    }
     xregNew <- ts(xregNew,start=xregStart,frequency=xregFrequency);
     xregNew[,1:nExovars] <- xreg;
     colnames(xregNew)[1:nExovars] <- xregNames;
