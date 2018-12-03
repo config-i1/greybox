@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-02)
+greybox v0.3.4 (Release data: 2018-12-03)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * lmCombine now returns logLik adequate to the selected distribution.
 * Sample size, estimated parameters and degrees of freedom are now also returned in the summary.
 * Use Choleski decomposition in vcov.alm function instead of solve.
+* xregMultiplier() function, allowing producing cross-products of variables.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

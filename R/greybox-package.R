@@ -19,6 +19,10 @@
 #' correlations. Efficient and fast.
 #' \item \link[greybox]{xregExpander} - Function that expands the provided data into
 #' the data with lags and leads.
+#' \item \link[greybox]{xregTransformer} - Function produces mathematical transformations
+#' of the variables, such as taking logarithms, square roots etc.
+#' \item \link[greybox]{xregMultiplier} - Function produces cross-products of the
+#' matrix of the provided variables.
 #' \item \link[greybox]{lmCombine} - Function combines lm models from the estimated
 #' based on information criteria weights.
 #' \item \link[greybox]{lmDynamic} - Dynamic regression based on point AIC.

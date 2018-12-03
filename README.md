@@ -8,13 +8,14 @@ The list of included functions:
 1. alm - advanced linear regression model that implements likelihood estimation of parameters for Normal, Laplace, Logistic, Student's t, S, Folded Normal, Log Normal, Chi-Squared, Beta, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to glm, but with a different set of distributions and with a focus on forecasting.
 2. xregExpander - Function produces lags and leads of the provided data.
 3. xregTransformer - Function produces non-linear transformations of the provided data (logs, inverse etc).
-4. stepwise - Function implements stepwise AIC based on partial correlations.
-5. lmCombine - Function combines the regression models from the provided data based on IC weigths and returns the combined alm object.
-6. ro - rolling origin evaluation (see the vignette).<!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
-7. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
-8. lmDynamic - linear regression with time varying parameters based on pAIC.
-9. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-10. graphmaker - plots the original series, the fitted values and the forecasts.
+4. xregMultiplier - Function produces cross-products of the variables in the matrix. Could be useful when exploring interraction effects of dummy variables.
+5. stepwise - Function implements stepwise AIC based on partial correlations.
+6. lmCombine - Function combines the regression models from the provided data based on IC weigths and returns the combined alm object.
+7. ro - rolling origin evaluation (see the vignette).<!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
+8. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
+9. lmDynamic - linear regression with time varying parameters based on pAIC.
+10. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+11. graphmaker - plots the original series, the fitted values and the forecasts.
 
 The list of the distribution functions:
 1. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.

@@ -1113,6 +1113,7 @@ print.summary.alm <- function(x, ...){
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
+    cat("\n");
 }
 
 #' @export
@@ -1154,6 +1155,7 @@ print.summary.greybox <- function(x, ...){
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
+    cat("\n");
 }
 
 #' @export
@@ -1195,6 +1197,7 @@ print.summary.greyboxC <- function(x, ...){
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
+    cat("\n");
 }
 
 #' @export

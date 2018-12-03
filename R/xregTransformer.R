@@ -35,10 +35,6 @@
 
 xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), silent=TRUE){
 
-    if(!silent){
-        cat("Preparing matrices...    ");
-    }
-
     # Check and prepare functions
     if(any(!(functions %in% c("log", "exp", "inv", "sqrt", "square")))){
         warning("An unknown function type specified. We will drop it from the list", call.=FALSE);
@@ -48,6 +44,10 @@ xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "squa
     if(length(functions)==0){
         stop("functions parameter does not contain any valid function name. Please provide something from the list.",
              call.=FALSE);
+    }
+
+    if(!silent){
+        cat("Preparing matrices...    ");
     }
 
     functions <- unique(functions);
