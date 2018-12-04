@@ -1,0 +1,160 @@
+#' Construct scatterplot / boxplots for the data
+#'
+#' Function constructs the plots depending on the types of variables in the provided
+#' matrix / data.frame.
+#'
+#' If the variables are in metric scale, then the classical scatterplot is constructed.
+#' If they one of them is either integer (up to 10 options) or categorical, then
+#' boxplot is constructed. Finally, for the two categorical variables the table plot is
+#' returned. All of that is packed in a matrix.
+#'
+#' @template AICRef
+#' @template author
+#' @template keywords
+#'
+#' @param data Either matrix or data.frame with the data.
+#' @param histograms If \code{TRUE}, then the histrograms and barplots are produced on
+#' the diagonal of the matrix.
+#' @param ... Other parameters passed to the plot function.
+#'
+#' @return Function does not return anything. It just plots things.
+#'
+#' @seealso \code{\link[graphics]{plot}, \link[base]{table}, \link[greybox]{tableplot}}
+#'
+#' @examples
+#'
+#' ### Simple example
+#' spread(mtcars)
+#'
+#' @importFrom graphics barplot boxplot hist mtext text title
+#' @importFrom stats formula
+#' @export spread
+spread <- function(data, histograms=FALSE, ...){
+    ellipsis <- list(...);
+
+    if(is.null(ellipsis$main)){
+        mainTitle <- "";
+        omaValues <- c(2,3,3,2);
+    }
+    else{
+        mainTitle <- ellipsis$main;
+        omaValues <- c(2,3,5,2);
+    }
+
+    if(!histograms){
+        omaValues[c(2,3)] <- omaValues[c(2,3)]-2;
+    }
+
+    if(!is.data.frame(data)){
+        data <- as.data.frame(data);
+    }
+
+    nVariables <- ncol(data);
+    if(nVariables>20){
+        stop(paste0("Too many variables! I can't work in such conditions! Too much pressure! ",
+                    "Can you, please, reduce the number of variables at least to 20?"),
+             call.=FALSE);
+    }
+    variablesNames <- colnames(data);
+
+    numericData <- vector(mode="logical", length=nVariables);
+    for(i in 1:nVariables){
+        numericData[i] <- is.numeric(data[[i]]);
+        if(all(data[[i]]==round(data[[i]])) & (length(unique(data[[i]]))<5)){
+            numericData[i] <- FALSE;
+        }
+    }
+
+    # layout(matrix(c(1:nVariables^2),nVariables,nVariables),
+           # widths=rep(1/nVariables,nVariables), heights=rep(1/nVariables,nVariables));
+    parDefault <- par(no.readonly=TRUE);
+
+    if(nVariables==1){
+        if(numericData[1]){
+            hist(data[[1]], main=mainTitle);
+        }
+        else{
+            barplot(table(data[[1]]), col="white");
+        }
+    }
+    else{
+    par(mfcol=c(nVariables,nVariables), mar=rep(0,4), oma=omaValues, xaxt="s",yaxt="s",cex.main=1.5);
+        for(i in 1:nVariables){
+            for(j in 1:nVariables){
+                if(i==j){
+                    if(histograms){
+                        if(numericData[i]){
+                            hist(data[[i]], main="", axes=FALSE);
+                        }
+                        else{
+                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col="white");
+                        }
+                    }
+                    else{
+                        if(numericData[i]){
+                            midPoint <- (max(data[[i]])+min(data[[i]]))/2;
+                            plot(data[[i]], data[[i]], col="white", axes=FALSE);
+                            text(midPoint,midPoint,variablesNames[i],cex=1.5);
+                        }
+                        else{
+                            uniqueValues <- unique(data[[i]]);
+                            midPoint <- (1+length(uniqueValues))/2;
+                            plot(0, 0, col="white", axes=FALSE,
+                                 xlim=c(0.5,length(uniqueValues)+0.5), ylim=c(0.5,length(uniqueValues)+0.5));
+                            text(midPoint,midPoint,variablesNames[i],cex=1.5);
+                        }
+                    }
+                }
+                else{
+                    if(numericData[i] & numericData[j]){
+                        plot(data[[i]],data[[j]], main="", axes=FALSE);
+                    }
+                    else if(numericData[i]){
+                        boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
+                    }
+                    else if(numericData[j]){
+                        boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
+                    }
+                    else{
+                        tableplot(data[[i]],data[[j]], labels=FALSE, main="", axes=FALSE);
+                    }
+                }
+                # Add axis and labels
+                if(i==1 & histograms){
+                    mtext(variablesNames[nVariables-j+1], side=2, at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
+                }
+                if(i==nVariables){
+                    if(numericData[j]){
+                        axis(4);
+                    }
+                    else{
+                        if(!histograms){
+                            uniqueValues <- unique(data[[j]]);
+                            axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues));
+                        }
+                    }
+                }
+                box();
+            }
+            if(numericData[i]){
+                axis(1);
+            }
+            else{
+                uniqueValues <- sort(unique(data[[i]]));
+                axis(1,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                     labels=uniqueValues);
+            }
+            if(histograms){
+                mtext(variablesNames[i], side=3, at=(i-0.5)/nVariables, line=1, outer=TRUE);
+            }
+        }
+
+        if(mainTitle!=""){
+            title(main=mainTitle, outer=TRUE, line=3, cex.main=2);
+        }
+    }
+
+    par(parDefault);
+}
+

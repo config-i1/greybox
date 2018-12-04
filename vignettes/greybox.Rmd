@@ -37,8 +37,11 @@ The package includes the following functions:
 5. `xregExpander()` - expand the provided data by including leads and lags of the variables.
 6. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
 7. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interraction effects of dummy variables.
-8. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-9. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples.
+8. `tableplot()` - creates a plot for two categorical variables based on table function with frequencies inside.
+9. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
+10. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
+11. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
+12. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.

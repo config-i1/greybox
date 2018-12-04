@@ -21,6 +21,7 @@
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
+#' @param ... Other parameters passed to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "greyboxC". The list of variables:
@@ -78,10 +79,13 @@
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
-                                     "plogis","pnorm")){
+                                     "plogis","pnorm"),
+                      ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
+
+    ellipsis <- list(...);
 
     ourData <- data;
     if(!is.data.frame(ourData)){
@@ -121,6 +125,16 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         listToCall <- list(distribution=distribution);
     }
 
+    if(distribution=="dalaplace"){
+        listToCall$alpha <- ellipsis$alpha;
+        if(is.null(ellipsis$alpha)){
+            alpha <- 0.5;
+        }
+        else{
+            alpha <- ellipsis$alpha;
+        }
+    }
+
     # Observations in sample, assuming that the missing values are for the holdout
     obsInsample <- sum(!is.na(ourData[,1]));
     # Number of variables
@@ -131,6 +145,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     responseName <- colnames(ourData)[1];
     y <- as.matrix(ourData[,1]);
     listToCall$data <- ourData;
+    ot <- (y!=0)*1;
 
     # If this is a simple one, go through all the models
     if(bruteForce){

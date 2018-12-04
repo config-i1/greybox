@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-03)
+greybox v0.3.4 (Release data: 2018-12-04)
 ==============
 
 Changes:
@@ -8,6 +8,7 @@ Changes:
 * Sample size, estimated parameters and degrees of freedom are now also returned in the summary.
 * Use Choleski decomposition in vcov.alm function instead of solve.
 * xregMultiplier() function, allowing producing cross-products of variables.
+* Two new cool functions: tableplot() - produces plots for the two categorical variables, showing graphically, where the most frequent values happen; spread() - plots a matrix of scatterplots / boxplots / tableplots, depending on the type of the provided variable.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

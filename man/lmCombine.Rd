@@ -9,7 +9,7 @@
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
   bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"))
+  "pnorm"), ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -25,6 +25,8 @@ one are produced and then combined.}
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
+
+\item{...}{Other parameters passed to \code{alm()}.}
 }
 \value{
 Function returns \code{model} - the final model of the class

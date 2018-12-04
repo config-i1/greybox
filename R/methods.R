@@ -1401,6 +1401,7 @@ vcov.alm <- function(object, ...){
             matrixXreg <- cbind(1,matrixXreg);
         }
         colnames(matrixXreg) <- names(coef(object));
+        nVariables <- ncol(matrixXreg);
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(class(vcovMatrixTry)=="try-error"){
