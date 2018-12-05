@@ -122,13 +122,13 @@ rmc(ourData^2, distribution="dchisq", level=0.95)
 
 # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
 # distribution="dlnorm" for the RelMAE / RelMSE, as it can be approximated by
-log normal distribution, because according to Davydenko & Fildes (2013) the
-logarithms of these measures have symmetric distribution.
+# log normal distribution, because according to Davydenko & Fildes (2013) the
+# logarithms of these measures have symmetric distribution.
 ourData <- abs(ourData)
-ourTest <- rmc(ourData / ourData[,1], distribution="dlnorm", level=0.95)
+ourTest <- rmc((ourData / rfnorm(N, 0.3, 1)), distribution="dlnorm", level=0.95)
 # The exponents of mean values from this function will correspond to the
 # geometric means of RelMAE / RelMSE.
-exp(ourTest$means)
+exp(ourTest$mean)
 
 # The following example should give similar results to nemenyi test on
 # large samples, which compares medians of the distributions:
