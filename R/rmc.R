@@ -110,9 +110,9 @@
 #' N <- 50
 #' M <- 4
 #' ourData <- matrix(rnorm(N*M,mean=0,sd=1), N, M)
-#' ourData[,2] <- ourData[,2]+1
-#' ourData[,3] <- ourData[,3]+0.7
-#' ourData[,4] <- ourData[,4]+0.5
+#' ourData[,2] <- ourData[,2]+4
+#' ourData[,3] <- ourData[,3]+3
+#' ourData[,4] <- ourData[,4]+2
 #' colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
 #' rmc(ourData, distribution="dnorm", level=0.95)
 #
@@ -128,8 +128,7 @@
 #' # distribution="dlnorm" for the RelMAE / RelMSE, as it can be approximated by
 #' # log normal distribution, because according to Davydenko & Fildes (2013) the
 #' # logarithms of these measures have symmetric distribution.
-#' ourData <- abs(ourData)
-#' ourTest <- rmc((ourData / rfnorm(N, 0.3, 1)), distribution="dlnorm", level=0.95)
+#' ourTest <- rmc((abs(ourData) / rfnorm(N, 0.3, 1)), distribution="dlnorm", level=0.95)
 #' # The exponents of mean values from this function will correspond to the
 #' # geometric means of RelMAE / RelMSE.
 #' exp(ourTest$mean)
