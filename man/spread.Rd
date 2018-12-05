@@ -23,9 +23,10 @@ matrix / data.frame.
 }
 \details{
 If the variables are in metric scale, then the classical scatterplot is constructed.
-If they one of them is either integer (up to 10 options) or categorical, then
-boxplot is constructed. Finally, for the two categorical variables the table plot is
-returned. All of that is packed in a matrix.
+If one of them is either integer (up to 10 values) or categorical (aka 'factor'),
+then boxplot (with grey dots corresponding to mean values) is constructed. Finally,
+for the two categorical variables the table plot is returned. All of this is packed
+in a matrix.
 }
 \examples{
 

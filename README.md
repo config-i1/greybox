@@ -4,31 +4,39 @@
 
 The package _greybox_ contains functions for model building, which is currently done via the model selection and combinations based on information criteria. The resulting model can then be used in analysis and forecasting.
 
-The list of included functions:
+There are several groups of functions in the package.
+
+### Regression model functions
 1. alm - advanced linear regression model that implements likelihood estimation of parameters for Normal, Laplace, Logistic, Student's t, S, Folded Normal, Log Normal, Chi-Squared, Beta, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to glm, but with a different set of distributions and with a focus on forecasting.
 2. stepwise - Function implements stepwise AIC based on partial correlations.
 3. lmCombine - Function combines the regression models from the provided data based on IC weigths and returns the combined alm object.
-4. xregExpander - Function produces lags and leads of the provided data.
-5. xregTransformer - Function produces non-linear transformations of the provided data (logs, inverse etc).
-6. xregMultiplier - Function produces cross-products of the variables in the matrix. Could be useful when exploring interraction effects of dummy variables.
-7. ro - rolling origin evaluation (see the vignette).<!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
-8. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-9. graphmaker - plots the original series, the fitted values and the forecasts.
-10. tableplot - plots the graph for two categorical variables.
-11. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the variable.
 
-Experimental functions:
+### Exogenous variables transformation functions
+1. xregExpander - Function produces lags and leads of the provided data.
+2. xregTransformer - Function produces non-linear transformations of the provided data (logs, inverse etc).
+3. xregMultiplier - Function produces cross-products of the variables in the matrix. Could be useful when exploring interraction effects of dummy variables.
+
+### The data analysis functions
+1. determination - the function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+2. graphmaker - plots the original series, the fitted values and the forecasts.
+3. tableplot - plots the graph for two categorical variables.
+4. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the variable.
+
+### Models evaluation functions
+1. ro - rolling origin evaluation (see the vignette).<!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
+
+### Experimental functions:
 1. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
 2. lmDynamic - linear regression with time varying parameters based on pAIC.
 
-The list of the distribution functions:
+### Distribution functions:
 1. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 2. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
 3. qs, ds, rs, ps - functions for S distribution.
 4. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
 5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
 
-Methods already implemented:
+### Methods for the introduced and some existing classes:
 1. pointLik - point likelihood method for the time series models.
 2. pAIC, pAICc, pBIC, pBICc - respective point values for the information criteria, based on pointLik.
 3. summary - returns summary of the regression (either selected or combined).

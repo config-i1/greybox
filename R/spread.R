@@ -4,9 +4,10 @@
 #' matrix / data.frame.
 #'
 #' If the variables are in metric scale, then the classical scatterplot is constructed.
-#' If they one of them is either integer (up to 10 options) or categorical, then
-#' boxplot is constructed. Finally, for the two categorical variables the table plot is
-#' returned. All of that is packed in a matrix.
+#' If one of them is either integer (up to 10 values) or categorical (aka 'factor'),
+#' then boxplot (with grey dots corresponding to mean values) is constructed. Finally,
+#' for the two categorical variables the table plot is returned. All of this is packed
+#' in a matrix.
 #'
 #' @template AICRef
 #' @template author
@@ -42,7 +43,7 @@ spread <- function(data, histograms=FALSE, ...){
     }
 
     if(!histograms){
-        omaValues[c(2,3)] <- omaValues[c(2,3)]-2;
+        omaValues[c(2,3)] <- omaValues[c(2,3)]-1;
     }
 
     if(!is.data.frame(data)){
@@ -111,32 +112,63 @@ spread <- function(data, histograms=FALSE, ...){
                     }
                     else if(numericData[i]){
                         boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
+                        points(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), pch=19, col="darkgrey")
                     }
                     else if(numericData[j]){
                         boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
+                        points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey")
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, main="", axes=FALSE);
                     }
                 }
-                # Add axis and labels
-                if(i==1 & histograms){
-                    mtext(variablesNames[nVariables-j+1], side=2, at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
+
+                # Add axis and labels if this is the first element
+                if(i==1){
+                    if(histograms){
+                        mtext(variablesNames[nVariables-j+1], side=2, at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
+                    }
+                    else{
+                        if(numericData[j]){
+                            axis(2);
+                        }
+                        else{
+                            uniqueValues <- unique(data[[j]]);
+                            axis(2, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues));
+                        }
+                    }
                 }
+
+                if(j==1){
+                    # Add axis at the top
+                    if(!histograms){
+                        if(numericData[i]){
+                            axis(3);
+                        }
+                        else{
+                            uniqueValues <- sort(unique(data[[i]]));
+                            axis(3,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                                 labels=uniqueValues);
+                        }
+                    }
+                }
+
+                # Add axis, if this is the last element in the matrix
                 if(i==nVariables){
                     if(numericData[j]){
                         axis(4);
                     }
                     else{
-                        if(!histograms){
-                            uniqueValues <- unique(data[[j]]);
-                            axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                                 labels=sort(uniqueValues));
-                        }
+                        uniqueValues <- unique(data[[j]]);
+                        axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                             labels=sort(uniqueValues));
                     }
                 }
+
                 box();
             }
+            # Add axis at the bottom
             if(numericData[i]){
                 axis(1);
             }
