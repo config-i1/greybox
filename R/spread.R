@@ -44,6 +44,7 @@ spread <- function(data, histograms=FALSE, ...){
 
     if(!histograms){
         omaValues[c(2,3)] <- omaValues[c(2,3)]-1;
+        omaValues[c(4)] <- omaValues[4]-1;
     }
 
     if(!is.data.frame(data)){
@@ -139,23 +140,23 @@ spread <- function(data, histograms=FALSE, ...){
                         }
                     }
                 }
-
-                if(j==1){
-                    # Add axis at the top
-                    if(!histograms){
-                        if(numericData[i]){
-                            axis(3);
-                        }
-                        else{
-                            uniqueValues <- sort(unique(data[[i]]));
-                            axis(3,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                                 labels=uniqueValues);
-                        }
-                    }
-                }
+#
+#                 if(j==1){
+#                     # Add axis at the top
+#                     if(!histograms){
+#                         if(numericData[i]){
+#                             axis(3);
+#                         }
+#                         else{
+#                             uniqueValues <- sort(unique(data[[i]]));
+#                             axis(3,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+#                                  labels=uniqueValues);
+#                         }
+#                     }
+#                 }
 
                 # Add axis, if this is the last element in the matrix
-                if(i==nVariables){
+                if(i==nVariables & histograms){
                     if(numericData[j]){
                         axis(4);
                     }
