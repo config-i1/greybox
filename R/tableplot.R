@@ -89,7 +89,7 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
         for(j in 1:(length(yCoord)-1)){
             polygon(c(c(xCoord[i],xCoord[i+1]),rev(c(xCoord[i],xCoord[i+1]))),
                     c(c(yCoord[j],yCoord[j]),c(yCoord[j+1],yCoord[j+1])),
-                    col=rgb(tableDataColours[i,j],tableDataColours[i,j],tableDataColours[i,j],1-tableDataColours[i,j]));
+                    col=rgb(tableDataColours[i,j],tableDataColours[i,j],tableDataColours[i,j]));
             if(labels){
                 if(tableData[i,j]>0.5){
                     textCol <- "white";

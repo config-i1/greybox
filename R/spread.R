@@ -63,7 +63,7 @@ spread <- function(data, histograms=FALSE, ...){
     for(i in 1:nVariables){
         numericData[i] <- is.numeric(data[[i]]);
         if(numericData[i]){
-            if(all(data[[i]]==round(data[[i]])) & (length(unique(data[[i]]))<5)){
+            if(length(unique(data[[i]]))<=5){
                 numericData[i] <- FALSE;
             }
         }
