@@ -29,6 +29,10 @@
 #'
 #' The estimation is done using likelihood of respective distributions.
 #'
+#' ALM function currently does not work with factors and does not accept
+#' transformations of variables in the formula. So you need to do transformations
+#' separately before using the function.
+#'
 #' @template author
 #' @template keywords
 #'
@@ -90,7 +94,8 @@
 #' (e.g. \code{alpha} for Asymmetric Laplace).
 #' }
 #'
-#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
+#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine},
+#' \link[greybox]{xregTransform}}
 #'
 #' @examples
 #'

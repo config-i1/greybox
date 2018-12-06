@@ -91,7 +91,13 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
                     c(c(yCoord[j],yCoord[j]),c(yCoord[j+1],yCoord[j+1])),
                     col=rgb(tableDataColours[i,j],tableDataColours[i,j],tableDataColours[i,j],1-tableDataColours[i,j]));
             if(labels){
-                text(xMid[i],yMid[j],labels=tableData[i,j]);
+                if(tableData[i,j]>0.5){
+                    textCol <- "white";
+                }
+                else{
+                    textCol <- "black";
+                }
+                text(xMid[i],yMid[j],labels=tableData[i,j],col=textCol);
             }
         }
     }

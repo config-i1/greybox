@@ -107,6 +107,10 @@ using \code{distribution="dnorm"} here.
 Probably some other distributions will be added to this function at some point...
 
 The estimation is done using likelihood of respective distributions.
+
+ALM function currently does not work with factors and does not accept
+transformations of variables in the formula. So you need to do transformations
+separately before using the function.
 }
 \examples{
 
@@ -138,7 +142,8 @@ plot(predict(ourModel,outSample,interval="p"))
 
 }
 \seealso{
-\code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
+\code{\link[greybox]{stepwise}, \link[greybox]{lmCombine},
+\link[greybox]{xregTransform}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
