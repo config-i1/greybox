@@ -95,7 +95,7 @@
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine},
-#' \link[greybox]{xregTransform}}
+#' \link[greybox]{xregTransformer}}
 #'
 #' @examples
 #'

@@ -143,7 +143,7 @@ plot(predict(ourModel,outSample,interval="p"))
 }
 \seealso{
 \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine},
-\link[greybox]{xregTransform}}
+\link[greybox]{xregTransformer}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
