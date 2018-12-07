@@ -176,10 +176,8 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     # Produce plots
 
     # # For all plots
-    if(type!="none"){
-        args <- list(...)
-        argsNames <- names(args)
-    }
+    args <- list(...)
+    argsNames <- names(args)
 
     if(!("xaxs" %in% argsNames)){
         args$xaxs <- "i"
