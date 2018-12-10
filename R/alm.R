@@ -127,7 +127,7 @@
 #'
 #' @importFrom numDeriv hessian
 #' @importFrom nloptr nloptr
-#' @importFrom stats model.frame sd terms
+#' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
 #' @export alm
@@ -205,6 +205,13 @@ alm <- function(formula, data, subset, na.action,
         data <- as.data.frame(data);
         mf$data <- data;
     }
+    else{
+        dataOrders <- unlist(lapply(data,is.ordered));
+        # If there is an ordered factor, remove the bloody ordering!
+        if(any(dataOrders)){
+            data[dataOrders] <- lapply(data[dataOrders],factor,ordered=FALSE);
+        }
+    }
 
     responseName <- all.vars(formula)[1];
     # If this is a model with occurrence, use only non-zero observations
@@ -217,8 +224,28 @@ alm <- function(formula, data, subset, na.action,
     y <- dataWork[,1];
 
     interceptIsNeeded <- attr(terms(dataWork),"intercept")!=0;
+    # Create a model from the provided stuff. This way we can work with factors
+    dataWork <- model.matrix(dataWork,data=dataWork);
     obsInsample <- nrow(dataWork);
-    variablesNames <- colnames(dataWork)[-1];
+
+    if(interceptIsNeeded){
+        variablesNames <- colnames(dataWork)[-1];
+        matrixXreg <- as.matrix(dataWork[,-1]);
+        # Include response to the data
+        dataWork <- cbind(y,dataWork[,-1]);
+    }
+    else{
+        variablesNames <- colnames(dataWork);
+        matrixXreg <- dataWork;
+        # Include response to the data
+        dataWork <- cbind(y,dataWork);
+        warning(paste0("You have asked not to include intercept in the model. We will try to fit the model, ",
+                      "but this is a very naughty thing to do, and we cannot guarantee that it will work..."), call.=FALSE);
+    }
+    colnames(dataWork) <- c(responseName, variablesNames);
+
+    nVariables <- length(variablesNames);
+    colnames(matrixXreg) <- variablesNames;
 
     # Record the subset used in the model
     if(is.null(mf$subset)){
@@ -227,10 +254,6 @@ alm <- function(formula, data, subset, na.action,
     else{
         subset <- mf$subset;
     }
-
-    matrixXreg <- as.matrix(dataWork[,-1]);
-    nVariables <- length(variablesNames);
-    colnames(matrixXreg) <- variablesNames;
 
     mu <- vector("numeric", obsInsample);
     yFitted <- vector("numeric", obsInsample);
@@ -326,7 +349,8 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    if(nVariables>1){
+    # Do these checks only when intercept is needed. Otherwise in case of dummies this might cause chaos
+    if(nVariables>1 & interceptIsNeeded){
         # Check dummy variables trap
         detHigh <- determination(matrixXreg)>=corThreshold;
         if(any(detHigh)){
@@ -450,7 +474,7 @@ alm <- function(formula, data, subset, na.action,
     #### Estimate parameters of the model ####
     if(is.null(B)){
         if(any(distribution==c("dlnorm","dpois","dnbinom"))){
-            if(any(y[ot]==0)){
+            if(any(y==0)){
                 # Use Box-Cox if there are zeroes
                 B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
             }

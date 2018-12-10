@@ -731,7 +731,24 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         }
         newdata <- as.data.frame(newdata);
     }
-    nRows <- nrow(newdata);
+    else{
+        dataOrders <- unlist(lapply(newdata,is.ordered));
+        # If there is an ordered factor, remove the bloody ordering!
+        if(any(dataOrders)){
+            newdata[dataOrders] <- lapply(newdata[dataOrders],factor,ordered=FALSE);
+        }
+    }
+
+    # if(!any(is.greyboxC(object),is.greyboxD(object))){
+        newdataExpanded <- model.frame(object$call$formula, newdata);
+        interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
+        matrixOfxreg <- model.matrix(newdataExpanded,data=newdata);
+    # }
+    # else{
+    #     matrixOfxreg <- newdata;
+    # }
+
+    nRows <- nrow(matrixOfxreg);
 
     paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
     parameters <- coef.greybox(object);
@@ -749,7 +766,18 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
-    if(any(parametersNames=="(Intercept)")){
+    # In case of greyboxC and greyboxD insert intercept
+    # if(any(is.greyboxC(object),is.greyboxD(object))){
+    #     matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+    #     if(ncol(matrixOfxreg)==2){
+    #         colnames(matrixOfxreg) <- parametersNames;
+    #     }
+    #     else{
+    #         colnames(matrixOfxreg)[1] <- parametersNames[1];
+    #     }
+    # }
+
+    if(any(is.greyboxC(object),is.greyboxD(object))){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
         if(ncol(matrixOfxreg)==2){
             colnames(matrixOfxreg) <- parametersNames;
@@ -757,9 +785,8 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         else{
             colnames(matrixOfxreg)[1] <- parametersNames[1];
         }
+        matrixOfxreg <- matrixOfxreg[,parametersNames];
     }
-
-    matrixOfxreg <- matrixOfxreg[,parametersNames];
 
     if(nRows==1){
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
@@ -1449,6 +1476,7 @@ vcov.alm <- function(object, ...){
     else{
         # Form the call for alm
         newCall <- object$call;
+        newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
         newCall$data <- object$data;
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;

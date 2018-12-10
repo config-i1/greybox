@@ -73,6 +73,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
     else{
         useALM <- TRUE;
+        if(any(distribution==c("plogis","pnorm"))){
+            data[,1] <- (data[,1]!=0)*1;
+        }
     }
 
     # Check the data for NAs

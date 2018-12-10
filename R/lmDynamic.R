@@ -68,7 +68,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                                     "plogis","pnorm")){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
-    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ 1"));
+    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
 
     ourData <- data;
     if(!is.data.frame(ourData)){
