@@ -203,7 +203,6 @@ alm <- function(formula, data, subset, na.action,
 
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
-        mf$data <- data;
     }
     else{
         dataOrders <- unlist(lapply(data,is.ordered));
@@ -212,6 +211,7 @@ alm <- function(formula, data, subset, na.action,
             data[dataOrders] <- lapply(data[dataOrders],factor,ordered=FALSE);
         }
     }
+    mf$data <- data;
 
     responseName <- all.vars(formula)[1];
     # If this is a model with occurrence, use only non-zero observations
