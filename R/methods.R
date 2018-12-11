@@ -742,7 +742,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     # if(!any(is.greyboxC(object),is.greyboxD(object))){
         newdataExpanded <- model.frame(object$call$formula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
-        matrixOfxreg <- model.matrix(newdataExpanded,data=newdata);
+        matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
     # }
     # else{
     #     matrixOfxreg <- newdata;

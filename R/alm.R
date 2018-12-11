@@ -715,7 +715,8 @@ alm <- function(formula, data, subset, na.action,
         dataNew[,all.vars(formula)[1]] <- (ot)*1;
 
         if(!occurrenceProvided){
-            occurrence <- alm(formula, dataNew, distribution=occurrence);
+            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence));
+            occurrence$call$data <- cl$data;
         }
 
         # Corrected fitted (with zeroes, when y=0)
