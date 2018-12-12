@@ -1098,6 +1098,23 @@ print.coef.greyboxD <- function(x, ...){
 }
 
 #' @export
+print.cramer <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    cat("\nCramer's V: "); cat(round(x$value,digits));
+    cat("\nChi^2 statistics = "); cat(round(x$statistic,digits));
+    cat(", df: "); cat(x$df);
+    cat(", p-value: "); cat(round(x$p.value,digits));
+    cat("\n");
+}
+
+#' @export
 print.summary.alm <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){

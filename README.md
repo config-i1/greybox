@@ -17,10 +17,11 @@ There are several groups of functions in the package.
 3. xregMultiplier - function produces cross-products of the variables in the matrix. Could be useful when exploring interraction effects of dummy variables.
 
 ### The data analysis functions
-1. determination - function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-2. tableplot - plots the graph for two categorical variables.
-3. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the provided variables.
-4. graphmaker - plots the original series, the fitted values and the forecasts.
+1. cramer - calculates Cramer's V for two categorical variables. Plus tests the significance of such association.
+2. determination - function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+3. tableplot - plots the graph for two categorical variables.
+4. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the provided variables.
+5. graphmaker - plots the original series, the fitted values and the forecasts.
 
 ### Models evaluation functions
 1. ro - rolling origin evaluation (see the vignette).<!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->

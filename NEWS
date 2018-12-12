@@ -12,6 +12,7 @@ Changes:
 * Added a clarification about the most efficient use of RMC (together with RelMAE / RelMSE).
 * alm() now works with factors.
 * spread() now allows doing log transforms of numerical data.
+* New function: cramer() - that calculates Cramer's V and the according statistics. Good for measuring the association between the categorical variables.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
