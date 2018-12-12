@@ -16,6 +16,8 @@
 #' @param data Either matrix or data.frame with the data.
 #' @param histograms If \code{TRUE}, then the histrograms and barplots are produced on
 #' the diagonal of the matrix.
+#' @param legend If \code{TRUE}, then the legend for the tableplot is drawn.
+#' @param log If \code{TRUE}, then the logarithms of all numerical variables are taken.
 #' @param ... Other parameters passed to the plot function.
 #'
 #' @return Function does not return anything. It just plots things.
@@ -26,11 +28,12 @@
 #'
 #' ### Simple example
 #' spread(mtcars)
+#' spread(mtcars,log=TRUE)
 #'
 #' @importFrom graphics barplot boxplot hist mtext text title
 #' @importFrom stats formula
 #' @export spread
-spread <- function(data, histograms=FALSE, ...){
+spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
     ellipsis <- list(...);
 
     if(is.null(ellipsis$main)){
@@ -47,6 +50,10 @@ spread <- function(data, histograms=FALSE, ...){
         omaValues[c(4)] <- omaValues[4]-1;
     }
 
+    # if(legend){
+    #     omaValues[c(4)] <- omaValues[c(4)] + 6;
+    # }
+
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
     }
@@ -57,20 +64,31 @@ spread <- function(data, histograms=FALSE, ...){
                     "Can you, please, reduce the number of variables at least to 20?"),
              call.=FALSE);
     }
-    variablesNames <- colnames(data);
 
     numericData <- vector(mode="logical", length=nVariables);
     for(i in 1:nVariables){
         numericData[i] <- is.numeric(data[[i]]);
         if(numericData[i]){
-            if(length(unique(data[[i]]))<=5){
+            if(length(unique(data[[i]]))<=10){
                 numericData[i] <- FALSE;
             }
         }
     }
 
-    # layout(matrix(c(1:nVariables^2),nVariables,nVariables),
-           # widths=rep(1/nVariables,nVariables), heights=rep(1/nVariables,nVariables));
+    if(log){
+        if(any(data[numericData]<=0)){
+            warning("Some variables have non-positive data, so logarithms cannot be produced for them.",call.=FALSE);
+            nonZeroData <- numericData;
+            nonZeroData[numericData] <- apply(data[numericData]>0,2,all);
+        }
+        else{
+            nonZeroData <- numericData;
+        }
+        data[nonZeroData] <- log(data[nonZeroData]);
+        colnames(data)[which(nonZeroData)] <- paste0("log_",colnames(data)[which(nonZeroData)]);
+    }
+    variablesNames <- colnames(data);
+
     parDefault <- par(no.readonly=TRUE);
 
     if(nVariables==1){
@@ -82,7 +100,7 @@ spread <- function(data, histograms=FALSE, ...){
         }
     }
     else{
-    par(mfcol=c(nVariables,nVariables), mar=rep(0,4), oma=omaValues, xaxt="s",yaxt="s",cex.main=1.5);
+        par(mfcol=c(nVariables,nVariables), mar=rep(0,4), oma=omaValues, xaxt="s",yaxt="s",cex.main=1.5);
         for(i in 1:nVariables){
             for(j in 1:nVariables){
                 if(i==j){
@@ -142,20 +160,20 @@ spread <- function(data, histograms=FALSE, ...){
                         }
                     }
                 }
-#
-#                 if(j==1){
-#                     # Add axis at the top
-#                     if(!histograms){
-#                         if(numericData[i]){
-#                             axis(3);
-#                         }
-#                         else{
-#                             uniqueValues <- sort(unique(data[[i]]));
-#                             axis(3,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-#                                  labels=uniqueValues);
-#                         }
-#                     }
-#                 }
+                #
+                #                 if(j==1){
+                #                     # Add axis at the top
+                #                     if(!histograms){
+                #                         if(numericData[i]){
+                #                             axis(3);
+                #                         }
+                #                         else{
+                #                             uniqueValues <- sort(unique(data[[i]]));
+                #                             axis(3,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
+                #                                  labels=uniqueValues);
+                #                         }
+                #                     }
+                #                 }
 
                 # Add axis, if this is the last element in the matrix
                 if(i==nVariables & histograms){
@@ -188,6 +206,13 @@ spread <- function(data, histograms=FALSE, ...){
         if(mainTitle!=""){
             title(main=mainTitle, outer=TRUE, line=3, cex.main=2);
         }
+
+        # if(legend){
+        #     par(fig=c(0, 1, 0, 0.5), oma=c(0, 0, 0, 1), mar=c(0, 0, 0, 0), new=TRUE);
+        #     plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n');
+        #     legend("topright", legend=c(1,0.5,0), lwd=0, fill=c(rgb(0,0,0,1),rgb(0.5,0.5,0.5,1),rgb(1,1,1,1)),
+        #            bty="n");
+        # }
     }
 
     par(parDefault);

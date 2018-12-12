@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-11)
+greybox v0.3.4 (Release data: 2018-12-12)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Changes:
 * Two new cool functions: tableplot() - produces plots for the two categorical variables, showing graphically, where the most frequent values happen; spread() - plots a matrix of scatterplots / boxplots / tableplots, depending on the type of the provided variable.
 * Added a clarification about the most efficient use of RMC (together with RelMAE / RelMSE).
 * alm() now works with factors.
+* spread() now allows doing log transforms of numerical data.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

@@ -4,13 +4,17 @@
 \alias{spread}
 \title{Construct scatterplot / boxplots for the data}
 \usage{
-spread(data, histograms = FALSE, ...)
+spread(data, histograms = FALSE, legend = FALSE, log = FALSE, ...)
 }
 \arguments{
 \item{data}{Either matrix or data.frame with the data.}
 
 \item{histograms}{If \code{TRUE}, then the histrograms and barplots are produced on
 the diagonal of the matrix.}
+
+\item{legend}{If \code{TRUE}, then the legend for the tableplot is drawn.}
+
+\item{log}{If \code{TRUE}, then the logarithms of all numerical variables are taken.}
 
 \item{...}{Other parameters passed to the plot function.}
 }
@@ -32,6 +36,7 @@ in a matrix.
 
 ### Simple example
 spread(mtcars)
+spread(mtcars,log=TRUE)
 
 }
 \references{
