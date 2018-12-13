@@ -7,17 +7,19 @@ association <- function(x, y=NULL, use=c("complete.obs","everything","all.obs","
     # If one is numeric, one is categorical, use expand and .lm.fit
     #
     #
-    # if(any(sapply(data, is.factor))){
+    # if(is.factor(data)){
     #     if(any(sapply(data, is.ordered))){
-    #         association <- Kendall
+    #         association <- cor(method="kendall")
     #     }
     #     else{
-    #         association <- Cramers V
+    #         association <- cramer()
     #     }
     # }
     # else{
     #     association <- cor;
     # }
+    #
+    # If one is numeric and the other one is categorical, us Intraclass correlation
     #
     # xregFactor <- model.matrix(~newFactor, data=x)
     #
