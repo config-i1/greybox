@@ -2,9 +2,9 @@
 % Please edit documentation in R/rmc.R
 \name{rmc}
 \alias{rmc}
-\title{RMC test}
+\title{Regression for Multiple Comparison}
 \usage{
-rmc(data, distribution = c("dnorm", "dfnorm", "dchisq"), level = 0.95,
+rmc(data, distribution = c("dlnorm", "dfnorm", "dlnorm"), level = 0.95,
   style = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
 }
 \arguments{
@@ -14,13 +14,14 @@ columns.}
 \item{distribution}{Type of the distribution to use. If this is a clear forecast error,
 then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
 regression. \code{"dfnorm"} would lead to a alm model with folded normal
-distribution. Finally, \code{"dchisq"} would lead to the alm with Chi
-squared distribution. This value is passed to \code{alm()} function.}
+distribution. Finally, \code{"dlnorm"} would lead to the alm with log normal
+distribution. This value is passed to \code{alm()} function. You can try some
+other distributions, but don't expect anything meaningful.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 
 \item{style}{What style of plot to use after the calculations. This can be
-either "MCB" style or "Vertical lines" one.}
+either "MCB" (\code{"mcb"}) style or "Vertical lines" (\code{"lines"}).}
 
 \item{select}{What column of data to highlight on the plot. If NULL, then
 the method with the lowest value is selected.}
@@ -35,7 +36,7 @@ effect.}
 If \code{plot=TRUE}, then the function plots the results after all
 the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
 intervals are, the better model performs. When \code{distribution="dfnorm"} or
-\code{distribution="dchisq"}, the smaller, the better.
+\code{distribution="dlnorm"}, the lower, the better.
 
 Function returns a list of a class "rmc", which contains the following
 variables:
@@ -64,7 +65,8 @@ This test is a parametric counterpart of nemenyi / MCB test (Demsar, 2006) and
 uses asymptotic properties of regression models. It relies on distributional
 assumptions about the provided data. For instance, if the mean forecast errors
 are used, then it is safe to assume that the regression model constructed on
-them will have normally distributed residuals.
+them will have symmetrically distributed residuals, thus normal regression can
+be used for the parameters estimation.
 }
 \details{
 The test constructs the regression model of the kind:
@@ -80,22 +82,15 @@ regressions. The function supports Gausian linear regression
 (\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
 folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
 assuming that the original errors are normally distributed) and advanced linear
-regression with Chi-Squared distribution (\code{distribution="dchisq"}, when the data is
-distributed as Chi^2, for example squared normal standard errors).
+regression with log normal distribution (\code{distribution="dlnorm"}, which might be
+useful in case of relative error measures.
 
-The advisable error measures to use in the test are RelMAE and RelMSE, which are
-unbiased and whose logarithms are symmetrically distributed (Davydenko & Fildes,
-2013). In fact RelMSE should have F-distribution with h and h degrees of freedom
-and its logarithm is a log F distribution, because each MSE * h has chi-square(h)
-(assuming that the forecast error is normal).
-
-As for RelMAE, its distribution is trickier, because each MAE has folded normal
-distribution (assuming that the original error is normal) and their ratio is
-something complicated, but tractable (Kim, 2006).
-
-Still, given large samples, the parameters of the regression on logarithms of
-the both RelMAE and RelMSE should have normal distribution. Thus
-\code{distribution="dnorm"} can be used in this case (see examples).
+The advisable error measures to use in the test are RelMAE and RelMSE together with
+\code{distribution="dlnorm"}. They are unbiased and their logarithms are
+symmetrically distributed (Davydenko & Fildes, 2013). Although their distributions
+are not normal, given the typically large samples of datasets, the Central Limit
+Theorem helps in the adequate construction of the confidence intervals for the
+parameters.
 
 The test is equivalent to nemenyi test, when applied to the ranks of the error
 measures on large samples.
@@ -115,9 +110,6 @@ rmc(ourData, distribution="dnorm", level=0.95)
 # In case of AE-based measures, distribution="dfnorm" should be selected
 rmc(abs(ourData), distribution="dfnorm", level=0.95)
 
-# In case of SE-based measures, distribution="dchisq" should be selected
-rmc(ourData^2, distribution="dchisq", level=0.95)
-
 # APE-based measures should not be used in general...
 
 # If RelMAE or RelMSE is used for measuring data, then it makes sense to use
@@ -132,6 +124,9 @@ exp(ourTest$mean)
 # The following example should give similar results to nemenyi test on
 # large samples, which compares medians of the distributions:
 rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
+
+# You can also give a try to SE-based measures with distribution="dchisq":
+rmc(ourData^2, distribution="dchisq", level=0.95)
 
 }
 \references{

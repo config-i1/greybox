@@ -41,7 +41,7 @@ The package includes the following functions:
 9. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
 10. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
 11. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-12. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which should work better than `nemenyi()` on large samples. Can be efficiently used together with RelMAE / RelMSE measures.
+12. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
