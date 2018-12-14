@@ -1,16 +1,17 @@
-#' Intraclass correlation
+#' Multiple correlation
 #'
-#' Function calculates Intraclass correlation for two variables
+#' Function calculates multiple correlation between y and x, constructing a linear
+#' regression model
 #'
-#' This is based on the linear regression model with the set of dummies providede in x.
-#' The returned value is just a coefficient of multiple correlation from such a model,
+#' This is based on the linear regression model with the set of variables in x. The
+#' returned value is just a coefficient of multiple correlation from regression,
 #' the F-statistics of the model (thus testing the null hypothesis that all the
 #' parameters are equal to zero), the associated p-value and the degrees of freedom.
 #'
 #' @template author
 #' @template keywords
 #'
-#' @param x Either factor or a matrix with dummies
+#' @param x Either data.frame or a matrix
 #' @param y The numerical variable.
 #'
 #' @return The following list of values is returned:
@@ -27,11 +28,11 @@
 #'
 #' @examples
 #'
-#' icc(mtcars$am, mtcars$mpg)
+#' mcor(mtcars$am, mtcars$mpg)
 #'
 #' @importFrom stats cor.test pf
-#' @export icc
-icc <- function(x,y){
+#' @export mcor
+mcor <- function(x,y){
 
     # Remove the bloody ordering
     if(is.factor(x)){
@@ -65,5 +66,5 @@ icc <- function(x,y){
     statistic <- (value^2/dfFull)/((1-value^2)/dfReg);
 
     return(structure(list(value=value,statistic=statistic,df=dfFull,
-                          df.residual=dfReg,p.value=pf(statistic,dfFull,dfReg)),class="icc"));
+                          df.residual=dfReg,p.value=pf(statistic,dfFull,dfReg)),class="mcor"));
 }

@@ -61,12 +61,12 @@ association <- function(x, y=NULL, use=c("complete.obs","everything","all.obs","
                 matrixPValues[i,j] <- cramerOutput$p.value;
             }
             else if(!numericDataX[i] & numericDataY[j]){
-                iccOutput <- icc(x[,i],y[,j]);
+                iccOutput <- mcor(x[,i],y[,j]);
                 matrixAssociation[i,j] <- iccOutput$value;
                 matrixPValues[i,j] <- iccOutput$p.value;
             }
             else{
-                iccOutput <- icc(y[,i],x[,j]);
+                iccOutput <- mcor(y[,i],x[,j]);
                 matrixAssociation[i,j] <- iccOutput$value;
                 matrixPValues[i,j] <- iccOutput$p.value;
             }
