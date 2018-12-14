@@ -38,7 +38,5 @@ tableplot(mtcars$am, mtcars$gear)
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }
-\keyword{models}
-\keyword{nonlinear}
-\keyword{regression}
-\keyword{ts}
+\keyword{graph}
+\keyword{plots}

@@ -14,11 +14,13 @@ Changes:
 * spread() now allows doing log transforms of numerical data.
 * New function: cramer() - that calculates Cramer's V and the according statistics. Good for measuring the association between the categorical variables.
 * New function: mcor() - multiple correlation between the numerical and catgorical variables.
+* New function: association() aka assoc() - returns the matrix of measures of association (the values depend on the types of variables under consideration).
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
 * pointLik() did not work with lmCombine() because scale parameter was not available. Similarly, it did not work with stepwise() in case of normal distribution.
 * predict.alm() was misbehaving in case of non-null occurrence.
+* determination() now works with factors.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)

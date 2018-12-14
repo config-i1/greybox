@@ -38,12 +38,9 @@ mcor(mtcars$am, mtcars$mpg)
 }
 \seealso{
 \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
-\link[greybox]{cramer}}
+\link[greybox]{cramer}, \link[greybox]{association}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }
-\keyword{models}
-\keyword{nonlinear}
-\keyword{regression}
-\keyword{ts}
+\keyword{htest}

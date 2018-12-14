@@ -9,7 +9,7 @@
 #' parameters are equal to zero), the associated p-value and the degrees of freedom.
 #'
 #' @template author
-#' @template keywords
+#' @keywords htest
 #'
 #' @param x Either data.frame or a matrix
 #' @param y The numerical variable.
@@ -24,7 +24,7 @@
 #' }
 #'
 #' @seealso \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
-#' \link[greybox]{cramer}}
+#' \link[greybox]{cramer}, \link[greybox]{association}}
 #'
 #' @examples
 #'
@@ -34,19 +34,39 @@
 #' @export mcor
 mcor <- function(x,y){
 
-    # Remove the bloody ordering
+    # If it is a factor, just use it
     if(is.factor(x)){
+        namesX <- colnames(x);
+        # Remove the bloody ordering
         if(is.ordered(x)){
             x <- factor(x,ordered=FALSE);
         }
-        x <- model.matrix(~x-1);
     }
-    else{
-        if(!is.matrix(x)){
-            x <- factor(x,levels=unique(x));
-            x <- model.matrix(~x-1);
+    # If it is a matrix, transform into data.frame and create factors
+    else if(is.matrix(x)){
+        namesX <- colnames(x);
+        x <- as.data.frame(x);
+        if(nrow(x)>10){
+            xFactors <- apply(apply(x,2,unique),2,length)<=10;
+            for(i in which(xFactors)){
+                x[,i] <- factor(x[,i]);
+            }
         }
     }
+    # If it is a vector, create a data.frame and potentially create a factor
+    else if(is.vector(x)){
+        namesX <- deparse(substitute(x));
+        if(length(unique(x))<=10 & length(x)>10){
+            x <- factor(x);
+        }
+        x <- as.data.frame(x);
+        colnames(x) <- namesX;
+    }
+    # Otherwise (is.data.frame) just record the names
+    else{
+        namesX <- colnames(x);
+    }
+    x <- model.matrix(~.,data=x);
 
     if(!is.numeric(y)){
         warning("The y variable should be numeric in order for this to work! The reported value might be meaningless",call.=FALSE);
@@ -57,14 +77,17 @@ mcor <- function(x,y){
             y <- model.matrix(~y-1);
         }
     }
+    else if(is.data.frame(y)){
+        y <- model.matrix(~y-1);
+    }
 
     lmFit <- .lm.fit(x,y);
 
     value <- sqrt(1 - sum(residuals(lmFit)^2) / sum((y-mean(y))^2));
-    dfFull <- length(residuals(lmFit))-1;
-    dfReg <- lmFit$rank;
-    statistic <- (value^2/dfFull)/((1-value^2)/dfReg);
+    dfResid <- length(residuals(lmFit))-lmFit$rank;
+    dfReg <- lmFit$rank-1;
+    statistic <- (value^2/dfReg)/((1-value^2)/dfResid);
 
-    return(structure(list(value=value,statistic=statistic,df=dfFull,
-                          df.residual=dfReg,p.value=pf(statistic,dfFull,dfReg)),class="mcor"));
+    return(structure(list(value=value,statistic=statistic,df=dfReg,df.residual=dfResid,
+                          p.value=pf(statistic,dfReg,dfResid,lower.tail=FALSE)),class="mcor"));
 }

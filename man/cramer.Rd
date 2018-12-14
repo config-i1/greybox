@@ -34,12 +34,10 @@ cramer(mtcars$am, mtcars$gear)
 
 }
 \seealso{
-\code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread}}
+\code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
+\link[greybox]{mcor}, \link[greybox]{association}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }
-\keyword{models}
-\keyword{nonlinear}
-\keyword{regression}
-\keyword{ts}
+\keyword{htest}

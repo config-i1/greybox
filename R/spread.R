@@ -11,7 +11,7 @@
 #'
 #' @template AICRef
 #' @template author
-#' @template keywords
+#' @keywords plots graph
 #'
 #' @param data Either matrix or data.frame with the data.
 #' @param histograms If \code{TRUE}, then the histrograms and barplots are produced on

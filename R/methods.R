@@ -1098,6 +1098,23 @@ print.coef.greyboxD <- function(x, ...){
 }
 
 #' @export
+print.association <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    cat("\nAssociations: ")
+    cat("\nvalues:\n"); print(round(x$value,digits));
+    cat("\np-values:\n"); print(round(x$p.value,digits));
+    cat("\ntypes:\n"); print(x$type);
+    cat("\n");
+}
+
+#' @export
 print.cramer <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
@@ -1115,7 +1132,7 @@ print.cramer <- function(x, ...){
 }
 
 #' @export
-print.icc <- function(x, ...){
+print.mcor <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
         digits <- 4;
@@ -1124,7 +1141,7 @@ print.icc <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    cat("\nICC value: "); cat(round(x$value,digits));
+    cat("\nMultiple correlations value: "); cat(round(x$value,digits));
     cat("\nF-statistics = "); cat(round(x$statistic,digits));
     cat(", df: "); cat(x$df);
     cat(", df resid: "); cat(x$df.residual);

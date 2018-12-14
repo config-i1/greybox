@@ -7,7 +7,7 @@
 #' Chi-Squared test with the null hypothesis of independence of the two variables.
 #'
 #' @template author
-#' @template keywords
+#' @keywords htest
 #'
 #' @param x First categorical variable.
 #' @param y Second categorical variable.
@@ -20,7 +20,8 @@
 #' \item{df}{The number of degrees of freedom from the test.}
 #' }
 #'
-#' @seealso \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread}}
+#' @seealso \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
+#' \link[greybox]{mcor}, \link[greybox]{association}}
 #'
 #' @examples
 #'

@@ -30,26 +30,25 @@
 #' colnames(xreg) <- c("x1","x2","x3","Noise")
 #' determination(xreg)
 #'
+#' @rdname determination
+#' @aliases determ
 #' @export determination
 determination <- function(xreg, ...){
 
-    if(any(colMeans(xreg,na.rm=TRUE)==xreg[1,])){
-        warning("Some of the variables did not have any variability. We dropped them.",
-                call.=FALSE);
-        xreg <- xreg[,colMeans(xreg,na.rm=TRUE)!=xreg[1,]]
-    }
-    ##### Options: #####
-    ##### 1. use .lm.fit and extract R^2
-    ##### 2. calculate cor between the metric scales, ICC between metric / non-metric and Kendall / Cramer between the categorical ones.
-
+    # if(any(colMeans(xreg,na.rm=TRUE)==xreg[1,])){
+    #     warning("Some of the variables did not have any variability. We dropped them.",
+    #             call.=FALSE);
+    #     xreg <- xreg[,colMeans(xreg,na.rm=TRUE)!=xreg[1,]]
+    # }
     # Produce correlation matrix
-    matrixCorrelations <- cor(xreg, ...);
-    # Calculate its determinant
-    detCorrelations <- det(matrixCorrelations);
-    nVariables <- nrow(matrixCorrelations);
+    # matrixCorrelations <- cor(xreg, ...);
+    # # Calculate its determinant
+    # detCorrelations <- det(matrixCorrelations);
+
+    nVariables <- ncol(xreg);
     # Form the vector to return
     vectorCorrelationsMultiple <- rep(NA,nVariables);
-    names(vectorCorrelationsMultiple) <- colnames(matrixCorrelations);
+    names(vectorCorrelationsMultiple) <- colnames(xreg);
     if(nrow(xreg)<=ncol(xreg)){
         vectorCorrelationsMultiple[] <- 1;
         warning(paste0("The number of variables is larger than the number of observations. ",
@@ -57,17 +56,19 @@ determination <- function(xreg, ...){
     }
 
     # Calculate the multiple determinations
-    if(nVariables>2){
+    if(nVariables>1){
         for(i in 1:nVariables){
-            vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
+            # vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
+            vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value);
         }
-    }
-    else if(nVariables==2){
-        vectorCorrelationsMultiple <- matrixCorrelations[1,2]^2;
     }
     else{
         vectorCorrelationsMultiple <- 0;
     }
 
-    return(vectorCorrelationsMultiple);
+    return(vectorCorrelationsMultiple^2);
 }
+
+#' @rdname determination
+#' @export determ
+determ <- determination;

@@ -52,7 +52,5 @@ Springer-Verlag New York. DOI: [10.1007/b97636](http://dx.doi.org/10.1007/b97636
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }
-\keyword{models}
-\keyword{nonlinear}
-\keyword{regression}
-\keyword{ts}
+\keyword{graph}
+\keyword{plots}

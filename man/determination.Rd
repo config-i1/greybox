@@ -2,9 +2,12 @@
 % Please edit documentation in R/determination.R
 \name{determination}
 \alias{determination}
+\alias{determ}
 \title{Determination coefficients}
 \usage{
 determination(xreg, ...)
+
+determ(xreg, ...)
 }
 \arguments{
 \item{xreg}{Data frame or a matrix, containing the exogenous variables.}

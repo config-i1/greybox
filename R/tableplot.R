@@ -8,7 +8,7 @@
 #' corresponds to the white colour, the frequency of 1 corresponds to the black.
 #'
 #' @template author
-#' @template keywords
+#' @keywords plots graph
 #'
 #' @param x First categorical variable.
 #' @param y Second categorical variable.
