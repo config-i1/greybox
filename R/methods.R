@@ -1533,6 +1533,7 @@ vcov.alm <- function(object, ...){
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
         newCall$B <- coef(object);
+        newCall$checks <- FALSE;
         if(any(object$distribution==c("dchisq","dnbinom"))){
             newCall$B <- c(object$scale, newCall$B);
         }

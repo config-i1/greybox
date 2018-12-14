@@ -67,6 +67,9 @@
 #' @param vcovProduce whether to produce variance-covariance matrix of
 #' coefficients or not. This is done via hessian calculation, so might be
 #' computationally costly.
+#' @param checks if \code{FALSE}, then the function won't check whether
+#' the data has variability and whether the regressors are correlated. Might
+#' cause trouble, especially in cases of multicollinearity.
 #' @param ... additional parameters to pass to distribution functions
 #' (e.g. \code{alpha} value for Asymmetric Laplace distribution).
 #'
@@ -138,7 +141,7 @@ alm <- function(formula, data, subset, na.action,
                                "dbeta",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
-                B=NULL, vcovProduce=FALSE, ...){
+                B=NULL, vcovProduce=FALSE, checks=TRUE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     cl <- match.call();
@@ -307,55 +310,35 @@ alm <- function(formula, data, subset, na.action,
         ot[] <- rep(TRUE,obsInsample);
     }
 
-    #### Checks of the exogenous variables ####
-    # Remove the data for which sd=0
-    noVariability <- vector("logical",nVariables);
-    noVariability[] <- apply(matrixXreg==matrix(matrixXreg[1,],obsInsample,nVariables,byrow=TRUE),2,all);
-    if(any(noVariability)){
-        if(all(noVariability)){
-            warning("None of exogenous variables has variability. Fitting the straight line.",
-                    call.=FALSE);
-            matrixXreg <- matrix(1,obsInsample,1);
-            nVariables <- 1;
-            variablesNames <- "(Intercept)";
-        }
-        else{
-            warning("Some exogenous variables did not have any variability. We dropped them out.",
-                    call.=FALSE);
-            matrixXreg <- matrixXreg[,!noVariability];
-            nVariables <- ncol(matrixXreg);
-            variablesNames <- variablesNames[!noVariability];
-        }
-    }
-
-    corThreshold <- 0.999;
-    if(nVariables>1){
-        # Check perfectly correlated cases
-        corMatrix <- cor(matrixXreg);
-        corHigh <- upper.tri(corMatrix) & abs(corMatrix)>=corThreshold;
-        if(any(corHigh)){
-            removexreg <- unique(which(corHigh,arr.ind=TRUE)[,1]);
-            if(ncol(matrixXreg)-length(removexreg)>1){
-                matrixXreg <- matrixXreg[,-removexreg];
+    if(checks){
+        #### Checks of the exogenous variables ####
+        # Remove the data for which sd=0
+        noVariability <- vector("logical",nVariables);
+        noVariability[] <- apply(matrixXreg==matrix(matrixXreg[1,],obsInsample,nVariables,byrow=TRUE),2,all);
+        if(any(noVariability)){
+            if(all(noVariability)){
+                warning("None of exogenous variables has variability. Fitting the straight line.",
+                        call.=FALSE);
+                matrixXreg <- matrix(1,obsInsample,1);
+                nVariables <- 1;
+                variablesNames <- "(Intercept)";
             }
             else{
-                matrixXreg <- matrix(matrixXreg[,-removexreg],ncol=ncol(matrixXreg)-length(removexreg),
-                                     dimnames=list(rownames(matrixXreg),c(colnames(matrixXreg)[-removexreg])));
+                warning("Some exogenous variables did not have any variability. We dropped them out.",
+                        call.=FALSE);
+                matrixXreg <- matrixXreg[,!noVariability];
+                nVariables <- ncol(matrixXreg);
+                variablesNames <- variablesNames[!noVariability];
             }
-            nVariables <- ncol(matrixXreg);
-            variablesNames <- colnames(matrixXreg);
-            warning("Some exogenous variables were perfectly correlated. We've dropped them out.",
-                    call.=FALSE);
         }
-    }
 
-    # Do these checks only when intercept is needed. Otherwise in case of dummies this might cause chaos
-    if(nVariables>1 & interceptIsNeeded){
-        # Check dummy variables trap
-        detHigh <- determination(matrixXreg)>=corThreshold;
-        if(any(detHigh)){
-            while(any(detHigh)){
-                removexreg <- which(detHigh>=corThreshold)[1];
+        corThreshold <- 0.999;
+        if(nVariables>1){
+            # Check perfectly correlated cases
+            corMatrix <- cor(matrixXreg);
+            corHigh <- upper.tri(corMatrix) & abs(corMatrix)>=corThreshold;
+            if(any(corHigh)){
+                removexreg <- unique(which(corHigh,arr.ind=TRUE)[,1]);
                 if(ncol(matrixXreg)-length(removexreg)>1){
                     matrixXreg <- matrixXreg[,-removexreg];
                 }
@@ -365,11 +348,33 @@ alm <- function(formula, data, subset, na.action,
                 }
                 nVariables <- ncol(matrixXreg);
                 variablesNames <- colnames(matrixXreg);
-
-                detHigh <- determination(matrixXreg)>=corThreshold;
+                warning("Some exogenous variables were perfectly correlated. We've dropped them out.",
+                        call.=FALSE);
             }
-            warning("Some combinations of exogenous variables were perfectly correlated. We've dropped them out.",
-                    call.=FALSE);
+        }
+
+        # Do these checks only when intercept is needed. Otherwise in case of dummies this might cause chaos
+        if(nVariables>1 & interceptIsNeeded){
+            # Check dummy variables trap
+            detHigh <- determination(matrixXreg)>=corThreshold;
+            if(any(detHigh)){
+                while(any(detHigh)){
+                    removexreg <- which(detHigh>=corThreshold)[1];
+                    if(ncol(matrixXreg)-length(removexreg)>1){
+                        matrixXreg <- matrixXreg[,-removexreg];
+                    }
+                    else{
+                        matrixXreg <- matrix(matrixXreg[,-removexreg],ncol=ncol(matrixXreg)-length(removexreg),
+                                             dimnames=list(rownames(matrixXreg),c(colnames(matrixXreg)[-removexreg])));
+                    }
+                    nVariables <- ncol(matrixXreg);
+                    variablesNames <- colnames(matrixXreg);
+
+                    detHigh <- determination(matrixXreg)>=corThreshold;
+                }
+                warning("Some combinations of exogenous variables were perfectly correlated. We've dropped them out.",
+                        call.=FALSE);
+            }
         }
     }
 

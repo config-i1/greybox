@@ -7,7 +7,8 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
   "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
-  "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, ...)
+  "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, checks = TRUE,
+  ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -48,6 +49,10 @@ is estimated.}
 \item{vcovProduce}{whether to produce variance-covariance matrix of
 coefficients or not. This is done via hessian calculation, so might be
 computationally costly.}
+
+\item{checks}{if \code{FALSE}, then the function won't check whether
+the data has variability and whether the regressors are correlated. Might
+cause trouble, especially in cases of multicollinearity.}
 
 \item{...}{additional parameters to pass to distribution functions
 (e.g. \code{alpha} value for Asymmetric Laplace distribution).}

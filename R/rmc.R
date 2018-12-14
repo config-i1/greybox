@@ -159,7 +159,7 @@ rmc <- function(data, distribution=c("dlnorm","dfnorm","dlnorm"),
     colnames(dataNew)[1] <- "y";
 
     # This is the model used for the confidence intervals calculation
-    lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution);
+    lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
 
     # Construct intervals
     lmCoefs <- coef(lmModel);
@@ -171,7 +171,7 @@ rmc <- function(data, distribution=c("dlnorm","dfnorm","dlnorm"),
     lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
     # Stuff needed for the importance of the model
-    lmModel2 <- alm(y~1,data=dataNew, distribution=distribution);
+    lmModel2 <- alm(y~1,data=dataNew, distribution=distribution, checks=FALSE);
 
     AICs <- c(AIC(lmModel2),AIC(lmModel));
     delta <- AICs - min(AICs);
