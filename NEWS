@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-12)
+greybox v0.3.4 (Release data: 2018-12-14)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Changes:
 * alm() now works with factors.
 * spread() now allows doing log transforms of numerical data.
 * New function: cramer() - that calculates Cramer's V and the according statistics. Good for measuring the association between the categorical variables.
+* New function: icc() - multiple correlation between the numerical and catgorical variables.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

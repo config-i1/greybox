@@ -1115,6 +1115,24 @@ print.cramer <- function(x, ...){
 }
 
 #' @export
+print.icc <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    cat("\nICC value: "); cat(round(x$value,digits));
+    cat("\nF-statistics = "); cat(round(x$statistic,digits));
+    cat(", df: "); cat(x$df);
+    cat(", df resid: "); cat(x$df.residual);
+    cat(", p-value: "); cat(round(x$p.value,digits));
+    cat("\n");
+}
+
+#' @export
 print.summary.alm <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
