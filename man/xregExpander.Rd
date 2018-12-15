@@ -5,7 +5,7 @@
 \title{Exogenous variables expander}
 \usage{
 xregExpander(xreg, lags = c(-frequency(xreg):frequency(xreg)),
-  silent = TRUE)
+  silent = TRUE, extrapolate = c(NULL, TRUE, FALSE))
 }
 \arguments{
 \item{xreg}{Vector / matrix / data.frame, containing variables that need
@@ -17,6 +17,12 @@ mean lags, positive ones mean leads.}
 
 \item{silent}{If \code{silent=FALSE}, then the progress is printed out.
 Otherwise the function won't print anything in the console.}
+
+\item{extrapolate}{If \code{TRUE}, then the missing values will be
+extrapolated either using Naive or using es() / iss() functions from
+smooth package (if installed). By default the function will decide on
+its own, based on the sample size (if it is >10k obs, then it won't
+extrapolate).}
 }
 \value{
 \code{ts} matrix with the expanded variables is returned.
