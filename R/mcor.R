@@ -43,8 +43,12 @@ mcor <- function(x,y){
         }
     }
     # If it is a matrix, transform into data.frame and create factors
-    # else if(is.matrix(x)){
-    #     namesX <- colnames(x);
+    else if(is.matrix(x)){
+        namesX <- colnames(x);
+        # If there is no column with the intercept, then create one
+        if(!all(x[,1]==1)){
+            x <- cbind(1,x);
+        }
     #     x <- as.data.frame(x);
     #     if(nrow(x)>10){
     #         xFactors <- apply(apply(x,2,unique),2,length)<=10;
@@ -52,7 +56,7 @@ mcor <- function(x,y){
     #             x[,i] <- factor(x[,i]);
     #         }
     #     }
-    # }
+    }
     # If it is a vector, create a data.frame and potentially create a factor
     else if(is.vector(x)){
         namesX <- deparse(substitute(x));
