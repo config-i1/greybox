@@ -41,6 +41,8 @@
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                          silent=TRUE, extrapolate=c(NULL,TRUE,FALSE)){
 
+    extrapolate <- extrapolate[1];
+
     lagsOriginal <- lags;
     # Remove zero from lags
     lags <- lags[lags!=0]
@@ -164,6 +166,7 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                                 xregModel <- suppressWarnings(smooth::es(rev(xregData), model=smooth::modelType(xregModel), persistence=xregModel$persistence,
                                                                          intermittent=xregModel$intermittent, imodel=xregModel$imodel, h=maxLag));
                             }
+                            xregDataNew <- c(rev(xregModel$forecast),xregDataNew);
                         }
                         else{
                             # If this is a binary variable, use iss function.
@@ -173,8 +176,8 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                             else{
                                 xregModel <- suppressWarnings(smooth::es(rev(xregData),h=maxLag,intermittent="a"));
                             }
+                            xregDataNew <- c(rev(xregModel$forecast),xregData);
                         }
-                        xregDataNew <- c(rev(xregModel$forecast),xregData);
                     }
                 }
                 else{

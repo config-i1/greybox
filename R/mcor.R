@@ -43,16 +43,16 @@ mcor <- function(x,y){
         }
     }
     # If it is a matrix, transform into data.frame and create factors
-    else if(is.matrix(x)){
-        namesX <- colnames(x);
-        x <- as.data.frame(x);
-        if(nrow(x)>10){
-            xFactors <- apply(apply(x,2,unique),2,length)<=10;
-            for(i in which(xFactors)){
-                x[,i] <- factor(x[,i]);
-            }
-        }
-    }
+    # else if(is.matrix(x)){
+    #     namesX <- colnames(x);
+    #     x <- as.data.frame(x);
+    #     if(nrow(x)>10){
+    #         xFactors <- apply(apply(x,2,unique),2,length)<=10;
+    #         for(i in which(xFactors)){
+    #             x[,i] <- factor(x[,i]);
+    #         }
+    #     }
+    # }
     # If it is a vector, create a data.frame and potentially create a factor
     else if(is.vector(x)){
         namesX <- deparse(substitute(x));
@@ -66,7 +66,10 @@ mcor <- function(x,y){
     else{
         namesX <- colnames(x);
     }
-    x <- model.matrix(~.,data=x);
+
+    if(!is.matrix(x)){
+        x <- model.matrix(~.,data=x);
+    }
 
     if(!is.numeric(y)){
         warning("The y variable should be numeric in order for this to work! The reported value might be meaningless",call.=FALSE);
