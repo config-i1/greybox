@@ -715,6 +715,7 @@ alm <- function(formula, data, subset, na.action,
 
         # New data and new response variable
         dataNew <- as.matrix(data);
+        dataNew <- data;
         y <- as.matrix(dataNew[,all.vars(formula)[1]]);
         ot <- y!=0;
         dataNew[,all.vars(formula)[1]] <- (ot)*1;
@@ -740,6 +741,15 @@ alm <- function(formula, data, subset, na.action,
         CFValue <- CFValue - occurrence$logLik;
 
         dataWork <- eval(mf, parent.frame());
+        dataWork <- model.matrix(dataWork,data=dataWork);
+
+        if(interceptIsNeeded){
+            dataWork <- cbind(y,dataWork[,-1]);
+        }
+        else{
+            dataWork <- cbind(y,dataWork);
+        }
+        colnames(dataWork) <- c(responseName, variablesNames);
     }
 
     if(any(distribution==c("dchisq","dnbinom"))){

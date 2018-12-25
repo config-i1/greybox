@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-15)
+greybox v0.3.4 (Release data: 2018-12-25)
 ==============
 
 Changes:
@@ -23,6 +23,7 @@ Bugfixes:
 * predict.alm() was misbehaving in case of non-null occurrence.
 * determination() now works with factors.
 * Additional explanations for RMC.
+* Bugfix in alm() for cases of occurrence and the provided factors.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)
