@@ -722,7 +722,6 @@ alm <- function(formula, data, subset, na.action,
 
         if(!occurrenceProvided){
             occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence));
-            occurrence$call$data <- cl$data;
         }
 
         # Corrected fitted (with zeroes, when y=0)
@@ -740,16 +739,19 @@ alm <- function(formula, data, subset, na.action,
         # Correction of the likelihood
         CFValue <- CFValue - occurrence$logLik;
 
+        # Form the final dataWork in order to return it in the data.
         dataWork <- eval(mf, parent.frame());
         dataWork <- model.matrix(dataWork,data=dataWork);
-
         if(interceptIsNeeded){
             dataWork <- cbind(y,dataWork[,-1]);
+            variablesUsed <- variablesNames[variablesNames!="(Intercept)"];
         }
         else{
             dataWork <- cbind(y,dataWork);
+            variablesUsed <- variablesNames;
         }
-        colnames(dataWork) <- c(responseName, variablesNames);
+        colnames(dataWork)[1] <- responseName;
+        dataWork <- dataWork[,c(responseName, variablesUsed)]
     }
 
     if(any(distribution==c("dchisq","dnbinom"))){
@@ -776,8 +778,7 @@ alm <- function(formula, data, subset, na.action,
     finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted.values=yFitted, residuals=as.vector(errors),
                        mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
                        df.residual=obsInsample-df, df=df, call=cl, rank=df,
-                       data=matrix(as.matrix(dataWork[,c(responseName,variablesNames[-1])]), ncol=nVariables,
-                                   dimnames=list(NULL, c(responseName,variablesNames[-1]))),
+                       data=dataWork,
                        occurrence=occurrence, subset=subset, other=ellipsis);
 
     return(structure(finalModel,class=c("alm","greybox")));
