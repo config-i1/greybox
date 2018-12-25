@@ -1538,7 +1538,8 @@ vcov.alm <- function(object, ...){
             newCall$B <- c(object$scale, newCall$B);
         }
         newCall$vcovProduce <- TRUE;
-        newCall$occurrence <- object$occurrence;
+        newCall$occurrence <- NULL;
+        # newCall$occurrence <- object$occurrence;
         # Recall alm to get hessian
         vcov <- eval(newCall)$vcov;
 

@@ -24,6 +24,7 @@ Bugfixes:
 * determination() now works with factors.
 * Additional explanations for RMC.
 * Bugfix in alm() for cases of occurrence and the provided factors.
+* vcov.alm would not work in cases of occurrence model having different set of variables than the sizes one.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)
