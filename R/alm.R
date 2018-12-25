@@ -752,6 +752,9 @@ alm <- function(formula, data, subset, na.action,
         }
         colnames(dataWork)[1] <- responseName;
         dataWork <- dataWork[,c(responseName, variablesUsed)]
+        if(!is.matrix(dataWork)){
+            dataWork <- matrix(dataWork,ncol=1,dimnames=list(names(dataWork),responseName));
+        }
     }
 
     if(any(distribution==c("dchisq","dnbinom"))){
