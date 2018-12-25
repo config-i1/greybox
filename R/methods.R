@@ -888,8 +888,13 @@ nParam.default <- function(object, ...){
 
 #' @export
 nParam.alm <- function(object, ...){
-    # The length of the vector of parameters + variance
-    return(object$df);
+    # The number of parameters in the model + in the occurrence part
+    if(!is.null(object$occurrence)){
+        return(object$df+object$occurrence$df);
+    }
+    else{
+        return(object$df);
+    }
 }
 
 #' @export
