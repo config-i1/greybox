@@ -703,6 +703,10 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 
     side <- substr(side[1],1,1);
 
+    parameters <- coef.greybox(object);
+    parametersNames <- names(parameters);
+    ourVcov <- vcov(object);
+
     if(side=="u"){
         levelLow <- 0;
         levelUp <- level;
@@ -715,6 +719,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         levelLow <- (1 - level) / 2;
         levelUp <- (1 + level) / 2;
     }
+    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
 
     if(is.null(newdata)){
         matrixOfxreg <- object$data;
@@ -734,7 +739,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
             dataOrders <- unlist(lapply(newdata,is.ordered));
             # If there is an ordered factor, remove the bloody ordering!
             if(any(dataOrders)){
-                newdata[dataOrders] <- lapply(newdata[dataOrders],factor,ordered=FALSE);
+                newdata[dataOrders] <- lapply(newdata[dataOrders],function(x) factor(x, levels=levels(x), ordered=FALSE));
             }
         }
 
@@ -742,6 +747,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         newdataExpanded <- model.frame(object$call$formula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
+        matrixOfxreg <- matrixOfxreg[,parametersNames];
         # }
         # else{
         #     matrixOfxreg <- newdata;
@@ -750,19 +756,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 
     nRows <- nrow(matrixOfxreg);
 
-    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
-    parameters <- coef.greybox(object);
-    parametersNames <- names(parameters);
-    ourVcov <- vcov(object);
-
-    if(object$distribution=="dalaplace"){
-        if(parametersNames[1]=="alpha"){
-            parametersNames <- parametersNames[-1];
-            parameters <- parameters[-1];
-            ourVcov <- ourVcov[-1,-1];
-        }
-    }
-    else if(object$distribution=="dbeta"){
+    if(object$distribution=="dbeta"){
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
@@ -1188,9 +1182,9 @@ print.summary.alm <- function(x, ...){
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
-                      "dchisq" = "Chi-Squared",
+                      "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,2)),
                       "dpois" = "Poisson",
-                      "dnbinom" = "Negative Binomial",
+                      "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,2)),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -1203,7 +1197,7 @@ print.summary.alm <- function(x, ...){
         distrib <- paste0("Mixture of ", distrib," and ", distribOccurrence);
     }
 
-    cat(paste0("Response variable: ", x$responseName,"\n"));
+    cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
@@ -1242,7 +1236,7 @@ print.summary.greybox <- function(x, ...){
                       "pnorm" = "Cumulative normal"
     );
 
-    cat(paste0("Response variable: ", x$responseName,"\n"));
+    cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
@@ -1284,7 +1278,7 @@ print.summary.greyboxC <- function(x, ...){
                       "pnorm" = "Cumulative normal"
     );
 
-    cat(paste0("Response variable: ", x$responseName,"\n"));
+    cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
@@ -1554,8 +1548,14 @@ vcov.alm <- function(object, ...){
         newCall$distribution <- object$distribution;
         newCall$B <- coef(object);
         newCall$checks <- FALSE;
-        if(any(object$distribution==c("dchisq","dnbinom"))){
-            newCall$B <- c(object$scale, newCall$B);
+        if(object$distribution=="dchisq"){
+            newCall$df <- object$other$df;
+        }
+        else if(object$distribution=="dnbinom"){
+            newCall$size <- object$other$size;
+        }
+        else if(object$distribution=="dalaplace"){
+            newCall$alpha <- object$other$alpha;
         }
         newCall$vcovProduce <- TRUE;
         newCall$occurrence <- NULL;
