@@ -413,7 +413,6 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
     if(is.null(newdata)){
-        newdata <- object$data;
         newdataProvided <- FALSE;
     }
     else{
@@ -718,35 +717,36 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     }
 
     if(is.null(newdata)){
-        newdata <- object$data;
+        matrixOfxreg <- object$data;
         newdataProvided <- FALSE;
     }
     else{
         newdataProvided <- TRUE;
-    }
-    if(!is.data.frame(newdata)){
-        if(is.vector(newdata)){
-            newdataNames <- names(newdata);
-            newdata <- matrix(newdata, nrow=1, dimnames=list(NULL, newdataNames));
-        }
-        newdata <- as.data.frame(newdata);
-    }
-    else{
-        dataOrders <- unlist(lapply(newdata,is.ordered));
-        # If there is an ordered factor, remove the bloody ordering!
-        if(any(dataOrders)){
-            newdata[dataOrders] <- lapply(newdata[dataOrders],factor,ordered=FALSE);
-        }
-    }
 
-    # if(!any(is.greyboxC(object),is.greyboxD(object))){
+        if(!is.data.frame(newdata)){
+            if(is.vector(newdata)){
+                newdataNames <- names(newdata);
+                newdata <- matrix(newdata, nrow=1, dimnames=list(NULL, newdataNames));
+            }
+            newdata <- as.data.frame(newdata);
+        }
+        else{
+            dataOrders <- unlist(lapply(newdata,is.ordered));
+            # If there is an ordered factor, remove the bloody ordering!
+            if(any(dataOrders)){
+                newdata[dataOrders] <- lapply(newdata[dataOrders],factor,ordered=FALSE);
+            }
+        }
+
+        # if(!any(is.greyboxC(object),is.greyboxD(object))){
         newdataExpanded <- model.frame(object$call$formula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
-    # }
-    # else{
-    #     matrixOfxreg <- newdata;
-    # }
+        # }
+        # else{
+        #     matrixOfxreg <- newdata;
+        # }
+    }
 
     nRows <- nrow(matrixOfxreg);
 
@@ -1011,16 +1011,33 @@ plot.predict.greybox <- function(x, ...){
         }
     }
 
+    # Change values of fitted and forecast, depending on whethere there was a newdata or not
     if(x$newdataProvided){
         yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+        yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
+        vline <- TRUE;
     }
     else{
-        yFitted <- NA;
+        yForecast <- ts(NA, start=yForecastStart, frequency=yFrequency);
+        yFitted <- ts(x$mean, start=yStart, frequency=yFrequency);
+        vline <- FALSE;
     }
-    yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
+
+    graphmakerCall <- list(...);
+    graphmakerCall$actuals <- yActuals;
+    graphmakerCall$forecast <- yForecast;
+    graphmakerCall$fitted <- yFitted;
+    graphmakerCall$vline <- vline;
+
     if(!is.null(x$lower)){
-        yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
-        yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
+        if(x$newdataProvided){
+            yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
+            yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
+        }
+        else{
+            yLower <- ts(x$lower, start=yStart, frequency=yFrequency);
+            yUpper <- ts(x$upper, start=yStart, frequency=yFrequency);
+        }
 
         if(is.matrix(x$level)){
             level <- x$level[1];
@@ -1028,26 +1045,24 @@ plot.predict.greybox <- function(x, ...){
         else{
             level <- x$level;
         }
+        graphmakerCall$level <- level;
+        graphmakerCall$lower <- yLower;
+        graphmakerCall$upper <- yUpper;
+        graphmakerCall
 
         if((any(is.infinite(yLower)) & any(is.infinite(yUpper))) | (any(is.na(yLower)) & any(is.na(yUpper)))){
-            yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
-            yUpper[is.infinite(yUpper) | is.na(yUpper)] <- 0;
-            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level, ...);
+            graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
+            graphmakerCall$upper[is.infinite(yUpper) | is.na(yUpper)] <- 0;
         }
         else if(any(is.infinite(yLower)) | any(is.na(yLower))){
-            yLower[is.infinite(yLower) | is.na(yLower)] <- 0;
-            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=yUpper, level=level, ...);
+            graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
         }
         else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
-            graphmaker(yActuals, yForecast, yFitted, lower=yLower, upper=NA, level=level, ...);
-        }
-        else{
-            graphmaker(yActuals, yForecast, yFitted, yLower, yUpper, level=level, ...);
+            graphmakerCall$upper <- NA;
         }
     }
-    else{
-        graphmaker(yActuals, yForecast, yFitted, ...);
-    }
+
+    do.call(graphmaker,graphmakerCall);
 }
 
 #' @importFrom grDevices rgb

@@ -1,4 +1,4 @@
-greybox v0.3.4 (Release data: 2018-12-25)
+greybox v0.3.4 (Release data: 2018-12-26)
 ==============
 
 Changes:
@@ -16,6 +16,7 @@ Changes:
 * New function: mcor() - multiple correlation between the numerical and catgorical variables.
 * New function: association() aka assoc() - returns the matrix of measures of association (the values depend on the types of variables under consideration).
 * xregExpander() now has 'extrapolate' parameter which allows deciding whether the missing values need to be extrapolated or not.
+* graphmaker() now does not plot forecast if it is NA. In addition, the legend is now slightly more flexible.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
@@ -26,6 +27,7 @@ Bugfixes:
 * Bugfix in alm() for cases of occurrence and the provided factors.
 * vcov.alm would not work in cases of occurrence model having different set of variables than the sizes one.
 * nParam() did not take the number of parameters in the occurrence part into account.
+* plot.predict.alm() now works fine in case of newdata=NULL.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)

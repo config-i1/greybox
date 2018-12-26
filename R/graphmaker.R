@@ -43,6 +43,7 @@
 #' graphmaker(actuals,forecast)
 #'
 #' @export graphmaker
+#' @importFrom graphics rect
 graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                        level=NULL, legend=TRUE, cumulative=FALSE, vline=TRUE, ...){
     # Function constructs the universal linear graph for any model
@@ -68,10 +69,6 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         fitted <- NA;
     }
     h <- length(forecast);
-
-    if(all(is.na(forecast))){
-        h <- 0;
-    }
 
     if(cumulative){
         pointForecastLabel <- "Point forecast per period";
@@ -99,6 +96,30 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         else{
             parMar <- c(3,3,3,1);
         }
+    }
+
+    legendCall <- list(x="bottom");
+    legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
+                           paste0(level*100,"% prediction interval"),"Forecast origin");
+    legendCall$col <- c("black","purple","blue","darkgrey","red");
+    legendCall$lwd <- c(1,2,2,3,2);
+    legendCall$lty <- c(1,2,1,2,1);
+    legendCall$ncol <- 3
+    legendElements <- rep(TRUE,5);
+
+    if(all(is.na(forecast))){
+        h <- 0;
+        pointForecastLabel <- NULL;
+        legendElements[c(3,5)] <- FALSE;
+        vline <- FALSE;
+    }
+
+    if(h==1){
+        legendCall$pch <- c(NA,NA,4,4,NA);
+        legendCall$lty <- c(1,2,0,0,1);
+    }
+    else{
+        legendCall$pch <- rep(NA,5);
     }
 
     # Estimate plot range
@@ -143,77 +164,100 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     if(any(!is.na(fitted))){
         lines(fitted,col="purple",lwd=2,lty=2);
     }
+    else{
+        legendElements[2] <- FALSE;
+    }
+
     if(vline){
         abline(v=deltat(forecast)*(start(forecast)[2]-2)+start(forecast)[1],col="red",lwd=2);
     }
 
     if(intervals){
-        if(h>1){
+        if(h!=1){
             lines(lower,col="darkgrey",lwd=3,lty=2);
             lines(upper,col="darkgrey",lwd=3,lty=2);
             # Draw the nice areas between the borders
             polygon(c(seq(deltat(upper)*(start(upper)[2]-1)+start(upper)[1],deltat(upper)*(end(upper)[2]-1)+end(upper)[1],deltat(upper)),
                       rev(seq(deltat(lower)*(start(lower)[2]-1)+start(lower)[1],deltat(lower)*(end(lower)[2]-1)+end(lower)[1],deltat(lower)))),
-                    c(as.vector(upper), rev(as.vector(lower))), col = "lightgray", border=NA, density=10);
+                    c(as.vector(upper), rev(as.vector(lower))), col="lightgrey", border=NA, density=10);
 
             lines(forecast,col="blue",lwd=2);
+
             #If legend is needed do the stuff...
-            if(legend){
-                par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-                plot(0,0,col="white")
-                legend(x="bottom",
-                       legend=c("Series","Fitted values",pointForecastLabel,
-                                paste0(level*100,"% prediction interval"),"Forecast origin"),
-                       col=c("black","purple","blue","darkgrey","red"),
-                       lwd=c(1,2,2,3,2),
-                       lty=c(1,2,1,2,1),ncol=3);
-            }
+            # if(legend){
+            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+            #     plot(0,0,col="white")
+            #     legend(x="bottom",
+            #            legend=c("Series","Fitted values",pointForecastLabel,
+            #                     paste0(level*100,"% prediction interval"),"Forecast origin"),
+            #            col=c("black","purple","blue","darkgrey","red"),
+            #            lwd=c(1,2,2,3,2),
+            #            lty=c(1,2,1,2,1),ncol=3);
+            # }
         }
         else{
             points(lower,col="darkgrey",lwd=3,pch=4);
             points(upper,col="darkgrey",lwd=3,pch=4);
             points(forecast,col="blue",lwd=2,pch=4);
 
-            if(legend){
-                par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-                plot(0,0,col="white")
-                legend(x="bottom",
-                       legend=c("Series","Fitted values",pointForecastLabel,
-                                paste0(level*100,"% prediction interval"),"Forecast origin"),
-                       col=c("black","purple","blue","darkgrey","red"),
-                       lwd=c(1,2,2,3,2),
-                       lty=c(1,2,NA,NA,1),
-                       pch=c(NA,NA,4,4,NA),ncol=3)
-            }
+            # if(legend){
+            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+            #     plot(0,0,col="white")
+            #     legend(x="bottom",
+            #            legend=c("Series","Fitted values",pointForecastLabel,
+            #                     paste0(level*100,"% prediction interval"),"Forecast origin"),
+            #            col=c("black","purple","blue","darkgrey","red"),
+            #            lwd=c(1,2,2,3,2),
+            #            lty=c(1,2,NA,NA,1),
+            #            pch=c(NA,NA,4,4,NA),ncol=3)
+            # }
         }
     }
     else{
-        if(h>1){
+        legendElements[4] <- FALSE;
+        legendCall$ncol <- 2;
+        if(h!=1){
             lines(forecast,col="blue",lwd=2);
 
-            if(legend){
-                par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-                plot(0,0,col="white")
-                legend(x="bottom",
-                       legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
-                       col=c("black","purple","blue","red"),
-                       lwd=c(1,2,2,2),
-                       lty=c(1,2,1,1),ncol=2);
-            }
+            # if(legend){
+            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+            #     plot(0,0,col="white")
+            #     legend(x="bottom",
+            #            legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
+            #            col=c("black","purple","blue","red"),
+            #            lwd=c(1,2,2,2),
+            #            lty=c(1,2,1,1),ncol=2);
+            # }
         }
         else{
             points(forecast,col="blue",lwd=2,pch=4);
-            if(legend){
-                par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-                plot(0,0,col="white")
-                legend(x="bottom",
-                       legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
-                       col=c("black","purple","blue","red"),
-                       lwd=c(1,2,2,2),
-                       lty=c(1,2,NA,1),
-                       pch=c(NA,NA,4,NA),ncol=2);
-            }
+            # if(legend){
+            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+            #     plot(0,0,col="white")
+            #     legend(x="bottom",
+            #            legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
+            #            col=c("black","purple","blue","red"),
+            #            lwd=c(1,2,2,2),
+            #            lty=c(1,2,NA,1),
+            #            pch=c(NA,NA,4,NA),ncol=2);
+            # }
         }
+    }
+
+    if(legend){
+        legendCall$legend <- legendCall$legend[legendElements];
+        legendCall$col <- legendCall$col[legendElements];
+        legendCall$lwd <- legendCall$lwd[legendElements];
+        legendCall$lty <- legendCall$lty[legendElements];
+        legendCall$pch <- legendCall$pch[legendElements];
+        legendCall$bty <- "n";
+
+        par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+        plot(0,0,col="white")
+        legendDone <- do.call("legend", legendCall);
+        rect(legendDone$rect$left-0.02, legendDone$rect$top-legendDone$rect$h,
+             legendDone$rect$left+legendDone$rect$w+0.02, legendDone$rect$top);
+
     }
 
     par(parDefault);
