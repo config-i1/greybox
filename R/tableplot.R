@@ -2,20 +2,21 @@
 #'
 #' Function constructs a plot for two categorical variables based on table function
 #'
-#' The returned plot corresponds to the values of \code{table()} function with
-#' density corresponding to the frequency of appearance. If the value appears more
+#' The function produces the plot of the \code{table()} function with colour densities
+#' corresponding to the respective frequencies of appearance. If the value appears more
 #' often than the other (e.g. 0.5 vs 0.15), then it will be darker. The frequency of 0
 #' corresponds to the white colour, the frequency of 1 corresponds to the black.
 #'
 #' @template author
 #' @keywords plots graph
 #'
-#' @param x First categorical variable. Can be either vector, factor or a data frame.
-#' If \code{y} is NULL and x is data frame, then the first two variables of the data
-#' frame will be plotted.
-#' @param y Second categorical variable. If not provided, then only the first one will
-#' be plotted.
+#' @param x First categorical variable. Can be either vector, factor, matrix or a data
+#' frame. If \code{y} is NULL and x is either matrix of a data frame, then the first two
+#' variables of the data will be plotted against each other.
+#' @param y Second categorical variable. If not provided, then only \code{x} will be
+#' plotted.
 #' @param labels Whether to print table labels inside the plot or not.
+#' @param legend If \code{TRUE}, then the legend for the tableplot is drawn.
 #' @param ... Other parameters passed to the plot function.
 #'
 #' @return Function does not return anything. It just plots things.
@@ -27,7 +28,7 @@
 #' tableplot(mtcars$am, mtcars$gear)
 #'
 #' @export tableplot
-tableplot <- function(x, y=NULL, labels=TRUE, ...){
+tableplot <- function(x, y=NULL, labels=TRUE, legend=TRUE, ...){
     ellipsis <- list(...);
 
     if(is.null(y)){
@@ -80,10 +81,6 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
     xMid <- xCoord[-1]-0.5;
     yMid <- yCoord[-1]-0.5;
 
-    if(is.null(ellipsis$main)){
-        ellipsis$main <- "";
-    }
-
     if(is.null(ellipsis$xlab)){
         xlab <- deparse(substitute(x));
         ellipsis$xlab <- "";
@@ -114,6 +111,22 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
     ellipsis$x <- 0;
     ellipsis$y <- 0;
 
+    if(is.null(ellipsis$main)){
+        mar1 <- c(5.1,4.1,1.1,1.1);
+        mar2 <- c(0,0,0.1,2.1);
+        ellipsis$main <- "";
+    }
+    else{
+        mar1 <- c(5.1,4.1,4.1,1.1);
+        mar2 <- c(0,0,2.1,2.1);
+    }
+
+    if(legend){
+        parDefault <- par(no.readonly=TRUE);
+        layout(matrix(1:2,1,2),widths=c(0.9,0.1));
+        colPalette <- colorRampPalette(c("white","black"));
+        par(mar=mar1);
+    }
 
     do.call(plot, ellipsis);
     for(i in 1:(length(xCoord)-1)){
@@ -142,5 +155,20 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
     title(xlab=xlab);
     if(yIsProvided){
         title(ylab=ylab);
+    }
+
+    if(legend){
+        par(mar=mar2);
+        xl <- 1
+        yb <- 1.25
+        xr <- 1.25
+        yt <- 1.75
+
+        plot(NA,type="n",ann=FALSE,xlim=c(1,1.5),ylim=c(1,2),xaxt="n",yaxt="n",bty="n");
+        rect(xl, head(seq(yb,yt,(yt-yb)/5),-1), xr, tail(seq(yb,yt,(yt-yb)/5),-1), col=colPalette(5));
+
+        mtext(0:4/4,side=4,at=tail(seq(yb,yt,(yt-yb)/5),-1)-0.05,las=2);
+
+        par(parDefault);
     }
 }

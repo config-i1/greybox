@@ -4,33 +4,32 @@
 \alias{spread}
 \title{Construct scatterplot / boxplots for the data}
 \usage{
-spread(data, histograms = FALSE, legend = FALSE, log = FALSE, ...)
+spread(data, histograms = FALSE, log = FALSE, ...)
 }
 \arguments{
-\item{data}{Either matrix or data.frame with the data.}
+\item{data}{Either matrix or data frame with the data.}
 
 \item{histograms}{If \code{TRUE}, then the histrograms and barplots are produced on
-the diagonal of the matrix.}
-
-\item{legend}{If \code{TRUE}, then the legend for the tableplot is drawn.}
+the diagonal of the matrix. Otherwise the names of the variables are written there.}
 
 \item{log}{If \code{TRUE}, then the logarithms of all numerical variables are taken.}
 
-\item{...}{Other parameters passed to the plot function.}
+\item{...}{Other parameters passed to the plot function. Currently only "main"
+parameter is accepted.}
 }
 \value{
 Function does not return anything. It just plots things.
 }
 \description{
 Function constructs the plots depending on the types of variables in the provided
-matrix / data.frame.
+matrix / data frame.
 }
 \details{
-If the variables are in metric scale, then the classical scatterplot is constructed.
+If both variables are in metric scale, then the classical scatterplot is constructed.
 If one of them is either integer (up to 10 values) or categorical (aka 'factor'),
-then boxplot (with grey dots corresponding to mean values) is constructed. Finally,
-for the two categorical variables the table plot is returned. All of this is packed
-in a matrix.
+then boxplots (with grey dots corresponding to mean values) are constructed. Finally,
+for the two categorical variables the tableplot is returned (see
+\link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
 }
 \examples{
 
@@ -38,13 +37,6 @@ in a matrix.
 spread(mtcars)
 spread(mtcars,log=TRUE)
 
-}
-\references{
-\itemize{
-\item Burnham Kenneth P. and Anderson David R. (2002). Model Selection
-and Multimodel Inference. A Practical Information-Theoretic Approach.
-Springer-Verlag New York. DOI: [10.1007/b97636](http://dx.doi.org/10.1007/b97636).
-}
 }
 \seealso{
 \code{\link[graphics]{plot}, \link[base]{table}, \link[greybox]{tableplot}}

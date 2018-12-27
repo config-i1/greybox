@@ -1,24 +1,23 @@
 #' Construct scatterplot / boxplots for the data
 #'
 #' Function constructs the plots depending on the types of variables in the provided
-#' matrix / data.frame.
+#' matrix / data frame.
 #'
-#' If the variables are in metric scale, then the classical scatterplot is constructed.
+#' If both variables are in metric scale, then the classical scatterplot is constructed.
 #' If one of them is either integer (up to 10 values) or categorical (aka 'factor'),
-#' then boxplot (with grey dots corresponding to mean values) is constructed. Finally,
-#' for the two categorical variables the table plot is returned. All of this is packed
-#' in a matrix.
+#' then boxplots (with grey dots corresponding to mean values) are constructed. Finally,
+#' for the two categorical variables the tableplot is returned (see
+#' \link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
 #'
-#' @template AICRef
 #' @template author
 #' @keywords plots graph
 #'
-#' @param data Either matrix or data.frame with the data.
+#' @param data Either matrix or data frame with the data.
 #' @param histograms If \code{TRUE}, then the histrograms and barplots are produced on
-#' the diagonal of the matrix.
-#' @param legend If \code{TRUE}, then the legend for the tableplot is drawn.
+#' the diagonal of the matrix. Otherwise the names of the variables are written there.
 #' @param log If \code{TRUE}, then the logarithms of all numerical variables are taken.
-#' @param ... Other parameters passed to the plot function.
+#' @param ... Other parameters passed to the plot function. Currently only "main"
+#' parameter is accepted.
 #'
 #' @return Function does not return anything. It just plots things.
 #'
@@ -33,7 +32,7 @@
 #' @importFrom graphics barplot boxplot hist mtext text title
 #' @importFrom stats formula
 #' @export spread
-spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
+spread <- function(data, histograms=FALSE, log=FALSE, ...){
     ellipsis <- list(...);
 
     if(is.null(ellipsis$main)){
@@ -42,17 +41,13 @@ spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
     }
     else{
         mainTitle <- ellipsis$main;
-        omaValues <- c(2,3,5,2);
+        omaValues <- c(2,3,7,2);
     }
 
     if(!histograms){
         omaValues[c(2,3)] <- omaValues[c(2,3)]-1;
         omaValues[c(4)] <- omaValues[4]-1;
     }
-
-    # if(legend){
-    #     omaValues[c(4)] <- omaValues[c(4)] + 6;
-    # }
 
     if(!is.data.frame(data)){
         data <- as.data.frame(data);
@@ -101,8 +96,10 @@ spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
     }
     else{
         par(mfcol=c(nVariables,nVariables), mar=rep(0,4), oma=omaValues, xaxt="s",yaxt="s",cex.main=1.5);
+
         for(i in 1:nVariables){
             for(j in 1:nVariables){
+                # par(mar=rep(0,4), oma=omaValues, xaxt="s",yaxt="s")
                 if(i==j){
                     if(histograms){
                         if(numericData[i]){
@@ -140,7 +137,7 @@ spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
                         points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey")
                     }
                     else{
-                        tableplot(data[[i]],data[[j]], labels=FALSE, main="", axes=FALSE);
+                        tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);
                     }
                 }
 
@@ -206,13 +203,6 @@ spread <- function(data, histograms=FALSE, legend=FALSE, log=FALSE, ...){
         if(mainTitle!=""){
             title(main=mainTitle, outer=TRUE, line=3, cex.main=2);
         }
-
-        # if(legend){
-        #     par(fig=c(0, 1, 0, 0.5), oma=c(0, 0, 0, 1), mar=c(0, 0, 0, 0), new=TRUE);
-        #     plot(0, 0, type='n', bty='n', xaxt='n', yaxt='n');
-        #     legend("topright", legend=c(1,0.5,0), lwd=0, fill=c(rgb(0,0,0,1),rgb(0.5,0.5,0.5,1),rgb(1,1,1,1)),
-        #            bty="n");
-        # }
     }
 
     par(parDefault);

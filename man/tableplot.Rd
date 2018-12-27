@@ -4,17 +4,19 @@
 \alias{tableplot}
 \title{Construct a plot for categorical variable}
 \usage{
-tableplot(x, y = NULL, labels = TRUE, ...)
+tableplot(x, y = NULL, labels = TRUE, legend = TRUE, ...)
 }
 \arguments{
-\item{x}{First categorical variable. Can be either vector, factor or a data frame.
-If \code{y} is NULL and x is data frame, then the first two variables of the data
-frame will be plotted.}
+\item{x}{First categorical variable. Can be either vector, factor, matrix or a data
+frame. If \code{y} is NULL and x is either matrix of a data frame, then the first two
+variables of the data will be plotted against each other.}
 
-\item{y}{Second categorical variable. If not provided, then only the first one will
-be plotted.}
+\item{y}{Second categorical variable. If not provided, then only \code{x} will be
+plotted.}
 
 \item{labels}{Whether to print table labels inside the plot or not.}
+
+\item{legend}{If \code{TRUE}, then the legend for the tableplot is drawn.}
 
 \item{...}{Other parameters passed to the plot function.}
 }
@@ -25,8 +27,8 @@ Function does not return anything. It just plots things.
 Function constructs a plot for two categorical variables based on table function
 }
 \details{
-The returned plot corresponds to the values of \code{table()} function with
-density corresponding to the frequency of appearance. If the value appears more
+The function produces the plot of the \code{table()} function with colour densities
+corresponding to the respective frequencies of appearance. If the value appears more
 often than the other (e.g. 0.5 vs 0.15), then it will be darker. The frequency of 0
 corresponds to the white colour, the frequency of 1 corresponds to the black.
 }
