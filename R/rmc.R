@@ -436,11 +436,12 @@ plot.rmc <- function(x, ...){
 #' @export
 print.rmc <- function(x, ...){
     cat(paste0("Regression for Multiple Comparison with ",switch(x$distribution,
-                                                                 "dnorm"="normal",
-                                                                 "dfnorm"="folded normal",
-                                                                 "dchisq"="Chi-Squared"),
+                                                                 dnorm="normal",
+                                                                 dfnorm="folded normal",
+                                                                 dlnorm="log normal",
+                                                                 dchisq="Chi-Squared"),
                " distribution.\n"));
     cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
-    cat(paste0("Number of observations is ",nobs(x$model)," and number of dummies is ",length(x$mean),"\n"));
+    cat(paste0("The number of observations is ",nobs(x$model),", the number of methods is ",length(x$mean),"\n"));
     cat(paste0("Significance test p-value: ",round(x$p.value,5),"\n"));
 }
