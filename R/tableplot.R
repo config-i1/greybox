@@ -27,6 +27,7 @@
 #'
 #' tableplot(mtcars$am, mtcars$gear)
 #'
+#' @importFrom utils head tail
 #' @export tableplot
 tableplot <- function(x, y=NULL, labels=TRUE, legend=TRUE, ...){
     ellipsis <- list(...);

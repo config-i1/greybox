@@ -4,7 +4,7 @@
 \alias{rmc}
 \title{Regression for Multiple Comparison}
 \usage{
-rmc(data, distribution = c("dlnorm", "dfnorm", "dlnorm"), level = 0.95,
+rmc(data, distribution = c("dnorm", "dfnorm", "dlnorm"), level = 0.95,
   style = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
 }
 \arguments{

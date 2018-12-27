@@ -134,45 +134,78 @@
 #'
 #' @importFrom stats pchisq
 #' @export rmc
-rmc <- function(data, distribution=c("dlnorm","dfnorm","dlnorm"),
+rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
                 level=0.95, style=c("mcb","lines"), select=NULL, plot=TRUE, ...){
 
     distribution <- distribution[1];
     style <- substr(style[1],1,1);
 
-    if(is.data.frame(data)){
-        data <- as.matrix(data);
-    }
-    dataNew <- as.vector(data);
+    #### Prepare the data ####
     obs <- nrow(data);
     nMethods <- ncol(data);
-    obsAll <- length(dataNew);
+    obsAll <- obs*nMethods;
     namesMethods <- colnames(data);
 
-    # Form the matrix of dummy variables
-    xreg <- matrix(0,obsAll,nMethods,dimnames=list(NULL,namesMethods));
-    for(i in 1:nMethods){
-        xreg[obs*(i-1)+1:obs,i] <- 1;
+    # Form the matrix of dummy variables, excluding the first one
+    xreg <- matrix(0,obsAll,nMethods-1);
+    for(i in 2:nMethods){
+        xreg[obs*(i-1)+1:obs,i-1] <- 1;
     }
-    # Collect stuff to form the data.frame
-    dataNew <- as.data.frame(cbind(dataNew,xreg));
-    colnames(dataNew)[1] <- "y";
 
+    dataNew <- matrix(NA,obsAll,nMethods+1);
+    # Collect stuff to form the matrix
+    if(is.data.frame(data)){
+        dataNew[] <- cbind(unlist(data),1,xreg);
+    }
+    else{
+        dataNew[] <- cbind(c(data),1,xreg);
+    }
+    colnames(dataNew) <- c("y","(Intercept)",namesMethods[-1]);
+
+    #### Fit the model ####
     # This is the model used for the confidence intervals calculation
-    lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
+    if(distribution=="dnorm"){
+        lmModel <- .lm.fit(dataNew[,-1], dataNew[,1]);
+        lmModel$xreg <- dataNew[,-1];
+        lmModel$df.residual <- obsAll - nMethods;
+        class(lmModel) <- c("lmGreybox","lm");
+    }
+    else if(distribution=="dlnorm"){
+        lmModel <- .lm.fit(dataNew[,-1], log(dataNew[,1]));
+        lmModel$xreg <- dataNew[,-1];
+        lmModel$df.residual <- obsAll - nMethods;
+        class(lmModel) <- c("lmGreybox","lm");
+    }
+    else{
+        lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
+    }
 
+    # Stuff needed for the importance and the p-value of the model
+    if(distribution=="dnorm"){
+        lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
+        lmModel2$df.residual <- obsAll - 1;
+        class(lmModel2) <- c("lmGreybox","lm");
+    }
+    else if(distribution=="dlnorm"){
+        lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), log(dataNew[,1]));
+        lmModel2$df.residual <- obsAll - 1;
+        class(lmModel2) <- c("lmGreybox","lm");
+    }
+    else{
+        lmModel2 <- alm(y~1,data=dataNew[,-2], distribution=distribution, checks=FALSE);
+    }
+
+    #### Extract the parameters ####
     # Construct intervals
     lmCoefs <- coef(lmModel);
     # Force confint to be estimated inside the function
     lmIntervals <- confint(lmModel, level=level)[,-1];
-    names(lmCoefs)[1] <- colnames(dataNew)[2];
-    rownames(lmIntervals)[1] <- colnames(dataNew)[2];
+    names(lmCoefs) <- namesMethods;
+    rownames(lmIntervals)[1] <- namesMethods[1];
     lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
     lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
-    # Stuff needed for the importance of the model
-    lmModel2 <- alm(y~1,data=dataNew, distribution=distribution, checks=FALSE);
-
+    #### Relative importance of the model and the test ####
     AICs <- c(AIC(lmModel2),AIC(lmModel));
     delta <- AICs - min(AICs);
     importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
@@ -193,7 +226,8 @@ rmc <- function(data, distribution=c("dlnorm","dfnorm","dlnorm"),
     names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
     rownames(lmIntervals) <- names(lmCoefs);
 
-    ### Prepare things for the groups for "lines" plot
+
+    #### Prepare things for the groups for "lines" plot ####
     # Find groups
     vlines <- matrix(NA, nrow=nMethods, ncol=2);
     for(i in 1:nMethods){

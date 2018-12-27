@@ -407,6 +407,35 @@ confint.greyboxD <- function(object, parm, level=0.95, ...){
     return(confintValues[,parm,]);
 }
 
+# This is needed for lmCombine and other functions, using fast regressions
+#' @export
+confint.lmGreybox <- function(object, parm, level=0.95, ...){
+    # Extract parameters
+    parameters <- coef(object);
+    parametersSE <- sqrt(diag(vcov(object)));
+    # Define quantiles using Student distribution
+    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+
+    # We can use normal distribution, because of the asymptotics of MLE
+    confintValues <- cbind(parameters-qt((1+level)/2,df=object$df.residual)*parametersSE,
+                           parameters+qt((1+level)/2,df=object$df.residual)*parametersSE);
+    confintNames <- c(paste0((1-level)/2*100,"%"),
+                                 paste0((1+level)/2*100,"%"));
+    colnames(confintValues) <- confintNames;
+    rownames(confintValues) <- names(parameters);
+
+    if(!is.matrix(confintValues)){
+        confintValues <- matrix(confintValues,1,2);
+        colnames(confintValues) <- confintNames;
+        rownames(confintValues) <- names(parameters);
+    }
+
+    # Return S.E. as well, so not to repeat the thing twice...
+    confintValues <- cbind(parametersSE, confintValues);
+    colnames(confintValues)[1] <- "S.E.";
+    return(confintValues);
+}
+
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
 #' @export
@@ -1602,6 +1631,7 @@ vcov.greyboxD <- function(object, ...){
     return(vcovValue);
 }
 
+# This is needed for lmCombine and other functions, using fast regressions
 #' @export
 vcov.lmGreybox <- function(object, ...){
     vcov <- sigma(object)^2 * solve(crossprod(object$xreg));
