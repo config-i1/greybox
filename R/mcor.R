@@ -39,7 +39,7 @@ mcor <- function(x,y){
         namesX <- colnames(x);
         # Remove the bloody ordering
         if(is.ordered(x)){
-            x <- factor(x,ordered=FALSE);
+            x <- factor(x,ordered=FALSE,levels=levels(x));
         }
     }
     # If it is a matrix, transform into data.frame and create factors
@@ -79,7 +79,7 @@ mcor <- function(x,y){
         warning("The y variable should be numeric in order for this to work! The reported value might be meaningless",call.=FALSE);
         if(is.factor(y)){
             if(is.ordered(y)){
-                y <- factor(y,ordered=FALSE);
+                y <- factor(y,ordered=FALSE,levels=levels(y));
             }
             y <- model.matrix(~y-1);
         }

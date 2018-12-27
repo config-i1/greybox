@@ -7,9 +7,12 @@
 tableplot(x, y = NULL, labels = TRUE, ...)
 }
 \arguments{
-\item{x}{First categorical variable.}
+\item{x}{First categorical variable. Can be either vector, factor or a data frame.
+If \code{y} is NULL and x is data frame, then the first two variables of the data
+frame will be plotted.}
 
-\item{y}{Second categorical variable.}
+\item{y}{Second categorical variable. If not provided, then only the first one will
+be plotted.}
 
 \item{labels}{Whether to print table labels inside the plot or not.}
 

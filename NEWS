@@ -18,6 +18,7 @@ Changes:
 * xregExpander() now has 'extrapolate' parameter which allows deciding whether the missing values need to be extrapolated or not.
 * graphmaker() now does not plot forecast if it is NA. In addition, the legend is now slightly more flexible.
 * summary() now prints the df for dchisq and size for the dnbinom.
+* tableplot() now also accepts dataframes, plotting the first two columns.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.

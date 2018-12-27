@@ -10,8 +10,11 @@
 #' @template author
 #' @keywords plots graph
 #'
-#' @param x First categorical variable.
-#' @param y Second categorical variable.
+#' @param x First categorical variable. Can be either vector, factor or a data frame.
+#' If \code{y} is NULL and x is data frame, then the first two variables of the data
+#' frame will be plotted.
+#' @param y Second categorical variable. If not provided, then only the first one will
+#' be plotted.
 #' @param labels Whether to print table labels inside the plot or not.
 #' @param ... Other parameters passed to the plot function.
 #'
@@ -28,8 +31,36 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
     ellipsis <- list(...);
 
     if(is.null(y)){
-        yIsProvided <- FALSE;
-        y <- rep(0,length(x));
+        if(is.matrix(x)){
+            if(ncol(x)>1){
+                ellipsis$xlab <- colnames(x)[1];
+                ellipsis$ylab <- colnames(x)[2];
+                y <- x[,2];
+                x <- x[,1];
+                yIsProvided <- TRUE;
+            }
+            else{
+                yIsProvided <- FALSE;
+                y <- rep(0,length(x));
+            }
+        }
+        else if(is.data.frame(x)){
+            if(length(x)>1){
+                ellipsis$xlab <- colnames(x)[1];
+                ellipsis$ylab <- colnames(x)[2];
+                y <- x[[2]];
+                x <- x[[1]];
+                yIsProvided <- TRUE;
+            }
+            else{
+                yIsProvided <- FALSE;
+                y <- rep(0,length(x));
+            }
+        }
+        else{
+            yIsProvided <- FALSE;
+            y <- rep(0,length(x));
+        }
     }
     else{
         yIsProvided <- TRUE;
@@ -97,7 +128,7 @@ tableplot <- function(x, y=NULL, labels=TRUE, ...){
                 else{
                     textCol <- "black";
                 }
-                text(xMid[i],yMid[j],labels=tableData[i,j],col=textCol);
+                text(xMid[i],yMid[j],labels=round(tableData[i,j],5),col=textCol);
             }
         }
     }
