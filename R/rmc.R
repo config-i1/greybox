@@ -299,10 +299,6 @@ plot.rmc <- function(x, ...){
                          x$level*100,"% confidence intervals constructed.");
     }
 
-    # Save the current par() values
-    parDefault <- par(no.readonly=TRUE);
-    parMar <- parDefault$mar;
-
     if(ncol(x$groups)>1){
         pointCol <- "#0C6385";
         lineCol <- "#0DA0DC";
@@ -336,19 +332,19 @@ plot.rmc <- function(x, ...){
             args$ylim <- c(args$ylim[1]-0.1,args$ylim[2]+0.1);
         }
 
-        if(all(parMar==(c(5,4,4,2)+0.1))){
-            parMar <- c(2, 2, 0, 0) + 0.1;
-        }
-        if(args$main!=""){
-            parMar <- parMar + c(0,0,4,0);
-        }
-        if(args$ylab!=""){
-            parMar <- parMar + c(0,2,0,0);
-        }
-        if(args$xlab!=""){
-            parMar <- parMar + c(2,0,0,0);
-        }
-        par(mar=parMar);
+        # if(all(parMar==(c(5,4,4,2)+0.1))){
+        #     parMar <- c(2, 2, 0, 0) + 0.1;
+        # }
+        # if(args$main!=""){
+        #     parMar <- parMar + c(0,0,4,0);
+        # }
+        # if(args$ylab!=""){
+        #     parMar <- parMar + c(0,2,0,0);
+        # }
+        # if(args$xlab!=""){
+        #     parMar <- parMar + c(2,0,0,0);
+        # }
+        # par(mar=parMar);
 
         # Use do.call to use manipulated ellipsis (...)
         do.call(plot, args);
@@ -363,6 +359,10 @@ plot.rmc <- function(x, ...){
         abline(h=x$interval[x$select,], lwd=2, lty=2, col="grey");
     }
     else if(style=="l"){
+        # Save the current par() values
+        parDefault <- par(no.readonly=TRUE);
+        parMar <- parDefault$mar;
+
         vlines <- x$vlines;
 
         k <- nrow(vlines);
@@ -401,7 +401,7 @@ plot.rmc <- function(x, ...){
         if(args$xlab!=""){
             parMar <- parMar + c(2,0,0,0);
         }
-        par(mar=parMar)
+        par(mar=parMar);
 
         # Use do.call to use manipulated ellipsis (...)
         do.call(plot, args);
@@ -419,9 +419,9 @@ plot.rmc <- function(x, ...){
             lines(c(0,1), rep(vlines[1,2],times=2), col=lineCol, lty=2);
         }
         axis(2,c(1:nMethods),namesMethods,las=2);
-    }
 
-    par(parDefault)
+        par(parDefault)
+    }
 }
 
 #' @export

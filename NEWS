@@ -20,6 +20,7 @@ Changes:
 * summary() now prints the df for dchisq and size for the dnbinom.
 * tableplot() now also accepts dataframes, plotting the first two columns.
 * rmc() now should work much faster in cases of distribution=c("dnorm","dlnorm").
+* plot.rmc() now only resets par(), when style="lines". In the "mcb" style, it won't change par, so that the user can add any elements they want.
 
 Bugfixes:
 * lmCombine() and lmDynamic() did not work well when the data.frame was provided as data.
