@@ -120,6 +120,15 @@ ourTest <- rmc((abs(ourData) / rfnorm(N, 0.3, 1)), distribution="dlnorm", level=
 # The exponents of mean values from this function will correspond to the
 # geometric means of RelMAE / RelMSE.
 exp(ourTest$mean)
+# The same is for the intervals:
+exp(ourTest$interval)
+
+# You can also reproduce plots in different styles:
+plot(ourTest, style="lines")
+
+# Or you can use the default "mcb" style and set additional parameters for the plot():
+par(mar=c(2,2,4,0)+0.1)
+plot(ourTest, main="Four methods")
 
 # The following example should give similar results to nemenyi test on
 # large samples, which compares medians of the distributions:
