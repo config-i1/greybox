@@ -182,6 +182,9 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
     else{
         dataNew[,1] <- c(data);
     }
+    # Remove data in order to preserve memory
+    rm(data);
+
     colnames(dataNew) <- c("y","(Intercept)",namesMethods[-1]);
 
     #### Fit the model ####
@@ -216,6 +219,8 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
     else{
         lmModel2 <- alm(y~1,data=dataNew[,-2], distribution=distribution, checks=FALSE);
     }
+    # Remove dataNew in order to preserve memory
+    rm(dataNew);
 
     #### Extract the parameters ####
     # Construct intervals
