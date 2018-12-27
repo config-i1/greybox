@@ -143,22 +143,35 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
     #### Prepare the data ####
     obs <- nrow(data);
     nMethods <- ncol(data);
+    if(nMethods>obs){
+        response <- readline(paste0("The number of methods is higher than the number of series. ",
+                                    "Are you sure that you want to continue? y/n?"));
+
+        if(all(response!=c("y","Y"))){
+            stop(paste0("Number of methods is higher than the number of series. ",
+                        "The user aborted the calculations."), call.=FALSE);
+        }
+    }
     obsAll <- obs*nMethods;
     namesMethods <- colnames(data);
 
-    # Form the matrix of dummy variables, excluding the first one
-    xreg <- matrix(0,obsAll,nMethods-1);
-    for(i in 2:nMethods){
-        xreg[obs*(i-1)+1:obs,i-1] <- 1;
+    if(is.null(namesMethods)){
+        namesMethods <- paste0("Method",c(1:nMethods));
     }
 
-    dataNew <- matrix(NA,obsAll,nMethods+1);
+    # Form the matrix of dummy variables, excluding the first one
+    dataNew <- matrix(0,obsAll,nMethods+1);
+    for(i in 2:nMethods){
+        dataNew[obs*(i-1)+1:obs,i+1] <- 1;
+    }
+    dataNew[,2] <- 1;
+
     # Collect stuff to form the matrix
     if(is.data.frame(data)){
-        dataNew[] <- cbind(unlist(data),1,xreg);
+        dataNew[,1] <- unlist(data);
     }
     else{
-        dataNew[] <- cbind(c(data),1,xreg);
+        dataNew[,1] <- c(data);
     }
     colnames(dataNew) <- c("y","(Intercept)",namesMethods[-1]);
 
