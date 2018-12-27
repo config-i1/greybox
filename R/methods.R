@@ -782,6 +782,10 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         matrixOfxreg <- matrixOfxreg[,parametersNames];
     }
 
+    if(!is.matrix(matrixOfxreg)){
+        matrixOfxreg <- matrix(matrixOfxreg,1);
+    }
+
     if(nRows==1){
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
     }
