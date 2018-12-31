@@ -1,11 +1,11 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "29 November 2018"
+date: "31 December 2018"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.3.3
+This is the release of the package ``greybox``, v0.4.0
 
 ## Test environments
 * local ubuntu 18.10, R 3.5.1
@@ -17,5 +17,5 @@ R CMD check results
 0 errors | 0 warnings | 0 note
 
 ## Downstream dependencies
-I have also run R CMD check on reverse dependencies of greybox (which only includes smooth package for now). Everything is fine.
-Checks on Linux are totally fine (no NOTEs, WARNINGs or ERRORs at all), but Windows gives a NOTE about doMC, which is not available for Windows (for obvious reasons), but is included in suggested packages of greybox.
+R CMD check on reverse dependencies of greyboxare okay.
+Checks for Windows give (as always) a NOTE about doMC, which is not available for Windows (for obvious reasons). The package is included in suggested of greybox.
