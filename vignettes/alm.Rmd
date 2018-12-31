@@ -270,7 +270,7 @@ $\lambda_t$ is returned in the variable `mu`, while $k$ is returned in `scale`. 
 
 
 ## Continuous distributions on a specific interval
-There is currently onle one distribution in this group:
+There is currently only one distribution in this group:
 
 1. Beta distribution.
 

@@ -61,7 +61,7 @@ the estimated model is the best.}
 \description{
 RMC stands for "Regression for Methods Comparison". This is a parametric
 test for the comparison of means of several distributions
-This test is a parametric counterpart of nemenyi / MCB test (Demsar, 2006) and
+This test is a parametric counterpart of Nemenyi / MCB test (Demsar, 2006) and
 uses asymptotic properties of regression models. It relies on distributional
 assumptions about the provided data. For instance, if the mean forecast errors
 are used, then it is safe to assume that the regression model constructed on
@@ -92,7 +92,7 @@ are not normal, given the typically large samples of datasets, the Central Limit
 Theorem helps in the adequate construction of the confidence intervals for the
 parameters.
 
-The test is equivalent to nemenyi test, when applied to the ranks of the error
+The test is equivalent to Nemenyi test, when applied to the ranks of the error
 measures on large samples.
 
 There is also a \code{plot()} method that allows producing either "mcb" or "lines"
@@ -130,7 +130,7 @@ plot(ourTest, style="lines")
 par(mar=c(2,2,4,0)+0.1)
 plot(ourTest, main="Four methods")
 
-# The following example should give similar results to nemenyi test on
+# The following example should give similar results to Nemenyi test on
 # large samples, which compares medians of the distributions:
 rmc(t(apply(ourData,1,rank)), distribution="dnorm", level=0.95)
 

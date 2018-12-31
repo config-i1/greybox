@@ -36,7 +36,7 @@ The package includes the following functions:
 4. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
 5. `xregExpander()` - expand the provided data by including leads and lags of the variables.
 6. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
-7. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interraction effects of dummy variables.
+7. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interaction effects of dummy variables.
 8. `tableplot()` - creates a plot for two categorical variables based on table function with frequencies inside.
 9. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
 10. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.

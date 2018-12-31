@@ -14,7 +14,7 @@ There are several groups of functions in the package.
 ### Exogenous variables transformation functions
 1. xregExpander - function produces lags and leads of the provided data.
 2. xregTransformer - function produces non-linear transformations of the provided data (logs, inverse etc).
-3. xregMultiplier - function produces cross-products of the variables in the matrix. Could be useful when exploring interraction effects of dummy variables.
+3. xregMultiplier - function produces cross-products of the variables in the matrix. Could be useful when exploring interaction effects of dummy variables.
 
 ### The data analysis functions
 1. cramer - calculates Cramer's V for two categorical variables. Plus tests the significance of such association.
