@@ -652,8 +652,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
         #### This is weird and probably wrong. But I don't know yet what the confidence intervals mean in case of occurrence model.
         if(interval=="c"){
-            greyboxForecast$lower[] <- greyboxForecast$lower * occurrence$lower;
-            greyboxForecast$upper[] <- greyboxForecast$upper * occurrence$upper;
+            greyboxForecast$lower[] <- greyboxForecast$lower * occurrence$mean;
+            greyboxForecast$upper[] <- greyboxForecast$upper * occurrence$mean;
         }
     }
 
