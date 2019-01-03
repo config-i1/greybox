@@ -533,7 +533,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         # Correct the mean value
         greyboxForecast$mean <- (sqrt(2/pi)*sqrt(greyboxForecast$variance)*exp(-greyboxForecast$mean^2 /
-                                                                                   (2*sqrt(greyboxForecast$variance)^2)) +
+                                                                                   (2*greyboxForecast$variance)) +
                                      greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
     }
     else if(object$distribution=="dchisq"){
@@ -1590,6 +1590,9 @@ vcov.alm <- function(object, ...){
         }
         else if(object$distribution=="dalaplace"){
             newCall$alpha <- object$other$alpha;
+        }
+        else if(object$distribution=="dfnorm"){
+            newCall$sigma <- object$other$sigma;
         }
         newCall$vcovProduce <- TRUE;
         newCall$occurrence <- NULL;

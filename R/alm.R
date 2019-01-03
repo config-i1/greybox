@@ -233,6 +233,15 @@ alm <- function(formula, data, subset, na.action,
             aParameterProvided <- TRUE;
         }
     }
+    else if(distribution=="dfnorm"){
+        if(is.null(ellipsis$sigma)){
+            aParameterProvided <- FALSE;
+        }
+        else{
+            sigma <- ellipsis$sigma;
+            aParameterProvided <- TRUE;
+        }
+    }
 
     if(is.alm(occurrence)){
         occurrenceModel <- TRUE;
@@ -488,6 +497,15 @@ alm <- function(formula, data, subset, na.action,
                 other <- df;
             }
         }
+        else if(distribution=="dfnorm"){
+            if(!aParameterProvided){
+                other <- B[1];
+                B <- B[-1];
+            }
+            else{
+                other <- sigma;
+            }
+        }
         else{
             other <- NULL;
         }
@@ -511,8 +529,8 @@ alm <- function(formula, data, subset, na.action,
 
         scale <- switch(distribution,
                         "dbeta" = exp(matrixXreg %*% B[-c(1:(length(B)/2))]),
-                        "dnorm" =,
-                        "dfnorm" = sqrt(meanFast((y-mu)^2)),
+                        "dnorm" = sqrt(meanFast((y-mu)^2)),
+                        "dfnorm" = abs(other),
                         "dlnorm" = sqrt(meanFast((log(y)-mu)^2)),
                         "dlaplace" = meanFast(abs(y-mu)),
                         "dalaplace" = meanFast((y-mu) * (other - (y<=mu)*1)),
@@ -621,6 +639,11 @@ alm <- function(formula, data, subset, na.action,
                 BUpper <- rep(Inf,length(B));
             }
         }
+        else if(distribution=="dfnorm"){
+            B <- c(1,B);
+            BLower <- c(0,rep(-Inf,length(B)-1));
+            BUpper <- rep(Inf,length(B));
+        }
         else{
             BLower <- rep(-Inf,length(B));
             BUpper <- rep(Inf,length(B));
@@ -665,6 +688,13 @@ alm <- function(formula, data, subset, na.action,
         }
         names(B) <- c(variablesNames);
     }
+    else if(distribution==c("dfnorm")){
+        if(!aParameterProvided){
+            ellipsis$sigma <- sigma <- abs(B[1]);
+            B <- B[-1];
+        }
+        names(B) <- c(variablesNames);
+    }
     else if(distribution=="dalaplace"){
         if(!aParameterProvided){
             ellipsis$alpha <- alpha <- B[1];
@@ -689,7 +719,7 @@ alm <- function(formula, data, subset, na.action,
             nParam <- nParam + 1;
         }
     }
-    else if(any(distribution==c("dnbinom","dchisq"))){
+    else if(any(distribution==c("dnbinom","dchisq","dfnorm"))){
         if(aParameterProvided){
             nParam <- nParam - 1;
         }
