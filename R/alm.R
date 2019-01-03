@@ -767,6 +767,23 @@ alm <- function(formula, data, subset, na.action,
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );
 
+    # If we had huge numbers for cumulative models, fix errors and scale
+    if(any(distribution==c("plogis","pnorm")) & any(is.nan(errors))){
+        errorsNaN <- is.nan(errors);
+
+        # Demand occurrs and we predict that
+        errors[y==1 & yFitted>0 & errorsNaN] <- 0;
+        # Demand occurrs, but we did not predict that
+        errors[y==1 & yFitted<0 & errorsNaN] <- 1E+100;
+        # Demand does not occurr, and we predict that
+        errors[y==0 & yFitted<0 & errorsNaN] <- 0;
+        # Demand does not occurr, but we did not predict that
+        errors[y==0 & yFitted>0 & errorsNaN] <- -1E+100;
+
+        # Recalculate scale
+        scale <- sqrt(meanFast(errors^2));
+    }
+
     #### Produce covariance matrix using hessian ####
     if(vcovProduce){
         if(CDF){

@@ -34,7 +34,8 @@ Bugfixes:
 * nParam() did not take the number of parameters in the occurrence part into account.
 * plot.predict.alm() now works fine in case of newdata=NULL.
 * Fixes in alm() for dalaplace, dnbinom and dchisq distributions and the usage of factors.
-* predict.alm() would not work for the models with intercept only
+* predict.alm() would not work for the models with intercept only.
+* alm() in cases of distribution="plogis" or "pnorm" some times could not produce errors correctly (due to exp(huge number)). Now it does.
 
 
 greybox v0.3.3 (Release data: 2018-11-27)
