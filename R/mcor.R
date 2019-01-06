@@ -63,16 +63,20 @@ mcor <- function(x,y){
         if(length(unique(x))<=10 & length(x)>10){
             x <- factor(x);
         }
-        x <- as.data.frame(x);
-        colnames(x) <- namesX;
+        else{
+            x <- cbind(1,x);
+        }
     }
     # Otherwise (is.data.frame) just record the names
     else{
         namesX <- colnames(x);
     }
 
-    if(!is.matrix(x)){
-        x <- model.matrix(~.,data=x);
+    if(is.factor(x)){
+        x <- model.matrix(~x);
+    }
+    else if(is.data.frame(x)){
+        x <- model.matrix(~., data=x);
     }
 
     if(!is.numeric(y)){
@@ -86,6 +90,9 @@ mcor <- function(x,y){
     }
     else if(is.data.frame(y)){
         y <- model.matrix(~y-1);
+    }
+    else{
+        y <- as.matrix(y);
     }
 
     lmFit <- .lm.fit(x,y);

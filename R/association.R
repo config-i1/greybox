@@ -26,9 +26,9 @@
 #'
 #' @return The following list of values is returned:
 #' \itemize{
-#' \item{value}{Matrix of the coefficients of association;}
-#' \item{p.value}{The p-values for the parameters;}
-#' \item{type}{The matrix of the types of measures of association.}
+#' \item{value - Matrix of the coefficients of association;}
+#' \item{p.value - The p-values for the parameters;}
+#' \item{type - The matrix of the types of measures of association.}
 #' }
 #'
 #' @seealso \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
@@ -44,25 +44,35 @@
 association <- function(x, y=NULL){
     # Function returns the measures of association between the variables based on their type
 
-    if(!is.matrix(x) & !is.data.frame(x)){
+    if(is.matrix(x) | is.data.frame(x)){
+        nVariablesX <- ncol(x);
+        namesX <- colnames(x);
+    }
+    else if(is.factor(x)){
+        nVariablesX <- 1;
+        namesX <- deparse(substitute(x));
+        x <- as.data.frame(x);
+    }
+    else{
         nVariablesX <- 1;
         namesX <- deparse(substitute(x));
         x <- as.matrix(x);
     }
-    else{
-        nVariablesX <- ncol(x);
-        namesX <- colnames(x);
-    }
 
     if(!is.null(y)){
-        if(!is.matrix(y) & !is.data.frame(y)){
+        if(is.matrix(y) | is.data.frame(y)){
+            nVariablesY <- ncol(y);
+            namesY <- colnames(y);
+        }
+        else if(is.factor(y)){
+            nVariablesY <- 1;
+            namesY <- deparse(substitute(y));
+            y <- as.data.frame(y);
+        }
+        else{
             nVariablesY <- 1;
             namesY <- deparse(substitute(y));
             y <- as.matrix(y);
-        }
-        else{
-            nVariablesY <- ncol(y);
-            namesY <- colnames(y);
         }
 
         data <- cbind(x,y);
@@ -81,7 +91,7 @@ association <- function(x, y=NULL){
     }
 
     matrixAssociation <- matrix(1,nVariables,nVariables, dimnames=list(namesData,namesData));
-    matrixPValues <- matrix(1,nVariables,nVariables, dimnames=list(namesData,namesData));
+    matrixPValues <- matrix(0,nVariables,nVariables, dimnames=list(namesData,namesData));
     matrixTypes <- matrix("none",nVariables,nVariables, dimnames=list(namesData,namesData));
 
     numericDataX <- vector(mode="logical", length=nVariablesX);

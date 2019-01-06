@@ -13,7 +13,10 @@ bibliography: library.bib
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.align="center",
+  fig.height=4,
+  fig.width=6
 )
 ```
 
@@ -27,21 +30,50 @@ The white boxes are usually used in optimisations (e.g. linear programming), whi
 At the moment the package contains advanced linear model function and several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing. This is the main philosophical point of `greybox`.
 
 ## Main functions
-
-The package includes the following functions:
+The package includes the following functions for models construction:
 
 1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage.
 2. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
 3. `lmCombine()` - combine the linear models into one using IC weights;
 4. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
-5. `xregExpander()` - expand the provided data by including leads and lags of the variables.
-6. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
-7. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interaction effects of dummy variables.
-8. `tableplot()` - creates a plot for two categorical variables based on table function with frequencies inside.
-9. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
-10. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
-11. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-12. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
+
+See discussion of some of these functions in this vignette below.
+
+
+## Models evaluation functions
+1. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
+
+
+## Marketing analytics tools
+1. `tableplot()` - creates a plot for two categorical variables based on table function with frequencies inside.
+2. `cramer()` - Cramer's V value.
+3. `mcor()` - the multiple correlation coefficient.
+4. `association()` - the matrix of measures of association.
+5. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
+6. `determination()` - coefficients of determination for the set of explanatory variables.
+
+All these functions are discussed in a separate vignette on [marketing analytics tools](maUsingGreybox.html).
+
+
+## Exogenous variables transformation tools
+1. `xregExpander()` - expand the provided data by including leads and lags of the variables.
+2. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
+3. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interaction effects of dummy variables.
+
+See details on (1) below.
+
+
+## Distribution functions
+1. `qlaplace()`, `dlaplace()`, `rlaplace()`, `plaplace()` - functions for Laplace distribution.
+2. `qalaplace()`, `dalaplace()`, `ralaplace()`, `palaplace()` - functions for Asymmetric Laplace distribution.
+3. `qs()`, `ds()`, `rs()`, `ps()` - functions for S distribution.
+4. `qfonrm()`, `dfnorm()`, `rfnorm()`, `pfnorm()` - functions for folded normal distribution.
+5. `qtplnorm()`, `dtplnorm()`, `rtplnorm()`, `ptplnorm()` - functions for three parameter log normal distribution.
+
+
+## Additional functions
+1. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
+2. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.

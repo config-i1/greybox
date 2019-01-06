@@ -13,7 +13,10 @@ bibliography: library.bib
 ```{r setup, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>",
+  fig.align="center",
+  fig.height=4,
+  fig.width=6
 )
 
 library(greybox)
@@ -54,6 +57,8 @@ The `alm()` function returns, along with the set of common for `lm()` variables 
 Given that the parameters of any model in `alm()` are estimated via likelihood, it can be assumed that they have asymptotically normal distribution, thus the confidence intervals for any model rely on the normality and are constructed based on the unbiased estimate of variance, extracted using `sigma()` function.
 
 The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution function. The exclusions are Normal, Log-Normal, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
+
+`alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cube etc levels for ordered variabes, which makes the interpretation of the parameters difficult.
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
@@ -112,6 +117,7 @@ where $s^2$ is the bias-corrected variance of the error term, calculated using:
 \end{equation}
 where $k$ is the number of estimated parameters (including the variance itself). This value is then used for the construction of the prediction intervals of a specify level, also using the distribution of Student, in a similar manner as with the confidence intervals.
 
+
 ### Laplace distribution
 Laplace distribution has some similarities with the Normal one:
 \begin{equation} \label{eq:Laplace}
@@ -130,6 +136,7 @@ So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the 
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
 The kurtosis of Laplace distribution is 6, making it suitable for modelling rarely occurring events.
+
 
 ### Asymmetric Laplace distribution
 Asymmetric Laplace distribution can be considered as a two Laplace distributions with different parameters $s$ for left and right side. There are several ways to summarise the probability density function, the one used in `alm()` relies on the asymmetry parameter $\alpha$ [@Yu2005]:
@@ -150,6 +157,7 @@ In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\
 \end{equation}
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
+
 ### Logistic distribution
 The density function of Logistic distribution is:
 \begin{equation} \label{eq:Logistic}
@@ -164,6 +172,7 @@ Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the
 Logistic is considered a fat tailed distribution, but its tails are not as fat as in Laplace. Kurtosis of standard Logistic is 4.2.
 
 `alm()` function with `distribution="dlogis"` returns $\mu_t$ in `mu` and in `fitted.values` variables, and $s$ in the `scale` variable. Similar to Laplace distribution, the prediction intervals use the connection between the variance and scale, and rely on the `qlogis` function.
+
 
 ### S distribution
 The S distribution has the following density function:
@@ -184,6 +193,7 @@ S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distri
 \end{equation}
 where once again $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
+
 ### Student t distribution
 The Student t distribution has a difficult density function:
 \begin{equation} \label{eq:T}
@@ -198,6 +208,32 @@ Given that the formula \eqref{eq:scaleOfT} holds only for cases of $d>2$ (and re
 Kurtosis of Student t distribution depends on the value of $d$, and for the cases of $d>4$ is equal to $\frac{6}{d-4}$.
 
 `alm()` function with `distribution="dt"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the estimated in-sample value of $d$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
+
+### An example of application
+
+In order to see how this works, we will create the following data:
+```{r normalDistributionData}
+xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(100,0,3),xreg,rnorm(100,300,10))
+colnames(xreg) <- c("y","x1","x2","Noise")
+
+inSample <- xreg[1:80,]
+outSample <- xreg[-c(1:80),]
+```
+
+ALM can be run either with data frame or with matrix. Here's an example with normal distribution:
+```{r normalRegression}
+ourModel <- alm(y~x1+x2, data=inSample, distribution="dnorm")
+summary(ourModel)
+plot(predict(ourModel,outSample,interval="p"))
+```
+
+And here's an example with Asymmetric Laplace and predefined $\alpha=0.95$:
+```{r ALaplaceRegression}
+ourModel <- alm(y~x1+x2, data=inSample, distribution="dalaplace",alpha=0.95)
+summary(ourModel)
+plot(predict(ourModel,outSample))
+```
 
 
 ## Density functions for continuous positive data
@@ -268,6 +304,20 @@ Given that square function is not monotonic, there are always two sets of parame
 
 $\lambda_t$ is returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \sqrt{y_t} - \sqrt{\mu_t}$.
 
+### An example of application
+Square the response variable for the next example:
+```{r DataSquared}
+xreg[,1] <- xreg[,1]^2
+inSample <- xreg[1:80,]
+outSample <- xreg[-c(1:80),]
+```
+An example with exotic Chi-Squared distribution with predefined number of degrees of freedom:
+```{r chisqREgression}
+ourModel <- alm(y~x1+x2, data=inSample, distribution="dchisq",df=1)
+summary(ourModel)
+plot(predict(ourModel,outSample))
+```
+
 
 ## Continuous distributions on a specific interval
 There is currently only one distribution in this group:
@@ -332,6 +382,23 @@ where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optim
 
 `alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$.
 
+### An example of application
+Round up the response variable for the next example:
+```{r dataRound}
+xreg[,1] <- round(sqrt(xreg[,1]))
+inSample <- xreg[1:80,]
+outSample <- xreg[-c(1:80),]
+```
+Negative Binomial distribution:
+```{r negBinRegression}
+ourModel <- alm(y~x1+x2, data=inSample, distribution="dnbinom")
+summary(ourModel)
+```
+And an example with predefined size:
+```{r negBinRegressionWithSize}
+ourModel <- alm(y~x1+x2, data=inSample, distribution="dnbinom", size=30)
+summary(ourModel)
+```
 
 ## Cumulative functions for binary variables
 The final class of models includes two cases:
@@ -403,11 +470,7 @@ Finally, mixture distribution models can be used in `alm()` by defining `distrib
 
 As an example of mixture model, let's generate some data:
 ```{r mixtureExampleData}
-xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
-xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
-colnames(xreg) <- c("y","x1","x2","Noise")
-
-xreg[,1] <- round(exp(xreg[,1]-70) / (1 + exp(xreg[,1]-70)),0) * round(xreg[,1]-70)
+xreg[,1] <- round(exp(xreg[,1]-400) / (1 + exp(xreg[,1]-400)),0) * xreg[,1]
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 ```

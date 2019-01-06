@@ -1,0 +1,129 @@
+---
+title: "Marketing analytics with greybox"
+author: "Ivan Svetunkov"
+date: "`r Sys.Date()`"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Marketing analytics with greybox}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+bibliography: library.bib
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>",
+  fig.align="center",
+  fig.height=4,
+  fig.width=6
+)
+
+library(greybox)
+```
+
+One of the reasons why I have started the package is to use it for marketing research and marketing analytics.  The common problem that I face, when working with these courses is analysing the data measured in different scales. While R handles numeric scales natively, the work with categorical did not satisfy me. Yes, I know that there are packages that implement some of the following functions, but I wanted to have them in one place without the need to install a lot of packages and satisfy the dependencies. After all, what's the point in installing a package for Cramer's V, when it can be calculated with two lines of code? So, here's a brief explanation of the functions and how to use them.
+
+I will use `mtcars` dataset for the examples, but we will make some of the variables factors:
+```{r data}
+mtcarsData <- as.data.frame(mtcars)
+mtcarsData$vs <- factor(mtcarsData$vs, levels=c(0,1), labels=c("v","s"))
+mtcarsData$am <- factor(mtcarsData$am, levels=c(0,1), labels=c("a","m"))
+```
+
+
+# Analysing the relation between the two variables in categorical scales
+## Cramer's V
+Cramer's V is implemented in the `cramer()` function. It returnes the value in a range from 0 to 1 (1 - when the two categorical variables are linearly associated with each other, 0 - otherwise), Chi-Squared statistics from the `chisq.test()`, the respective p-value and the number of degrees of freedom. The tested hypothesis in this case is formulated as:
+
+$H_0: V=0$ (the variables don't have association);
+
+$H_1: V\neq 0$ (there is an association between the variables).
+
+Here's what we get when trying to find the association between the engine and transmission in the `mtcars` data:
+```{r cramerVSAM}
+cramer(mtcarsData$vs, mtcarsData$am)
+```
+
+Judging by this output, the association between these two variables is very low (close to zero) and is not statistically significant.
+
+Cramer's V can be used for the data in numerical sclaes as well. This might be especially useful when you have a small number of values in the data. For example, the variable `gear` in `mtcars` is the numerical, but it has only three options. Here's what Cramer's V tells us in the case of `gear` and `am`:
+```{r cramerGearAM}
+cramer(mtcarsData$am, mtcarsData$gear)
+```
+
+As we see, the value is high in this case (0.809), and the null hypothesis is rejected on 5%. So we can conclude that there is a relation between the two variables. This does not mean that one variable causes the other one, but they both might be driven by something else (do more expensive cars have less gears but the automatic transmission?).
+
+
+## Plotting categorical variables
+While R allows plotting two categorical variables against each other, the plot is hard to read and is not very helpful (in my opinion):
+```{r barplot}
+plot(table(mtcarsData$am,mtcarsData$gear))
+```
+
+So I have created a function that produces heat map for the two categorical variables. It is called `tableplot()`:
+```{r tableplot}
+tableplot(mtcarsData$am,mtcarsData$gear)
+```
+
+It is based on `table()` function and uses the frequencies inside the table for the colours:
+```{r table}
+table(mtcarsData$am,mtcarsData$gear) / length(mtcarsData$am)
+```
+
+The darker sectors mean that there is a higher concentration of values, while the white ones correspond to zeroes. So, in our example, we see that the majority of cars have automatic transmissions with three gears. Furthermore, the plot shows that there is some sort of relation between the two variables: the cars with automatic transmissions have the lower number of gears, while the ones with the manual have the higher number of gears (something we've already noticed in the previous subsection).
+
+
+# Association between the categorical and numerical variables
+While Cramer's V can also be used for the measurement of association between the variables in different scales, there are better instruments. Some analysts recommend using [intraclass correlation coefficient](https://en.wikipedia.org/wiki/Intraclass_correlation). But there is a simpler option, which involves calculating the coefficient of multiple correlation between the variables. This is implemented in `mcor()` function of `greybox`. The `y` variable should be the numerical, while `x` can be of any type. What the function then does is expands all the factors and runs a regression via `.lm.fit()` fuction, returning the square root of the coefficient of determination. If the variables are linearly related, then the returned value will be close to one. Otherwise it will be closet to zero. The function also returns the F statistics from the regression, the associated p-value and the number of degrees of freedom (the hypothesis test is formulated similarly to `cramer()` function).
+
+Here's how it works:
+```{r mcor}
+mcor(mtcarsData$am,mtcarsData$mpg)
+```
+
+In this example, the simple linear regression of `mpg` from the set of dummies is constructed, and we can conclude that there is a linear relation between the variables, and that this relation is statistically significant.
+
+
+# Association between several variables
+## Measures of association
+When you deal with datasets (i.e. data frames or matrices), then you can use `cor()` function in order to calculate the correlation coefficients between the variables in the data. But when you have a mixture of numerical and categorical, the situation becomes more difficult, as the correlation does not make sense for the latter. This motivated me to create a function that uses either `cor()`, or `cramer()` or `mcor()` functions depending on the types of data (see discussions of `cramer()` and `mcor()` above). The function is called `association()` or `assoc()` and returns three matrices: the values of the measures of association, their p-values and the types of the functions used between the variables. Here's an example:
+```{r assoc}
+assocValues <- assoc(mtcarsData)
+print(assocValues,digits=2)
+```
+
+One thing to note is that the function considers numerical variables as categorical, when they only have up to 10 unique values. This is useful in case of number of gears in the dataset.
+
+
+## Plots of association between several variables
+Similarly to the problem with `cor()`, scatterplot matrix (produced using `plot()`) is not meaningful in case of a mixture of variables:
+```{r scatterplot}
+plot(mtcarsData)
+```
+
+It makes sense to use scatterplot in case of numeric variables, `tableplot()` in case of categorical and `boxplot()` in case of a mixture. So, there is the function `spread()` in `greybox` that creates something more meaningful. It uses the same algorithm as `assoc()` function, but produces plots instead of calculating measures of association. So, `gear` will be considered as categorical and the function will produce either `boxplot()` or `tableplot()`, when plotting it against other variables.
+
+Here's an example:
+```{r spread}
+spread(mtcarsData)
+```
+
+This plot demonstrates, for example, that the number of carburetors influences fuel consumption (something that we could not have spotted in the case of `plot()`). Notice also, that the number of gears influences the fuel cosumption in a non-linear relation as well. So constructing the model with dummy variables for the number of gears might be a resonable thing to do.
+
+The function also has the parameter `log`, which will transform all the numerical variables using logarithms, which is handy, when you suspect the non-linear relation between the variables. Finally, there is a parameter `histogram`, which will plot either histograms, or barplots on the diagonal.
+```{r spreadHist}
+spread(mtcarsData, histograms=TRUE, log=TRUE)
+```
+
+The plot demonstrates that the `disp` has a strong non-linear relation with `mpg`, and, similarly, `drat` and `hp` also influence `mpg` in a non-linear fashion.
+
+# Regression diagnostics
+One of the problems of linear regression, that can be diagnosed prior to the model construction is multicollinearity. The conventional way of doing this diagnostics is via calculating the variance inflation factor (VIF) after constructing the model. However, VIF is not easy to interpret, because it lies in $(1, \infty)$. Coefficients of determination from the linear regression models of explanatory variables are easier to interpret and work with. If such a coefficient is equal to one, then there are some perfectly correlated explanatory variables in the dataset. If it is equal to zero, then they are not linearly related.
+
+There is a function `determination()` or `determ()` in `greybox` that returns the set of coefficients of determination for the explanatory variables. The good thing is that this can be done before constructing any model. In our example, the first column, `mpg` is the response variable, so we can diagnose the multicollinearity the following way:
+```{r determ}
+determination(mtcarsData[,-1])
+```
+
+As we can see from the output above, `disp` is the most linearly related with the variables, so including it in the model might cause the multicollinearity, which will make the estimates of parameters less efficient.

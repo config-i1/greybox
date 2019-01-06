@@ -197,8 +197,8 @@ pointLik.alm <- function(object, ...){
                         "dt" = dt(y-mu, df=scale, log=TRUE),
                         "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
                         "dpois" = dpois(y, lambda=mu, log=TRUE),
-                        "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
-                        "dchisq" = dchisq(y, df=scale, ncp=mu, log=TRUE),
+                        "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
+                        "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
                         "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
                         "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                      plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
@@ -539,8 +539,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dchisq"){
         greyboxForecast$mean <- greyboxForecast$mean^2;
         if(interval=="p"){
-            greyboxForecast$lower[] <- qchisq(levelLow,df=object$scale,ncp=greyboxForecast$mean);
-            greyboxForecast$upper[] <- qchisq(levelUp,df=object$scale,ncp=greyboxForecast$mean);
+            greyboxForecast$lower[] <- qchisq(levelLow,df=object$other$df,ncp=greyboxForecast$mean);
+            greyboxForecast$upper[] <- qchisq(levelUp,df=object$other$df,ncp=greyboxForecast$mean);
         }
         else if(interval=="c"){
             greyboxForecast$lower[] <- (greyboxForecast$lower)^2;
@@ -1155,7 +1155,7 @@ print.association <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    cat("\nAssociations: ")
+    cat("Associations: ")
     cat("\nvalues:\n"); print(round(x$value,digits));
     cat("\np-values:\n"); print(round(x$p.value,digits));
     cat("\ntypes:\n"); print(x$type);
@@ -1172,7 +1172,7 @@ print.cramer <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    cat("\nCramer's V: "); cat(round(x$value,digits));
+    cat("Cramer's V: "); cat(round(x$value,digits));
     cat("\nChi^2 statistics = "); cat(round(x$statistic,digits));
     cat(", df: "); cat(x$df);
     cat(", p-value: "); cat(round(x$p.value,digits));
@@ -1189,7 +1189,7 @@ print.mcor <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    cat("\nMultiple correlations value: "); cat(round(x$value,digits));
+    cat("Multiple correlations value: "); cat(round(x$value,digits));
     cat("\nF-statistics = "); cat(round(x$statistic,digits));
     cat(", df: "); cat(x$df);
     cat(", df resid: "); cat(x$df.residual);

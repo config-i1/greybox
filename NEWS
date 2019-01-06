@@ -2,6 +2,16 @@ greybox v0.4.0 (Release data: 2019-01-04)
 ==============
 
 Changes:
+* The extended vignette on marketing analytics tools (tableplot, spread, cramer, mcor, assoc and determ).
+
+Bugfixes:
+* Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.
+
+
+greybox v0.4.0 (Release data: 2019-01-04)
+==============
+
+Changes:
 * Added Burnham & Anderson in the library.bib in the vignettes.
 * summary() now prints the name of the response variable.
 * lmCombine now returns logLik adequate to the selected distribution.

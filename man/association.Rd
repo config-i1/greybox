@@ -17,9 +17,9 @@ assoc(x, y = NULL)
 \value{
 The following list of values is returned:
 \itemize{
-\item{value}{Matrix of the coefficients of association;}
-\item{p.value}{The p-values for the parameters;}
-\item{type}{The matrix of the types of measures of association.}
+\item{value - Matrix of the coefficients of association;}
+\item{p.value - The p-values for the parameters;}
+\item{type - The matrix of the types of measures of association.}
 }
 }
 \description{
