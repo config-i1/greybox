@@ -22,9 +22,9 @@ knitr::opts_chunk$set(
 library(greybox)
 ```
 
-One of the reasons why I have started the package is to use it for marketing research and marketing analytics.  The common problem that I face, when working with these courses is analysing the data measured in different scales. While R handles numeric scales natively, the work with categorical did not satisfy me. Yes, I know that there are packages that implement some of the following functions, but I wanted to have them in one place without the need to install a lot of packages and satisfy the dependencies. After all, what's the point in installing a package for Cramer's V, when it can be calculated with two lines of code? So, here's a brief explanation of the functions and how to use them.
+One of the reasons why I have started the `greybox` package is to use it for marketing research and marketing analytics. The common problem that I face, when working with these courses is analysing the data measured in different scales. While R handles numeric scales natively, the work with categorical is not satisfactory. Yes, I know that there are packages that implement some of the functions, but I wanted to have them in one place without the need to install a lot of packages and satisfy the dependencies. After all, what's the point in installing a package for Cramer's V, when it can be calculated with two lines of code? So, here's a brief explanation of the functions for marketing analytics.
 
-I will use `mtcars` dataset for the examples, but we will make some of the variables factors:
+I will use `mtcars` dataset for the examples, but we will transform some of the variables into factors:
 ```{r data}
 mtcarsData <- as.data.frame(mtcars)
 mtcarsData$vs <- factor(mtcarsData$vs, levels=c(0,1), labels=c("v","s"))
@@ -34,7 +34,7 @@ mtcarsData$am <- factor(mtcarsData$am, levels=c(0,1), labels=c("a","m"))
 
 # Analysing the relation between the two variables in categorical scales
 ## Cramer's V
-Cramer's V is implemented in the `cramer()` function. It returnes the value in a range from 0 to 1 (1 - when the two categorical variables are linearly associated with each other, 0 - otherwise), Chi-Squared statistics from the `chisq.test()`, the respective p-value and the number of degrees of freedom. The tested hypothesis in this case is formulated as:
+Cramer's V measures the relation between two variables in categorical scale. It is implemented in the `cramer()` function. It returns the value in a range of 0 to 1 (1 - when the two categorical variables are linearly associated with each other, 0 - otherwise), Chi-Squared statistics from the `chisq.test()`, the respective p-value and the number of degrees of freedom. The tested hypothesis in this case is formulated as:
 
 $H_0: V=0$ (the variables don't have association);
 
@@ -47,7 +47,7 @@ cramer(mtcarsData$vs, mtcarsData$am)
 
 Judging by this output, the association between these two variables is very low (close to zero) and is not statistically significant.
 
-Cramer's V can be used for the data in numerical sclaes as well. This might be especially useful when you have a small number of values in the data. For example, the variable `gear` in `mtcars` is the numerical, but it has only three options. Here's what Cramer's V tells us in the case of `gear` and `am`:
+Cramer's V can also be used for the data in numerical scales. In general, this might be not the most suitable solution, but this might be useful when you have a small number of values in the data. For example, the variable `gear` in `mtcars` is numerical, but it has only three options (3, 4 and 5). Here's what Cramer's V tells us in the case of `gear` and `am`:
 ```{r cramerGearAM}
 cramer(mtcarsData$am, mtcarsData$gear)
 ```
@@ -61,7 +61,7 @@ While R allows plotting two categorical variables against each other, the plot i
 plot(table(mtcarsData$am,mtcarsData$gear))
 ```
 
-So I have created a function that produces heat map for the two categorical variables. It is called `tableplot()`:
+So I have created a function that produces a heat map for two categorical variables. It is called `tableplot()`:
 ```{r tableplot}
 tableplot(mtcarsData$am,mtcarsData$gear)
 ```
@@ -75,7 +75,7 @@ The darker sectors mean that there is a higher concentration of values, while th
 
 
 # Association between the categorical and numerical variables
-While Cramer's V can also be used for the measurement of association between the variables in different scales, there are better instruments. Some analysts recommend using [intraclass correlation coefficient](https://en.wikipedia.org/wiki/Intraclass_correlation). But there is a simpler option, which involves calculating the coefficient of multiple correlation between the variables. This is implemented in `mcor()` function of `greybox`. The `y` variable should be the numerical, while `x` can be of any type. What the function then does is expands all the factors and runs a regression via `.lm.fit()` fuction, returning the square root of the coefficient of determination. If the variables are linearly related, then the returned value will be close to one. Otherwise it will be closet to zero. The function also returns the F statistics from the regression, the associated p-value and the number of degrees of freedom (the hypothesis test is formulated similarly to `cramer()` function).
+While Cramer's V can also be used for the measurement of association between the variables in different scales, there are better instruments. For example, some analysts recommend using [intraclass correlation coefficient](https://en.wikipedia.org/wiki/Intraclass_correlation) when measuring the relation between the numerical and categorical variables. But there is a simpler option, which involves calculating the coefficient of multiple correlation between the variables. This is implemented in `mcor()` function of `greybox`. The `y` variable should be numerical, while `x` can be of any type. What the function then does is expands all the factors and runs a regression via `.lm.fit()` function, returning the square root of the coefficient of determination. If the variables are linearly related, then the returned value will be close to one. Otherwise it will be closet to zero. The function also returns the F statistics from the regression, the associated p-value and the number of degrees of freedom (the hypothesis is formulated similarly to `cramer()` function).
 
 Here's how it works:
 ```{r mcor}
@@ -87,7 +87,7 @@ In this example, the simple linear regression of `mpg` from the set of dummies i
 
 # Association between several variables
 ## Measures of association
-When you deal with datasets (i.e. data frames or matrices), then you can use `cor()` function in order to calculate the correlation coefficients between the variables in the data. But when you have a mixture of numerical and categorical, the situation becomes more difficult, as the correlation does not make sense for the latter. This motivated me to create a function that uses either `cor()`, or `cramer()` or `mcor()` functions depending on the types of data (see discussions of `cramer()` and `mcor()` above). The function is called `association()` or `assoc()` and returns three matrices: the values of the measures of association, their p-values and the types of the functions used between the variables. Here's an example:
+When you deal with datasets (i.e. data frames or matrices), then you can use `cor()` function in order to calculate the correlation coefficients between the variables in the data. But when you have a mixture of numerical and categorical variables, the situation becomes more difficult, as the correlation does not make sense for the latter. This motivated me to create a function that uses either `cor()`, or `cramer()`, or `mcor()` functions depending on the types of data (see discussions of `cramer()` and `mcor()` above). The function is called `association()` or `assoc()` and returns three matrices: the values of the measures of association, their p-values and the types of the functions used between the variables. Here's an example:
 ```{r assoc}
 assocValues <- assoc(mtcarsData)
 print(assocValues,digits=2)
@@ -109,7 +109,7 @@ Here's an example:
 spread(mtcarsData)
 ```
 
-This plot demonstrates, for example, that the number of carburetors influences fuel consumption (something that we could not have spotted in the case of `plot()`). Notice also, that the number of gears influences the fuel cosumption in a non-linear relation as well. So constructing the model with dummy variables for the number of gears might be a resonable thing to do.
+This plot demonstrates, for example, that the number of carburetors influences fuel consumption (something that we could not have spotted in the case of `plot()`). Notice also, that the number of gears influences the fuel cosumption in a non-linear relation as well. So constructing the model with dummy variables for the number of gears might be a reasonable thing to do.
 
 The function also has the parameter `log`, which will transform all the numerical variables using logarithms, which is handy, when you suspect the non-linear relation between the variables. Finally, there is a parameter `histogram`, which will plot either histograms, or barplots on the diagonal.
 ```{r spreadHist}
@@ -119,7 +119,7 @@ spread(mtcarsData, histograms=TRUE, log=TRUE)
 The plot demonstrates that the `disp` has a strong non-linear relation with `mpg`, and, similarly, `drat` and `hp` also influence `mpg` in a non-linear fashion.
 
 # Regression diagnostics
-One of the problems of linear regression, that can be diagnosed prior to the model construction is multicollinearity. The conventional way of doing this diagnostics is via calculating the variance inflation factor (VIF) after constructing the model. However, VIF is not easy to interpret, because it lies in $(1, \infty)$. Coefficients of determination from the linear regression models of explanatory variables are easier to interpret and work with. If such a coefficient is equal to one, then there are some perfectly correlated explanatory variables in the dataset. If it is equal to zero, then they are not linearly related.
+One of the problems of linear regression that can be diagnosed prior to the model construction is multicollinearity. The conventional way of doing this diagnostics is via calculating the variance inflation factor (VIF) after constructing the model. However, VIF is not easy to interpret, because it lies in $(1, \infty)$. Coefficients of determination from the linear regression models of explanatory variables are easier to interpret and work with. If such a coefficient is equal to one, then there are some perfectly correlated explanatory variables in the dataset. If it is equal to zero, then they are not linearly related.
 
 There is a function `determination()` or `determ()` in `greybox` that returns the set of coefficients of determination for the explanatory variables. The good thing is that this can be done before constructing any model. In our example, the first column, `mpg` is the response variable, so we can diagnose the multicollinearity the following way:
 ```{r determ}
