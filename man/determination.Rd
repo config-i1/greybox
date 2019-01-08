@@ -5,12 +5,18 @@
 \alias{determ}
 \title{Determination coefficients}
 \usage{
-determination(xreg, ...)
+determination(xreg, bruteForce = FALSE, ...)
 
-determ(xreg, ...)
+determ(xreg, bruteForce = FALSE, ...)
 }
 \arguments{
 \item{xreg}{Data frame or a matrix, containing the exogenous variables.}
+
+\item{bruteForce}{If \code{TRUE}, then all the variables will be used
+for the regression construction (sink regression). If the number of
+observations is smaller than the number of series, the function will
+use \link[greybox]{stepwise} function and select only meaningful
+variables.}
 
 \item{...}{Other values passed to cor function.}
 }
@@ -41,7 +47,7 @@ determination(xreg)
 
 }
 \seealso{
-\code{\link[stats]{cor}}
+\link[stats]{cor}, \link[greybox]{mcor}, \link[greybox]{stepwise}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

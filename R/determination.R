@@ -16,11 +16,16 @@
 #' @keywords models
 #'
 #' @param xreg Data frame or a matrix, containing the exogenous variables.
+#' @param bruteForce If \code{TRUE}, then all the variables will be used
+#' for the regression construction (sink regression). If the number of
+#' observations is smaller than the number of series, the function will
+#' use \link[greybox]{stepwise} function and select only meaningful
+#' variables.
 #' @param ... Other values passed to cor function.
 #'
 #' @return Function returns the vector of determination coefficients.
 #'
-#' @seealso \code{\link[stats]{cor}}
+#' @seealso \link[stats]{cor}, \link[greybox]{mcor}, \link[greybox]{stepwise}
 #'
 #' @examples
 #'
@@ -33,40 +38,53 @@
 #' @rdname determination
 #' @aliases determ
 #' @export determination
-determination <- function(xreg, ...){
-
-    # if(any(colMeans(xreg,na.rm=TRUE)==xreg[1,])){
-    #     warning("Some of the variables did not have any variability. We dropped them.",
-    #             call.=FALSE);
-    #     xreg <- xreg[,colMeans(xreg,na.rm=TRUE)!=xreg[1,]]
-    # }
-    # Produce correlation matrix
-    # matrixCorrelations <- cor(xreg, ...);
-    # # Calculate its determinant
-    # detCorrelations <- det(matrixCorrelations);
+determination <- function(xreg, bruteForce=FALSE, ...){
 
     nVariables <- ncol(xreg);
+    nSeries <- nrow(xreg);
     # Form the vector to return
     vectorCorrelationsMultiple <- rep(NA,nVariables);
     names(vectorCorrelationsMultiple) <- colnames(xreg);
-    if(nrow(xreg)<=ncol(xreg)){
-        vectorCorrelationsMultiple[] <- 1;
+    if(nSeries<=nVariables & bruteForce){
+        # vectorCorrelationsMultiple[] <- 1;
         warning(paste0("The number of variables is larger than the number of observations. ",
-                       "All the coefficients of determination are equal to one."), call.=FALSE);
+                       "Sink regression cannot be constructing. Using stepwise."),
+                call.=FALSE);
+        bruteForce <- FALSE;
+    }
+
+    if(!bruteForce){
+        determinationCalculator <- function(residuals, actuals){
+            return(1 - sum(residuals^2) / sum((actuals-mean(actuals))^2));
+        }
     }
 
     # Calculate the multiple determinations
-    if(nVariables>1){
+    if(bruteForce & nVariables>1){
         for(i in 1:nVariables){
-            # vectorCorrelationsMultiple[i] <- 1 - detCorrelations / det(matrixCorrelations[-i,-i]);
             vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value);
+        }
+        vectorCorrelationsMultiple <- vectorCorrelationsMultiple^2;
+    }
+    else if(!bruteForce & nVariables>1){
+        testXreg <- xreg;
+        testModel <- suppressWarnings(stepwise(testXreg));
+        vectorCorrelationsMultiple[1] <- determinationCalculator(residuals(testModel),
+                                                                 getResponse(testModel));
+        for(i in 2:nVariables){
+            testXreg[] <- xreg;
+            testXreg[,1] <- xreg[,i];
+            testXreg[,i] <- xreg[,1];
+            testModel <- suppressWarnings(stepwise(testXreg));
+            vectorCorrelationsMultiple[i] <- determinationCalculator(residuals(testModel),
+                                                                     getResponse(testModel));
         }
     }
     else{
         vectorCorrelationsMultiple <- 0;
     }
 
-    return(vectorCorrelationsMultiple^2);
+    return(vectorCorrelationsMultiple);
 }
 
 #' @rdname determination
