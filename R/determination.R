@@ -38,7 +38,7 @@
 #' @rdname determination
 #' @aliases determ
 #' @export determination
-determination <- function(xreg, bruteForce=FALSE, ...){
+determination <- function(xreg, bruteForce=TRUE, ...){
 
     nVariables <- ncol(xreg);
     nSeries <- nrow(xreg);
@@ -48,7 +48,7 @@ determination <- function(xreg, bruteForce=FALSE, ...){
     if(nSeries<=nVariables & bruteForce){
         # vectorCorrelationsMultiple[] <- 1;
         warning(paste0("The number of variables is larger than the number of observations. ",
-                       "Sink regression cannot be constructing. Using stepwise."),
+                       "Sink regression cannot be constructed. Using stepwise."),
                 call.=FALSE);
         bruteForce <- FALSE;
     }

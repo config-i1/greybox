@@ -1,9 +1,10 @@
-greybox v0.4.1 (Release data: 2019-01-08)
+greybox v0.4.1 (Release data: 2019-01-09)
 ==============
 
 Changes:
 * The extended vignette on marketing analytics tools (tableplot, spread, cramer, mcor, assoc and determ).
 * determination() can now be smart and use stepwise(). Thisi might be especially useful for cases of fat regressions diagnostics.
+* stepwise() now also works with factors.
 
 Bugfixes:
 * Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.

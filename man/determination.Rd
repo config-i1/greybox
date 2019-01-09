@@ -5,9 +5,9 @@
 \alias{determ}
 \title{Determination coefficients}
 \usage{
-determination(xreg, bruteForce = FALSE, ...)
+determination(xreg, bruteForce = TRUE, ...)
 
-determ(xreg, bruteForce = FALSE, ...)
+determ(xreg, bruteForce = TRUE, ...)
 }
 \arguments{
 \item{xreg}{Data frame or a matrix, containing the exogenous variables.}
