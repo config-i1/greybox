@@ -178,7 +178,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     # Create data frame to work with
     listToCall$data <- as.data.frame(data[rowsSelected,variablesNames]);
-    errors <- vector("numeric",obsInsample);
+    errors <- matrix(0,obsInsample,1);
 
     # Create substitute and remove the original data
     dataSubstitute <- substitute(data);
@@ -192,12 +192,12 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     numericData <- sapply(listToCall$data, is.numeric)[-1];
 
     #### The function-analogue of mcor, but without checks ####
-    mcorFast <- function(x, y){
+    mcorFast <- function(x){
         x <- model.matrix(~x);
-        lmFit <- .lm.fit(x,as.matrix(y));
+        lmFit <- .lm.fit(x,errors);
         # abs() is needed for technical purposes - for some reason sometimes this stuff becomes
         # very small negative (e.g. -1e-16).
-        return(sqrt(abs(1 - sum(residuals(lmFit)^2) / sum((y-mean(y))^2))));
+        return(sqrt(abs(1 - sum(residuals(lmFit)^2) / sum((errors-mean(errors))^2))));
     }
 
     assocValues <- vector("numeric",nVariables);
@@ -209,7 +209,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         # Measures of association with categorical data
         for(i in which(!numericData)+1){
-            assocValues[i-1] <- mcorFast(listToCall$data[[i]],errors);
+            assocValues[i-1] <- mcorFast(listToCall$data[[i]]);
         }
         return(assocValues);
     }
@@ -246,7 +246,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     names(currentIC) <- "Intercept";
     allICs[[1]] <- currentIC;
     # Add residuals to the ourData
-    errors <- residuals(testModel);
+    errors[] <- residuals(testModel);
 
     bestFormula <- testFormula;
     if(!silent){
@@ -295,7 +295,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         else{
             bestIC <- currentIC;
             bestFormula <- testFormula;
-            errors <- residuals(testModel);
+            errors[] <- residuals(testModel);
         }
         names(currentIC) <- newElement;
         allICs[[m]] <- currentIC;
