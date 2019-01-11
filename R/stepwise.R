@@ -205,9 +205,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     #### The function that works similar to association(), but faster ####
     assocFast <- function(){
         # Measures of association with numeric data
-        for(i in which(numericData)+1){
-            assocValues[i-1] <- cor(listToCall$data[i],errors,use="complete.obs",method=method);
-        }
+        assocValues[which(numericData)] <- cor(errors,listToCall$data[,which(numericData)+1],use="complete.obs",method=method);
+
         # Measures of association with categorical data
         for(i in which(!numericData)+1){
             assocValues[i-1] <- mcorFast(listToCall$data[[i]],errors);
