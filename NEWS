@@ -8,6 +8,7 @@ Changes:
 
 Bugfixes:
 * Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.
+* xregExpander() did not work appropriately when extrapolate=FALSE.
 
 
 greybox v0.4.0 (Release data: 2019-01-04)

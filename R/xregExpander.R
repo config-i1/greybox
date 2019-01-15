@@ -181,16 +181,18 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                     }
                 }
                 else{
-                    xregDataNew <- c(rep(NA,maxLead),xregData);
+                    xregDataNew <- c(rep(NA,maxLag),xregData);
                 }
             }
 
+            # Fill the lags
             if(any(lagsOriginal<0)){
                 for(j in 1:lagsLength){
                     xregNew[,chosenColumn+1+j] <- xregDataNew[1:obs-lags[j]+maxLag];
                     colnames(xregNew)[chosenColumn+1+j] <- paste0(xregCurrentName,"Lag",lags[j]);
                 }
             }
+            # Fill the leads
             if(any(lagsOriginal>0)){
                 for(j in 1:leadsLength){
                     xregNew[,chosenColumn+1+lagsLength+j] <- xregDataNew[1:obs+leads[j]+maxLag];
