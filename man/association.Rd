@@ -5,14 +5,19 @@
 \alias{assoc}
 \title{Measures of association}
 \usage{
-association(x, y = NULL)
+association(x, y = NULL, use = c("na.or.complete", "complete.obs",
+  "everything", "all.obs"))
 
-assoc(x, y = NULL)
+assoc(x, y = NULL, use = c("na.or.complete", "complete.obs",
+  "everything", "all.obs"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix}
 
 \item{y}{The numerical variable.}
+
+\item{use}{What observations to use. See \link[stats]{cor} function for details.
+The only option that is not available here is \code{"pairwise.complete.obs"}.}
 }
 \value{
 The following list of values is returned:

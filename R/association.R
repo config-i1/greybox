@@ -23,6 +23,8 @@
 #'
 #' @param x Either data.frame or a matrix
 #' @param y The numerical variable.
+#' @param use What observations to use. See \link[stats]{cor} function for details.
+#' The only option that is not available here is \code{"pairwise.complete.obs"}.
 #'
 #' @return The following list of values is returned:
 #' \itemize{
@@ -41,8 +43,10 @@
 #' @aliases assoc
 #' @rdname association
 #' @export association
-association <- function(x, y=NULL){
+association <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","all.obs")){
     # Function returns the measures of association between the variables based on their type
+
+    use <- substr(use[1],1,1);
 
     if(is.matrix(x) | is.data.frame(x)){
         nVariablesX <- ncol(x);
@@ -120,6 +124,13 @@ association <- function(x, y=NULL){
         numericData <- numericDataX;
     }
 
+    if(any(is.na(data))){
+        if((use=="c" & nrow(data[!apply(is.na(data),1,any),])<2) | use=="a"){
+            variablesNA <- apply(is.na(data),2,any);
+            stop(paste0("Missing observations in the variables: ",paste0(namesData[variablesNA],collapse=", ")), call.=FALSE);
+        }
+    }
+
     for(i in 1:nVariables){
         for(j in 1:nVariables){
             if(i>=j){
@@ -127,24 +138,24 @@ association <- function(x, y=NULL){
             }
 
             if(numericData[i] & numericData[j]){
-                matrixAssociation[i,j] <- cor(data[,i],data[,j]);
+                matrixAssociation[i,j] <- cor(data[,i],data[,j],use=use);
                 matrixPValues[i,j] <- cor.test(data[,i],data[,j])$p.value;
                 matrixTypes[i,j] <- "cor";
             }
             else if(!numericData[i] & !numericData[j]){
-                cramerOutput <- cramer(data[,i],data[,j]);
+                cramerOutput <- cramer(data[,i],data[,j],use=use);
                 matrixAssociation[i,j] <- cramerOutput$value;
                 matrixPValues[i,j] <- cramerOutput$p.value;
                 matrixTypes[i,j] <- "cramer";
             }
             else if(!numericData[i] & numericData[j]){
-                mcorOutput <- mcor(data[,i],data[,j]);
+                mcorOutput <- mcor(data[,i],data[,j],use=use);
                 matrixAssociation[i,j] <- mcorOutput$value;
                 matrixPValues[i,j] <- mcorOutput$p.value;
                 matrixTypes[i,j] <- "mcor";
             }
             else{
-                mcorOutput <- mcor(data[,j],data[,i]);
+                mcorOutput <- mcor(data[,j],data[,i],use=use);
                 matrixAssociation[i,j] <- mcorOutput$value;
                 matrixPValues[i,j] <- mcorOutput$p.value;
                 matrixTypes[i,j] <- "mcor";
