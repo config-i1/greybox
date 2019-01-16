@@ -4,7 +4,7 @@
 \alias{mcor}
 \title{Multiple correlation}
 \usage{
-mcor(x, y, use = c("complete.obs", "na.or.complete", "everything",
+mcor(x, y, use = c("na.or.complete", "complete.obs", "everything",
   "all.obs"))
 }
 \arguments{

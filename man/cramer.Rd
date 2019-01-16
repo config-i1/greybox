@@ -4,12 +4,16 @@
 \alias{cramer}
 \title{Calculate Cramer's V for categorical variables}
 \usage{
-cramer(x, y)
+cramer(x, y, use = c("na.or.complete", "complete.obs", "everything",
+  "all.obs"))
 }
 \arguments{
 \item{x}{First categorical variable.}
 
 \item{y}{Second categorical variable.}
+
+\item{use}{What observations to use. See \link[stats]{cor} function for details.
+The only option that is not available here is \code{"pairwise.complete.obs"}.}
 }
 \value{
 The following list of values is returned:

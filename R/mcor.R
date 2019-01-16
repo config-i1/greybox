@@ -34,7 +34,7 @@
 #'
 #' @importFrom stats cor.test pf
 #' @export mcor
-mcor <- function(x,y,use=c("complete.obs","na.or.complete","everything","all.obs")){
+mcor <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.obs")){
 
     use <- substr(use[1],1,1);
     # everything - returns NA if NA
@@ -111,6 +111,7 @@ mcor <- function(x,y,use=c("complete.obs","na.or.complete","everything","all.obs
         y <- as.matrix(y);
     }
 
+    # Check the presence of NAs
     obsNAx <- apply(is.na(x),1,any);
     obsNAy <- apply(is.na(y),1,any);
     if(any(obsNAx) | any(obsNAy)){
@@ -141,5 +142,5 @@ mcor <- function(x,y,use=c("complete.obs","na.or.complete","everything","all.obs
     dfReg <- lmFit$rank-1;
     statistic <- (value^2/dfReg)/((1-value^2)/dfResid);
 
-    returner(0);
+    return(returner(0));
 }
