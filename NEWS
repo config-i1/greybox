@@ -5,6 +5,7 @@ Changes:
 * The extended vignette on marketing analytics tools (tableplot, spread, cramer, mcor, assoc and determ).
 * determination() can now be smart and use stepwise(). This might be especially useful for cases of fat regressions diagnostics.
 * stepwise() now also works with factors. And faster than the previous version, when dat is numeric.
+* use parameter in mcor(). The other functions will follow.
 
 Bugfixes:
 * Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.

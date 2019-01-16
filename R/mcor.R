@@ -13,6 +13,8 @@
 #'
 #' @param x Either data.frame or a matrix
 #' @param y The numerical variable.
+#' @param use What observations to use. See \link[stats]{cor} function for details.
+#' The only option that is not available here is \code{"pairwise.complete.obs"}.
 #'
 #' @return The following list of values is returned:
 #' \itemize{
@@ -32,7 +34,28 @@
 #'
 #' @importFrom stats cor.test pf
 #' @export mcor
-mcor <- function(x,y){
+mcor <- function(x,y,use=c("complete.obs","na.or.complete","everything","all.obs")){
+
+    use <- substr(use[1],1,1);
+    # everything - returns NA if NA
+    # all.obs - returns error if NA
+    # complete.obs - NAs are removed, returns an error if nothing is left
+    # na.or.complete - NAs are removed, returns NA if nothing is left
+
+    # Function returns values or NAs or error
+    returner <- function(errorType=c(0,1,2)){
+        if(errorType==0){
+            return(structure(list(value=value,statistic=statistic,df=dfReg,df.residual=dfResid,
+                                  p.value=pf(statistic,dfReg,dfResid,lower.tail=FALSE)),class="mcor"));
+        }
+        else if(errorType==1){
+            return(structure(list(value=NA,statistic=NA,df=NA,df.residual=NA,
+                                  p.value=NA),class="mcor"));
+        }
+        else{
+            stop("Missing observations in mcor", call.=FALSE);
+        }
+    }
 
     # If it is a factor, just use it
     if(is.factor(x)){
@@ -49,13 +72,6 @@ mcor <- function(x,y){
         if(!all(x[,1]==1)){
             x <- cbind(1,x);
         }
-    #     x <- as.data.frame(x);
-    #     if(nrow(x)>10){
-    #         xFactors <- apply(apply(x,2,unique),2,length)<=10;
-    #         for(i in which(xFactors)){
-    #             x[,i] <- factor(x[,i]);
-    #         }
-    #     }
     }
     # If it is a vector, create a data.frame and potentially create a factor
     else if(is.vector(x)){
@@ -95,6 +111,29 @@ mcor <- function(x,y){
         y <- as.matrix(y);
     }
 
+    obsNAx <- apply(is.na(x),1,any);
+    obsNAy <- apply(is.na(y),1,any);
+    if(any(obsNAx) | any(obsNAy)){
+        if(use=="e"){
+            return(returner(1));
+        }
+        else if(use=="a"){
+            returner(2);
+        }
+        else if(any(use==c("n","c"))){
+            x <- x[!obsNAx & !obsNAy,];
+            y <- y[!obsNAx & !obsNAy,];
+            if(nrow(x)<2){
+                if(use=="c"){
+                    return(returner(1));
+                }
+                else{
+                    returner(2);
+                }
+            }
+        }
+    }
+
     lmFit <- .lm.fit(x,y);
 
     value <- sqrt(1 - sum(residuals(lmFit)^2) / sum((y-mean(y))^2));
@@ -102,6 +141,5 @@ mcor <- function(x,y){
     dfReg <- lmFit$rank-1;
     statistic <- (value^2/dfReg)/((1-value^2)/dfResid);
 
-    return(structure(list(value=value,statistic=statistic,df=dfReg,df.residual=dfResid,
-                          p.value=pf(statistic,dfReg,dfResid,lower.tail=FALSE)),class="mcor"));
+    returner(0);
 }
