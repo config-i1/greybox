@@ -1,4 +1,4 @@
-greybox v0.4.1 (Release data: 2019-01-09)
+greybox v0.4.1 (Release data: 2019-01-16)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 Bugfixes:
 * Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.
 * xregExpander() did not work appropriately when extrapolate=FALSE.
+* Fixed an annoying bug in predict.greybox(), when the newdata did not contain the response variable.
 
 
 greybox v0.4.0 (Release data: 2019-01-04)

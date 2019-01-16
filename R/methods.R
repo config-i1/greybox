@@ -772,15 +772,14 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
             }
         }
 
-        # if(!any(is.greyboxC(object),is.greyboxD(object))){
-        newdataExpanded <- model.frame(object$call$formula, newdata);
+        # Extract the formula and get rid of the response variable
+        testFormula <- formula(object)
+        testFormula[[2]] <- NULL;
+        # Expand the data frame
+        newdataExpanded <- model.frame(testFormula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
         matrixOfxreg <- matrixOfxreg[,parametersNames];
-        # }
-        # else{
-        #     matrixOfxreg <- newdata;
-        # }
     }
 
     nRows <- nrow(matrixOfxreg);
