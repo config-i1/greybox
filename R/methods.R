@@ -1318,7 +1318,7 @@ print.summary.greyboxC <- function(x, ...){
     cat("---\n");
     cat(paste0("Residual standard error: ",round(x$sigma,digits)," on ",
                round(x$df[2],digits)," degrees of freedom:\n"));
-    cat("Combined ICs:\n");
+    cat("Approximate combined ICs:\n");
     print(round(x$ICs,digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
