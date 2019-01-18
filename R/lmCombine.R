@@ -87,14 +87,24 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     ellipsis <- list(...);
 
-    ourData <- data;
-    if(!is.data.frame(ourData)){
-        ourData <- as.data.frame(ourData);
+    distribution <- distribution[1];
+    if(distribution=="dnorm"){
+        useALM <- FALSE;
+    }
+    else{
+        useALM <- TRUE;
+        if(any(distribution==c("plogis","pnorm"))){
+            data[,1] <- (data[,1]!=0)*1;
+            ot <- (data[,1]!=0)*1;
+        }
     }
 
-    if((ncol(ourData)>nrow(ourData)) & bruteForce){
-        warning("You have too many variables. We have to be smart here. Switching 'bruteForce=FALSE'.");
-        bruteForce <- FALSE;
+    # Check the data for NAs
+    if(any(is.na(data))){
+        rowsSelected <- apply(!is.na(data),1,all);
+    }
+    else{
+        rowsSelected <- rep(TRUE,nrow(data));
     }
 
     ic <- ic[1];
@@ -111,20 +121,49 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         IC <- BICc;
     }
 
-    distribution <- distribution[1];
-    if(distribution=="dnorm"){
+    # Define what function to use in the estimation
+    if(useALM){
+        lmCall <- alm;
+        listToCall <- list(distribution=distribution, checks=FALSE);
+    }
+    else{
         lmCall <- function(formula, data){
-            model <- list(xreg=as.matrix(cbind(1,data[,as.character(all.vars(formula[[3]]))])))
-            model <- c(model,.lm.fit(model$xreg, as.matrix(data[,as.character(formula[[2]])])));
+            model <- list(xreg=as.matrix(cbind(1,data[,all.vars(formula)[-1]])));
+            model <- c(model,.lm.fit(model$xreg, y));
+            colnames(model$qr) <- c("(Intercept)",all.vars(formula)[-1]);
             return(structure(model,class=c("lmGreybox","lm")));
         }
         listToCall <- vector("list");
     }
-    else{
-        lmCall <- alm;
-        listToCall <- list(distribution=distribution);
+
+    # Name of the response
+    responseName <- as.character(cl$formula[[2]]);
+    y <- as.matrix(data[,responseName]);
+    colnames(y) <- responseName;
+
+    # Check whether it is possible to do bruetForce
+    if((ncol(data)>nrow(data)) & bruteForce){
+        warning("You have too many variables. We have to be smart here. Switching to 'bruteForce=FALSE'.");
+        bruteForce <- FALSE;
     }
 
+    if(!bruteForce){
+        if(!silent){
+            cat("Selecting the best model...\n");
+        }
+        bestModel <- stepwise(data, ic=ic, distribution=distribution);
+    }
+
+    # Modify the data and move to the list
+    if(is.data.frame(data)){
+        listToCall$data <- cbind(y,model.matrix(cl$formula, data=data[rowsSelected,])[,-1]);
+    }
+    else{
+        listToCall$data <- cbind(y,as.data.frame(data[rowsSelected,-1]));
+    }
+    rm(data);
+
+    # Set alpha for the dalaplace
     if(distribution=="dalaplace"){
         listToCall$alpha <- ellipsis$alpha;
         if(is.null(ellipsis$alpha)){
@@ -136,16 +175,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
-    obsInsample <- sum(!is.na(ourData[,1]));
+    obsInsample <- sum(!is.na(listToCall$data[,1]));
+    # Names of the exogenous variables (without the intercept)
+    exoNames <- colnames(listToCall$data)[-1];
+    # Names of all the variables
+    variablesNames <- c("(Intercept)",exoNames);
     # Number of variables
-    nVariables <- ncol(ourData)-1;
-    # Names of variables
-    variablesNames <- colnames(ourData)[-1];
-    exoNames <- c("(Intercept)",variablesNames);
-    responseName <- colnames(ourData)[1];
-    y <- as.matrix(ourData[,1]);
-    listToCall$data <- ourData;
-    ot <- (y!=0)*1;
+    nVariables <- length(exoNames);
 
     # If this is a simple one, go through all the models
     if(bruteForce){
@@ -154,7 +190,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # Matrix of all the combinations
         variablesBinary <- rep(1,nVariables);
         variablesCombinations <- matrix(NA,nCombinations,nVariables);
-        colnames(variablesCombinations) <- variablesNames;
+        colnames(variablesCombinations) <- exoNames;
 
         #Produce matrix with binaries for inclusion of variables in the loop
         variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
@@ -170,24 +206,17 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         parametersSE <- matrix(0,nCombinations,nVariables+1);
 
         # Starting estimating the models with just a constant
-        # ourModel <- alm(as.formula(paste0(responseName,"~1")),data=ourData,distribution=distribution);
         listToCall$formula <- as.formula(paste0(responseName,"~1"));
-        # listToCall$data <- ourData;
         ourModel <- do.call(lmCall,listToCall);
         ICs[1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
         parametersSE[1,1] <- diag(vcov(ourModel));
     }
     else{
-        if(!silent){
-            cat("Selecting the best model...\n");
-        }
-        bestModel <- stepwise(ourData, ic=ic, distribution=distribution);
-
         # If the number of variables is small, do bruteForce
         if(nParam(bestModel)<16){
-            newData <-  ourData[,c(colnames(ourData)[1],names(bestModel$ICs)[-1])];
-            bestModel <- lmCombine(newData, ic=ic, bruteForce=TRUE, silent=silent, distribution=distribution);
+            bestModel <- lmCombine(listToCall$data[,c(responseName,names(coef(bestModel))[-1])], ic=ic,
+                                   bruteForce=TRUE, silent=silent, distribution=distribution);
             bestModel$call <- cl;
             return(bestModel);
         }
@@ -209,7 +238,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
             # Form combinations of variables
             variablesCombinations <- matrix(NA,nCombinations,nVariables);
-            colnames(variablesCombinations) <- variablesNames;
+            colnames(variablesCombinations) <- exoNames;
             # Fill in the first row with the variables from the best model
             for(j in 1:nVariables){
                 variablesCombinations[,j] <- any(colnames(variablesCombinations)[j]==bestExoNames)*1;
@@ -235,9 +264,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
             # Starting estimating the models with writing down the best one
             ICs[1] <- IC(bestModel);
-            bufferCoef <- coef(bestModel)[exoNames];
+            bufferCoef <- coef(bestModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(bestModel))[exoNames];
+            bufferCoef <- diag(vcov(bestModel))[variablesNames];
             parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
         }
     }
@@ -255,12 +284,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
             cat(paste0(round(i/nCombinations,2)*100,"%"));
         }
-        lmFormula <- paste0(responseName,"~",paste0(variablesNames[variablesCombinations[i,]==1],collapse="+"));
-        # ourModel <- alm(as.formula(lmFormula),data=ourData,distribution=distribution);
-        listToCall$formula <- as.formula(lmFormula);
-        # listToCall$data <- ourData;
+        listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,]==1],collapse="+")));
         ourModel <- do.call(lmCall,listToCall);
-        # print(ourModel$data)
+
         ICs[i] <- IC(ourModel);
         parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
         parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
@@ -284,11 +310,11 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
     parametersCombined <- colSums(parametersWeighted);
 
-    names(parametersCombined) <- exoNames;
+    names(parametersCombined) <- variablesNames;
 
     # From the matrix of exogenous variables without the response variable
-    ourDataExo <- cbind(rep(1,nrow(ourData)),ourData[,-1]);
-    colnames(ourDataExo) <- exoNames;
+    ourDataExo <- cbind(1,listToCall$data[,-1]);
+    colnames(ourDataExo) <- variablesNames;
 
     mu <- switch(distribution,
                  "dpois" = exp(as.matrix(ourDataExo) %*% parametersCombined),
@@ -352,7 +378,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Relative importance of variables
     importance <- c(1,round(ICWeights %*% variablesCombinations,3));
-    names(importance) <- exoNames;
+    names(importance) <- variablesNames;
 
     # Some of the variables have partial inclusion, 1 stands for sigma
     df <- obsInsample - sum(importance) - 1;
@@ -385,7 +411,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Models SE
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
-    names(parametersSECombined) <- exoNames;
+    names(parametersSECombined) <- variablesNames;
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.", call.=FALSE);
@@ -394,7 +420,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=as.matrix(ourData), mu=mu, scale=scale,
+                       call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                        combination=variablesCombinations);
 
     return(structure(finalModel,class=c("greyboxC","alm","greybox")));

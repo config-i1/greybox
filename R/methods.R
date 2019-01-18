@@ -1546,8 +1546,11 @@ vcov.alm <- function(object, ...){
             vcovMatrix <- vcovMatrixTry;
         }
         vcov <- object$scale^2 * vcovMatrix;
+        rownames(vcov) <- colnames(vcov) <- names(coef(object));
     }
     else if(object$distribution=="dnorm"){
+        # matrixXreg <- model.matrix(formula(object),data=object$data);
+        # rownames(vcov) <- colnames(vcov) <- names(coef(object));
         matrixXreg <- as.matrix(object$data[object$subset,-1]);
         if(any(names(coef(object))=="(Intercept)")){
             matrixXreg <- cbind(1,matrixXreg);
@@ -1571,6 +1574,7 @@ vcov.alm <- function(object, ...){
             vcovMatrix <- vcovMatrixTry;
         }
         vcov <- sigma(object)^2 * vcovMatrix;
+        rownames(vcov) <- colnames(vcov) <- names(coef(object));
     }
     else{
         # Form the call for alm

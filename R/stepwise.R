@@ -313,7 +313,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         listToCall$formula <- bestFormula;
 
         bestModel <- do.call(lmCall,listToCall);
-        bestModel$data <- listToCall$data[,all.vars(bestFormula)];
+        # Expand the data from the final model
+        bestModel$data <- cbind(listToCall$data[[1]],model.matrix(bestFormula,listToCall$data)[,-1]);
+        colnames(bestModel$data)[1] <- responseName;
         rm(listToCall);
 
         bestModel$distribution <- distribution;
