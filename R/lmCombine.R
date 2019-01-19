@@ -21,6 +21,9 @@
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
+#' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
+#' WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
+#' or \code{doParallel} are needed in order to run the function in parallel.
 #' @param ... Other parameters passed to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
@@ -69,9 +72,14 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- lmCombine(inSample,ic="BICc",bruteForce=FALSE)
+#' ourModel <- lmCombine(inSample, ic="BICc",bruteForce=FALSE)
 #' summary(ourModel)
-#' plot(predict(ourModel,outSample))
+#' plot(predict(ourModel, outSample))
+#'
+#' # Combine in parallel - should increase speed in case of big data
+#' \dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteForce=TRUE, parallel=TRUE)
+#' summary(ourModel)
+#' plot(predict(ourModel, outSample))}
 #'
 #' @importFrom stats dnorm
 #'
@@ -80,12 +88,54 @@
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                      "plogis","pnorm"),
-                      ...){
+                      parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
 
     ellipsis <- list(...);
+
+    # If they asked for parallel, make checks and try to do that
+    if(parallel){
+        if(!requireNamespace("foreach", quietly = TRUE)){
+            stop("In order to run the function in parallel, 'foreach' package must be installed.", call. = FALSE);
+        }
+        if(!requireNamespace("parallel", quietly = TRUE)){
+            stop("In order to run the function in parallel, 'parallel' package must be installed.", call. = FALSE);
+        }
+        # Detect number of cores for parallel calculations
+        nCores <- parallel::detectCores();
+
+        # Check the system and choose the package to use
+        if(Sys.info()['sysname']=="Windows"){
+            if(requireNamespace("doParallel", quietly = TRUE)){
+                cat(paste0("Setting up ", nCores, " clusters using 'doParallel'..."));
+                cat("\n");
+                cluster <- parallel::makeCluster(nCores);
+                doParallel::registerDoParallel(cluster);
+            }
+            else{
+                stop("Sorry, but in order to run the function in parallel, you need 'doParallel' package.",
+                     call. = FALSE);
+            }
+        }
+        else{
+            if(requireNamespace("doMC", quietly = TRUE)){
+                doMC::registerDoMC(nCores);
+                cluster <- NULL;
+            }
+            else if(requireNamespace("doParallel", quietly = TRUE)){
+                cat(paste0("Setting up ", nCores, " clusters using 'doParallel'..."));
+                cat("\n");
+                cluster <- parallel::makeCluster(nCores);
+                doParallel::registerDoParallel(cluster);
+            }
+            else{
+                stop("Sorry, but in order to run the function in parallel, you need either 'doMC' (prefered) or 'doParallel' packages.",
+                     call. = FALSE);
+            }
+        }
+    }
 
     distribution <- distribution[1];
     if(distribution=="dnorm"){
@@ -141,7 +191,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     y <- as.matrix(data[,responseName]);
     colnames(y) <- responseName;
 
-    # Check whether it is possible to do bruetForce
+    # Check whether it is possible to do bruteForce
     if((ncol(data)>nrow(data)) & bruteForce){
         warning("You have too many variables. We have to be smart here. Switching to 'bruteForce=FALSE'.");
         bruteForce <- FALSE;
@@ -282,25 +332,65 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         otherParameters[1] <- ourModel$other[[1]];
     }
 
-    if(!silent){
-        cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
-    }
     # Go for the loop of lm models
-    for(i in 2:nCombinations){
+    if(parallel){
         if(!silent){
-            cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
-            cat(paste0(round(i/nCombinations,2)*100,"%"));
+            cat("Estimation progress: ...");
         }
-        listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,]==1],collapse="+")));
-        ourModel <- do.call(lmCall,listToCall);
+        forLoopReturns <- foreach::`%dopar%`(foreach::foreach(i=2:nCombinations),{
+            listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,]==1],collapse="+")));
+            ourModel <- do.call(lmCall,listToCall);
 
-        ICs[i] <- IC(ourModel);
-        parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
-        parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
-        logLiks[i] <- logLik(ourModel);
+            ICs <- IC(ourModel);
+            parameters <- coef(ourModel);
+            parametersSE <- diag(vcov(ourModel));
+            logLiks <- logLik(ourModel);
 
-        if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
-            otherParameters[i] <- ourModel$other[[1]];
+            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+                otherParameters <- ourModel$other[[1]];
+            }
+            else{
+                otherParameters <- NULL;
+            }
+            return(list(ICs=ICs,parameters=parameters,parametersSE=parametersSE,
+                        logLiks=logLiks,otherParameters=otherParameters));
+        });
+
+        for(i in 2:nCombinations){
+            ICs[i] <- forLoopReturns[[i-1]]$ICs;
+            parameters[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parameters;
+            parametersSE[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parametersSE;
+            logLiks[i] <- forLoopReturns[[i-1]]$logLiks;
+
+            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+                otherParameters[i] <- forLoopReturns[[i-1]]$otherParameters;
+            }
+        }
+
+        if(!is.null(cluster)){
+            parallel::stopCluster(cluster);
+        }
+    }
+    else{
+        if(!silent){
+            cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
+        }
+        for(i in 2:nCombinations){
+            if(!silent){
+                cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
+                cat(paste0(round(i/nCombinations,2)*100,"%"));
+            }
+            listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,]==1],collapse="+")));
+            ourModel <- do.call(lmCall,listToCall);
+
+            ICs[i] <- IC(ourModel);
+            parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
+            parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
+            logLiks[i] <- logLik(ourModel);
+
+            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+                otherParameters[i] <- ourModel$other[[1]];
+            }
         }
     }
 

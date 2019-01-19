@@ -38,10 +38,9 @@
 #' be constant. If \code{TRUE}, the rolling origin will stop when less than
 #' \code{h} observations are left in the holdout.
 #' @param silent If \code{TRUE}, nothing is printed out in the console.
-#' @param parallel If \code{TRUE}, then the rolling origin is done in parallel.
-#' WARNING! Packages \code{foreach} and either \code{doMC} (Linux only),
-#' \code{doParallel} or \code{doSNOW} are needed in order to run the function
-#' in parallel.
+#' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
+#' WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
+#' or \code{doParallel} are needed in order to run the function in parallel.
 #'
 #' @return Function returns the following variables:
 #' \itemize{
@@ -170,6 +169,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         stop("The provided data is not a vector or ts object! Can't work with it!", call.=FALSE);
     }
 
+    # If they asked for parallel, make checks and try to do that
     if(parallel){
         if(!requireNamespace("foreach", quietly = TRUE)){
             stop("In order to run the function in parallel, 'foreach' package must be installed.", call. = FALSE);
@@ -178,33 +178,31 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
             stop("In order to run the function in parallel, 'parallel' package must be installed.", call. = FALSE);
         }
         # Detect number of cores for parallel calculations
-        crs <- min(parallel::detectCores() - 1, origins);
+        nCores <- min(parallel::detectCores() - 1, origins);
 
         # Check the system and choose the package to use
-        #    else{
         if(Sys.info()['sysname']=="Windows"){
             if(requireNamespace("doParallel", quietly = TRUE)){
-                cat(paste0("Setting up ", crs, " clusters using 'doParallel'..."));
+                cat(paste0("Setting up ", nCores, " clusters using 'doParallel'..."));
                 cat("\n");
-                cl <- parallel::makeCluster(crs);
-                doParallel::registerDoParallel(cl);
+                cluster <- parallel::makeCluster(nCores);
+                doParallel::registerDoParallel(cluster);
             }
             else{
                 stop("Sorry, but in order to run the function in parallel, you need 'doParallel' package.",
                      call. = FALSE);
             }
         }
-        #    else(Sys.info()['sysname']=="Linux"){
         else{
             if(requireNamespace("doMC", quietly = TRUE)){
-                doMC::registerDoMC(crs);
-                cl <- NULL;
+                doMC::registerDoMC(nCores);
+                cluster <- NULL;
             }
             else if(requireNamespace("doParallel", quietly = TRUE)){
-                cat(paste0("Setting up ", crs, " clusters using 'doParallel'..."));
+                cat(paste0("Setting up ", nCores, " clusters using 'doParallel'..."));
                 cat("\n");
-                cl <- parallel::makeCluster(crs);
-                doParallel::registerDoParallel(cl);
+                cluster <- parallel::makeCluster(nCores);
+                doParallel::registerDoParallel(cluster);
             }
             else{
                 stop("Sorry, but in order to run the function in parallel, you need either 'doMC' (prefered) or 'doParallel' packages.",
@@ -367,8 +365,8 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         forecasts <- unlist(forecasts,recursive=FALSE);
 
         # Check if the clusters have been made
-        if(!is.null(cl)){
-            parallel::stopCluster(cl);
+        if(!is.null(cluster)){
+            parallel::stopCluster(cluster);
         }
 
         # Form matrix of holdout in a different loop...

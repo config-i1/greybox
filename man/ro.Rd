@@ -41,10 +41,9 @@ be constant. If \code{TRUE}, the rolling origin will stop when less than
 
 \item{silent}{If \code{TRUE}, nothing is printed out in the console.}
 
-\item{parallel}{If \code{TRUE}, then the rolling origin is done in parallel.
-WARNING! Packages \code{foreach} and either \code{doMC} (Linux only),
-\code{doParallel} or \code{doSNOW} are needed in order to run the function
-in parallel.}
+\item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
+WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
+or \code{doParallel} are needed in order to run the function in parallel.}
 }
 \value{
 Function returns the following variables:

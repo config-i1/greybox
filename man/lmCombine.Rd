@@ -9,7 +9,7 @@
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
   bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"), ...)
+  "pnorm"), parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -25,6 +25,10 @@ one are produced and then combined.}
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
+
+\item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
+WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
+or \code{doParallel} are needed in order to run the function in parallel.}
 
 \item{...}{Other parameters passed to \code{alm()}.}
 }
