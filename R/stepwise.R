@@ -96,7 +96,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         rowsSelected <- rep(TRUE,nrow(data));
     }
 
-    # Check occurrence
+    # Check occurrence. If it is not "none" then use alm().
     if(is.alm(occurrence)){
         useALM <- TRUE;
         rowsSelected <- rowsSelected & (data[,1]!=0);

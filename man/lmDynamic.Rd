@@ -7,7 +7,7 @@
 lmDynamic(data, ic = c("AICc", "AIC", "BIC", "BICc"),
   bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"))
+  "pnorm"), parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -23,6 +23,12 @@ one are produced and then combined.}
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
+
+\item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
+WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
+or \code{doParallel} are needed in order to run the function in parallel.}
+
+\item{...}{Other parameters passed to \code{alm()}.}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -31,7 +37,6 @@ of each variable. The list of variables:
 \itemize{
 \item coefficients - mean (over time) parameters of the model,
 \item se - mean standard errors of the parameters of the model,
-\item actuals - actual values of the response variable,
 \item fitted.values - the fitted values,
 \item residuals - residual of the model,
 \item distribution - distribution used in the estimation,
@@ -41,14 +46,15 @@ of each variable. The list of variables:
 the model,
 \item df - mean number of degrees of freedom of the model,
 \item importance - dynamic importance of the parameters,
-\item coefficientsDynamic - table with parameters of the model, varying over
-the time,
-\item df.residualDynamic - dynamic df.residual,
-\item dfDynamic - dynamic df,
 \item call - call used in the function,
 \item rank - rank of the combined model,
 \item data - the data used in the model,
-\item mu - the location value of the distribution.
+\item mu - the location value of the distribution,
+\item scale - the scale parameter if alm() was used,
+\item coefficientsDynamic - table with parameters of the model, varying over
+the time,
+\item df.residualDynamic - dynamic df.residual,
+\item dfDynamic - dynamic df.
 }
 }
 \description{

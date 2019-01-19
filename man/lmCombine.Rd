@@ -2,8 +2,6 @@
 % Please edit documentation in R/lmCombine.R
 \name{lmCombine}
 \alias{lmCombine}
-\alias{combine}
-\alias{combiner}
 \title{Combine regressions based on information criteria}
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
@@ -38,7 +36,6 @@ Function returns \code{model} - the final model of the class
 \itemize{
 \item coefficients - combined parameters of the model,
 \item se - combined standard errors of the parameters of the model,
-\item actuals - actual values of the response variable,
 \item fitted.values - the fitted values,
 \item residuals - residual of the model,
 \item distribution - distribution used in the estimation,
@@ -48,10 +45,6 @@ Function returns \code{model} - the final model of the class
 the combined model,
 \item df - number of degrees of freedom of the combined model,
 \item importance - importance of the parameters,
-\item call - call used in the function,
-\item rank - rank of the combined model,
-\item data - the data used in the model,
-\item mu - the location value of the distribution.
 \item combination - the table, indicating which variables were used in every
 model construction and what were the weights for each model.
 }
@@ -86,9 +79,14 @@ colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
 inSample <- xreg[1:40,]
 outSample <- xreg[-c(1:40),]
 # Combine only the models close to the optimal
-ourModel <- lmCombine(inSample,ic="BICc",bruteForce=FALSE)
+ourModel <- lmCombine(inSample, ic="BICc",bruteForce=FALSE)
 summary(ourModel)
-plot(predict(ourModel,outSample))
+plot(predict(ourModel, outSample))
+
+# Combine in parallel - should increase speed in case of big data
+\dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteForce=TRUE, parallel=TRUE)
+summary(ourModel)
+plot(predict(ourModel, outSample))}
 
 }
 \references{

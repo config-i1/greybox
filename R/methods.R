@@ -1512,7 +1512,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
                                 confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
-                                nobs=nobs(object), nParam=nParam(object)),
+                                nobs=nobs(object), nParam=nParam(object), dfTable=dfTable),
                            class="summary.greyboxC");
     return(ourReturn);
 }

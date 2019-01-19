@@ -31,7 +31,6 @@
 #' \itemize{
 #' \item coefficients - combined parameters of the model,
 #' \item se - combined standard errors of the parameters of the model,
-#' \item actuals - actual values of the response variable,
 #' \item fitted.values - the fitted values,
 #' \item residuals - residual of the model,
 #' \item distribution - distribution used in the estimation,
@@ -41,10 +40,6 @@
 #' the combined model,
 #' \item df - number of degrees of freedom of the combined model,
 #' \item importance - importance of the parameters,
-#' \item call - call used in the function,
-#' \item rank - rank of the combined model,
-#' \item data - the data used in the model,
-#' \item mu - the location value of the distribution.
 #' \item combination - the table, indicating which variables were used in every
 #' model construction and what were the weights for each model.
 #' }
@@ -83,7 +78,6 @@
 #'
 #' @importFrom stats dnorm
 #'
-#' @aliases combine combiner
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
@@ -137,6 +131,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
     }
 
+    # Define cases, when to use ALM
     distribution <- distribution[1];
     if(distribution=="dnorm"){
         useALM <- FALSE;
@@ -147,6 +142,12 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             data[,1] <- (data[,1]!=0)*1;
             ot <- (data[,1]!=0)*1;
         }
+    }
+
+    # If the data is a vector, make it a matrix
+    if(is.null(dim(data))){
+        data <- as.matrix(data);
+        colnames(data) <- as.character(cl$formula[[2]]);
     }
 
     # Check the data for NAs
@@ -175,6 +176,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     if(useALM){
         lmCall <- alm;
         listToCall <- list(distribution=distribution, checks=FALSE);
+        listToCall <- c(listToCall,ellipsis);
     }
     else{
         lmCall <- function(formula, data){
@@ -193,8 +195,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Check whether it is possible to do bruteForce
     if((ncol(data)>nrow(data)) & bruteForce){
-        warning("You have too many variables. We have to be smart here. Switching to 'bruteForce=FALSE'.");
+        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteForce=FALSE'.");
         bruteForce <- FALSE;
+    }
+
+    # Warning if we have a lot of models
+    if((ncol(data)>14) & bruteForce){
+        warning("You have more than 14 variables. The computation might take a lot of time.");
     }
 
     if(!bruteForce){
@@ -233,6 +240,17 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     # Number of variables
     nVariables <- length(exoNames);
 
+    # If nVariables is zero, return a simple model. This might be due to the stepwise returning intercept.
+    if(nVariables==0){
+        warning("No explanatory variables are selected / provided. Fitting the model with intercept only.", call.=FALSE);
+        if(bruteForce){
+            return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
+        }
+        else{
+            return(bestModel);
+        }
+    }
+
     # If this is a simple one, go through all the models
     if(bruteForce){
         # Number of combinations in the loop
@@ -266,17 +284,17 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         logLiks[1] <- logLik(ourModel);
     }
     else{
+        # Extract names of the used variables
+        bestExoNames <- names(coef(bestModel))[-1];
         # If the number of variables is small, do bruteForce
-        if(nParam(bestModel)<16){
-            bestModel <- lmCombine(listToCall$data[,c(responseName,names(coef(bestModel))[-1])], ic=ic,
-                                   bruteForce=TRUE, silent=silent, distribution=distribution);
+        if(nParam(bestModel)<14){
+            bestModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
+                                   bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             bestModel$call <- cl;
             return(bestModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
-            # Extract names of the used variables
-            bestExoNames <- names(coef(bestModel))[-1];
             nVariablesInModel <- length(bestExoNames);
             # Define number of combinations:
             # 1. Best model
@@ -488,7 +506,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Calcualte logLik. This is approximate and is based on the IC weights
     logLikCombined <- logLik(ourModel);
-    attr(logLikCombined,"df") <- sum(importance)+1;
+    attr(logLikCombined,"df") <- df;
     logLikCombined[1] <- logLiks %*% ICWeights;
 
     # Form matrix for variables combination with weights and ICs
