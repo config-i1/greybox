@@ -146,6 +146,29 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         rowsSelected <- rep(TRUE,nrow(data));
     }
 
+    # Check occurrence. If it is not "none" then use alm().
+    # if(is.alm(occurrence)){
+    #     useALM <- TRUE;
+    #     rowsSelected <- rowsSelected & (data[,1]!=0);
+    # }
+    # else{
+    #     occurrence <- occurrence[1];
+    #     if(all(occurrence!=c("none","plogis","pnorm"))){
+    #         warning(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
+    #                     "'. Switching to 'none'."), call.=FALSE);
+    #         occurrence <- "none";
+    #     }
+    #
+    #     if(any(occurrence==c("plogis","pnorm"))){
+    #         useALM <- TRUE;
+    #         rowsSelected <- rowsSelected | (data[,1]!=0);
+    #
+    #         occurrenceModel <- lmCombine(data, ic=ic, bruteForce=bruteForce, silent=silent,
+    #                                      distribution=occurrence, parallel=parallel, ...);
+    #         occurrenceModel$call <- cl;
+    #     }
+    # }
+
     ic <- ic[1];
     if(ic=="AIC"){
         IC <- pAIC;
