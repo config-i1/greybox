@@ -32,7 +32,7 @@ There are several groups of functions in the package.
 1. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 2. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
 3. qs, ds, rs, ps - functions for S distribution.
-4. qfonrm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
+4. qfnorm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
 5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
 
 ### Methods for the introduced and some existing classes:
