@@ -9,7 +9,7 @@ spread(data, histograms = FALSE, log = FALSE, ...)
 \arguments{
 \item{data}{Either matrix or data frame with the data.}
 
-\item{histograms}{If \code{TRUE}, then the histrograms and barplots are produced on
+\item{histograms}{If \code{TRUE}, then the histograms and barplots are produced on
 the diagonal of the matrix. Otherwise the names of the variables are written there.}
 
 \item{log}{If \code{TRUE}, then the logarithms of all numerical variables are taken.}

@@ -13,7 +13,7 @@
 #' @keywords plots graph
 #'
 #' @param data Either matrix or data frame with the data.
-#' @param histograms If \code{TRUE}, then the histrograms and barplots are produced on
+#' @param histograms If \code{TRUE}, then the histograms and barplots are produced on
 #' the diagonal of the matrix. Otherwise the names of the variables are written there.
 #' @param log If \code{TRUE}, then the logarithms of all numerical variables are taken.
 #' @param ... Other parameters passed to the plot function. Currently only "main"

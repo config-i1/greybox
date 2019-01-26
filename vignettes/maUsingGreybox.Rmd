@@ -109,7 +109,7 @@ Here's an example:
 spread(mtcarsData)
 ```
 
-This plot demonstrates, for example, that the number of carburetors influences fuel consumption (something that we could not have spotted in the case of `plot()`). Notice also, that the number of gears influences the fuel cosumption in a non-linear relation as well. So constructing the model with dummy variables for the number of gears might be a reasonable thing to do.
+This plot demonstrates, for example, that the number of carburetors influences fuel consumption (something that we could not have spotted in the case of `plot()`). Notice also, that the number of gears influences the fuel consumption in a non-linear relation as well. So constructing the model with dummy variables for the number of gears might be a reasonable thing to do.
 
 The function also has the parameter `log`, which will transform all the numerical variables using logarithms, which is handy, when you suspect the non-linear relation between the variables. Finally, there is a parameter `histogram`, which will plot either histograms, or barplots on the diagonal.
 ```{r spreadHist}

@@ -9,7 +9,7 @@ There are several groups of functions in the package.
 ### Regression model functions
 1. alm - advanced linear regression model that implements likelihood estimation of parameters for Normal, Laplace, Asymmetric Laplace, Logistic, Student's t, S, Folded Normal, Log Normal, Chi-Squared, Beta, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to `glm()` function, but with a different set of distributions and with a focus on forecasting.
 2. stepwise - function implements stepwise IC based on partial correlations.
-3. lmCombine - function combines the regression models from the provided data, based on IC weigths and returns the combined alm object.
+3. lmCombine - function combines the regression models from the provided data, based on IC weights and returns the combined alm object.
 
 ### Exogenous variables transformation functions
 1. xregExpander - function produces lags and leads of the provided data.

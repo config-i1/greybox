@@ -58,7 +58,7 @@ Given that the parameters of any model in `alm()` are estimated via likelihood, 
 
 The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution function. The exclusions are Normal, Log-Normal, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
 
-`alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cube etc levels for ordered variabes, which makes the interpretation of the parameters difficult.
+`alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cube etc levels for ordered variables, which makes the interpretation of the parameters difficult.
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
