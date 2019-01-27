@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "26 January 2019"
+date: "27 January 2019"
 output: html_document
 ---
 ## Version
@@ -17,5 +17,6 @@ R CMD check results
 0 errors | 0 warnings | 0 note
 
 ## Downstream dependencies
-R CMD check on reverse dependencies of greyboxare okay.
+R CMD check on reverse dependencies of greybox are okay.
+The annoying bug, which ruined the vignnettes from time to time, is finally fixed.
 Checks for Windows give (as always) a NOTE about doMC, which is not available for Windows (for obvious reasons). The package is included in suggested of greybox.
