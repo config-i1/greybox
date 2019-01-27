@@ -1,4 +1,4 @@
-greybox v0.4.1 (Release data: 2019-01-26)
+greybox v0.4.1 (Release data: 2019-01-27)
 ==============
 
 Changes:
@@ -7,7 +7,8 @@ Changes:
 * stepwise() now also works with factors. And faster than the previous version, when dat is numeric.
 * use parameter in mcor(), cramer() and assoc(). By default NAs are removed.
 * lmDynamic and lmCombine now work with factors and with all the alm distributions.
-* lmDynamic and lmCombine now also have the parameter paralle, which defines whether to make calculations in parallel or not
+* lmDynamic and lmCombine now also have the parameter paralle, which defines whether to make calculations in parallel or not.
+* alm() now removes NaNs if they are present in the data.
 
 Bugfixes:
 * Fixes in mcor and assoc, which did not work correctly in some cases of factors provided as x or y.

@@ -285,11 +285,34 @@ alm <- function(formula, data, subset, na.action,
     }
     mf$data <- data;
 
+    # If there are NaN values, remove the respective observations
+    if(any(sapply(mf$data,is.nan))){
+        warning("There are NaN values in the data. This might cause problems. Removing these observations.", call.=FALSE);
+        NonNaNValues <- !apply(sapply(mf$data,is.nan),1,any);
+        # If subset was not provided, change it
+        if(is.null(mf$subset)){
+            mf$subset <- NonNaNValues
+        }
+        else{
+            mf$subset <- NonNaNValues & mf$subset;
+        }
+        dataContainsNaNs <- TRUE;
+    }
+    else{
+        dataContainsNaNs <- FALSE;
+    }
+
     responseName <- all.vars(formula)[1];
     # If this is a model with occurrence, use only non-zero observations
     if(occurrenceModel){
         occurrenceNonZero <- data[,responseName]!=0;
-        mf$subset <- occurrenceNonZero;
+        if(dataContainsNaNs){
+            mf$subset <- occurrenceNonZero & mf$subset;
+            mf$subset[is.na(mf$subset)] <- FALSE;
+        }
+        else{
+            mf$subset <- occurrenceNonZero;
+        }
     }
 
     dataWork <- eval(mf, parent.frame());
@@ -324,7 +347,12 @@ alm <- function(formula, data, subset, na.action,
         subset <- rep(TRUE, obsInsample);
     }
     else{
-        subset <- mf$subset;
+        if(dataContainsNaNs){
+            subset <- mf$subset[NonNaNValues];
+        }
+        else{
+            subset <- mf$subset;
+        }
     }
 
     mu <- vector("numeric", obsInsample);
@@ -865,10 +893,21 @@ alm <- function(formula, data, subset, na.action,
     if(occurrenceModel){
         mf$subset <- NULL;
 
+        # If there are NaN values, remove the respective observations
+        if(any(sapply(mf$data,is.nan))){
+            mf$subset <- !apply(sapply(mf$data,is.nan),1,any);
+        }
+        else{
+            mf$subset <- rep(TRUE,nrow(mf$data));
+        }
+
         # New data and new response variable
-        dataNew <- as.matrix(data);
-        dataNew <- data;
+        dataNew <- as.matrix(data[mf$subset,]);
         y <- as.matrix(dataNew[,all.vars(formula)[1]]);
+        # If there are NaN values, substitute them by zeroes
+        # if(any(is.nan(y))){
+        #     y[is.nan(y)] <- 0;
+        # }
         ot <- y!=0;
         dataNew[,all.vars(formula)[1]] <- (ot)*1;
 

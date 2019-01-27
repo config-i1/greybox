@@ -471,6 +471,8 @@ Finally, mixture distribution models can be used in `alm()` by defining `distrib
 As an example of mixture model, let's generate some data:
 ```{r mixtureExampleData}
 xreg[,1] <- round(exp(xreg[,1]-400) / (1 + exp(xreg[,1]-400)),0) * xreg[,1]
+# Sometimes the generated data contains huge values
+xreg[is.nan(xreg[,1]),1] <- 0;
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 ```
