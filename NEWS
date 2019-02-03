@@ -1,3 +1,10 @@
+greybox v0.4.2 (Release data: 2019-03-02)
+==============
+
+Changes:
+* nParam, nobs, sigma and AICc, BICc methods for the "varest" class of the functions for "vars" package. Should allow selection using the corrected AIC and BIC.
+
+
 greybox v0.4.1 (Release data: 2019-01-27)
 ==============
 

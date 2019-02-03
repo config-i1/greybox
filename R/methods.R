@@ -76,6 +76,35 @@ BICc.default <- function(object, ...){
     return(IC);
 }
 
+#' @export
+AICc.varest <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    nSeries <- object$K;
+    nParamAll <- nrow(coef(object)[[1]]);
+
+    obs <- nobs(object);
+    IC <- -2*llikelihood + ((2*obs*(nParamAll*nSeries + nSeries*(nSeries+1)/2)) /
+                                (obs - (nParamAll + nSeries + 1)));
+
+    return(IC);
+}
+
+#' @export
+BICc.varest <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    nSeries <- object$K;
+    nParamAll <- nrow(coef(object)[[1]]) + object$K;
+
+    obs <- nobs(object);
+    IC <- -2*llikelihood + (((nParamAll + nSeries*(nSeries+1)/2) *
+                                 log(obs * nSeries) * obs * nSeries) /
+                                (obs * nSeries - nParamAll - nSeries*(nSeries+1)/2));
+
+    return(IC);
+}
+
 #' Functions that extracts type of error from the model
 #'
 #' This function allows extracting error type from any model.
@@ -878,6 +907,10 @@ nobs.greybox <- function(object, ...){
     return(length(fitted(object)));
 }
 
+#' @export
+nobs.varest <- function(object, ...){
+    return(object$obs);
+}
 
 #' Number of parameters in the model
 #'
@@ -934,6 +967,13 @@ nParam.logLik <- function(object, ...){
 nParam.greyboxC <- function(object, ...){
     # The length of the vector of parameters + variance
     return(sum(object$importance)+1);
+}
+
+#' @export
+nParam.varest <- function(object, ...){
+    ### This is the nParam per series
+    # Parameters in all the matrices + the elements of the covariance matrix
+    return(nrow(coef(object)[[1]])*object$K + 0.5*object$K*(object$K+1));
 }
 
 #### Plot functions ####
@@ -1362,7 +1402,7 @@ print.rollingOrigin <- function(x, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, ...){
-    return(sqrt(sum(residuals(object)^2)/(nobs(object)-nParam(object))));
+    return(sqrt(sum(residuals(object)^2)/nobs(object)));
 }
 
 #' @export
@@ -1378,6 +1418,12 @@ sigma.alm <- function(object, ...){
 #' @export
 sigma.ets <- function(object, ...){
     return(sqrt(object$sigma2));
+}
+
+#' @export
+sigma.varest <- function(object, ...){
+    # OLS estimate of Sigma, without the covariances
+    return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nParam(object)+object$K));
 }
 
 #' @export
