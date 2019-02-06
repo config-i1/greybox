@@ -50,6 +50,10 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     ellipsis <- list(...);
 
+    # yFrequency <- frequency(actuals);
+    # Remove potential NAs in the actuals
+    # y <- ts(actuals[!is.na(actuals)],start=start(actuals),frequency=yFrequency);
+
     ##### Make legend change depending on the fitted values
     if(!is.null(lower) | !is.null(upper)){
         intervals <- TRUE;
@@ -128,6 +132,11 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                                    forecast[!is.na(forecast)],lower[!is.na(lower)],upper[!is.na(upper)]),
                                max(actuals[!is.na(actuals)],fitted[!is.na(fitted)],
                                    forecast[!is.na(forecast)],lower[!is.na(lower)],upper[!is.na(upper)]));
+    }
+
+    # If the start time of forecast is the same as the start time of the actuals, change ts of forecast
+    if(time(forecast)[1]==time(actuals)[1]){
+        forecast <- ts(forecast, start=time(actuals)[length(actuals)]+deltat(actuals), frequency=frequency(actuals));
     }
 
     if(is.null(ellipsis$xlim)){
