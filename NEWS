@@ -1,9 +1,10 @@
-greybox v0.4.2 (Release data: 2019-03-04)
+greybox v0.4.2 (Release data: 2019-02-07)
 ==============
 
 Changes:
 * nParam, nobs, sigma and AICc, BICc methods for the "varest" class of the functions for "vars" package. Should allow selection using the corrected AIC and BIC.
 * graphmaker() now does not need for forecast to start at the right place. If start(actuals)=start(forecast), it will place forecast at the end.
+* graphmaker() now also allows not to reset par, so that you can add arbitrary elements to the graph.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.

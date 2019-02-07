@@ -6,7 +6,7 @@
 \usage{
 graphmaker(actuals, forecast, fitted = NULL, lower = NULL,
   upper = NULL, level = NULL, legend = TRUE, cumulative = FALSE,
-  vline = TRUE, ...)
+  vline = TRUE, parReset = TRUE, ...)
 }
 \arguments{
 \item{actuals}{The vector of actual values}
@@ -31,6 +31,9 @@ cumulative and value per period is plotted.}
 
 \item{vline}{Whether to draw the vertical line, splitting the in-sample
 and the holdout sample.}
+
+\item{parReset}{Whether to reset par() after plotting things or not.
+If \code{FALSE} then you can add elements to the plot (e.g. additional lines).}
 
 \item{...}{Other parameters passed to \code{plot()} function.}
 }
@@ -61,6 +64,14 @@ actuals <- ts(c(1:10), start=c(2000,1), frequency=4)
 forecast <- ts(c(11:15),start=end(actuals)[1]+end(actuals)[2]*deltat(actuals),
                frequency=frequency(actuals))
 graphmaker(actuals,forecast)
+
+# This should work as well
+graphmaker(c(1:10),c(11:15))
+
+# This way you can add additional elements to the plot
+graphmaker(c(1:10),c(11:15), parReset=FALSE)
+points(c(1:15))
+# But don't forget to do dev.off() in order to reset the plotting area afterwards
 
 }
 \seealso{

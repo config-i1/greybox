@@ -21,6 +21,8 @@
 #' cumulative and value per period is plotted.
 #' @param vline Whether to draw the vertical line, splitting the in-sample
 #' and the holdout sample.
+#' @param parReset Whether to reset par() after plotting things or not.
+#' If \code{FALSE} then you can add elements to the plot (e.g. additional lines).
 #' @param ... Other parameters passed to \code{plot()} function.
 #' @return Function does not return anything.
 #' @author Ivan Svetunkov
@@ -42,17 +44,22 @@
 #'                frequency=frequency(actuals))
 #' graphmaker(actuals,forecast)
 #'
+#' # This should work as well
+#' graphmaker(c(1:10),c(11:15))
+#'
+#' # This way you can add additional elements to the plot
+#' graphmaker(c(1:10),c(11:15), parReset=FALSE)
+#' points(c(1:15))
+#' # But don't forget to do dev.off() in order to reset the plotting area afterwards
+#'
 #' @export graphmaker
 #' @importFrom graphics rect
 graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
-                       level=NULL, legend=TRUE, cumulative=FALSE, vline=TRUE, ...){
+                       level=NULL, legend=TRUE, cumulative=FALSE, vline=TRUE,
+                       parReset=TRUE, ...){
     # Function constructs the universal linear graph for any model
 
     ellipsis <- list(...);
-
-    # yFrequency <- frequency(actuals);
-    # Remove potential NAs in the actuals
-    # y <- ts(actuals[!is.na(actuals)],start=start(actuals),frequency=yFrequency);
 
     ##### Make legend change depending on the fitted values
     if(!is.null(lower) | !is.null(upper)){
@@ -85,7 +92,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     parDefault <- par(no.readonly=TRUE);
 
     if(legend){
-        layout(matrix(c(1,2),2,1),heights=c(0.86,0.14));
+        layout(matrix(c(2,1),2,1),heights=c(0.86,0.14));
         if(is.null(ellipsis$main)){
             parMar <- c(2,3,2,1);
         }
@@ -137,6 +144,10 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     # If the start time of forecast is the same as the start time of the actuals, change ts of forecast
     if(time(forecast)[1]==time(actuals)[1]){
         forecast <- ts(forecast, start=time(actuals)[length(actuals)]+deltat(actuals), frequency=frequency(actuals));
+        if(intervals){
+            upper <- ts(upper, start=start(forecast), frequency=frequency(actuals));
+            lower <- ts(lower, start=start(forecast), frequency=frequency(actuals));
+        }
     }
 
     if(is.null(ellipsis$xlim)){
@@ -167,7 +178,28 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     ellipsis$x <- actuals;
 
-    par(mar=parMar);
+    if(!intervals){
+        legendElements[4] <- FALSE;
+        legendCall$ncol <- 2;
+    }
+
+    if(legend){
+        legendCall$legend <- legendCall$legend[legendElements];
+        legendCall$col <- legendCall$col[legendElements];
+        legendCall$lwd <- legendCall$lwd[legendElements];
+        legendCall$lty <- legendCall$lty[legendElements];
+        legendCall$pch <- legendCall$pch[legendElements];
+        legendCall$bty <- "n";
+
+        par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+        plot(0,0,col="white")
+        legendDone <- do.call("legend", legendCall);
+        rect(legendDone$rect$left-0.02, legendDone$rect$top-legendDone$rect$h,
+             legendDone$rect$left+legendDone$rect$w+0.02, legendDone$rect$top);
+
+    }
+
+    par(mar=parMar, cex=1, bty="o", xaxt="s", yaxt="s");
     do.call(plot, ellipsis);
 
     if(any(!is.na(fitted))){
@@ -223,8 +255,6 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         }
     }
     else{
-        legendElements[4] <- FALSE;
-        legendCall$ncol <- 2;
         if(h!=1){
             lines(forecast,col="blue",lwd=2);
 
@@ -253,21 +283,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         }
     }
 
-    if(legend){
-        legendCall$legend <- legendCall$legend[legendElements];
-        legendCall$col <- legendCall$col[legendElements];
-        legendCall$lwd <- legendCall$lwd[legendElements];
-        legendCall$lty <- legendCall$lty[legendElements];
-        legendCall$pch <- legendCall$pch[legendElements];
-        legendCall$bty <- "n";
-
-        par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-        plot(0,0,col="white")
-        legendDone <- do.call("legend", legendCall);
-        rect(legendDone$rect$left-0.02, legendDone$rect$top-legendDone$rect$h,
-             legendDone$rect$left+legendDone$rect$w+0.02, legendDone$rect$top);
-
+    if(parReset){
+        par(parDefault);
     }
-
-    par(parDefault);
 }
