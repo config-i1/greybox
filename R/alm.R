@@ -79,8 +79,7 @@
 #' \itemize{
 #' \item coefficients - estimated parameters of the model,
 #' \item vcov - covariance matrix of parameters of the model (based on Fisher
-#' Information). Returned only when \code{vcovProduce=TRUE}.
-#' \item actuals - actual values of the response variable,
+#' Information). Returned only when \code{vcovProduce=TRUE},
 #' \item fitted.values - fitted values,
 #' \item residuals - residuals of the model,
 #' \item mu - the estimated location parameter of the distribution,
