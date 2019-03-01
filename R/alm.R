@@ -901,7 +901,7 @@ alm <- function(formula, data, subset, na.action,
         }
 
         # New data and new response variable
-        dataNew <- as.matrix(data[mf$subset,]);
+        dataNew <- mf$data[mf$subset,];
         y <- as.matrix(dataNew[,all.vars(formula)[1]]);
         # If there are NaN values, substitute them by zeroes
         # if(any(is.nan(y))){

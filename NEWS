@@ -1,4 +1,4 @@
-greybox v0.4.2 (Release data: 2019-02-07)
+greybox v0.4.2 (Release data: 2019-03-01)
 ==============
 
 Changes:
@@ -8,6 +8,7 @@ Changes:
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
+* Annoying bug with occurrence!="none" models and factors.
 
 
 greybox v0.4.1 (Release data: 2019-01-27)
