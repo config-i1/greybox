@@ -249,6 +249,12 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
     lmIntervals <- lmIntervals[order(lmCoefs),];
     lmCoefs <- lmCoefs[order(lmCoefs)];
 
+    # If this was log Normal, take exponent of the coefficients
+    if(distribution=="dlnorm"){
+        lmIntervals <- exp(lmIntervals);
+        lmCoefs <- exp(lmCoefs);
+    }
+
     # Remove `` symbols in case of spaces in names
     names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
     rownames(lmIntervals) <- names(lmCoefs);
