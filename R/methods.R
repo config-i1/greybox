@@ -39,8 +39,8 @@
 #'
 #' ourModel <- stepwise(xreg)
 #'
-#' AICc(ourModel,h=10)
-#' BICc(ourModel,h=10)
+#' AICc(ourModel)
+#' BICc(ourModel)
 #'
 #' @rdname InformationCriteria
 #' @export AICc
@@ -55,11 +55,11 @@ BICc <- function(object, ...) UseMethod("BICc")
 #' @export
 AICc.default <- function(object, ...){
     llikelihood <- logLik(object);
-    nParamAll <- nParam(object);
+    nparamAll <- nparam(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     obs <- nobs(object);
 
-    IC <- 2*nParamAll - 2*llikelihood + 2 * nParamAll * (nParamAll + 1) / (obs - nParamAll - 1);
+    IC <- 2*nparamAll - 2*llikelihood + 2 * nparamAll * (nparamAll + 1) / (obs - nparamAll - 1);
 
     return(IC);
 }
@@ -67,11 +67,11 @@ AICc.default <- function(object, ...){
 #' @export
 BICc.default <- function(object, ...){
     llikelihood <- logLik(object);
-    nParamAll <- nParam(object);
+    nparamAll <- nparam(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     obs <- nobs(object);
 
-    IC <- - 2*llikelihood + (nParamAll * log(obs) * obs) / (obs - nParamAll - 1);
+    IC <- - 2*llikelihood + (nparamAll * log(obs) * obs) / (obs - nparamAll - 1);
 
     return(IC);
 }
@@ -81,11 +81,11 @@ AICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     nSeries <- object$K;
-    nParamAll <- nrow(coef(object)[[1]]);
+    nparamAll <- nrow(coef(object)[[1]]);
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + ((2*obs*(nParamAll*nSeries + nSeries*(nSeries+1)/2)) /
-                                (obs - (nParamAll + nSeries + 1)));
+    IC <- -2*llikelihood + ((2*obs*(nparamAll*nSeries + nSeries*(nSeries+1)/2)) /
+                                (obs - (nparamAll + nSeries + 1)));
 
     return(IC);
 }
@@ -95,12 +95,12 @@ BICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     nSeries <- object$K;
-    nParamAll <- nrow(coef(object)[[1]]) + object$K;
+    nparamAll <- nrow(coef(object)[[1]]) + object$K;
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + (((nParamAll + nSeries*(nSeries+1)/2) *
+    IC <- -2*llikelihood + (((nparamAll + nSeries*(nSeries+1)/2) *
                                  log(obs * nSeries) * obs * nSeries) /
-                                (obs * nSeries - nParamAll - nSeries*(nSeries+1)/2));
+                                (obs * nSeries - nparamAll - nSeries*(nSeries+1)/2));
 
     return(IC);
 }
@@ -150,10 +150,10 @@ errorType.ets <- function(object, ...){
 #' @export
 logLik.alm <- function(object, ...){
     if(is.alm(object$occurrence)){
-        return(structure(object$logLik,nobs=nobs(object),df=nParam(object)+nParam(object$occurrence),class="logLik"));
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
     }
     else{
-        return(structure(object$logLik,nobs=nobs(object),df=nParam(object),class="logLik"));
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object),class="logLik"));
     }
 }
 
@@ -187,13 +187,13 @@ logLik.alm <- function(object, ...){
 #' pointLik(ourModel)
 #'
 #' # Bias correction
-#' pointLik(ourModel) - nParam(ourModel)
+#' pointLik(ourModel) - nparam(ourModel)
 #'
 #' # Bias correction in AIC style
-#' 2*(nParam(ourModel)/nobs(ourModel) - pointLik(ourModel))
+#' 2*(nparam(ourModel)/nobs(ourModel) - pointLik(ourModel))
 #'
 #' # BIC calculation based on pointLik
-#' log(nobs(ourModel))*nParam(ourModel) - 2*sum(pointLik(ourModel))
+#' log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
 #'
 #' @export pointLik
 pointLik <- function(object, ...) UseMethod("pointLik")
@@ -208,7 +208,7 @@ pointLik.default <- function(object, ...){
 #' @export
 pointLik.alm <- function(object, ...){
     distribution <- object$distribution;
-    y <- getResponse(object);
+    y <- actuals(object);
     ot <- y!=0;
     if(is.alm(object$occurrence)){
         y <- y[ot];
@@ -300,7 +300,7 @@ pAIC <- function(object, ...) UseMethod("pAIC")
 #' @export
 pAIC.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(2 * k - 2 * obs * pointLik(object));
 }
 
@@ -311,7 +311,7 @@ pAICc <- function(object, ...) UseMethod("pAICc")
 #' @export
 pAICc.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(2 * k - 2 * obs * pointLik(object) + 2 * k * (k + 1) / (obs - k - 1));
 }
 
@@ -322,7 +322,7 @@ pBIC <- function(object, ...) UseMethod("pBIC")
 #' @export
 pBIC.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(log(obs) * k - 2 * obs * pointLik(object));
 }
 
@@ -333,12 +333,57 @@ pBICc <- function(object, ...) UseMethod("pBICc")
 #' @export
 pBICc.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return((k * log(obs) * obs) / (obs - k - 1)  - 2 * obs * pointLik(object));
 }
 
 
 #### Coefficients and extraction functions ####
+
+#' Function extracts the actual values from the function
+#'
+#' This is a simple method that returns the values of the reponse variable of the model
+#'
+#' @template author
+#'
+#' @param object Model estimated using one of the functions of smooth package.
+#' @param ... A parameter all can also be provided here. If it is \code{FALSE}, then
+#' in the case of occurrence model, only demand sizes will be returned. Works only with
+#' 'alm' class.
+#' @return The vector of the response variable.
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' ourModel <- stepwise(xreg)
+#'
+#' actuals(ourModel)
+#'
+#' @rdname actuals
+#' @export
+actuals <- function(object, ...) UseMethod("actuals")
+
+#' @rdname actuals
+#' @export
+actuals.default <- function(object, ...){
+    return(object$y);
+}
+
+#' @rdname actuals
+#' @export
+actuals.alm <- function(object, ...){
+    ellipsis <- list(...);
+    returnValues <- rep(TRUE,nobs(object,all=TRUE));
+    if(!is.null(ellipsis$all) && !ellipsis$all){
+        returnValues[] <- object$data[,1]!=0;
+    }
+
+    return(object$data[returnValues,1]);
+}
+
+
 #' @importFrom stats coef
 #' @export
 coef.greybox <- function(object, ...){
@@ -644,9 +689,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         else if(interval=="c"){
             greyboxForecast$lower <- (greyboxForecast$mean + qt(levelLow,df=object$df.residual)*
-                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
+                                          sqrt(greyboxForecast$variances/nobs(object)));
             greyboxForecast$upper <- (greyboxForecast$mean + qt(levelUp,df=object$df.residual)*
-                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
+                                          sqrt(greyboxForecast$variances/nobs(object)));
         }
     }
     else if(object$distribution=="plogis"){
@@ -894,14 +939,19 @@ forecast.alm <- function(object, newdata, ...){
     return(predict(object, newdata, ...));
 }
 
-#' @importFrom forecast getResponse
+#' @importFrom stats nobs fitted
 #' @export
-getResponse.greybox <- function(object, ...){
-    responseVariable <- object$data[,1];
-    return(responseVariable);
+nobs.alm <- function(object, ...){
+    ellipsis <- list(...);
+    if(!is.null(ellipsis$all) && ellipsis$all){
+        returnValue <- nobs.greybox(object);
+    }
+    else{
+        returnValue <- sum(object$data[,1]!=0);
+    }
+    return(returnValue);
 }
 
-#' @importFrom stats nobs fitted
 #' @export
 nobs.greybox <- function(object, ...){
     return(length(fitted(object)));
@@ -919,7 +969,7 @@ nobs.varest <- function(object, ...){
 #' This is a very basic and a simple function which does what it says:
 #' extracts number of parameters in the estimated model.
 #'
-#' @aliases nParam
+#' @aliases nparam
 #' @param object Time series model.
 #' @param ... Some other parameters passed to the method.
 #' @return This function returns a numeric value.
@@ -934,44 +984,47 @@ nobs.varest <- function(object, ...){
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #' ourModel <- lm(y~.,data=as.data.frame(xreg))
 #'
-#' nParam(ourModel)
+#' nparam(ourModel)
 #'
 #' @importFrom stats coef
-#' @export nParam
-nParam <- function(object, ...) UseMethod("nParam")
+#' @export nparam
+nparam <- function(object, ...) UseMethod("nparam")
+
+##### nParam is a temporary thing, until the method is updated in smooth #####
+nParam <- function(object, ...) UseMethod("nparam")
 
 #' @export
-nParam.default <- function(object, ...){
+nparam.default <- function(object, ...){
     # The length of the vector of parameters + variance
     return(length(coef(object))+1);
 }
 
 #' @export
-nParam.alm <- function(object, ...){
+nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
-    if(!is.null(object$occurrence)){
-        return(object$df+object$occurrence$df);
-    }
-    else{
+    # if(!is.null(object$occurrence)){
+    #     return(object$df+object$occurrence$df);
+    # }
+    # else{
         return(object$df);
-    }
+    # }
 }
 
 #' @export
-nParam.logLik <- function(object, ...){
+nparam.logLik <- function(object, ...){
     # The length of the vector of parameters + variance
     return(attributes(object)$df);
 }
 
 #' @export
-nParam.greyboxC <- function(object, ...){
+nparam.greyboxC <- function(object, ...){
     # The length of the vector of parameters + variance
     return(sum(object$importance)+1);
 }
 
 #' @export
-nParam.varest <- function(object, ...){
-    ### This is the nParam per series
+nparam.varest <- function(object, ...){
+    ### This is the nparam per series
     # Parameters in all the matrices + the elements of the covariance matrix
     return(nrow(coef(object)[[1]])*object$K + 0.5*object$K*(object$K+1));
 }
@@ -1033,7 +1086,7 @@ plot.greybox <- function(x, ...){
         ellipsis$ylab <- all.vars(x$call$formula)[1];
     }
 
-    ellipsis$x <- getResponse(x);
+    ellipsis$x <- actuals(x);
     if(is.alm(x)){
         if(any(x$distribution==c("plogis","pnorm"))){
             ellipsis$x <- (ellipsis$x!=0)*1;
@@ -1054,7 +1107,7 @@ plot.greybox <- function(x, ...){
 
 #' @export
 plot.predict.greybox <- function(x, ...){
-    yActuals <- getResponse(x$model);
+    yActuals <- actuals(x$model);
     yStart <- start(yActuals);
     yFrequency <- frequency(yActuals);
     yForecastStart <- time(yActuals)[length(yActuals)]+deltat(yActuals);
@@ -1402,7 +1455,7 @@ print.rollingOrigin <- function(x, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, ...){
-    return(sqrt(sum(residuals(object)^2)/nobs(object)));
+    return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
 }
 
 #' @export
@@ -1411,7 +1464,7 @@ sigma.alm <- function(object, ...){
         return(object$scale);
     }
     else{
-        return(sigma.greybox(object));
+        return(sigma.greybox(object, ...));
     }
 }
 
@@ -1423,7 +1476,7 @@ sigma.ets <- function(object, ...){
 #' @export
 sigma.varest <- function(object, ...){
     # OLS estimate of Sigma, without the covariances
-    return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nParam(object)+object$K));
+    return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nparam(object)+object$K));
 }
 
 #' @export
@@ -1447,7 +1500,7 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
 
@@ -1476,7 +1529,7 @@ summary.greybox <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
 
@@ -1507,11 +1560,11 @@ summary.greyboxC <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
+    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    dfTable <- c(nobs(object), nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
@@ -1547,18 +1600,18 @@ summary.greyboxD <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
+    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    dfTable <- c(nobs(object), nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
-                                nobs=nobs(object), nParam=nParam(object), dfTable=dfTable),
+                                nobs=nobs(object), nparam=nparam(object), dfTable=dfTable),
                            class="summary.greyboxC");
     return(ourReturn);
 }

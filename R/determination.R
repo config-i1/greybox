@@ -70,14 +70,14 @@ determination <- function(xreg, bruteForce=TRUE, ...){
         testXreg <- xreg;
         testModel <- suppressWarnings(stepwise(testXreg));
         vectorCorrelationsMultiple[1] <- determinationCalculator(residuals(testModel),
-                                                                 getResponse(testModel));
+                                                                 actuals(testModel));
         for(i in 2:nVariables){
             testXreg[] <- xreg;
             testXreg[,1] <- xreg[,i];
             testXreg[,i] <- xreg[,1];
             testModel <- suppressWarnings(stepwise(testXreg));
             vectorCorrelationsMultiple[i] <- determinationCalculator(residuals(testModel),
-                                                                     getResponse(testModel));
+                                                                     actuals(testModel));
         }
     }
     else{

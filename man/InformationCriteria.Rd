@@ -38,8 +38,8 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 
 ourModel <- stepwise(xreg)
 
-AICc(ourModel,h=10)
-BICc(ourModel,h=10)
+AICc(ourModel)
+BICc(ourModel)
 
 }
 \references{

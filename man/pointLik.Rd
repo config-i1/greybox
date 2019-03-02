@@ -36,13 +36,13 @@ ourModel <- alm(y~x1+x2,as.data.frame(xreg))
 pointLik(ourModel)
 
 # Bias correction
-pointLik(ourModel) - nParam(ourModel)
+pointLik(ourModel) - nparam(ourModel)
 
 # Bias correction in AIC style
-2*(nParam(ourModel)/nobs(ourModel) - pointLik(ourModel))
+2*(nparam(ourModel)/nobs(ourModel) - pointLik(ourModel))
 
 # BIC calculation based on pointLik
-log(nobs(ourModel))*nParam(ourModel) - 2*sum(pointLik(ourModel))
+log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
 
 }
 \seealso{

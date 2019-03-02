@@ -201,7 +201,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Name of the response
     responseName <- as.character(cl$formula[[2]]);
-    y <- as.matrix(data[,responseName]);
+    y <- as.matrix(data[rowsSelected,responseName]);
     colnames(y) <- responseName;
 
     # Check whether it is possible to do bruteForce
