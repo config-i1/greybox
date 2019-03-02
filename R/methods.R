@@ -986,11 +986,13 @@ nobs.varest <- function(object, ...){
 #'
 #' nparam(ourModel)
 #'
+#' @rdname nparam
 #' @importFrom stats coef
 #' @export nparam
 nparam <- function(object, ...) UseMethod("nparam")
 
 ##### nParam is a temporary thing, until the method is updated in smooth #####
+#' @rdname nparam
 #' @export
 nParam <- function(object, ...) UseMethod("nparam")
 
