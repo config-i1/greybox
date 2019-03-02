@@ -991,6 +991,7 @@ nobs.varest <- function(object, ...){
 nparam <- function(object, ...) UseMethod("nparam")
 
 ##### nParam is a temporary thing, until the method is updated in smooth #####
+#' @export
 nParam <- function(object, ...) UseMethod("nparam")
 
 #' @export
