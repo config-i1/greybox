@@ -682,12 +682,11 @@ alm <- function(formula, data, subset, na.action,
 
         if(any(distribution==c("dchisq","dpois","dnbinom","plogis","pnorm"))){
             maxeval <- 500;
-            algorithm <- "NLOPT_LN_BOBYQA";
         }
         else{
             maxeval <- 100;
-            algorithm <- "NLOPT_LN_SBPLX";
         }
+        algorithm <- "NLOPT_LN_SBPLX";
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
@@ -792,8 +791,8 @@ alm <- function(formula, data, subset, na.action,
                        "dt" =,
                        "ds" =,
                        "dnorm" =,
-                       "dpois" =,
-                       "dnbinom" = y - mu,
+                       "dnbinom" =,
+                       "dpois" = y - mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm"= log(y) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
