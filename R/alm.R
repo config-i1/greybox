@@ -605,6 +605,10 @@ alm <- function(formula, data, subset, na.action,
         return(CFReturn);
     }
 
+    CFGrad <- function(B, distribution, y, matrixXreg){
+        return(numDeriv::grad(CF, x=B, distribution=distribution, y=y, matrixXreg=matrixXreg));
+    }
+
     #### Estimate parameters of the model ####
     if(is.null(B)){
         if(any(distribution==c("dlnorm","dpois","dnbinom"))){
@@ -678,14 +682,16 @@ alm <- function(formula, data, subset, na.action,
 
         if(any(distribution==c("dchisq","dpois","dnbinom","plogis","pnorm"))){
             maxeval <- 500;
+            algorithm <- "NLOPT_LN_BOBYQA";
         }
         else{
             maxeval <- 100;
+            algorithm <- "NLOPT_LN_SBPLX";
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
-                      opts=list("algorithm"="NLOPT_LN_SBPLX", xtol_rel=1e-6, maxeval=maxeval, print_level=0),
+                      opts=list("algorithm"=algorithm, xtol_rel=1e-6, maxeval=maxeval, print_level=0),
                       lb=BLower, ub=BUpper,
                       distribution=distribution, y=y, matrixXreg=matrixXreg);
         B[] <- res$solution;
@@ -933,7 +939,10 @@ alm <- function(formula, data, subset, na.action,
         dataWork <- eval(mf, parent.frame());
         dataWork <- model.matrix(dataWork,data=dataWork);
         if(interceptIsNeeded){
+            # This shit is needed, because R has habit of converting everything into vectors...
+            variablesNamesProxy <- colnames(dataWork);
             dataWork <- cbind(y,dataWork[,-1]);
+            colnames(dataWork) <- variablesNamesProxy;
             variablesUsed <- variablesNames[variablesNames!="(Intercept)"];
         }
         else{

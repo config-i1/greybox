@@ -111,7 +111,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         if(any(occurrence==c("plogis","pnorm"))){
             useALM <- TRUE;
-            rowsSelected <- rowsSelected | (data[,1]!=0);
+            rowsSelected <- rowsSelected & (data[,1]!=0);
         }
     }
 
@@ -189,7 +189,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     variablesNames <- variablesNames[-1];
 
     # Define, which of the variables are factors, excluding the response variable
-    numericData <- sapply(listToCall$data, is.numeric)[-1];
+    numericData <- sapply(listToCall$data, is.numeric)[-1]
+    # If the value is binary, treat it as a factor # & apply(listToCall$data!=0 & listToCall$data!=1,2,any)[-1];
 
     #### The function-analogue of mcor, but without checks ####
     mcorFast <- function(x){
@@ -205,11 +206,12 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     #### The function that works similar to association(), but faster ####
     assocFast <- function(){
         # Measures of association with numeric data
-        assocValues[which(numericData)] <- cor(errors,listToCall$data[,which(numericData)+1],use="complete.obs",method=method);
+        assocValues[which(numericData)] <- suppressWarnings(cor(errors,listToCall$data[,which(numericData)+1],
+                                                                use="complete.obs",method=method));
 
         # Measures of association with categorical data
         for(i in which(!numericData)+1){
-            assocValues[i-1] <- mcorFast(listToCall$data[[i]]);
+            assocValues[i-1] <- suppressWarnings(mcorFast(listToCall$data[[i]]));
         }
         return(assocValues);
     }
@@ -259,7 +261,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     while(bestICNotFound){
         ourCorrelation <- assocFast();
 
-        newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1]];
+        newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation),na.rm=TRUE))[1]];
         # If the newElement is the same as before, stop
         if(any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
@@ -342,7 +344,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel <- do.call("alm", list(formula=bestFormula,
                                          data=dataSubstitute,
                                          distribution=distribution,
-                                         occurrence=occurrence),
+                                         occurrence=occurrence,
+                                         checks=FALSE),
                              envir = parent.frame());
         bestModel$call$occurrence <- substitute(occurrence);
         class(bestModel) <- c("alm","greybox");
