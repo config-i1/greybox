@@ -189,36 +189,37 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
 
     #### Fit the model ####
     # This is the model used for the confidence intervals calculation
+    # And the one needed for the importance and the p-value of the model
     if(distribution=="dnorm"){
         lmModel <- .lm.fit(dataNew[,-1], dataNew[,1]);
         lmModel$xreg <- dataNew[,-1];
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
+
+        lmModel$fitted.values <- dataNew[,1] - resid(lmModel);
+
+        lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
+        lmModel2$df.residual <- obsAll - 1;
+        class(lmModel2) <- c("lmGreybox","lm");
     }
     else if(distribution=="dlnorm"){
         lmModel <- .lm.fit(dataNew[,-1], log(dataNew[,1]));
         lmModel$xreg <- dataNew[,-1];
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
-    }
-    else{
-        lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
-    }
 
-    # Stuff needed for the importance and the p-value of the model
-    if(distribution=="dnorm"){
-        lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
-        lmModel2$df.residual <- obsAll - 1;
-        class(lmModel2) <- c("lmGreybox","lm");
-    }
-    else if(distribution=="dlnorm"){
+        lmModel$fitted.values <- log(dataNew[,1]) - resid(lmModel);
+
         lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), log(dataNew[,1]));
         lmModel2$df.residual <- obsAll - 1;
         class(lmModel2) <- c("lmGreybox","lm");
     }
     else{
+        lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
+
         lmModel2 <- alm(y~1,data=dataNew[,-2], distribution=distribution, checks=FALSE);
     }
+
     # Remove dataNew in order to preserve memory
     rm(dataNew);
 
