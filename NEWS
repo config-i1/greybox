@@ -1,4 +1,4 @@
-greybox v0.4.2 (Release data: 2019-03-01)
+greybox v0.4.2 (Release data: 2019-03-08)
 ==============
 
 Changes:
@@ -14,6 +14,8 @@ Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
 * Annoying bug with occurrence!="none" models and factors.
 * lmCombine and lmDynamic did not work correctly with NAs.
+* alm produced errors for simple regressions and occurrence.
+* stepwise would produce errors, when there was no variability in the data.
 
 
 greybox v0.4.1 (Release data: 2019-01-27)
