@@ -20,7 +20,6 @@ License: GPL (>=2)
 Depends:
     R (>= 3.0.2)
 Imports:
-    Rcpp (>= 0.12.3),
     forecast,
     stats,
     graphics,
