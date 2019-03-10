@@ -17,11 +17,13 @@
 #' mean lags, positive ones mean leads.
 #' @param silent If \code{silent=FALSE}, then the progress is printed out.
 #' Otherwise the function won't print anything in the console.
-#' @param extrapolate If \code{TRUE}, then the missing values will be
-#' extrapolated either using Naive or using es() / iss() functions from
-#' smooth package (if installed). By default the function will decide on
-#' its own, based on the sample size (if it is >10k obs, then it won't
-#' extrapolate).
+#' @param gaps Defines how to fill in the gaps in the data. \code{"NAs"} will
+#' leave missing values, \code{"zero"} will substitute them by zeroes,
+#' \code{"naive"} will use the last / the first actual value, while
+#' \code{"extrapolate"} will use \link[smooth]{es} function from smooth package
+#' (if present, otherwise - naive) in order to fill in values. Finally,
+#' \code{"auto"} will let the function select between \code{"extrapolate"} and
+#' \code{"NAs"} depending on the length of series.
 #'
 #' @return \code{ts} matrix with the expanded variables is returned.
 #'
@@ -39,9 +41,9 @@
 #' @export xregExpander
 
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
-                         silent=TRUE, extrapolate=c(NULL,TRUE,FALSE)){
+                         silent=TRUE, gaps=c("auto","NAs","zero","naive","extrapolate")){
 
-    extrapolate <- extrapolate[1];
+    gaps <- substr(gaps[1],1,1);
 
     lagsOriginal <- lags;
     # Remove zero from lags
@@ -101,13 +103,20 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
         }
         obs <- nrow(xreg);
 
-        if(is.null(extrapolate)){
+        # If the auto for filling the gaps is selected
+        if(gaps=="a"){
             if(obs > 10000){
                 extrapolate <- FALSE;
             }
             else{
                 extrapolate <- TRUE;
             }
+        }
+        else if(gaps=="N"){
+            extrapolate <- FALSE;
+        }
+        else{
+            extrapolate <- TRUE;
         }
 
         nExovars <- ncol(xreg);
@@ -132,8 +141,11 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                 if(extrapolate){
                     # Produce forecasts for leads
                     # If this is a binary variable, use iss function.
-                    if(!requireNamespace("smooth", quietly = TRUE)){
+                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="n"){
                         xregDataNew <- c(xregData,rep(xregData[obs],maxLead));
+                    }
+                    else if(gaps=="z"){
+                        xregDataNew <- c(xregData,rep(0,maxLead));
                     }
                     else{
                         if(all((xregData==0) | (xregData==1))){
@@ -146,14 +158,17 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                     }
                 }
                 else{
-                        xregDataNew <- c(xregData,rep(NA,maxLead));
+                    xregDataNew <- c(xregData,rep(NA,maxLead));
                 }
             }
             if(lagsLength!=0){
                 if(extrapolate){
                     # Produce reversed forecasts for lags
-                    if(!requireNamespace("smooth", quietly = TRUE)){
-                        xregDataNew <- c(rep(xregData[1],maxLag),xregData);
+                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="n"){
+                        xregDataNew <- c(rep(xregData[1],maxLag),xregDataNew);
+                    }
+                    else if(gaps=="z"){
+                        xregDataNew <- c(rep(0,maxLag),xregDataNew);
                     }
                     else{
                         if(leadsLength!=0){

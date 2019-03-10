@@ -196,7 +196,7 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
 
-        lmModel$fitted.values <- dataNew[,1] - resid(lmModel);
+        lmModel$fitted.values <- dataNew[,1] - residuals(lmModel);
 
         lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
         lmModel2$df.residual <- obsAll - 1;
@@ -208,7 +208,7 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
 
-        lmModel$fitted.values <- log(dataNew[,1]) - resid(lmModel);
+        lmModel$fitted.values <- log(dataNew[,1]) - residuals(lmModel);
 
         lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), log(dataNew[,1]));
         lmModel2$df.residual <- obsAll - 1;
