@@ -297,6 +297,9 @@ alm <- function(formula, data, subset, na.action,
     if(arOrder>0){
         poly1 <- rep(1,arOrder+1);
     }
+    else{
+        poly1 <- c(1,1);
+    }
 
     #### Form the necessary matrices ####
     # Call similar to lm in order to form appropriate data.frame
@@ -585,6 +588,9 @@ alm <- function(formula, data, subset, na.action,
         else if(iOrder>0){
             B <- c(B, -poly2[-1]);
         }
+        else if(arOrder>0){
+            poly1[-1] <- -B[(nVariables-arOrder+1):nVariables];
+        }
 
         mu[] <- switch(distribution,
                        "dpois" =,
@@ -621,7 +627,7 @@ alm <- function(formula, data, subset, na.action,
                         "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2))
         );
 
-        return(list(mu=mu,scale=scale,other=other));
+        return(list(mu=mu,scale=scale,other=other,poly1=poly1));
     }
 
     CF <- function(B, distribution, y, matrixXreg){
@@ -652,6 +658,11 @@ alm <- function(formula, data, subset, na.action,
             CFReturn <- 1E+300;
         }
 
+        # Check the roots of polynomials
+        if(arOrder>0 && any(abs(polyroot(fitterReturn$poly1))<1)){
+            CFReturn <- CFReturn / min(abs(polyroot(fitterReturn$poly1)));
+        }
+
         return(CFReturn);
     }
 
@@ -664,28 +675,35 @@ alm <- function(formula, data, subset, na.action,
             # Get rid of "ts" class
             class(ariElements) <- "matrix";
             ariNames <- paste0(responseName,"Lag",c(1:ariOrder));
+            ariTransformedNames <- ariNames;
             colnames(ariElements) <- ariNames;
 
             if(ar>0){
                 arNames <- paste0(responseName,"Lag",c(1:ar));
                 variablesNames <- c(variablesNames,arNames);
             }
+            else{
+                arNames <- vector("character",0);
+            }
             nVariables <- nVariables + arOrder;
             # Write down the values for the matrixXreg in the necessary transformations
-            if(any(distribution==c("dlnorm","dpois","dnbinom","plogis","pnorm"))){
+            if(any(distribution==c("dlnorm","dpois","dnbinom"))){
                 if(any(y==0)){
                     # Use Box-Cox if there are zeroes
                     ariElements[] <- (ariElements^0.01-1)/0.01;
-                    colnames(ariElements) <- paste0(ariNames,"Box-Cox");
+                    ariTransformedNames <- paste0(ariNames,"Box-Cox");
+                    colnames(ariElements) <- ariTransformedNames;
                 }
                 else{
                     ariElements[] <- log(ariElements);
-                    colnames(ariElements) <- paste0(ariNames,"Log");
+                    ariTransformedNames <- paste0(ariNames,"Log");
+                    colnames(ariElements) <- ariTransformedNames;
                 }
             }
             else if(distribution=="dchisq"){
                 ariElements[] <- sqrt(ariElements);
-                colnames(ariElements) <- paste0(ariNames,"Sqrt");
+                ariTransformedNames <- paste0(ariNames,"Sqrt");
+                colnames(ariElements) <- ariTransformedNames;
             }
 
             matrixXreg <- cbind(matrixXreg, ariElements);
@@ -1047,8 +1065,8 @@ alm <- function(formula, data, subset, na.action,
         dataWork <- model.matrix(dataWork,data=dataWork);
 
         # Add AR elements if needed
-        if(arOrder!=0){
-            ariMatrix <- matrix(0, nrow(dataWork), ariOrder, dimnames=list(NULL, ariNames));
+        if(ariOrder!=0){
+            ariMatrix <- matrix(0, nrow(dataWork), ariOrder, dimnames=list(NULL, ariTransformedNames));
             ariMatrix[ot,] <- ariElements;
             dataWork <- cbind(dataWork,ariMatrix);
         }
@@ -1061,6 +1079,12 @@ alm <- function(formula, data, subset, na.action,
         else{
             dataWork <- cbind(y,dataWork);
             variablesUsed <- variablesNames;
+        }
+
+        # Change the names of variables used, if ARI was constructed.
+        if(ariOrder>0){
+            variablesUsed <- variablesUsed[!(variablesUsed %in% arNames)];
+            variablesUsed <- c(variablesUsed,ariTransformedNames);
         }
         colnames(dataWork)[1] <- responseName;
         dataWork <- dataWork[,c(responseName, variablesUsed)]

@@ -930,7 +930,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
     side <- substr(side[1],1,1);
 
-    y <- actuals(object);
+    y <- actuals(object, all=FALSE);
 
     # Write down the AR order
     if(is.null(object$call$ar)){
@@ -1036,8 +1036,8 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     }
 
     # Transform the lagged response variables
-    if(any(object$distribution==c("dlnorm","dpois","dnbinom","plogis","pnorm"))){
-        if(any(y==0)){
+    if(any(object$distribution==c("dlnorm","dpois","dnbinom"))){
+        if(any(y==0) & !is.alm(object$occurrence)){
             # Use Box-Cox if there are zeroes
             matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
             colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
