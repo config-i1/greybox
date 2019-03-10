@@ -7,8 +7,8 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
   "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
-  "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, checks = TRUE,
-  ...)
+  "plogis", "pnorm"), ar = 0, i = 0, B = NULL, vcovProduce = FALSE,
+  checks = TRUE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -42,6 +42,12 @@ its estimates will be used in the model construction.
 If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 (excluding zeroes from the data).}
+
+\item{ar}{the order of AR to include in the model. Only non-seasonal
+orders are accepted.}
+
+\item{i}{the order of I to include in the model. Only non-seasonal
+orders are accepted.}
 
 \item{B}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
@@ -154,6 +160,10 @@ ourModel <- alm(y~x1+x2, inSample, distribution="dalaplace")
 summary(ourModel)
 plot(predict(ourModel,outSample))
 
+# An example with AR(1) order
+ourModel <- alm(y~x1+x2, inSample, distribution="dnorm", ar=1)
+summary(ourModel)
+plot(predict(ourModel,outSample))
 
 ### Examples with the count data
 xreg[,1] <- round(exp(xreg[,1]-70),0)

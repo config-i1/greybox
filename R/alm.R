@@ -62,6 +62,10 @@
 #' If this is not \code{"none"}, then the model is estimated
 #' in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 #' (excluding zeroes from the data).
+#' @param ar the order of AR to include in the model. Only non-seasonal
+#' orders are accepted.
+#' @param i the order of I to include in the model. Only non-seasonal
+#' orders are accepted.
 #' @param B vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
 #' @param vcovProduce whether to produce variance-covariance matrix of
@@ -137,6 +141,10 @@
 #' summary(ourModel)
 #' plot(predict(ourModel,outSample))
 #'
+#' # An example with AR(1) order
+#' ourModel <- alm(y~x1+x2, inSample, distribution="dnorm", ar=1)
+#' summary(ourModel)
+#' plot(predict(ourModel,outSample))
 #'
 #' ### Examples with the count data
 #' xreg[,1] <- round(exp(xreg[,1]-70),0)
@@ -182,6 +190,7 @@ alm <- function(formula, data, subset, na.action,
                                "dbeta",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
+                ar=0, i=0,
                 B=NULL, vcovProduce=FALSE, checks=TRUE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
@@ -264,6 +273,31 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
+    arOrder <- ar;
+    iOrder <- i;
+    # Check AR, I and form ARI order
+    if(length(arOrder)>1){
+        warning("ar must be a scalar, not a vector. Using the first value.", call.=FALSE);
+        arOrder <- arOrder[1];
+    }
+    if(length(iOrder)>1){
+        warning("i must be a scalar, not a vector. Using the first value.", call.=FALSE);
+        iOrder <- iOrder[1];
+    }
+    ariOrder <- arOrder + iOrder;
+    # Create polynomials for the i and ar orders
+    if(iOrder>0){
+        poly2 <- c(1,-1);
+        if(iOrder>1){
+            for(j in 1:(iOrder-1)){
+                poly2 <- polyprod(poly2,c(1,-1));
+            }
+        }
+    }
+    if(arOrder>0){
+        poly1 <- rep(1,arOrder+1);
+    }
+
     #### Form the necessary matrices ####
     # Call similar to lm in order to form appropriate data.frame
     mf <- match.call(expand.dots = FALSE);
@@ -324,9 +358,9 @@ alm <- function(formula, data, subset, na.action,
 
     if(interceptIsNeeded){
         variablesNames <- colnames(dataWork)[-1];
-        matrixXreg <- as.matrix(dataWork[,-1]);
+        matrixXreg <- as.matrix(dataWork[,-1,drop=FALSE]);
         # Include response to the data
-        dataWork <- cbind(y,dataWork[,-1]);
+        dataWork <- cbind(y,dataWork[,-1,drop=FALSE]);
     }
     else{
         variablesNames <- colnames(dataWork);
@@ -537,6 +571,21 @@ alm <- function(formula, data, subset, na.action,
             other <- NULL;
         }
 
+        # If there is ARI, then calculate polynomials
+        if(all(c(arOrder,iOrder)>0)){
+            poly1[-1] <- -B[(nVariables-arOrder+1):nVariables];
+            # This condition is needed for cases of only ARI models
+            if(nVariables>arOrder){
+                B <- c(B[1:(nVariables-arOrder)], -polyprod(poly2,poly1)[-1]);
+            }
+            else{
+                B <- -polyprod(poly2,poly1)[-1];
+            }
+        }
+        else if(iOrder>0){
+            B <- c(B, -poly2[-1]);
+        }
+
         mu[] <- switch(distribution,
                        "dpois" =,
                        "dnbinom" = exp(matrixXreg %*% B),
@@ -568,7 +617,8 @@ alm <- function(formula, data, subset, na.action,
                         "dnbinom" = abs(other),
                         "dpois" = mu,
                         "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
-                        "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2)) # Here we use the proxy from Svetunkov et al. (2018)
+                        # Here we use the proxy from Svetunkov et al. (2018)
+                        "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))^2))
         );
 
         return(list(mu=mu,scale=scale,other=other));
@@ -605,12 +655,43 @@ alm <- function(formula, data, subset, na.action,
         return(CFReturn);
     }
 
-    CFGrad <- function(B, distribution, y, matrixXreg){
-        return(numDeriv::grad(CF, x=B, distribution=distribution, y=y, matrixXreg=matrixXreg));
-    }
-
     #### Estimate parameters of the model ####
     if(is.null(B)){
+        #### Add AR and I elements in the regression ####
+        # This is only done, if the regression is estimated. In the other cases it will already have the expanded values
+        if(ariOrder!=0){
+            ariElements <- xregExpander(y, lags=-c(1:ariOrder))[,-1,drop=FALSE];
+            # Get rid of "ts" class
+            class(ariElements) <- "matrix";
+            ariNames <- paste0(responseName,"Lag",c(1:ariOrder));
+            colnames(ariElements) <- ariNames;
+
+            if(ar>0){
+                arNames <- paste0(responseName,"Lag",c(1:ar));
+                variablesNames <- c(variablesNames,arNames);
+            }
+            nVariables <- nVariables + arOrder;
+            # Write down the values for the matrixXreg in the necessary transformations
+            if(any(distribution==c("dlnorm","dpois","dnbinom","plogis","pnorm"))){
+                if(any(y==0)){
+                    # Use Box-Cox if there are zeroes
+                    ariElements[] <- (ariElements^0.01-1)/0.01;
+                    colnames(ariElements) <- paste0(ariNames,"Box-Cox");
+                }
+                else{
+                    ariElements[] <- log(ariElements);
+                    colnames(ariElements) <- paste0(ariNames,"Log");
+                }
+            }
+            else if(distribution=="dchisq"){
+                ariElements[] <- sqrt(ariElements);
+                colnames(ariElements) <- paste0(ariNames,"Sqrt");
+            }
+
+            matrixXreg <- cbind(matrixXreg, ariElements);
+            dataWork <- cbind(dataWork, ariElements);
+        }
+
         if(any(distribution==c("dlnorm","dpois","dnbinom"))){
             if(any(y==0)){
                 # Use Box-Cox if there are zeroes
@@ -680,6 +761,12 @@ alm <- function(formula, data, subset, na.action,
             BUpper <- rep(Inf,length(B));
         }
 
+        if(iOrder>0){
+            B <- B[1:nVariables];
+            BLower <- BLower[1:nVariables];
+            BUpper <- BUpper[1:nVariables];
+        }
+
         if(any(distribution==c("dchisq","dpois","dnbinom","plogis","pnorm"))){
             maxeval <- 500;
         }
@@ -696,8 +783,29 @@ alm <- function(formula, data, subset, na.action,
         B[] <- res$solution;
 
         CFValue <- res$objective;
+
+        # If there were ARI, write down the polynomial
+        if(ariOrder>0){
+            if(all(c(arOrder,iOrder)>0)){
+                poly1[-1] <- -B[(nVariables-arOrder+1):nVariables];
+                ellipsis$polynomial <- -polyprod(poly2,poly1)[-1];
+                ellipsis$arima <- c(arOrder,iOrder,0);
+            }
+            else if(iOrder>0){
+                ellipsis$polynomial <- -poly2[-1];
+                ellipsis$arima <- c(0,iOrder,0);
+            }
+            else{
+                ellipsis$polynomial <- B[(nVariables-arOrder+1):nVariables];
+                ellipsis$arima <- c(arOrder,0,0);
+            }
+            names(ellipsis$polynomial) <- ariNames;
+            ellipsis$arima <- paste0("ARIMA(",paste0(ellipsis$arima,collapse=","),")");
+        }
     }
     else{
+        nVariables <- length(B);
+        variablesNames <- names(B);
         CFValue <- CF(B, distribution, y, matrixXreg);
     }
 
@@ -743,26 +851,6 @@ alm <- function(formula, data, subset, na.action,
         names(B) <- variablesNames;
     }
 
-    # Parameters of the model + scale
-    nParam <- nVariables + 1;
-
-    if(distribution=="dalaplace"){
-        if(!aParameterProvided){
-            nParam <- nParam + 1;
-        }
-    }
-    else if(any(distribution==c("dnbinom","dchisq","dfnorm"))){
-        if(aParameterProvided){
-            nParam <- nParam - 1;
-        }
-    }
-    else if(distribution=="dbeta"){
-        nParam <- nVariables*2;
-        if(!vcovProduce){
-            nVariables <- nVariables*2;
-        }
-    }
-
     ### Fitted values in the scale of the original variable
     yFitted[] <- switch(distribution,
                        "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
@@ -799,6 +887,26 @@ alm <- function(formula, data, subset, na.action,
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );
 
+    # Parameters of the model + scale
+    nParam <- nVariables + 1;
+
+    if(distribution=="dalaplace"){
+        if(!aParameterProvided){
+            nParam <- nParam + 1;
+        }
+    }
+    else if(any(distribution==c("dnbinom","dchisq","dfnorm"))){
+        if(aParameterProvided){
+            nParam <- nParam - 1;
+        }
+    }
+    else if(distribution=="dbeta"){
+        nParam <- nVariables*2;
+        if(!vcovProduce){
+            nVariables <- nVariables*2;
+        }
+    }
+
     # If we had huge numbers for cumulative models, fix errors and scale
     if(any(distribution==c("plogis","pnorm")) & any(is.nan(errors))){
         errorsNaN <- is.nan(errors);
@@ -833,8 +941,8 @@ alm <- function(formula, data, subset, na.action,
         if(distribution=="dpois"){
             # Produce analytical hessian for Poisson distribution
             vcovMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * mu[1];
-            for(i in 2:obsInsample){
-                vcovMatrix <- vcovMatrix + matrixXreg[i,] %*% t(matrixXreg[i,]) * mu[i];
+            for(j in 2:obsInsample){
+                vcovMatrix <- vcovMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * mu[j];
             }
         }
         else{
@@ -916,7 +1024,7 @@ alm <- function(formula, data, subset, na.action,
         dataNew[,all.vars(formula)[1]] <- (ot)*1;
 
         if(!occurrenceProvided){
-            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence));
+            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
         }
 
         # Corrected fitted (with zeroes, when y=0)
@@ -937,11 +1045,17 @@ alm <- function(formula, data, subset, na.action,
         # Form the final dataWork in order to return it in the data.
         dataWork <- eval(mf, parent.frame());
         dataWork <- model.matrix(dataWork,data=dataWork);
+
+        # Add AR elements if needed
+        if(arOrder!=0){
+            ariMatrix <- matrix(0, nrow(dataWork), ariOrder, dimnames=list(NULL, ariNames));
+            ariMatrix[ot,] <- ariElements;
+            dataWork <- cbind(dataWork,ariMatrix);
+        }
+
         if(interceptIsNeeded){
             # This shit is needed, because R has habit of converting everything into vectors...
-            variablesNamesProxy <- colnames(dataWork);
-            dataWork <- cbind(y,dataWork[,-1]);
-            colnames(dataWork) <- variablesNamesProxy;
+            dataWork <- cbind(y,dataWork[,-1,drop=FALSE]);
             variablesUsed <- variablesNames[variablesNames!="(Intercept)"];
         }
         else{

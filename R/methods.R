@@ -525,7 +525,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     side <- substr(side[1],1,1);
     h <- nrow(newdata);
     levelOriginal <- level;
-    greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
+
+    ariOrderNone <- is.null(object$other$polynomial);
+    if(ariOrderNone){
+        greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
+    }
+    else{
+        greyboxForecast <- predict.almari(object, newdata, interval, level, side=side, ...);
+    }
     greyboxForecast$location <- greyboxForecast$mean;
     greyboxForecast$scale <- sqrt(greyboxForecast$variance);
     greyboxForecast$distribution <- object$distribution;
@@ -862,17 +869,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
-    # In case of greyboxC and greyboxD insert intercept
-    # if(any(is.greyboxC(object),is.greyboxD(object))){
-    #     matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
-    #     if(ncol(matrixOfxreg)==2){
-    #         colnames(matrixOfxreg) <- parametersNames;
-    #     }
-    #     else{
-    #         colnames(matrixOfxreg)[1] <- parametersNames[1];
-    #     }
-    # }
-
     if(any(is.greyboxC(object),is.greyboxD(object))){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
         if(ncol(matrixOfxreg)==2){
@@ -921,6 +917,182 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
             upper <- NULL;
         }
     }
+
+    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
+                     variances=vectorOfVariances, newdataProvided=newdataProvided);
+    return(structure(ourModel,class="predict.greybox"));
+}
+
+# The internal function for the predictions from the model with ARI
+predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+                            level=0.95, side=c("both","upper","lower"), ...){
+    interval <- substr(interval[1],1,1);
+
+    side <- substr(side[1],1,1);
+
+    y <- actuals(object);
+
+    # Write down the AR order
+    if(is.null(object$call$ar)){
+        arOrder <- 0;
+    }
+    else{
+        arOrder <- object$call$ar;
+    }
+
+    ariOrder <- length(object$other$polynomial);
+    ariParameters <- object$other$polynomial;
+    ariNames <- names(ariParameters);
+
+    parameters <- coef.greybox(object);
+    # Split the parameters into normal and polynomial (for ARI)
+    if(arOrder>0){
+        parameters <- parameters[-c(length(parameters)+(1-arOrder):0)];
+    }
+    nonariParametersNumber <- length(parameters);
+    parametersNames <- names(parameters);
+    ourVcov <- vcov(object);
+
+    if(side=="u"){
+        levelLow <- 0;
+        levelUp <- level;
+    }
+    else if(side=="l"){
+        levelLow <- 1-level;
+        levelUp <- 1;
+    }
+    else{
+        levelLow <- (1 - level) / 2;
+        levelUp <- (1 + level) / 2;
+    }
+    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
+
+    if(is.null(newdata)){
+        matrixOfxreg <- object$data;
+        newdataProvided <- FALSE;
+    }
+    else{
+        newdataProvided <- TRUE;
+
+        if(!is.data.frame(newdata)){
+            if(is.vector(newdata)){
+                newdataNames <- names(newdata);
+                newdata <- matrix(newdata, nrow=1, dimnames=list(NULL, newdataNames));
+            }
+            newdata <- as.data.frame(newdata);
+        }
+        else{
+            dataOrders <- unlist(lapply(newdata,is.ordered));
+            # If there is an ordered factor, remove the bloody ordering!
+            if(any(dataOrders)){
+                newdata[dataOrders] <- lapply(newdata[dataOrders],function(x) factor(x, levels=levels(x), ordered=FALSE));
+            }
+        }
+
+        # Extract the formula and get rid of the response variable
+        testFormula <- formula(object)
+        testFormula[[2]] <- NULL;
+        # Expand the data frame
+        newdataExpanded <- model.frame(testFormula, newdata);
+        interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
+        matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
+
+        matrixOfxreg <- matrixOfxreg[,parametersNames];
+    }
+
+    nRows <- nrow(matrixOfxreg);
+
+    if(object$distribution=="dbeta"){
+        parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
+    }
+
+    if(any(is.greyboxC(object),is.greyboxD(object))){
+        matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+        if(ncol(matrixOfxreg)==2){
+            colnames(matrixOfxreg) <- parametersNames;
+        }
+        else{
+            colnames(matrixOfxreg)[1] <- parametersNames[1];
+        }
+        matrixOfxreg <- matrixOfxreg[,parametersNames];
+    }
+
+    if(!is.matrix(matrixOfxreg)){
+        matrixOfxreg <- matrix(matrixOfxreg,ncol=1);
+        nRows <- nrow(matrixOfxreg);
+    }
+
+    if(nRows==1){
+        matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
+    }
+
+    # Add ARI polynomials to the parameters
+    parameters <- c(parameters,ariParameters);
+    matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+
+    # Fill in the tails with the available data
+    for(i in 1:ariOrder){
+        matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+    }
+
+    # Transform the lagged response variables
+    if(any(object$distribution==c("dlnorm","dpois","dnbinom","plogis","pnorm"))){
+        if(any(y==0)){
+            # Use Box-Cox if there are zeroes
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
+        }
+        else{
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- log(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Log");
+        }
+    }
+    else if(object$distribution=="dchisq"){
+        matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+        colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Sqrt");
+    }
+
+    #### Produce forecasts ####
+    # if(object$distribution=="dbeta"){
+    #     # We predict values for shape1 and shape2 and write them down in mean and variance.
+    #     ourForecast <- as.vector(exp(matrixOfxregFull %*% parameters[1:(length(parameters)/2)]));
+    #     vectorOfVariances <- as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))]));
+    #     # ourForecast <- ourForecast / (ourForecast + as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))])));
+    #
+    #     lower <- NULL;
+    #     upper <- NULL;
+    # }
+    # else{
+        # Produce forecasts iteratively
+    ourForecast <- vector("numeric", nRows);
+    for(i in 1:nRows){
+        ourForecast[i] <- matrixOfxregFull[i,] %*% parameters;
+        for(j in 1:ariOrder){
+            if(i+j-1==nRows){
+                break;
+            }
+            matrixOfxregFull[i+j,nonariParametersNumber+j] <- ourForecast[i];
+        }
+    }
+    matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder)];
+
+    # abs is needed for some cases, when the likelihoond was not fully optimised
+    vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
+
+    if(interval=="c"){
+        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+    }
+    else if(interval=="p"){
+        vectorOfVariances <- vectorOfVariances + sigma(object)^2;
+        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+    }
+    else{
+        lower <- NULL;
+        upper <- NULL;
+    }
+    # }
 
     ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
                      variances=vectorOfVariances, newdataProvided=newdataProvided);
@@ -995,6 +1167,12 @@ nparam <- function(object, ...) UseMethod("nparam")
 #' @rdname nparam
 #' @export
 nParam <- function(object, ...) UseMethod("nparam")
+
+#' @export
+nParam.default <- function(object, ...){
+    # The length of the vector of parameters + variance
+    return(nparam(object));
+}
 
 #' @export
 nparam.default <- function(object, ...){
@@ -1136,7 +1314,7 @@ plot.predict.greybox <- function(x, ...){
 
     # Change values of fitted and forecast, depending on whethere there was a newdata or not
     if(x$newdataProvided){
-        yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+        yFitted <- ts(fitted(x$model), start=yStart, frequency=yFrequency);
         yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
         vline <- TRUE;
     }
@@ -1328,6 +1506,9 @@ print.summary.alm <- function(x, ...){
 
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
+    if(!is.null(x$arima)){
+        cat(paste0("\n",x$arima," components were included in the model"));
+    }
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("ICs:\n");
@@ -1367,6 +1548,9 @@ print.summary.greybox <- function(x, ...){
 
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
+    if(!is.null(x$arima)){
+        cat(paste0("\n",x$arima," components were included in the model"));
+    }
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("---\n");
@@ -1506,6 +1690,7 @@ summary.alm <- function(object, level=0.95, ...){
     dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
+    ourReturn$arima <- object$other$arima;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);
@@ -1535,6 +1720,7 @@ summary.greybox <- function(object, level=0.95, ...){
     dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
+    ourReturn$arima <- object$other$arima;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
@@ -1622,13 +1808,19 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    if(any(object$distribution==c("dlnorm","plogis","pnorm"))){
+    # Are i orders provided? If not, use simpler methods for calculation, when possible
+    iOrderNone <- is.null(object$call$i) || (object$call$i==0);
+
+    interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
+
+    if(iOrderNone & any(object$distribution==c("dlnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
-        matrixXreg <- as.matrix(object$data[object$subset,-1]);
-        if(any(names(coef(object))=="(Intercept)")){
+        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+        if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
+            colnames(matrixXreg)[1] <- "(Intercept)";
         }
-        colnames(matrixXreg) <- names(coef(object));
+        # colnames(matrixXreg) <- names(coef(object));
         nVariables <- ncol(matrixXreg);
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
@@ -1650,14 +1842,15 @@ vcov.alm <- function(object, ...){
         vcov <- object$scale^2 * vcovMatrix;
         rownames(vcov) <- colnames(vcov) <- names(coef(object));
     }
-    else if(object$distribution=="dnorm"){
+    else if(iOrderNone & (object$distribution=="dnorm")){
         # matrixXreg <- model.matrix(formula(object),data=object$data);
         # rownames(vcov) <- colnames(vcov) <- names(coef(object));
-        matrixXreg <- as.matrix(object$data[object$subset,-1]);
-        if(any(names(coef(object))=="(Intercept)")){
+        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+        if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
+            colnames(matrixXreg)[1] <- "(Intercept)";
         }
-        colnames(matrixXreg) <- names(coef(object));
+        # colnames(matrixXreg) <- names(coef(object));
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(class(vcovMatrixTry)=="try-error"){
@@ -1681,10 +1874,17 @@ vcov.alm <- function(object, ...){
     else{
         # Form the call for alm
         newCall <- object$call;
-        newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
+        if(interceptIsNeeded){
+            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
+        }
+        else{
+            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~.-1"));
+        }
         newCall$data <- object$data;
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
+        newCall$ar <- object$call$ar;
+        newCall$i <- object$call$i;
         newCall$B <- coef(object);
         newCall$checks <- FALSE;
         if(object$distribution=="dchisq"){

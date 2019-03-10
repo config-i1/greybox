@@ -11,6 +11,7 @@ Changes:
 * nobs() and actuals() now also have a hidden parameter all, which determines, whether to return all the values or only demand sizes in case of occurrence model. The default behaviour for nobs is FALSE, and for actuals is TRUE. This is driven by the functions relying on these methods.
 * New function - polyprod(), returning the product of two polynomials.
 * xregExpander() now allows specifying how to fill in the gaps for the lagged variables.
+* alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
