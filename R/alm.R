@@ -429,11 +429,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     if(CDF & any(y!=0 & y!=1)){
-        warning(paste0("You have defined CDF '",distribution,"' as a distribution.\n",
-                       "This means that the response variable needs to be binary with values of 0 and 1.\n",
-                       "Don't worry, we will encode it for you. But, please, be careful next time!"),
-                call.=FALSE);
-        y <- (y!=0)*1;
+        y[] <- (y!=0)*1;
     }
 
     if(CDF){
