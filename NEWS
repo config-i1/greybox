@@ -1,4 +1,4 @@
-greybox v0.4.2 (Release data: 2019-04-18)
+greybox v0.4.2 (Release data: 2019-04-19)
 ==============
 
 Changes:
@@ -14,6 +14,9 @@ Changes:
 * alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
 * alm() now checks for stationarity of AR.
 * alm() now produces the fitted for the zero observations.
+* alm() now accepts parameters for the nloptr.
+* In case of occurrence model, the expected entropy is added to the likelihood.
+* Tuning of the initials for the recursive model.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.

@@ -211,42 +211,66 @@ pointLik.alm <- function(object, ...){
     y <- actuals(object);
     ot <- y!=0;
     if(is.alm(object$occurrence)){
-        y <- y[ot];
+        otU <- y!=0;
+        y <- y[otU];
+        mu <- object$mu[otU];
     }
-    mu <- object$mu;
+    else{
+        otU <- rep(TRUE, nobs(object));
+        mu <- object$mu;
+    }
     scale <- object$scale;
 
-    likValues <- switch(distribution,
-                        "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                        "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                        "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                        "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                        "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
-                        "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                        "dt" = dt(y-mu, df=scale, log=TRUE),
-                        "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                        "dpois" = dpois(y, lambda=mu, log=TRUE),
-                        "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                        "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
-                        "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
-                        "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
-                                     plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
-                        "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                                    pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+    likValues <- vector("numeric",nobs(object));
+    likValues[otU] <- switch(distribution,
+                            "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
+                            "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
+                            "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                            "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
+                            "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
+                            "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                            "dt" = dt(y-mu, df=scale, log=TRUE),
+                            "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
+                            "dpois" = dpois(y, lambda=mu, log=TRUE),
+                            "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
+                            "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
+                            "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
+                            "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
+                                         plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                            "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
+                                        pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
     );
-
-    # Sort values if plogis or pnorm was used
-    if(any(distribution==c("plogis","pnorm"))){
-        likValuesNew <- likValues;
-        likValues[ot] <- likValuesNew[1:sum(ot)];
-        likValues[!ot] <- likValuesNew[-c(1:sum(ot))];
-    }
 
     # If this is a mixture model, take the respective probabilities into account
     if(is.alm(object$occurrence)){
-        likValuesNew <- pointLik(object$occurrence);
-        likValuesNew[ot] <- likValuesNew[ot] + likValues;
-        likValues <- likValuesNew;
+        likValues[!otU] <- -switch(distribution,
+                                   "dnorm" =,
+                                   "dfnorm" =,
+                                   "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                   "dlaplace" =,
+                                   "dalaplace" = (1 + log(2*scale)),
+                                   "dlogis" = 2,
+                                   "dt" = ((scale+1)/2 *
+                                               (digamma((scale+1)/2)-digamma(scale/2)) +
+                                               log(sqrt(scale) * beta(scale/2,0.5))),
+                                   "ds" = (2 + 2*log(2*scale)),
+                                   "dchisq" = (log(2)*gamma(scale/2)-
+                                                   (1-scale/2)*digamma(scale/2)+
+                                                   scale/2),
+                                   "dbeta" = log(beta(mu,scale))-
+                                       (mu-1)*
+                                       (digamma(mu)-
+                                            digamma(mu+scale))-
+                                       (scale-1)*
+                                       (digamma(scale)-
+                                            digamma(mu+scale)),
+                                   # This is a normal approximation of the real entropy
+                                   "dpois" = 0.5*log(2*pi*scale)+0.5,
+                                   "dnbinom" = log(sqrt(2*pi)*scale)+0.5,
+                                   0
+        );
+
+        likValues <- likValues + pointLik(object$occurrence);
     }
 
     return(likValues);
@@ -1332,6 +1356,9 @@ plot.predict.greybox <- function(x, ...){
     graphmakerCall$forecast <- yForecast;
     graphmakerCall$fitted <- yFitted;
     graphmakerCall$vline <- vline;
+    if(is.null(graphmakerCall$parReset)){
+        graphmakerCall$parReset <- FALSE;
+    }
 
     if(!is.null(x$lower)){
         if(x$newdataProvided){
@@ -1352,7 +1379,6 @@ plot.predict.greybox <- function(x, ...){
         graphmakerCall$level <- level;
         graphmakerCall$lower <- yLower;
         graphmakerCall$upper <- yUpper;
-        graphmakerCall
 
         if((any(is.infinite(yLower)) & any(is.infinite(yUpper))) | (any(is.na(yLower)) & any(is.na(yUpper)))){
             graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
@@ -1905,8 +1931,8 @@ vcov.alm <- function(object, ...){
             newCall$sigma <- object$other$sigma;
         }
         newCall$vcovProduce <- TRUE;
-        newCall$occurrence <- NULL;
-        # newCall$occurrence <- object$occurrence;
+        # newCall$occurrence <- NULL;
+        newCall$occurrence <- object$occurrence;
         # Recall alm to get hessian
         vcov <- eval(newCall)$vcov;
 
