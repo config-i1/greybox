@@ -1,4 +1,4 @@
-greybox v0.4.2 (Release data: 2019-03-10)
+greybox v0.4.2 (Release data: 2019-04-18)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Changes:
 * xregExpander() now allows specifying how to fill in the gaps for the lagged variables.
 * alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
 * alm() now checks for stationarity of AR.
+* alm() now produces the fitted for the zero observations.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.

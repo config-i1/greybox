@@ -1063,7 +1063,8 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     #     upper <- NULL;
     # }
     # else{
-        # Produce forecasts iteratively
+
+    # Produce forecasts iteratively
     ourForecast <- vector("numeric", nRows);
     for(i in 1:nRows){
         ourForecast[i] <- matrixOfxregFull[i,] %*% parameters;
@@ -1115,11 +1116,13 @@ forecast.alm <- function(object, newdata, ...){
 #' @export
 nobs.alm <- function(object, ...){
     ellipsis <- list(...);
-    if(!is.null(ellipsis$all) && ellipsis$all){
-        returnValue <- nobs.greybox(object);
+    # if all==FALSE is provided, return non-zeroes only
+    # otherwise return all
+    if(!is.null(ellipsis$all) && !ellipsis$all){
+        returnValue <- sum(object$data[,1]!=0);
     }
     else{
-        returnValue <- sum(object$data[,1]!=0);
+        returnValue <- nobs.greybox(object);
     }
     return(returnValue);
 }
@@ -1513,6 +1516,7 @@ print.summary.alm <- function(x, ...){
     print(round(x$coefficients,digits));
     cat("ICs:\n");
     print(round(x$ICs,digits));
+    cat("\nError standard deviation: "); cat(round(sqrt(x$s2),digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
@@ -1691,6 +1695,7 @@ summary.alm <- function(object, level=0.95, ...){
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
     ourReturn$arima <- object$other$arima;
+    ourReturn$s2 <- sigma(object)^2;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);
