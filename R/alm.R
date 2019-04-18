@@ -326,25 +326,8 @@ alm <- function(formula, data, subset, na.action,
     fitterRecursive <- function(B, distribution, y, matrixXreg){
         for(j in 1:max(ariZeroesLengths)){
             fitterReturn <- fitter(B, distribution, y, matrixXreg);
-            # yFitted[] <- switch(distribution,
-            #                     "dfnorm" = (sqrt(2/pi)*fitterReturn$scale *
-            #                                     exp(-fitterReturn$mu^2/(2*fitterReturn$scale^2)) +
-            #                                     fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/fitterReturn$scale))),
-            #                     "dnorm" =,
-            #                     "dlaplace" =,
-            #                     "dalaplace" =,
-            #                     "dlogis" =,
-            #                     "dt" =,
-            #                     "ds" =,
-            #                     "dpois" =,
-            #                     "dnbinom" = fitterReturn$mu,
-            #                     "dchisq" = fitterReturn$mu + fitterReturn$scale,
-            #                     "dlnorm" = exp(fitterReturn$mu),
-            #                     "dbeta" = fitterReturn$mu / (fitterReturn$mu + fitterReturn$scale),
-            #                     "pnorm" = pnorm(fitterReturn$mu, mean=0, sd=1),
-            #                     "plogis" = plogis(fitterReturn$mu, location=0, scale=1)
-            # );
 
+            # Substitute zeroes with the fitted values
             for(i in 1:ariOrder){
                 if(j<=ariZeroesLengths[i]){
                     matrixXreg[,nVariablesExo+i][ariZeroes[,i]] <- fitterReturn$mu[!ot][1:ariZeroesLengths[i]];
@@ -364,6 +347,7 @@ alm <- function(formula, data, subset, na.action,
             fitterReturn <- fitter(B, distribution, y, matrixXreg);
         }
 
+        # The original log-likelilhood
         CFReturn <- switch(distribution,
                            "dnorm" = dnorm(y[ot], mean=fitterReturn$mu[ot], sd=fitterReturn$scale, log=TRUE),
                            "dfnorm" = dfnorm(y[ot], mu=fitterReturn$mu[ot], sigma=fitterReturn$scale, log=TRUE),
@@ -385,6 +369,16 @@ alm <- function(formula, data, subset, na.action,
         );
 
         CFReturn <- -sum(CFReturn);
+
+        # The differential entropy for the models with the missing data
+        # if(occurrenceModel){
+        #     CFReturn <- CFReturn + switch(distribution,
+        #                                   "dnorm" =,
+        #                                   "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+        #                                   "dlaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+        #                                   "ds" = obsZero*(2 + 2*log(2*fitterReturn$scale))
+        #                                   );
+        # }
 
         if(is.nan(CFReturn) | is.na(CFReturn) | is.infinite(CFReturn)){
             CFReturn <- 1E+300;
@@ -440,6 +434,7 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
+    # See if the occurrence model is provided, and whether we need to treat the data as intermittent
     if(is.alm(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
@@ -529,17 +524,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     responseName <- all.vars(formula)[1];
-    # If this is a model with occurrence, use only non-zero observations
-    # if(occurrenceModel){
-    #     occurrenceNonZero <- data[,responseName]!=0;
-    #     if(dataContainsNaNs){
-    #         mf$subset <- occurrenceNonZero & mf$subset;
-    #         mf$subset[is.na(mf$subset)] <- FALSE;
-    #     }
-    #     else{
-    #         mf$subset <- occurrenceNonZero;
-    #     }
-    # }
+
     # Make recursive fitted for missing values in case of occurrence model.
     recursiveModel <- occurrenceModel && ariModel;
 
@@ -630,6 +615,16 @@ alm <- function(formula, data, subset, na.action,
     }
     else{
         ot[] <- rep(TRUE,obsInsample);
+    }
+
+    # Set the number of zeroes and non-zeroes, depending on the type of the model
+    if(occurrenceModel){
+        obsNonZero <- sum(ot);
+        obsZero <- sum(!ot);
+    }
+    else{
+        obsNonZero <- obsInsample;
+        obsZero <- 0;
     }
 
     if(checks){
@@ -876,6 +871,10 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else{
+        # If this was ARI, then don't count the AR parameters
+        if(ariModel){
+            nVariablesExo <- nVariablesExo - ariOrder;
+        }
         nVariables <- length(B);
         variablesNames <- names(B);
         CFValue <- CF(B, distribution, y, matrixXreg, recursiveModel);
