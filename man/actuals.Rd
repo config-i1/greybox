@@ -23,7 +23,7 @@ in the case of occurrence model, only demand sizes will be returned. Works only 
 The vector of the response variable.
 }
 \description{
-This is a simple method that returns the values of the reponse variable of the model
+This is a simple method that returns the values of the response variable of the model
 }
 \examples{
 

@@ -366,7 +366,7 @@ pBICc.default <- function(object, ...){
 
 #' Function extracts the actual values from the function
 #'
-#' This is a simple method that returns the values of the reponse variable of the model
+#' This is a simple method that returns the values of the response variable of the model
 #'
 #' @template author
 #'

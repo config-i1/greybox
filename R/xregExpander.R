@@ -6,7 +6,7 @@
 #' This function could be handy when you want to check if lags and leads
 #' of a variable influence the dependent variable. Can be used together
 #' with \code{xregDo="select"} in \link[smooth]{es}, \link[smooth]{ces},
-#' \link[smooth]{ges} and \link[smooth]{ssarima}. All the missing values
+#' \link[smooth]{gum} and \link[smooth]{ssarima}. All the missing values
 #' in the beginning and at the end of lagged series are substituted by
 #' mean forecasts produced using \link[smooth]{es}.
 #'

@@ -29,7 +29,7 @@ producing non-linear values, depending on the selected pool of functions.
 This function could be useful when you want to automatically select the
 necessary transformations of the variables. This can be used together
 with \code{xregDo="select"} in \link[smooth]{es}, \link[smooth]{ces},
-\link[smooth]{ges} and \link[smooth]{ssarima}. However, this might be
+\link[smooth]{gum} and \link[smooth]{ssarima}. However, this might be
 dangerous, as it might lead to the overfitting the data. So be reasonable
 when you produce the transformed variables.
 }
