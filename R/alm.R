@@ -189,6 +189,7 @@
 #' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
+#' @importFrom forecast Arima
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
@@ -556,6 +557,10 @@ alm <- function(formula, data, subset, na.action,
 
     # Make recursive fitted for missing values in case of occurrence model.
     recursiveModel <- occurrenceModel && ariModel;
+    # In case of plogis and pnorm, all the ARI values need to be refitted
+    if(any(distribution==c("plogis","pnorm")) && ariModel){
+        recursiveModel <- TRUE;
+    }
 
     dataWork <- eval(mf, parent.frame());
     y <- dataWork[,1];
@@ -736,7 +741,28 @@ alm <- function(formula, data, subset, na.action,
         #### Add AR and I elements in the regression ####
         # This is only done, if the regression is estimated. In the other cases it will already have the expanded values
         if(ariModel){
-            ariElements <- xregExpander(y, lags=-c(1:ariOrder), gaps="auto")[,-1,drop=FALSE];
+            # In case of plogis and pnorm, the AR elements need to be generated from a model, i.e. oes from smooth.
+            if(any(distribution==c("plogis","pnorm"))){
+                if(!requireNamespace("smooth", quietly = TRUE)){
+                    yNew <- abs(fitted(Arima(y, order=c(0,1,1))));
+                    yNew[is.na(yNew)] <- min(yNew);
+                    yNew[yNew==0] <- 1E-10;
+                    yNew[] <- log(yNew / (1-yNew));
+                }
+                else{
+                    yNew <- smooth::iss(y,intermittent="l",model="ANN",h=1)$states[1:obsInsample]
+                }
+                ariElements <- xregExpander(yNew, lags=-c(1:ariOrder), gaps="auto")[,-1,drop=FALSE];
+                ariZeroes <- matrix(TRUE,nrow=obsInsample,ncol=ariOrder);
+                for(i in 1:ariOrder){
+                    ariZeroes[(1:i),i] <- FALSE;
+                }
+                ariZeroesLengths <- apply(ariZeroes, 2, sum);
+            }
+            else{
+                ariElements <- xregExpander(y, lags=-c(1:ariOrder), gaps="auto")[,-1,drop=FALSE];
+            }
+
             # Get rid of "ts" class
             class(ariElements) <- "matrix";
             ariNames <- paste0(responseName,"Lag",c(1:ariOrder));
@@ -766,7 +792,8 @@ alm <- function(formula, data, subset, na.action,
                     colnames(ariElements) <- ariTransformedNames;
                 }
                 else{
-                    ariElements[] <- log(ariElements);
+                    ariElements[ariElements<0] <- 0;
+                    ariElements[] <- suppressWarnings(log(ariElements));
                     ariElements[is.infinite(ariElements)] <- 0;
                     ariTransformedNames <- paste0(ariNames,"Log");
                     colnames(ariElements) <- ariTransformedNames;
@@ -782,6 +809,7 @@ alm <- function(formula, data, subset, na.action,
             dataWork <- cbind(dataWork, ariElements);
         }
 
+        #### I(0) initialisation ####
         if(iOrder==0){
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
                 if(any(y[otU]==0)){
@@ -820,10 +848,11 @@ alm <- function(formula, data, subset, na.action,
                 BUpper <- Inf;
             }
         }
-        # If this is an I(D) model, do the primary estimation in differences
+        #### I(d) initialisation ####
+        # If this is an I(d) model, do the primary estimation in differences
         else{
             # Matrix without the first D rows and without the last D columns
-            matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),];
+            matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
             obsDiffs <- c(1:nrow(matrixXregForDiffs));
 
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
@@ -842,7 +871,10 @@ alm <- function(formula, data, subset, na.action,
             }
             else if(any(distribution==c("plogis","pnorm"))){
                 # Box-Cox transform in order to get meaningful initials
-                B <- .lm.fit(matrixXregForDiffs,((diff(y,differences=iOrder)[otU][obsDiffs])^0.01-1)/0.01)$coefficients;
+                yLog <- y;
+                yLog[!otU] <- min(y[otU]);
+                yLog[] <- (yLog^0.01-1)/0.01;
+                B <- .lm.fit(matrixXregForDiffs,diff(yLog,differences=iOrder)[otU][obsDiffs])$coefficients;
             }
             else if(distribution=="dbeta"){
                 # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
@@ -935,6 +967,11 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             print_level <- ellipsis$print_level;
+        }
+
+        # Change otU to FALSE everywhere, so that the lags are refitted for the occurrence models
+        if(any(distribution==c("plogis","pnorm")) && ariModel){
+            otU <- rep(FALSE,obsInsample);
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
@@ -1203,8 +1240,13 @@ alm <- function(formula, data, subset, na.action,
         }
 
         # New data and new response variable
-        dataNew <- mf$data[mf$subset,];
-        y <- as.matrix(dataNew[,all.vars(formula)[1]]);
+        dataNew <- mf$data[mf$subset,,drop=FALSE];
+        if(ncol(dataNew)>1){
+            y <- as.matrix(dataNew[,all.vars(formula)[1],drop=FALSE]);
+        }
+        else{
+            y <- dataNew[,1,drop=FALSE]
+        }
         # If there are NaN values, substitute them by zeroes
         # if(any(is.nan(y))){
         #     y[is.nan(y)] <- 0;

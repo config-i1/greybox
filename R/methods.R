@@ -1052,11 +1052,25 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
     # Add ARI polynomials to the parameters
     parameters <- c(parameters,ariParameters);
-    matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
 
     # Fill in the tails with the available data
-    for(i in 1:ariOrder){
-        matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+    if(any(object$distribution==c("plogis","pnorm"))){
+        matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+        matrixOfxregFull <- rbind(matrix(NA,ariOrder,ncol(matrixOfxregFull)),matrixOfxregFull);
+        if(interceptIsNeeded){
+            matrixOfxregFull[1:ariOrder,-1] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+            matrixOfxregFull[1:ariOrder,1] <- 1;
+        }
+        else{
+            matrixOfxregFull[1:ariOrder,] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+        }
+        nRows <- nRows+ariOrder;
+    }
+    else{
+        matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+        for(i in 1:ariOrder){
+            matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+        }
     }
 
     # Transform the lagged response variables
@@ -1099,7 +1113,14 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
             matrixOfxregFull[i+j,nonariParametersNumber+j] <- ourForecast[i];
         }
     }
-    matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder)];
+
+    if(any(object$distribution==c("plogis","pnorm"))){
+        matrixOfxreg <- matrixOfxregFull[-c(1:ariOrder),1:(nonariParametersNumber+arOrder),drop=FALSE];
+        ourForecast <- ourForecast[-c(1:ariOrder)];
+    }
+    else{
+        matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder),drop=FALSE];
+    }
 
     # abs is needed for some cases, when the likelihoond was not fully optimised
     vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
@@ -1301,6 +1322,9 @@ plot.greybox <- function(x, ...){
         }
     }
     yFitted <- fitted(x);
+    if(is.null(ellipsis$ylim)){
+        ellipsis$ylim <- range(c(actuals(x),yFitted));
+    }
 
     do.call(plot,ellipsis);
     lines(yFitted, col="red");
@@ -1356,9 +1380,6 @@ plot.predict.greybox <- function(x, ...){
     graphmakerCall$forecast <- yForecast;
     graphmakerCall$fitted <- yFitted;
     graphmakerCall$vline <- vline;
-    if(is.null(graphmakerCall$parReset)){
-        graphmakerCall$parReset <- FALSE;
-    }
 
     if(!is.null(x$lower)){
         if(x$newdataProvided){

@@ -17,6 +17,7 @@ Changes:
 * alm() now accepts parameters for the nloptr.
 * In case of occurrence model, the expected entropy is added to the likelihood.
 * Tuning of the initials for the recursive model.
+* alm() with distribution=c("pnorm","plogis") and ARI(p,d) now produces adequate estimates of probability and forecasts.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
