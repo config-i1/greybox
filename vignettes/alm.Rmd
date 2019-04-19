@@ -496,4 +496,11 @@ After that we can produce forecasts using the data from the holdout sample:
 predict(modelMixture,outSample,interval="p")
 ```
 
+If you expect autoregressive elements in the data, then you can specify the order of AR via the respective parameter
+```{r mixtureExampleFinalAR}
+modelMixtureAR <- alm(y~x1+x2+Noise, inSample, distribution="dlnorm", occurrence=modelOccurrence, ar=1)
+summary(modelMixtureAR)
+plot(predict(modelMixtureAR,outSample,interval="p",side="u"))
+```
+
 ### References

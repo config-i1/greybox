@@ -32,7 +32,7 @@ At the moment the package contains advanced linear model function and several ba
 ## Main functions
 The package includes the following functions for models construction:
 
-1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage.
+1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data.
 2. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
 3. `lmCombine()` - combine the linear models into one using IC weights;
 4. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
@@ -42,6 +42,8 @@ See discussion of some of these functions in this vignette below.
 
 ## Models evaluation functions
 1. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
+2. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
+3. `measures()` - function, returning a bunch of error measures for the provided forecast and the holdout sample.
 
 
 ## Marketing analytics tools
@@ -73,7 +75,6 @@ See details on (1) below.
 
 ## Additional functions
 1. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
-2. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.

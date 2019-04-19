@@ -1,4 +1,4 @@
-greybox v0.5.0 (Release data: 2019-04-19)
+greybox v0.5.0 (Release data: 2019-04-20)
 ==============
 
 Changes:
@@ -11,9 +11,6 @@ Changes:
 * Tuning of the initials for the recursive model.
 * alm() with distribution=c("pnorm","plogis") and ARI(p,d) now produces adequate estimates of probability and forecasts.
 * Error measures imported from smooth. Accuracy() function is renamed into measures().
-
-Bugfixes:
-*
 
 
 greybox v0.4.2 (Release data: 2019-03-10)
