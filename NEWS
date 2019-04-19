@@ -1,4 +1,22 @@
-greybox v0.4.2 (Release data: 2019-04-19)
+greybox v0.5.0 (Release data: 2019-04-19)
+==============
+
+Changes:
+* New function - polyprod(), returning the product of two polynomials.
+* alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
+* alm() now checks for stationarity of AR.
+* alm() now produces the fitted for the zero observations.
+* alm() now accepts parameters for the nloptr.
+* In case of occurrence model, the expected entropy is added to the likelihood.
+* Tuning of the initials for the recursive model.
+* alm() with distribution=c("pnorm","plogis") and ARI(p,d) now produces adequate estimates of probability and forecasts.
+* Error measures imported from smooth. Accuracy() function is renamed into measures().
+
+Bugfixes:
+*
+
+
+greybox v0.4.2 (Release data: 2019-03-10)
 ==============
 
 Changes:
@@ -9,15 +27,7 @@ Changes:
 * nParam() method has been renamed into nparam().
 * A new method - actuals(), which returns actuals from the model (similar to "getResponse" of forecast package).
 * nobs() and actuals() now also have a hidden parameter all, which determines, whether to return all the values or only demand sizes in case of occurrence model. The default behaviour for nobs is FALSE, and for actuals is TRUE. This is driven by the functions relying on these methods.
-* New function - polyprod(), returning the product of two polynomials.
 * xregExpander() now allows specifying how to fill in the gaps for the lagged variables.
-* alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
-* alm() now checks for stationarity of AR.
-* alm() now produces the fitted for the zero observations.
-* alm() now accepts parameters for the nloptr.
-* In case of occurrence model, the expected entropy is added to the likelihood.
-* Tuning of the initials for the recursive model.
-* alm() with distribution=c("pnorm","plogis") and ARI(p,d) now produces adequate estimates of probability and forecasts.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
