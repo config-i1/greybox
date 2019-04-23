@@ -884,7 +884,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         newdataExpanded <- model.frame(testFormula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     nRows <- nrow(matrixOfxreg);
@@ -901,7 +901,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         else{
             colnames(matrixOfxreg)[1] <- parametersNames[1];
         }
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     if(!is.matrix(matrixOfxreg)){
@@ -1021,7 +1021,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
 
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     nRows <- nrow(matrixOfxreg);
@@ -1038,7 +1038,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         else{
             colnames(matrixOfxreg)[1] <- parametersNames[1];
         }
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     if(!is.matrix(matrixOfxreg)){

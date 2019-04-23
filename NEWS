@@ -5,6 +5,7 @@ Bugfixes:
 * alm() would not do checks properly when only one explanatory variable was used.
 * lmCombine() and lmDynamic() would not work because they would refer to non-existent "ourModel". Thanks leungi for the bug report!
 * lmCombine() and lmDynamic() used to warn about the computational time after doing things, not before that.
+* predict.alm() would not work well if only one-step-ahead prediction was needed.
 
 
 greybox v0.5.0 (Release data: 2019-04-20)
