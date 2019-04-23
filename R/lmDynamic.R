@@ -206,13 +206,14 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Check whether it is possible to do bruteForce
     if((ncol(data)>nrow(data)) & bruteForce){
-        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteForce=FALSE'.");
+        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteForce=FALSE'.",
+                call.=FALSE, immediate.=TRUE);
         bruteForce <- FALSE;
     }
 
     # Warning if we have a lot of models
     if((ncol(data)>14) & bruteForce){
-        warning("You have more than 14 variables. The computation might take a lot of time.");
+        warning("You have more than 14 variables. The computation might take a lot of time.", call.=FALSE, immediate.=TRUE);
     }
 
     # If this is not bruteForce, then do stepwise first
@@ -254,7 +255,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # If nVariables is zero, return a simple model. This might be due to the stepwise returning intercept.
     if(nVariables==0){
-        warning("No explanatory variables are selected / provided. Fitting the model with intercept only.", call.=FALSE);
+        warning("No explanatory variables are selected / provided. Fitting the model with intercept only.",
+                call.=FALSE, immediate.=TRUE);
         if(bruteForce){
             return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
         }
@@ -527,7 +529,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     colnames(parametersSECombined) <- variablesNames;
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
-        warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.", call.=FALSE);
+        warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
+                call.=FALSE);
     }
 
     finalModel <- list(coefficients=parametersMean, se=parametersSECombined, fitted.values=as.vector(yFitted),
