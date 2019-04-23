@@ -33,7 +33,7 @@ The functions returns the named vector of errors:
 \item cbias,
 \item sPIS.
 }
-For the details on these errors, see \link[smooth]{Errors}.
+For the details on these errors, see \link[greybox]{Errors}.
 }
 \description{
 Function calculates several error measures using the provided

@@ -668,7 +668,7 @@ alm <- function(formula, data, subset, na.action,
         #### Checks of the exogenous variables ####
         # Remove the data for which sd=0
         noVariability <- vector("logical",nVariables);
-        noVariability[] <- apply((matrixXreg==matrix(matrixXreg[1,],obsInsample,nVariables,byrow=TRUE))[otU,],2,all);
+        noVariability[] <- apply((matrixXreg==matrix(matrixXreg[1,],obsInsample,nVariables,byrow=TRUE))[otU,,drop=FALSE],2,all);
         if(any(noVariability)){
             if(all(noVariability)){
                 warning("None of exogenous variables has variability. Fitting the straight line.",
@@ -691,7 +691,7 @@ alm <- function(formula, data, subset, na.action,
         corThreshold <- 0.999;
         if(nVariables>1){
             # Check perfectly correlated cases
-            corMatrix <- cor(matrixXreg[otU,]);
+            corMatrix <- cor(matrixXreg[otU,,drop=FALSE]);
             corHigh <- upper.tri(corMatrix) & abs(corMatrix)>=corThreshold;
             if(any(corHigh)){
                 removexreg <- unique(which(corHigh,arr.ind=TRUE)[,1]);
@@ -708,7 +708,7 @@ alm <- function(formula, data, subset, na.action,
         # Do these checks only when intercept is needed. Otherwise in case of dummies this might cause chaos
         if(nVariables>1 & interceptIsNeeded){
             # Check dummy variables trap
-            detHigh <- determination(matrixXreg[otU,])>=corThreshold;
+            detHigh <- determination(matrixXreg[otU,,drop=FALSE])>=corThreshold;
             if(any(detHigh)){
                 while(any(detHigh)){
                     removexreg <- which(detHigh>=corThreshold)[1];

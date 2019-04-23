@@ -470,7 +470,7 @@ sMIS <- function(actual,lower,upper,scale,level=0.95){
 #' \item cbias,
 #' \item sPIS.
 #' }
-#' For the details on these errors, see \link[smooth]{Errors}.
+#' For the details on these errors, see \link[greybox]{Errors}.
 #' @references \itemize{
 #' \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
 #' \url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}

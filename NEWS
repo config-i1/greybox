@@ -1,3 +1,10 @@
+greybox v0.5.1 (Release data: 2019-04-23)
+==============
+
+Bugfixes:
+* alm() would not do checks properly when only one explanatory variable was used.
+
+
 greybox v0.5.0 (Release data: 2019-04-20)
 ==============
 
