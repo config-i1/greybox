@@ -232,7 +232,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         if(!silent){
             cat("Selecting the best model...\n");
         }
-        bestModel <- stepwise(data, ic=ic, distribution=distribution);
+        ourModel <- stepwise(data, ic=ic, distribution=distribution);
     }
 
     # Modify the data and move to the list
@@ -271,7 +271,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
         }
         else{
-            return(bestModel);
+            return(ourModel);
         }
     }
 
@@ -309,13 +309,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
     else{
         # Extract names of the used variables
-        bestExoNames <- names(coef(bestModel))[-1];
+        bestExoNames <- names(coef(ourModel))[-1];
         # If the number of variables is small, do bruteForce
-        if(nParam(bestModel)<14){
-            bestModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
+        if(nParam(ourModel)<14){
+            ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
                                    bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
-            bestModel$call <- cl;
-            return(bestModel);
+            ourModel$call <- cl;
+            return(ourModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -360,10 +360,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             logLiks <- rep(NA,nCombinations);
 
             # Starting estimating the models with writing down the best one
-            ICs[1] <- IC(bestModel);
-            bufferCoef <- coef(bestModel)[variablesNames];
+            ICs[1] <- IC(ourModel);
+            bufferCoef <- coef(ourModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(bestModel))[variablesNames];
+            bufferCoef <- diag(vcov(ourModel))[variablesNames];
             parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
             logLiks[1] <- logLik(ourModel);
         }

@@ -220,7 +220,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         if(!silent){
             cat("Selecting the best model...\n");
         }
-        bestModel <- stepwise(data, ic=ic, distribution=distribution, silent=silent);
+        ourModel <- stepwise(data, ic=ic, distribution=distribution, silent=silent);
     }
 
     # Modify the data and move to the list
@@ -259,7 +259,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
         }
         else{
-            return(bestModel);
+            return(ourModel);
         }
     }
 
@@ -297,13 +297,13 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
     else{
         # Extract names of the used variables
-        bestExoNames <- names(coef(bestModel))[-1];
+        bestExoNames <- names(coef(ourModel))[-1];
         # If the number of variables is small, do bruteForce
-        if(nParam(bestModel)<16){
-            bestModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
+        if(nParam(ourModel)<16){
+            ourModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
                                    bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
-            bestModel$call <- cl;
-            return(bestModel);
+            ourModel$call <- cl;
+            return(ourModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -348,18 +348,18 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             pointLiks <- matrix(NA,obsInsample,nCombinations);
 
             # Starting estimating the models with writing down the best one
-            pICs[,1] <- IC(bestModel);
-            bufferCoef <- coef(bestModel)[variablesNames];
+            pICs[,1] <- IC(ourModel);
+            bufferCoef <- coef(ourModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(bestModel))[variablesNames];
+            bufferCoef <- diag(vcov(ourModel))[variablesNames];
             parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            pointLiks[,1] <- pointLik(bestModel);
+            pointLiks[,1] <- pointLik(ourModel);
         }
     }
 
     if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
         otherParameters <- rep(NA, nCombinations);
-        otherParameters[1] <- bestModel$other[[1]];
+        otherParameters[1] <- ourModel$other[[1]];
     }
 
     # Go for the loop of lm models
