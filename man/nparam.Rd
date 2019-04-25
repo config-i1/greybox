@@ -2,12 +2,9 @@
 % Please edit documentation in R/methods.R
 \name{nparam}
 \alias{nparam}
-\alias{nParam}
 \title{Number of parameters in the model}
 \usage{
 nparam(object, ...)
-
-nParam(object, ...)
 }
 \arguments{
 \item{object}{Time series model.}
