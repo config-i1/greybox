@@ -750,7 +750,7 @@ alm <- function(formula, data, subset, na.action,
                     yNew[] <- log(yNew / (1-yNew));
                 }
                 else{
-                    yNew <- smooth::iss(y,intermittent="l",model="ANN",h=1)$states[1:obsInsample]
+                    yNew <- smooth::oes(y, occurrence="i", model="MNN", h=1)$states[1:obsInsample]
                 }
                 ariElements <- xregExpander(yNew, lags=-c(1:ariOrder), gaps="auto")[,-1,drop=FALSE];
                 ariZeroes <- matrix(TRUE,nrow=obsInsample,ncol=ariOrder);

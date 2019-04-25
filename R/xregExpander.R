@@ -122,7 +122,6 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
         nExovars <- ncol(xreg);
         xregNew <- matrix(NA,obs,(lagsLengthAll+1)*nExovars);
         xregNew <- ts(xregNew,start=xregStart,frequency=xregFrequency);
-        xregDataNew <- rep(NA,obs);
 
         for(i in 1:nExovars){
             if(!silent){
@@ -149,10 +148,10 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                     }
                     else{
                         if(all((xregData==0) | (xregData==1))){
-                            xregModel <- suppressWarnings(smooth::iss(xregData,model="XXX", h=maxLead,intermittent="l"));
+                            xregModel <- suppressWarnings(smooth::oes(xregData, model="MNN", h=maxLead, occurrence="i"));
                         }
                         else{
-                            xregModel <- suppressWarnings(smooth::es(xregData,h=maxLead,intermittent="a"));
+                            xregModel <- suppressWarnings(smooth::es(xregData, h=maxLead, occurrence="a"));
                         }
                         xregDataNew <- c(xregData,xregModel$forecast);
                     }
@@ -174,22 +173,23 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                         if(leadsLength!=0){
                             # If this is a binary variable, use iss function.
                             if(all((xregData==0) | (xregData==1))){
-                                xregModel <- suppressWarnings(smooth::iss(rev(xregData), model=xregModel$model, intermittent=xregModel$intermittent,
+                                xregModel <- suppressWarnings(smooth::oes(rev(xregData), model=smooth::modelType(xregModel), occurrence="i",
                                                                           persistence=xregModel$persistence, h=maxLag));
                             }
                             else{
                                 xregModel <- suppressWarnings(smooth::es(rev(xregData), model=smooth::modelType(xregModel), persistence=xregModel$persistence,
-                                                                         intermittent=xregModel$intermittent, imodel=xregModel$imodel, h=maxLag));
+                                                                         occurrence=xregModel$occurrence, imodel=smooth::modelType(xregModel$occurrence),
+                                                                         h=maxLag));
                             }
                             xregDataNew <- c(rev(xregModel$forecast),xregDataNew);
                         }
                         else{
                             # If this is a binary variable, use iss function.
                             if(all((xregData==0) | (xregData==1))){
-                                xregModel <- suppressWarnings(smooth::iss(rev(xregData),model="XXX", h=maxLag,intermittent="l"));
+                                xregModel <- suppressWarnings(smooth::oes(rev(xregData), model="MNN", h=maxLag, occurrence="i"));
                             }
                             else{
-                                xregModel <- suppressWarnings(smooth::es(rev(xregData),h=maxLag,intermittent="a"));
+                                xregModel <- suppressWarnings(smooth::es(rev(xregData), h=maxLag, occurrence="a"));
                             }
                             xregDataNew <- c(rev(xregModel$forecast),xregData);
                         }
