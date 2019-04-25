@@ -313,7 +313,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         # Extract names of the used variables
         bestExoNames <- names(coef(ourModel))[-1];
         # If the number of variables is small, do bruteForce
-        if(nParam(ourModel)<14){
+        if(nparam(ourModel)<14){
             ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
                                    bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;

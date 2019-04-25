@@ -241,7 +241,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     testModel <- do.call(lmCall,listToCall);
     # Write down the logLik and take df into account
     logLikValue <- logLik(testModel);
-    attributes(logLikValue)$df <- nParam(logLikValue) + df;
+    attributes(logLikValue)$df <- nparam(logLikValue) + df;
     # Write down the IC. This one needs to be calculated from the logLik
     # in order to take the additional df into account.
     currentIC <- bestIC <- IC(logLikValue);
@@ -273,7 +273,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         testModel <- do.call(lmCall,listToCall);
         # Modify logLik
         logLikValue <- logLik(testModel);
-        attributes(logLikValue)$df <- nParam(logLikValue) + df;
+        attributes(logLikValue)$df <- nparam(logLikValue) + df;
         if(attributes(logLikValue)$df >= (obsInsample+1)){
             if(!silent){
                 warning("Number of degrees of freedom is greater than number of observations. Cannot proceed.");
