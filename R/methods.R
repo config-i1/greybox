@@ -1211,17 +1211,6 @@ nobs.varest <- function(object, ...){
 #' @export nparam
 nparam <- function(object, ...) UseMethod("nparam")
 
-##### nParam is a temporary thing, until the method is updated in smooth #####
-#' @rdname nparam
-#' @export
-nParam <- function(object, ...) UseMethod("nParam")
-
-#' @export
-nParam.default <- function(object, ...){
-    # The length of the vector of parameters + variance
-    return(nparam(object));
-}
-
 #' @export
 nparam.default <- function(object, ...){
     # The length of the vector of parameters + variance
