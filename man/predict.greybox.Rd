@@ -16,7 +16,7 @@
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
   "lower"), ...)
 
-\method{forecast}{greybox}(object, newdata = NULL, h = 10, ...)
+\method{forecast}{greybox}(object, newdata = NULL, h = NULL, ...)
 
 \method{forecast}{alm}(object, newdata = NULL, h = NULL, ...)
 }
@@ -63,14 +63,19 @@ object of class "predict.alm", which in addition contains:
 \item \code{scale} - the scale parameter of the distribution.
 \item \code{distribution} - name of the fitted distribution.
 }
+
+\code{forecast()} functions return the same "predict.alm" and
+"predict.greybox" classes, with the same set of output variables.
 }
 \description{
+The functions allow producing forecasts based on the provided model and newdata.
+}
+\details{
 \code{predict} produces predictions for the provided model and \code{newdata}. If
 \code{newdata} is not provided, then the data from the model is extracted and the
 fitted values are reproduced. This might be useful when confidence / prediction
 intervals are needed for the in-sample values.
-}
-\details{
+
 \code{forecast} function produces forecasts for \code{h} steps ahead. There are four
 scenarios in this function:
 \enumerate{
@@ -84,6 +89,9 @@ will be regulated by \code{h}.
 \item If both \code{h} and \code{newdata} are not provided, then it will use the
 data from the model itself, reproducing the fitted values.
 }
+After forming the \code{newdata} the \code{forecast} function calls for
+\code{predict}, so you can provide parameters \code{interval}, \code{level} and
+\code{side} in the call for \code{forecast}.
 }
 \examples{
 
@@ -103,7 +111,7 @@ plot(forecast(ourModel,h=10,interval="p"))
 
 }
 \seealso{
-\code{\link[stats]{predict.lm}}
+\link[stats]{predict.lm}, \link[forecast]{forecast}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

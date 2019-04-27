@@ -770,6 +770,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
 #' Forecasting using greybox functions
 #'
+#' The functions allow producing forecasts based on the provided model and newdata.
+#'
 #' \code{predict} produces predictions for the provided model and \code{newdata}. If
 #' \code{newdata} is not provided, then the data from the model is extracted and the
 #' fitted values are reproduced. This might be useful when confidence / prediction
@@ -788,6 +790,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' \item If both \code{h} and \code{newdata} are not provided, then it will use the
 #' data from the model itself, reproducing the fitted values.
 #' }
+#' After forming the \code{newdata} the \code{forecast} function calls for
+#' \code{predict}, so you can provide parameters \code{interval}, \code{level} and
+#' \code{side} in the call for \code{forecast}.
 #'
 #' @aliases forecast forecast.greybox
 #' @param object Time series model for which forecasts are required.
@@ -825,8 +830,11 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' \item \code{distribution} - name of the fitted distribution.
 #' }
 #'
+#' \code{forecast()} functions return the same "predict.alm" and
+#' "predict.greybox" classes, with the same set of output variables.
+#'
 #' @template author
-#' @seealso \code{\link[stats]{predict.lm}}
+#' @seealso \link[stats]{predict.lm}, \link[forecast]{forecast}
 #' @keywords ts univar
 #' @examples
 #'
@@ -1173,7 +1181,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 #' @export forecast
 #' @rdname predict.greybox
 #' @export
-forecast.greybox <- function(object, newdata=NULL, h=10, ...){
+forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){
     if(!is.null(newdata) & is.null(h)){
         h <- nrow(newdata);
     }
