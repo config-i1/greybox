@@ -1,11 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "20 April 2019"
+date: "27 April 2019"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.5.0
+This is the release of the package ``greybox``, v0.5.1
+This version fixes the bug with the following warning in v0.5.0:
+"Missing link or links in documentation object 'measures.Rd':
+  '[smooth]{Errors}'"
 
 ## Test environments
 * local ubuntu 18.10, R 3.5.1
