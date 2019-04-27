@@ -65,12 +65,14 @@ object of class "predict.alm", which in addition contains:
 }
 }
 \description{
+The functions allow producing forecasts based on the provided model and newdata.
+}
+\details{
 \code{predict} produces predictions for the provided model and \code{newdata}. If
 \code{newdata} is not provided, then the data from the model is extracted and the
 fitted values are reproduced. This might be useful when confidence / prediction
 intervals are needed for the in-sample values.
-}
-\details{
+
 \code{forecast} function produces forecasts for \code{h} steps ahead. There are four
 scenarios in this function:
 \enumerate{

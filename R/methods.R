@@ -770,6 +770,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
 #' Forecasting using greybox functions
 #'
+#' The functions allow producing forecasts based on the provided model and newdata.
+#'
 #' \code{predict} produces predictions for the provided model and \code{newdata}. If
 #' \code{newdata} is not provided, then the data from the model is extracted and the
 #' fitted values are reproduced. This might be useful when confidence / prediction
