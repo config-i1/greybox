@@ -7,8 +7,8 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
   "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
-  "plogis", "pnorm"), ar = 0, i = 0, B = NULL, vcovProduce = FALSE,
-  checks = TRUE, ...)
+  "plogis", "pnorm"), ar = 0, i = 0, parameters = NULL,
+  vcovProduce = FALSE, fast = TRUE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -49,14 +49,14 @@ orders are accepted.}
 \item{i}{the order of I to include in the model. Only non-seasonal
 orders are accepted.}
 
-\item{B}{vector of parameters of the linear model. When \code{NULL}, it
+\item{parameters}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
 
 \item{vcovProduce}{whether to produce variance-covariance matrix of
 coefficients or not. This is done via hessian calculation, so might be
 computationally costly.}
 
-\item{checks}{if \code{FALSE}, then the function won't check whether
+\item{fast}{if \code{FALSE}, then the function won't check whether
 the data has variability and whether the regressors are correlated. Might
 cause trouble, especially in cases of multicollinearity.}
 
@@ -78,7 +78,7 @@ Function returns \code{model} - the final model of the class
 \item coefficients - estimated parameters of the model,
 \item vcov - covariance matrix of parameters of the model (based on Fisher
 Information). Returned only when \code{vcovProduce=TRUE},
-\item fitted.values - fitted values,
+\item fitted - fitted values,
 \item residuals - residuals of the model,
 \item mu - the estimated location parameter of the distribution,
 \item scale - the estimated scale parameter of the distribution,

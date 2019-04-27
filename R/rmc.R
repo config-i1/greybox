@@ -37,7 +37,7 @@
 #' measures on large samples.
 #'
 #' There is also a \code{plot()} method that allows producing either "mcb" or "lines"
-#' style of plot. This can be regulated via \code{plot(x, style="lines")}.
+#' style of plot. This can be regulated via \code{plot(x, outplot="lines")}.
 #
 #' @param data Matrix or data frame with observations in rows and variables in
 #' columns.
@@ -48,8 +48,8 @@
 #' distribution. This value is passed to \code{alm()} function. You can try some
 #' other distributions, but don't expect anything meaningful.
 #' @param level The width of the confidence interval. Default is 0.95.
-#' @param style What style of plot to use after the calculations. This can be
-#' either "MCB" (\code{"mcb"}) style or "Vertical lines" (\code{"lines"}).
+#' @param outplot What outplot of plot to use after the calculations. This can be
+#' either "MCB" (\code{"mcb"}) outplot or "Vertical lines" (\code{"lines"}).
 #' @param select What column of data to highlight on the plot. If NULL, then
 #' the method with the lowest value is selected.
 #' @param plot If \code{TRUE} then the graph is produced after the calculations.
@@ -67,7 +67,7 @@
 #' \itemize{
 #' \item{mean}{Mean values for each method.}
 #' \item{interval}{Confidence intervals for each method.}
-#' \item{vlines}{Coordinates used for style="l", marking the groups of methods.}
+#' \item{vlines}{Coordinates used for outplot="l", marking the groups of methods.}
 #' \item{groups}{The table containing the groups. \code{TRUE} - methods are in the
 #' same group, \code{FALSE} - they are not.}
 #' \item{p.value}{p-value for the test of the significance of the model. This is a
@@ -78,7 +78,7 @@
 #' the estimated model is the best.}
 #' \item{level}{Significance level.}
 #' \item{model}{lm model produced for the calculation of the intervals.}
-#' \item{style}{Style of the plot to produce.}
+#' \item{outplot}{Style of the plot to produce.}
 #' \item{select}{The selected variable to highlight.}
 #' }
 #
@@ -128,7 +128,7 @@
 #' exp(ourTest$interval)
 #'
 #' # You can also reproduce plots in different styles:
-#' plot(ourTest, style="lines")
+#' plot(ourTest, outplot="lines")
 #'
 #' # Or you can use the default "mcb" style and set additional parameters for the plot():
 #' par(mar=c(2,2,4,0)+0.1)
@@ -144,10 +144,13 @@
 #' @importFrom stats pchisq
 #' @export rmc
 rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
-                level=0.95, style=c("mcb","lines"), select=NULL, plot=TRUE, ...){
+                level=0.95, outplot=c("mcb","lines"), select=NULL, plot=TRUE, ...){
+
+    #### This is temporary and needs to be removed at some point! ####
+    outplot <- depricator(outplot, list(...));
 
     distribution <- distribution[1];
-    style <- substr(style[1],1,1);
+    outplot <- substr(outplot[1],1,1);
 
     #### Prepare the data ####
     obs <- nrow(data);
@@ -196,7 +199,7 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
 
-        lmModel$fitted.values <- dataNew[,1] - residuals(lmModel);
+        lmModel$fitted <- dataNew[,1] - residuals(lmModel);
 
         lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
         lmModel2$df.residual <- obsAll - 1;
@@ -208,16 +211,16 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
         lmModel$df.residual <- obsAll - nMethods;
         class(lmModel) <- c("lmGreybox","lm");
 
-        lmModel$fitted.values <- log(dataNew[,1]) - residuals(lmModel);
+        lmModel$fitted <- log(dataNew[,1]) - residuals(lmModel);
 
         lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), log(dataNew[,1]));
         lmModel2$df.residual <- obsAll - 1;
         class(lmModel2) <- c("lmGreybox","lm");
     }
     else{
-        lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, checks=FALSE);
+        lmModel <- alm(y~., data=dataNew[,-2], distribution=distribution, fast=TRUE);
 
-        lmModel2 <- alm(y~1,data=dataNew[,-2], distribution=distribution, checks=FALSE);
+        lmModel2 <- alm(y~1,data=dataNew[,-2], distribution=distribution, fast=TRUE);
     }
 
     # Remove dataNew in order to preserve memory
@@ -287,7 +290,7 @@ rmc <- function(data, distribution=c("dnorm","dfnorm","dlnorm"),
 
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,
                                     importance=importance, p.value=p.value, level=level, model=lmModel,
-                                    style=style, select=select, distribution=distribution),
+                                    outplot=outplot, select=select, distribution=distribution),
                                class="rmc");
     if(plot){
         plot(returnedClass, ...);
@@ -329,15 +332,15 @@ plot.rmc <- function(x, ...){
         lineCol <- "grey";
     }
 
-    if(("style" %in% argsNames)){
-        style <- substr(args$style,1,1);
-        args$style <- NULL;
+    if(("outplot" %in% argsNames)){
+        outplot <- substr(args$outplot,1,1);
+        args$outplot <- NULL;
     }
     else{
-        style <- x$style;
+        outplot <- x$outplot;
     }
 
-    if(style=="m"){
+    if(outplot=="m"){
         if(!("xlab" %in% argsNames)){
             args$xlab <- "";
         }
@@ -379,7 +382,7 @@ plot.rmc <- function(x, ...){
 
         abline(h=x$interval[x$select,], lwd=2, lty=2, col="grey");
     }
-    else if(style=="l"){
+    else if(outplot=="l"){
         # Save the current par() values
         parDefault <- par(no.readonly=TRUE);
         parMar <- parDefault$mar;

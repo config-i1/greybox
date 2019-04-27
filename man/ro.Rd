@@ -5,7 +5,7 @@
 \title{Rolling Origin}
 \usage{
 ro(data, h = 10, origins = 10, call, value = NULL, ci = FALSE,
-  co = FALSE, silent = TRUE, parallel = FALSE)
+  co = FALSE, quiet = TRUE, parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data vector or ts object passed to the function.}
@@ -39,11 +39,14 @@ series and another one is removed from the beginning.}
 be constant. If \code{TRUE}, the rolling origin will stop when less than
 \code{h} observations are left in the holdout.}
 
-\item{silent}{If \code{TRUE}, nothing is printed out in the console.}
+\item{quiet}{If \code{TRUE}, nothing is printed out in the console.}
 
 \item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
 WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
 or \code{doParallel} are needed in order to run the function in parallel.}
+
+\item{...}{This is temporary and is needed in order to capture "quiet"
+parameter if it is provided.}
 }
 \value{
 Function returns the following variables:
@@ -126,7 +129,7 @@ ourValue <- "pred"
 for(i in 1:3){
     ourdata <- x[,i]
     ourForecasts[,,i] <- ro(data=ourdata,h=6,origins=4,call=ourCall,
-                            value=ourValue,co=TRUE,silent=TRUE)$pred
+                            value=ourValue,co=TRUE,quiet=TRUE)$pred
 }
 
 ## ourForecasts array now contains rolling origin forecasts from specific

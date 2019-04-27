@@ -5,6 +5,7 @@
 \alias{predict.greybox}
 \alias{forecast}
 \alias{forecast.greybox}
+\alias{forecast.alm}
 \title{Forecasting using greybox functions}
 \usage{
 \method{predict}{alm}(object, newdata = NULL, interval = c("none",
@@ -14,6 +15,10 @@
 \method{predict}{greybox}(object, newdata = NULL, interval = c("none",
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
   "lower"), ...)
+
+\method{forecast}{greybox}(object, newdata = NULL, h = 10, ...)
+
+\method{forecast}{alm}(object, newdata = NULL, h = NULL, ...)
 }
 \arguments{
 \item{object}{Time series model for which forecasts are required.}
@@ -33,6 +38,8 @@ the intervals for (0, level) are constructed Finally, with \code{"lower"} the in
 for (1-level, 1) is returned.}
 
 \item{...}{Other arguments.}
+
+\item{h}{The forecast horizon.}
 }
 \value{
 \code{predict.greybox()} returns object of class "predict.greybox",
@@ -58,13 +65,25 @@ object of class "predict.alm", which in addition contains:
 }
 }
 \description{
-\code{predict} is a function for predictions from various model fitting
-functions. The function invokes particular method, corresponding to the
-class of the first argument.
+\code{predict} produces predictions for the provided model and \code{newdata}. If
+\code{newdata} is not provided, then the data from the model is extracted and the
+fitted values are reproduced. This might be useful when confidence / prediction
+intervals are needed for the in-sample values.
 }
 \details{
-Although this function is called "forecast", it has functionality similar to
-"predict" function.
+\code{forecast} function produces forecasts for \code{h} steps ahead. There are four
+scenarios in this function:
+\enumerate{
+\item If the \code{newdata} is  not provided, then it will produce forecasts of the
+explanatory variables to the horizon \code{h} (using \code{es} from smooth package
+or using Naive if \code{smooth} is not installed) and use them as \code{newdata}.
+\item If \code{h} and \code{newdata} are provided, then the number of rows to use
+will be regulated by \code{h}.
+\item If \code{h} is \code{NULL}, then it is set equal to the number of rows in
+\code{newdata}.
+\item If both \code{h} and \code{newdata} are not provided, then it will use the
+data from the model itself, reproducing the fitted values.
+}
 }
 \examples{
 
@@ -78,7 +97,9 @@ ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
 
 predict(ourModel,outSample)
 predict(ourModel,outSample,interval="c")
+
 plot(predict(ourModel,outSample,interval="p"))
+plot(forecast(ourModel,h=10,interval="p"))
 
 }
 \seealso{

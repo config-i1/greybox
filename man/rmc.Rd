@@ -5,7 +5,7 @@
 \title{Regression for Multiple Comparison}
 \usage{
 rmc(data, distribution = c("dnorm", "dfnorm", "dlnorm"), level = 0.95,
-  style = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
+  outplot = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
 }
 \arguments{
 \item{data}{Matrix or data frame with observations in rows and variables in
@@ -20,8 +20,8 @@ other distributions, but don't expect anything meaningful.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 
-\item{style}{What style of plot to use after the calculations. This can be
-either "MCB" (\code{"mcb"}) style or "Vertical lines" (\code{"lines"}).}
+\item{outplot}{What outplot of plot to use after the calculations. This can be
+either "MCB" (\code{"mcb"}) outplot or "Vertical lines" (\code{"lines"}).}
 
 \item{select}{What column of data to highlight on the plot. If NULL, then
 the method with the lowest value is selected.}
@@ -43,7 +43,7 @@ variables:
 \itemize{
 \item{mean}{Mean values for each method.}
 \item{interval}{Confidence intervals for each method.}
-\item{vlines}{Coordinates used for style="l", marking the groups of methods.}
+\item{vlines}{Coordinates used for outplot="l", marking the groups of methods.}
 \item{groups}{The table containing the groups. \code{TRUE} - methods are in the
 same group, \code{FALSE} - they are not.}
 \item{p.value}{p-value for the test of the significance of the model. This is a
@@ -54,7 +54,7 @@ model with the constant only. 0 means that the constant is better, 1 means that
 the estimated model is the best.}
 \item{level}{Significance level.}
 \item{model}{lm model produced for the calculation of the intervals.}
-\item{style}{Style of the plot to produce.}
+\item{outplot}{Style of the plot to produce.}
 \item{select}{The selected variable to highlight.}
 }
 }
@@ -96,7 +96,7 @@ The test is equivalent to Nemenyi test, when applied to the ranks of the error
 measures on large samples.
 
 There is also a \code{plot()} method that allows producing either "mcb" or "lines"
-style of plot. This can be regulated via \code{plot(x, style="lines")}.
+style of plot. This can be regulated via \code{plot(x, outplot="lines")}.
 }
 \examples{
 N <- 50
@@ -124,7 +124,7 @@ exp(ourTest$mean)
 exp(ourTest$interval)
 
 # You can also reproduce plots in different styles:
-plot(ourTest, style="lines")
+plot(ourTest, outplot="lines")
 
 # Or you can use the default "mcb" style and set additional parameters for the plot():
 par(mar=c(2,2,4,0)+0.1)

@@ -44,7 +44,7 @@ There are several groups of functions in the package.
 3. summary - returns summary of the regression (either selected or combined).
 4. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
 5. confint - confidence intervals for combined models.
-6. predict, forecast - point and interval forecasts for the response variable.
+6. predict, forecast - point and interval forecasts for the response variable. forecast method relies on the parameter h (the forecast horizon), while predict is focused on the newdata. See vignettes for the details.
 7. nParam - returns number of estimated parameters in the model (including variance, location, shift).
 8. getResponse - returns the response variable from the model.
 9. plot - plots the basic linear graph of actuals and fitted. Similar thing plots graphs for forecasts of greybox functions.

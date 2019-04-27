@@ -5,7 +5,7 @@
 \title{Combine regressions based on point information criteria}
 \usage{
 lmDynamic(data, ic = c("AICc", "AIC", "BIC", "BICc"),
-  bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
+  bruteforce = FALSE, quiet = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
   "pnorm"), parallel = FALSE, ...)
 }
@@ -15,11 +15,11 @@ the others in the rest.}
 
 \item{ic}{Information criterion to use.}
 
-\item{bruteForce}{If \code{TRUE}, then all the possible models are generated
+\item{bruteforce}{If \code{TRUE}, then all the possible models are generated
 and combined. Otherwise the best model is found and then models around that
 one are produced and then combined.}
 
-\item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
+\item{quiet}{If \code{FALSE}, then nothing is quiet, everything is printed
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
@@ -37,7 +37,7 @@ of each variable. The list of variables:
 \itemize{
 \item coefficients - mean (over time) parameters of the model,
 \item se - mean standard errors of the parameters of the model,
-\item fitted.values - the fitted values,
+\item fitted - the fitted values,
 \item residuals - residual of the model,
 \item distribution - distribution used in the estimation,
 \item logLik - mean (over time) log-likelihood of the model,
@@ -75,7 +75,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 # Combine all the possible models
-ourModel <- lmDynamic(inSample,bruteForce=TRUE)
+ourModel <- lmDynamic(inSample,bruteforce=TRUE)
 predict(ourModel,outSample)
 plot(predict(ourModel,outSample))
 

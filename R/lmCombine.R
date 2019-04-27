@@ -15,10 +15,10 @@
 #' @param data Data frame containing dependent variable in the first column and
 #' the others in the rest.
 #' @param ic Information criterion to use.
-#' @param bruteForce If \code{TRUE}, then all the possible models are generated
+#' @param bruteforce If \code{TRUE}, then all the possible models are generated
 #' and combined. Otherwise the best model is found and then models around that
 #' one are produced and then combined.
-#' @param silent If \code{FALSE}, then nothing is silent, everything is printed
+#' @param quiet If \code{FALSE}, then nothing is quiet, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
@@ -31,7 +31,7 @@
 #' \itemize{
 #' \item coefficients - combined parameters of the model,
 #' \item se - combined standard errors of the parameters of the model,
-#' \item fitted.values - the fitted values,
+#' \item fitted - the fitted values,
 #' \item residuals - residual of the model,
 #' \item distribution - distribution used in the estimation,
 #' \item logLik - combined log-likelihood of the model,
@@ -56,7 +56,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- lmCombine(inSample,bruteForce=TRUE)
+#' ourModel <- lmCombine(inSample,bruteforce=TRUE)
 #' predict(ourModel,outSample)
 #' plot(predict(ourModel,outSample))
 #'
@@ -67,25 +67,29 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- lmCombine(inSample, ic="BICc",bruteForce=FALSE)
+#' ourModel <- lmCombine(inSample, ic="BICc",bruteforce=FALSE)
 #' summary(ourModel)
 #' plot(predict(ourModel, outSample))
 #'
 #' # Combine in parallel - should increase speed in case of big data
-#' \dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteForce=TRUE, parallel=TRUE)
+#' \dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteforce=TRUE, parallel=TRUE)
 #' summary(ourModel)
 #' plot(predict(ourModel, outSample))}
 #'
 #' @importFrom stats dnorm
 #'
 #' @export lmCombine
-lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
+lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, quiet=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
+
+    #### This is temporary and needs to be removed at some point! ####
+    quiet[] <- depricator(quiet, list(...));
+    bruteforce[] <- depricator(bruteforce, list(...));
 
     ellipsis <- list(...);
 
@@ -175,7 +179,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     #         useALM <- TRUE;
     #         rowsSelected <- rowsSelected | (data[,1]!=0);
     #
-    #         occurrenceModel <- lmCombine(data, ic=ic, bruteForce=bruteForce, silent=silent,
+    #         occurrenceModel <- lmCombine(data, ic=ic, bruteforce=bruteforce, quiet=quiet,
     #                                      distribution=occurrence, parallel=parallel, ...);
     #         occurrenceModel$call <- cl;
     #     }
@@ -199,7 +203,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     # Define what function to use in the estimation
     if(useALM){
         lmCall <- alm;
-        listToCall <- list(distribution=distribution, checks=FALSE);
+        listToCall <- list(distribution=distribution, fast=TRUE);
         listToCall <- c(listToCall,ellipsis);
     }
     else{
@@ -217,20 +221,20 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     y <- as.matrix(data[rowsSelected,responseName]);
     colnames(y) <- responseName;
 
-    # Check whether it is possible to do bruteForce
-    if((ncol(data)>nrow(data)) & bruteForce){
-        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteForce=FALSE'.",
+    # Check whether it is possible to do bruteforce
+    if((ncol(data)>nrow(data)) & bruteforce){
+        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteforce=FALSE'.",
                 call.=FALSE, immediate.=TRUE);
-        bruteForce <- FALSE;
+        bruteforce <- FALSE;
     }
 
     # Warning if we have a lot of models
-    if((ncol(data)>14) & bruteForce){
+    if((ncol(data)>14) & bruteforce){
         warning("You have more than 14 variables. The computation might take a lot of time.", call.=FALSE, immediate.=TRUE);
     }
 
-    if(!bruteForce){
-        if(!silent){
+    if(!bruteforce){
+        if(!quiet){
             cat("Selecting the best model...\n");
         }
         ourModel <- stepwise(data, ic=ic, distribution=distribution);
@@ -269,7 +273,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     if(nVariables==0){
         warning("No explanatory variables are selected / provided. Fitting the model with intercept only.",
                 call.=FALSE, immediate.=TRUE);
-        if(bruteForce){
+        if(bruteforce){
             return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
         }
         else{
@@ -278,7 +282,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
 
     # If this is a simple one, go through all the models
-    if(bruteForce){
+    if(bruteforce){
         # Number of combinations in the loop
         nCombinations <- 2^nVariables;
         # Matrix of all the combinations
@@ -312,10 +316,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     else{
         # Extract names of the used variables
         bestExoNames <- names(coef(ourModel))[-1];
-        # If the number of variables is small, do bruteForce
+        # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<14){
             ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
-                                   bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
+                                   bruteforce=TRUE, quiet=quiet, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
         }
@@ -378,7 +382,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Go for the loop of lm models
     if(parallel){
-        if(!silent){
+        if(!quiet){
             cat("Estimation progress: ...");
         }
         forLoopReturns <- foreach::`%dopar%`(foreach::foreach(i=2:nCombinations),{
@@ -416,11 +420,11 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
     }
     else{
-        if(!silent){
+        if(!quiet){
             cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
         }
         for(i in 2:nCombinations){
-            if(!silent){
+            if(!quiet){
                 cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
                 cat(paste0(round(i/nCombinations,2)*100,"%"));
             }
@@ -550,7 +554,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
                 call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted.values=as.vector(yFitted),
+    finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,

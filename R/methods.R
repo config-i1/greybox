@@ -770,12 +770,24 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
 #' Forecasting using greybox functions
 #'
-#' \code{predict} is a function for predictions from various model fitting
-#' functions. The function invokes particular method, corresponding to the
-#' class of the first argument.
+#' \code{predict} produces predictions for the provided model and \code{newdata}. If
+#' \code{newdata} is not provided, then the data from the model is extracted and the
+#' fitted values are reproduced. This might be useful when confidence / prediction
+#' intervals are needed for the in-sample values.
 #'
-#' Although this function is called "forecast", it has functionality similar to
-#' "predict" function.
+#' \code{forecast} function produces forecasts for \code{h} steps ahead. There are four
+#' scenarios in this function:
+#' \enumerate{
+#' \item If the \code{newdata} is  not provided, then it will produce forecasts of the
+#' explanatory variables to the horizon \code{h} (using \code{es} from smooth package
+#' or using Naive if \code{smooth} is not installed) and use them as \code{newdata}.
+#' \item If \code{h} and \code{newdata} are provided, then the number of rows to use
+#' will be regulated by \code{h}.
+#' \item If \code{h} is \code{NULL}, then it is set equal to the number of rows in
+#' \code{newdata}.
+#' \item If both \code{h} and \code{newdata} are not provided, then it will use the
+#' data from the model itself, reproducing the fitted values.
+#' }
 #'
 #' @aliases forecast forecast.greybox
 #' @param object Time series model for which forecasts are required.
@@ -789,6 +801,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' two parts: ((1-level)/2, (1+level)/2). When \code{"upper"} is specified, then
 #' the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
 #' for (1-level, 1) is returned.
+#' @param h The forecast horizon.
 #' @param ...  Other arguments.
 #' @return \code{predict.greybox()} returns object of class "predict.greybox",
 #' which contains:
@@ -827,7 +840,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #'
 #' predict(ourModel,outSample)
 #' predict(ourModel,outSample,interval="c")
+#'
 #' plot(predict(ourModel,outSample,interval="p"))
+#' plot(forecast(ourModel,h=10,interval="p"))
 #'
 #' @rdname predict.greybox
 #' @export
@@ -992,8 +1007,12 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
 
     if(is.null(newdata)){
-        matrixOfxreg <- object$data;
+        matrixOfxreg <- object$data[,-1,drop=FALSE];
         newdataProvided <- FALSE;
+        interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
+        if(interceptIsNeeded){
+            matrixOfxreg <- cbind(1,matrixOfxreg);
+        }
     }
     else{
         newdataProvided <- TRUE;
@@ -1053,73 +1072,78 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     # Add ARI polynomials to the parameters
     parameters <- c(parameters,ariParameters);
 
+    # If the newdata is provided, do the recursive thingy
+    if(newdataProvided){
     # Fill in the tails with the available data
-    if(any(object$distribution==c("plogis","pnorm"))){
-        matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
-        matrixOfxregFull <- rbind(matrix(NA,ariOrder,ncol(matrixOfxregFull)),matrixOfxregFull);
-        if(interceptIsNeeded){
-            matrixOfxregFull[1:ariOrder,-1] <- tail(object$data[,-1,drop=FALSE],ariOrder);
-            matrixOfxregFull[1:ariOrder,1] <- 1;
-        }
-        else{
-            matrixOfxregFull[1:ariOrder,] <- tail(object$data[,-1,drop=FALSE],ariOrder);
-        }
-        nRows <- nRows+ariOrder;
-    }
-    else{
-        matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
-        for(i in 1:ariOrder){
-            matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
-        }
-    }
-
-    # Transform the lagged response variables
-    if(any(object$distribution==c("dlnorm","dpois","dnbinom"))){
-        if(any(y==0) & !is.alm(object$occurrence)){
-            # Use Box-Cox if there are zeroes
-            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
-            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
-        }
-        else{
-            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- log(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
-            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Log");
-        }
-    }
-    else if(object$distribution=="dchisq"){
-        matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
-        colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Sqrt");
-    }
-
-    #### Produce forecasts ####
-    # if(object$distribution=="dbeta"){
-    #     # We predict values for shape1 and shape2 and write them down in mean and variance.
-    #     ourForecast <- as.vector(exp(matrixOfxregFull %*% parameters[1:(length(parameters)/2)]));
-    #     vectorOfVariances <- as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))]));
-    #     # ourForecast <- ourForecast / (ourForecast + as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))])));
-    #
-    #     lower <- NULL;
-    #     upper <- NULL;
-    # }
-    # else{
-
-    # Produce forecasts iteratively
-    ourForecast <- vector("numeric", nRows);
-    for(i in 1:nRows){
-        ourForecast[i] <- matrixOfxregFull[i,] %*% parameters;
-        for(j in 1:ariOrder){
-            if(i+j-1==nRows){
-                break;
+        if(any(object$distribution==c("plogis","pnorm"))){
+            matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+            matrixOfxregFull <- rbind(matrix(NA,ariOrder,ncol(matrixOfxregFull)),matrixOfxregFull);
+            if(interceptIsNeeded){
+                matrixOfxregFull[1:ariOrder,-1] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+                matrixOfxregFull[1:ariOrder,1] <- 1;
             }
-            matrixOfxregFull[i+j,nonariParametersNumber+j] <- ourForecast[i];
+            else{
+                matrixOfxregFull[1:ariOrder,] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+            }
+            nRows <- nRows+ariOrder;
+        }
+        else{
+            matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+            for(i in 1:ariOrder){
+                matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+            }
+        }
+
+        # Transform the lagged response variables
+        if(any(object$distribution==c("dlnorm","dpois","dnbinom"))){
+            if(any(y==0) & !is.alm(object$occurrence)){
+                # Use Box-Cox if there are zeroes
+                matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
+                colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
+            }
+            else{
+                matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- log(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+                colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Log");
+            }
+        }
+        else if(object$distribution=="dchisq"){
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Sqrt");
+        }
+
+        # if(object$distribution=="dbeta"){
+        #     # We predict values for shape1 and shape2 and write them down in mean and variance.
+        #     ourForecast <- as.vector(exp(matrixOfxregFull %*% parameters[1:(length(parameters)/2)]));
+        #     vectorOfVariances <- as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))]));
+        #     # ourForecast <- ourForecast / (ourForecast + as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))])));
+        #
+        #     lower <- NULL;
+        #     upper <- NULL;
+        # }
+        # else{
+
+        # Produce forecasts iteratively
+        ourForecast <- vector("numeric", nRows);
+        for(i in 1:nRows){
+            ourForecast[i] <- matrixOfxregFull[i,] %*% parameters;
+            for(j in 1:ariOrder){
+                if(i+j-1==nRows){
+                    break;
+                }
+                matrixOfxregFull[i+j,nonariParametersNumber+j] <- ourForecast[i];
+            }
+        }
+
+        if(any(object$distribution==c("plogis","pnorm"))){
+            matrixOfxreg <- matrixOfxregFull[-c(1:ariOrder),1:(nonariParametersNumber+arOrder),drop=FALSE];
+            ourForecast <- ourForecast[-c(1:ariOrder)];
+        }
+        else{
+            matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder),drop=FALSE];
         }
     }
-
-    if(any(object$distribution==c("plogis","pnorm"))){
-        matrixOfxreg <- matrixOfxregFull[-c(1:ariOrder),1:(nonariParametersNumber+arOrder),drop=FALSE];
-        ourForecast <- ourForecast[-c(1:ariOrder)];
-    }
     else{
-        matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder),drop=FALSE];
+        ourForecast <- object$mu;
     }
 
     # abs is needed for some cases, when the likelihoond was not fully optimised
@@ -1147,13 +1171,92 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
 #' @importFrom forecast forecast
 #' @export forecast
+#' @rdname predict.greybox
 #' @export
-forecast.greybox <- function(object, newdata, ...){
+forecast.greybox <- function(object, newdata=NULL, h=10, ...){
+    if(!is.null(newdata) & is.null(h)){
+        h <- nrow(newdata);
+    }
+
+    if(!is.null(newdata) & !is.null(h)){
+        if(nrow(newdata)>h){
+            newdata <- head(newdata, h);
+        }
+        # If not enough values in the newdata, use naive
+        else if(nrow(newdata)<h){
+            warning("Not enough observations in the newdata. Using Naive in order to fill in the values.", call.=FALSE);
+            newdata <- rbind(newdata,newdata[rep(nrow(newdata),h-nrow(newdata)),]);
+        }
+    }
+    else if(is.null(newdata) & !is.null(h)){
+        warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
+        if(ncol(object$data)>1){
+            # If smooth is not installed, use Naive
+            if(!requireNamespace("smooth", quietly = TRUE)){
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+            }
+            # Otherwise use es()
+            else{
+                newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
+
+                for(i in 1:ncol(newdata)){
+                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                }
+            }
+        }
+        else{
+            newdata <- matrix(NA, h, 1, dimnames=list(NULL, colnames(object$data)[1]));
+        }
+    }
     return(predict(object, newdata, ...));
 }
 
+#' @rdname predict.greybox
 #' @export
-forecast.alm <- function(object, newdata, ...){
+forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
+    if(!is.null(newdata) & is.null(h)){
+        h <- nrow(newdata);
+    }
+
+    if(!is.null(newdata) & !is.null(h)){
+        if(nrow(newdata)>h){
+            newdata <- head(newdata, h);
+        }
+        # If not enough values in the newdata, use naive
+        else if(nrow(newdata)<h){
+            warning("Not enough observations in the newdata. Using Naive in order to fill in the values.", call.=FALSE);
+            newdata <- rbind(newdata,newdata[rep(nrow(newdata),h-nrow(newdata)),]);
+        }
+    }
+    else if(is.null(newdata) & !is.null(h)){
+        warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
+        if(ncol(object$data)>1){
+            # If smooth is not installed, use Naive
+            if(!requireNamespace("smooth", quietly = TRUE)){
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+            }
+            # Otherwise use es()
+            else{
+                if(!is.null(object$other$polynomial)){
+                    ariLength <- length(object$other$polynomial);
+                    newdata <- matrix(NA, h, ncol(object$data)-ariLength-1,
+                                      dimnames=list(NULL, colnames(object$data)[-c(1, (ncol(object$data)-ariLength+1):ncol(object$data))]));
+                }
+                else{
+                    newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
+                }
+
+                for(i in 1:ncol(newdata)){
+                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                }
+            }
+        }
+        else{
+            newdata <- matrix(NA, h, 1, dimnames=list(NULL, colnames(object$data)[1]));
+        }
+    }
     return(predict(object, newdata, ...));
 }
 
@@ -1926,8 +2029,8 @@ vcov.alm <- function(object, ...){
         newCall$distribution <- object$distribution;
         newCall$ar <- object$call$ar;
         newCall$i <- object$call$i;
-        newCall$B <- coef(object);
-        newCall$checks <- FALSE;
+        newCall$parameters <- coef(object);
+        newCall$fast <- TRUE;
         if(object$distribution=="dchisq"){
             newCall$df <- object$other$df;
         }

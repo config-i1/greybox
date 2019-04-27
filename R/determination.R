@@ -16,7 +16,7 @@
 #' @keywords models
 #'
 #' @param xreg Data frame or a matrix, containing the exogenous variables.
-#' @param bruteForce If \code{TRUE}, then all the variables will be used
+#' @param bruteforce If \code{TRUE}, then all the variables will be used
 #' for the regression construction (sink regression). If the number of
 #' observations is smaller than the number of series, the function will
 #' use \link[greybox]{stepwise} function and select only meaningful
@@ -38,35 +38,38 @@
 #' @rdname determination
 #' @aliases determ
 #' @export determination
-determination <- function(xreg, bruteForce=TRUE, ...){
+determination <- function(xreg, bruteforce=TRUE, ...){
+
+    #### This is temporary and needs to be removed at some point! ####
+    bruteforce[] <- depricator(bruteforce, list(...));
 
     nVariables <- ncol(xreg);
     nSeries <- nrow(xreg);
     # Form the vector to return
     vectorCorrelationsMultiple <- rep(NA,nVariables);
     names(vectorCorrelationsMultiple) <- colnames(xreg);
-    if(nSeries<=nVariables & bruteForce){
+    if(nSeries<=nVariables & bruteforce){
         # vectorCorrelationsMultiple[] <- 1;
         warning(paste0("The number of variables is larger than the number of observations. ",
                        "Sink regression cannot be constructed. Using stepwise."),
                 call.=FALSE);
-        bruteForce <- FALSE;
+        bruteforce <- FALSE;
     }
 
-    if(!bruteForce){
+    if(!bruteforce){
         determinationCalculator <- function(residuals, actuals){
             return(1 - sum(residuals^2) / sum((actuals-mean(actuals))^2));
         }
     }
 
     # Calculate the multiple determinations
-    if(bruteForce & nVariables>1){
+    if(bruteforce & nVariables>1){
         for(i in 1:nVariables){
             vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value);
         }
         vectorCorrelationsMultiple <- vectorCorrelationsMultiple^2;
     }
-    else if(!bruteForce & nVariables>1){
+    else if(!bruteforce & nVariables>1){
         testXreg <- xreg;
         testModel <- suppressWarnings(stepwise(testXreg));
         vectorCorrelationsMultiple[1] <- determinationCalculator(residuals(testModel),

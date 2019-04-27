@@ -1,5 +1,14 @@
-greybox v0.5.1 (Release data: 2019-04-23)
+greybox v0.5.1 (Release data: 2019-04-26)
 ==============
+
+Changes:
+* The parameter "silent" is now renamed into "quiet" in ro(), xregExpander(), xregMultiplier() and xregTransformer() functions. It only specifies the output in console now.
+* Similarly, "bruteForce" is now "bruteforce" in lmCombine(), lmDynamic() and determ(),
+* "B" is now "parameters" in alm(),
+* "checks" is now "fast" (note, the opposite meaning),
+* "style" is now "outplot" in rmc().
+* All the functions now return "fitted" instead of "fitted.values". This is not a big deal, the fitted() method will work as always.
+* forecast() function now accepts h - the forecast horizon. If h!=nrow(newdata), then the function will either cut off values, or produce forecasts for the explanatory variables.
 
 Bugfixes:
 * alm() would not do checks properly when only one explanatory variable was used.

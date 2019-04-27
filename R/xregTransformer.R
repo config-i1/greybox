@@ -14,8 +14,10 @@
 #' to be expanded. In case of vector / matrix it is recommended to provide
 #' \code{ts} object, so the frequency of the data is taken into account.
 #' @param functions Vector of names for functions used.
-#' @param silent If \code{silent=FALSE}, then the progress is printed out.
+#' @param quiet If \code{quiet=FALSE}, then the progress is printed out.
 #' Otherwise the function won't print anything in the console.
+#' @param ... This is temporary and is needed in order to capture "quiet"
+#' parameter if it is provided.
 #'
 #' @return \code{ts} matrix with the transformed and the original variables
 #' is returned.
@@ -33,7 +35,10 @@
 #'
 #' @export xregTransformer
 
-xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), silent=TRUE){
+xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), quiet=TRUE, ...){
+
+    #### This is temporary and needs to be removed at some point! ####
+    quiet[] <- depricator(quiet, list(...));
 
     # Check and prepare functions
     if(any(!(functions %in% c("log", "exp", "inv", "sqrt", "square")))){
@@ -46,7 +51,7 @@ xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "squa
              call.=FALSE);
     }
 
-    if(!silent){
+    if(!quiet){
         cat("Preparing matrices...    ");
     }
 
@@ -81,7 +86,7 @@ xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "squa
         xregNew <- ts(xregNew,start=xregStart,frequency=xregFrequency);
 
         for(i in 1:nExovars){
-            if(!silent){
+            if(!quiet){
                 if(i==1){
                     cat("\b");
                 }
@@ -108,7 +113,7 @@ xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "squa
             }
             colnames(xregNew)[((i-1)*(nFunctions+1)+1):(i*(nFunctions+1))] <- c(xregNames[i],paste(functions,xregNames[i],sep="_"));
         }
-        if(!silent){
+        if(!quiet){
             cat(paste0(rep("\b",4),collapse=""));
             cat(" Done! \n");
         }

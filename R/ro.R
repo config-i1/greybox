@@ -37,10 +37,12 @@
 #' @param co The parameter defines whether the holdout sample window size should
 #' be constant. If \code{TRUE}, the rolling origin will stop when less than
 #' \code{h} observations are left in the holdout.
-#' @param silent If \code{TRUE}, nothing is printed out in the console.
+#' @param quiet If \code{TRUE}, nothing is printed out in the console.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
 #' WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
 #' or \code{doParallel} are needed in order to run the function in parallel.
+#' @param ... This is temporary and is needed in order to capture "quiet"
+#' parameter if it is provided.
 #'
 #' @return Function returns the following variables:
 #' \itemize{
@@ -118,7 +120,7 @@
 #' for(i in 1:3){
 #'     ourdata <- x[,i]
 #'     ourForecasts[,,i] <- ro(data=ourdata,h=6,origins=4,call=ourCall,
-#'                             value=ourValue,co=TRUE,silent=TRUE)$pred
+#'                             value=ourValue,co=TRUE,quiet=TRUE)$pred
 #' }
 #'
 #' ## ourForecasts array now contains rolling origin forecasts from specific
@@ -147,9 +149,13 @@
 #'
 #' @export ro
 ro <- function(data,h=10,origins=10,call,value=NULL,
-               ci=FALSE,co=FALSE,silent=TRUE,parallel=FALSE){
+               ci=FALSE,co=FALSE,quiet=TRUE,parallel=FALSE, ...){
     # Function makes Rolling Origin for the data using the call
     #    Copyright (C) 2016  Yves Sagaert & Ivan Svetunkov
+
+    #### This is temporary and needs to be removed at some point! ####
+    quiet[] <- depricator(quiet, list(...));
+
     # Names of variables ivan41 and yves14 are given in order not to mess with the possible inner loops of "for(i in 1:n)" type.
     valueLength <- length(value);
     if(!is.null(value)){
@@ -231,10 +237,10 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
     rownames(holdout) <- paste0("h",c(1:h));
 
     forecasts <- list(NA);
-    if(!silent & !parallel){
+    if(!quiet & !parallel){
         cat(paste0("Origins done:  "));
     }
-    else if(!silent & parallel){
+    else if(!quiet & parallel){
         cat(paste0("Working..."));
     }
 
@@ -262,7 +268,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                     forecasts[[(ivan41-1)*valueLength+yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
                 holdout[1:h,ivan41] <- y[counto];
-                if(silent==FALSE){
+                if(!quiet){
                     cat(paste(rep("\b",nchar(ivan41)),collapse=""));
                     cat(ivan41);
                 }
@@ -288,7 +294,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
                     forecasts[[(ivan41-1)*valueLength+yves14]] <- eval(parse(text=paste0("callEvaluated",value[yves14])));
                 }
                 holdout[,ivan41] <- y[counto];
-                if(!silent){
+                if(!quiet){
                     cat(paste(rep("\b",nchar(ivan41)),collapse=""));
                     cat(ivan41);
                 }
@@ -382,7 +388,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         }
     }
 
-    if(silent==FALSE){
+    if(!quiet){
         cat("\n");
     }
 

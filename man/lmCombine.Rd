@@ -5,7 +5,7 @@
 \title{Combine regressions based on information criteria}
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"),
-  bruteForce = FALSE, silent = TRUE, distribution = c("dnorm",
+  bruteforce = FALSE, quiet = TRUE, distribution = c("dnorm",
   "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
   "pnorm"), parallel = FALSE, ...)
 }
@@ -15,11 +15,11 @@ the others in the rest.}
 
 \item{ic}{Information criterion to use.}
 
-\item{bruteForce}{If \code{TRUE}, then all the possible models are generated
+\item{bruteforce}{If \code{TRUE}, then all the possible models are generated
 and combined. Otherwise the best model is found and then models around that
 one are produced and then combined.}
 
-\item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
+\item{quiet}{If \code{FALSE}, then nothing is quiet, everything is printed
 out. \code{TRUE} means that nothing is produced.}
 
 \item{distribution}{Distribution to pass to \code{alm()}.}
@@ -36,7 +36,7 @@ Function returns \code{model} - the final model of the class
 \itemize{
 \item coefficients - combined parameters of the model,
 \item se - combined standard errors of the parameters of the model,
-\item fitted.values - the fitted values,
+\item fitted - the fitted values,
 \item residuals - residual of the model,
 \item distribution - distribution used in the estimation,
 \item logLik - combined log-likelihood of the model,
@@ -68,7 +68,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 # Combine all the possible models
-ourModel <- lmCombine(inSample,bruteForce=TRUE)
+ourModel <- lmCombine(inSample,bruteforce=TRUE)
 predict(ourModel,outSample)
 plot(predict(ourModel,outSample))
 
@@ -79,12 +79,12 @@ colnames(xreg) <- c("y",paste0("x",c(1:100)),"Noise")
 inSample <- xreg[1:40,]
 outSample <- xreg[-c(1:40),]
 # Combine only the models close to the optimal
-ourModel <- lmCombine(inSample, ic="BICc",bruteForce=FALSE)
+ourModel <- lmCombine(inSample, ic="BICc",bruteforce=FALSE)
 summary(ourModel)
 plot(predict(ourModel, outSample))
 
 # Combine in parallel - should increase speed in case of big data
-\dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteForce=TRUE, parallel=TRUE)
+\dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteforce=TRUE, parallel=TRUE)
 summary(ourModel)
 plot(predict(ourModel, outSample))}
 

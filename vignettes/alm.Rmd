@@ -503,4 +503,10 @@ summary(modelMixtureAR)
 plot(predict(modelMixtureAR,outSample,interval="p",side="u"))
 ```
 
+If the explanatory variables are not available for the holdout sample, the `forecast()` function can be used:
+```{r mixtureExampleFinalARForecast}
+plot(forecast(modelMixtureAR, h=10, interval="p",side="u"))
+```
+It will produce forecasts for each of the explanatory variables based on the available data using `es()` function from `smooth` package (if it is available; otherwise, it will use Naive) and use those values as the new data.
+
 ### References
