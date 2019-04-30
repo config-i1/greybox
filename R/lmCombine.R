@@ -8,6 +8,9 @@
 #' present in some of models, it is assumed that they are equal to zero. Thus,
 #' there is a shrinkage effect in the combination.
 #'
+#' Some details and examples of application are also given in the vignette
+#' "Greybox": \code{vignette("greybox","greybox")}
+#'
 #' @template AICRef
 #' @template author
 #' @template keywords

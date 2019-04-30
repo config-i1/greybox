@@ -7,6 +7,9 @@
 #' based on the selected point IC. This is a dynamic counterpart of
 #' \link[greybox]{lmCombine} function.
 #'
+#' Some details and examples of application are also given in the vignette
+#' "Greybox": \code{vignette("greybox","greybox")}
+#'
 #' @template AICRef
 #' @template author
 #' @template keywords
