@@ -116,6 +116,9 @@ The estimation is done using likelihood of respective distributions.
 ALM function currently does not work with factors and does not accept
 transformations of variables in the formula. So you need to do transformations
 separately before using the function.
+
+See more details and examples in the vignette "ALM":
+\code{vignette("alm","greybox")}
 }
 \examples{
 

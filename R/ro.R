@@ -11,6 +11,9 @@
 #' This is a dangerous function, so be careful with the call that you pass to
 #' it, and make sure that it is well formulated before the execution.
 #'
+#' For more details and more examples of usage, please see vignette for the function.
+#' In order to do that, just run the command: \code{vignette("ro","greybox")}
+#'
 #' @keywords ts
 #'
 #' @param data Data vector or ts object passed to the function.

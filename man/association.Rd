@@ -45,6 +45,9 @@ After that the measures are wrapped up in a matrix.
 Function also calculates the p-values associated with the respective measures
 (see the return).
 
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
+
 \code{assoc()} is just a short name for the \code{association{}}.
 }
 \examples{

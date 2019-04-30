@@ -33,6 +33,9 @@
 #' transformations of variables in the formula. So you need to do transformations
 #' separately before using the function.
 #'
+#' See more details and examples in the vignette "ALM":
+#' \code{vignette("alm","greybox")}
+#'
 #' @template author
 #' @template keywords
 #'

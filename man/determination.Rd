@@ -36,6 +36,9 @@ determination). Arguably it is easier to interpret, because it is
 restricted with (0, 1) bounds. The multicollinearity can be
 considered as serious, when determination > 0.9 (which corresponds
 to VIF > 10).
+
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
 }
 \examples{
 

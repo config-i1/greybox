@@ -31,6 +31,9 @@ function
 \details{
 The function calculates Cramer's V and also returns the associated statistics from
 Chi-Squared test with the null hypothesis of independence of the two variables.
+
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
 }
 \examples{
 

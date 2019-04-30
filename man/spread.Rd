@@ -30,6 +30,9 @@ If one of them is either integer (up to 10 values) or categorical (aka 'factor')
 then boxplots (with grey dots corresponding to mean values) are constructed. Finally,
 for the two categorical variables the tableplot is returned (see
 \link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
+
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
 }
 \examples{
 

@@ -9,6 +9,9 @@
 #' for the two categorical variables the tableplot is returned (see
 #' \link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
 #'
+#' See details in the vignette "Marketing analytics with greybox":
+#' \code{vignette("maUsingGreybox","greybox")}
+#'
 #' @template author
 #' @keywords plots graph
 #'

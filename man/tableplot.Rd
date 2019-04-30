@@ -31,6 +31,9 @@ The function produces the plot of the \code{table()} function with colour densit
 corresponding to the respective frequencies of appearance. If the value appears more
 often than the other (e.g. 0.5 vs 0.15), then it will be darker. The frequency of 0
 corresponds to the white colour, the frequency of 1 corresponds to the black.
+
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
 }
 \examples{
 

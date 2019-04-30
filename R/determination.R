@@ -12,6 +12,9 @@
 #' considered as serious, when determination > 0.9 (which corresponds
 #' to VIF > 10).
 #'
+#' See details in the vignette "Marketing analytics with greybox":
+#' \code{vignette("maUsingGreybox","greybox")}
+#'
 #' @template author
 #' @keywords models
 #'

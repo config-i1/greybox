@@ -34,6 +34,9 @@ This is based on the linear regression model with the set of variables in x. The
 returned value is just a coefficient of multiple correlation from regression,
 the F-statistics of the model (thus testing the null hypothesis that all the
 parameters are equal to zero), the associated p-value and the degrees of freedom.
+
+See details in the vignette "Marketing analytics with greybox":
+\code{vignette("maUsingGreybox","greybox")}
 }
 \examples{
 
