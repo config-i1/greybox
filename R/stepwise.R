@@ -15,8 +15,8 @@
 #' @param data Data frame containing dependant variable in the first column and
 #' the others in the rest.
 #' @param ic Information criterion to use.
-#' @param silent If \code{silent=FALSE}, then nothing is silent, everything is
-#' printed out. \code{silent=TRUE} means that nothing is produced.
+#' @param quiet If \code{quiet=FALSE}, then nothing is quiet, everything is
+#' printed out. \code{quiet=TRUE} means that nothing is produced.
 #' @param df Number of degrees of freedom to add (should be used if stepwise is
 #' used on residuals).
 #' @param method Method of correlations calculation. The default is Kendall's
@@ -24,6 +24,8 @@
 #' @param distribution Distribution to pass to \code{alm()}.
 #' @param occurrence what distribution to use for occurrence part. See
 #' \link[greybox]{alm} for details.
+#' @param ... This is temporary and is needed in order to capture "quiet"
+#' parameter if it is provided.
 #'
 #' @return Function returns \code{model} - the final model of the class "alm".
 #' See \link[greybox]{alm} for details of the output.
@@ -57,15 +59,18 @@
 #'
 #' @importFrom stats .lm.fit
 #' @export stepwise
-stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
+stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), quiet=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
                      distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                     "plogis","pnorm"),
-                     occurrence=c("none","plogis","pnorm")){
+                     occurrence=c("none","plogis","pnorm"), ...){
 ##### Function that selects variables based on IC and using partial correlations
     if(is.null(df)){
         df <- 0;
     }
+
+    #### This is temporary and needs to be removed at some point! ####
+    quiet[] <- depricator(quiet, list(...));
 
     # Check, whether the response is numeric
     if(is.data.frame(data)){
@@ -111,14 +116,14 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         if(any(occurrence==c("plogis","pnorm"))){
             useALM <- TRUE;
-            rowsSelected <- rowsSelected | (data[,1]!=0);
+            rowsSelected <- rowsSelected & (data[,1]!=0);
         }
     }
 
     # Define what function to use in the estimation
     if(useALM){
         lmCall <- alm;
-        listToCall <- list(distribution=distribution, checks=FALSE);
+        listToCall <- list(distribution=distribution, fast=TRUE);
     }
     else{
         if(!is.data.frame(data)){
@@ -189,7 +194,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     variablesNames <- variablesNames[-1];
 
     # Define, which of the variables are factors, excluding the response variable
-    numericData <- sapply(listToCall$data, is.numeric)[-1];
+    numericData <- sapply(listToCall$data, is.numeric)[-1]
+    # If the value is binary, treat it as a factor # & apply(listToCall$data!=0 & listToCall$data!=1,2,any)[-1];
 
     #### The function-analogue of mcor, but without checks ####
     mcorFast <- function(x){
@@ -205,11 +211,12 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     #### The function that works similar to association(), but faster ####
     assocFast <- function(){
         # Measures of association with numeric data
-        assocValues[which(numericData)] <- cor(errors,listToCall$data[,which(numericData)+1],use="complete.obs",method=method);
+        assocValues[which(numericData)] <- suppressWarnings(cor(errors,listToCall$data[,which(numericData)+1],
+                                                                use="complete.obs",method=method));
 
         # Measures of association with categorical data
         for(i in which(!numericData)+1){
-            assocValues[i-1] <- mcorFast(listToCall$data[[i]]);
+            assocValues[i-1] <- suppressWarnings(mcorFast(listToCall$data[[i]]));
         }
         return(assocValues);
     }
@@ -239,7 +246,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     testModel <- do.call(lmCall,listToCall);
     # Write down the logLik and take df into account
     logLikValue <- logLik(testModel);
-    attributes(logLikValue)$df <- nParam(logLikValue) + df;
+    attributes(logLikValue)$df <- nparam(logLikValue) + df;
     # Write down the IC. This one needs to be calculated from the logLik
     # in order to take the additional df into account.
     currentIC <- bestIC <- IC(logLikValue);
@@ -249,7 +256,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     errors[] <- residuals(testModel);
 
     bestFormula <- testFormula;
-    if(!silent){
+    if(!quiet){
         cat("Formula: "); cat(testFormula);
         cat(", IC: "); cat(currentIC); cat("\n\n");
     }
@@ -259,7 +266,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     while(bestICNotFound){
         ourCorrelation <- assocFast();
 
-        newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation)))[1]];
+        newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation),na.rm=TRUE))[1]];
         # If the newElement is the same as before, stop
         if(any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
@@ -271,9 +278,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         testModel <- do.call(lmCall,listToCall);
         # Modify logLik
         logLikValue <- logLik(testModel);
-        attributes(logLikValue)$df <- nParam(logLikValue) + df;
+        attributes(logLikValue)$df <- nparam(logLikValue) + df;
         if(attributes(logLikValue)$df >= (obsInsample+1)){
-            if(!silent){
+            if(!quiet){
                 warning("Number of degrees of freedom is greater than number of observations. Cannot proceed.");
             }
             bestICNotFound <- FALSE;
@@ -282,7 +289,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         # Calculate the IC
         currentIC <- IC(logLikValue);
-        if(!silent){
+        if(!quiet){
             cat(paste0("Step ",m-1,". "));
             cat("Formula: "); cat(testFormula);
             cat(", IC: "); cat(currentIC);
@@ -320,7 +327,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         bestModel$distribution <- distribution;
         bestModel$logLik <- logLik(bestModel);
-        bestModel$mu <- bestModel$fitted.values <- bestModel$data[,1] - c(bestModel$residuals);
+        bestModel$mu <- bestModel$fitted <- bestModel$data[,1] - c(bestModel$residuals);
         # This is number of variables + constant + variance
         bestModel$df <- length(varsNames) + 1 + 1;
         bestModel$df.residual <- obsInsample - bestModel$df;
@@ -342,7 +349,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel <- do.call("alm", list(formula=bestFormula,
                                          data=dataSubstitute,
                                          distribution=distribution,
-                                         occurrence=occurrence),
+                                         occurrence=occurrence,
+                                         fast=TRUE),
                              envir = parent.frame());
         bestModel$call$occurrence <- substitute(occurrence);
         class(bestModel) <- c("alm","greybox");

@@ -1,4 +1,38 @@
-greybox v0.4.2 (Release data: 2019-03-01)
+greybox v0.5.1 (Release data: 2019-04-27)
+==============
+
+Changes:
+* The parameter "silent" is now renamed into "quiet" in ro(), xregExpander(), xregMultiplier() and xregTransformer() functions. It only specifies the output in console now.
+* Similarly, "bruteForce" is now "bruteforce" in lmCombine(), lmDynamic() and determ(),
+* "B" is now "parameters" in alm(),
+* "checks" is now "fast" (note, the opposite meaning),
+* "style" is now "outplot" in rmc().
+* All the functions now return "fitted" instead of "fitted.values". This is not a big deal, the fitted() method will work as always.
+* forecast() function now accepts h - the forecast horizon. If h!=nrow(newdata), then the function will either cut off values, or produce forecasts for the explanatory variables.
+
+Bugfixes:
+* alm() would not do checks properly when only one explanatory variable was used.
+* lmCombine() and lmDynamic() would not work because they would refer to non-existent "ourModel". Thanks leungi for the bug report!
+* lmCombine() and lmDynamic() used to warn about the computational time after doing things, not before that.
+* predict.alm() would not work well if only one-step-ahead prediction was needed.
+
+
+greybox v0.5.0 (Release data: 2019-04-20)
+==============
+
+Changes:
+* New function - polyprod(), returning the product of two polynomials.
+* alm() now has parameters ar and i, which define the order of respective elements of ARIMA model.
+* alm() now checks for stationarity of AR.
+* alm() now produces the fitted for the zero observations.
+* alm() now accepts parameters for the nloptr.
+* In case of occurrence model, the expected entropy is added to the likelihood.
+* Tuning of the initials for the recursive model.
+* alm() with distribution=c("pnorm","plogis") and ARI(p,d) now produces adequate estimates of probability and forecasts.
+* Error measures imported from smooth. Accuracy() function is renamed into measures().
+
+
+greybox v0.4.2 (Release data: 2019-03-10)
 ==============
 
 Changes:
@@ -6,10 +40,17 @@ Changes:
 * graphmaker() now does not need for forecast to start at the right place. If start(actuals)=start(forecast), it will place forecast at the end.
 * graphmaker() now also allows not to reset par, so that you can add arbitrary elements to the graph.
 * rmc() now returns the exponentiated values of means and intervals in case of distribution="dlnorm".
+* nParam() method has been renamed into nparam().
+* A new method - actuals(), which returns actuals from the model (similar to "getResponse" of forecast package).
+* nobs() and actuals() now also have a hidden parameter all, which determines, whether to return all the values or only demand sizes in case of occurrence model. The default behaviour for nobs is FALSE, and for actuals is TRUE. This is driven by the functions relying on these methods.
+* xregExpander() now allows specifying how to fill in the gaps for the lagged variables.
 
 Bugfixes:
 * Fixed a bug in stepwise(), due to which the wrong fitted values were generated.
 * Annoying bug with occurrence!="none" models and factors.
+* lmCombine and lmDynamic did not work correctly with NAs.
+* alm produced errors for simple regressions and occurrence.
+* stepwise would produce errors, when there was no variability in the data.
 
 
 greybox v0.4.1 (Release data: 2019-01-27)

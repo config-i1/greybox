@@ -39,8 +39,8 @@
 #'
 #' ourModel <- stepwise(xreg)
 #'
-#' AICc(ourModel,h=10)
-#' BICc(ourModel,h=10)
+#' AICc(ourModel)
+#' BICc(ourModel)
 #'
 #' @rdname InformationCriteria
 #' @export AICc
@@ -55,11 +55,11 @@ BICc <- function(object, ...) UseMethod("BICc")
 #' @export
 AICc.default <- function(object, ...){
     llikelihood <- logLik(object);
-    nParamAll <- nParam(object);
+    nparamAll <- nparam(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     obs <- nobs(object);
 
-    IC <- 2*nParamAll - 2*llikelihood + 2 * nParamAll * (nParamAll + 1) / (obs - nParamAll - 1);
+    IC <- 2*nparamAll - 2*llikelihood + 2 * nparamAll * (nparamAll + 1) / (obs - nparamAll - 1);
 
     return(IC);
 }
@@ -67,11 +67,11 @@ AICc.default <- function(object, ...){
 #' @export
 BICc.default <- function(object, ...){
     llikelihood <- logLik(object);
-    nParamAll <- nParam(object);
+    nparamAll <- nparam(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     obs <- nobs(object);
 
-    IC <- - 2*llikelihood + (nParamAll * log(obs) * obs) / (obs - nParamAll - 1);
+    IC <- - 2*llikelihood + (nparamAll * log(obs) * obs) / (obs - nparamAll - 1);
 
     return(IC);
 }
@@ -81,11 +81,11 @@ AICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     nSeries <- object$K;
-    nParamAll <- nrow(coef(object)[[1]]);
+    nparamAll <- nrow(coef(object)[[1]]);
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + ((2*obs*(nParamAll*nSeries + nSeries*(nSeries+1)/2)) /
-                                (obs - (nParamAll + nSeries + 1)));
+    IC <- -2*llikelihood + ((2*obs*(nparamAll*nSeries + nSeries*(nSeries+1)/2)) /
+                                (obs - (nparamAll + nSeries + 1)));
 
     return(IC);
 }
@@ -95,12 +95,12 @@ BICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
     nSeries <- object$K;
-    nParamAll <- nrow(coef(object)[[1]]) + object$K;
+    nparamAll <- nrow(coef(object)[[1]]) + object$K;
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + (((nParamAll + nSeries*(nSeries+1)/2) *
+    IC <- -2*llikelihood + (((nparamAll + nSeries*(nSeries+1)/2) *
                                  log(obs * nSeries) * obs * nSeries) /
-                                (obs * nSeries - nParamAll - nSeries*(nSeries+1)/2));
+                                (obs * nSeries - nparamAll - nSeries*(nSeries+1)/2));
 
     return(IC);
 }
@@ -150,10 +150,10 @@ errorType.ets <- function(object, ...){
 #' @export
 logLik.alm <- function(object, ...){
     if(is.alm(object$occurrence)){
-        return(structure(object$logLik,nobs=nobs(object),df=nParam(object)+nParam(object$occurrence),class="logLik"));
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
     }
     else{
-        return(structure(object$logLik,nobs=nobs(object),df=nParam(object),class="logLik"));
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object),class="logLik"));
     }
 }
 
@@ -187,13 +187,13 @@ logLik.alm <- function(object, ...){
 #' pointLik(ourModel)
 #'
 #' # Bias correction
-#' pointLik(ourModel) - nParam(ourModel)
+#' pointLik(ourModel) - nparam(ourModel)
 #'
 #' # Bias correction in AIC style
-#' 2*(nParam(ourModel)/nobs(ourModel) - pointLik(ourModel))
+#' 2*(nparam(ourModel)/nobs(ourModel) - pointLik(ourModel))
 #'
 #' # BIC calculation based on pointLik
-#' log(nobs(ourModel))*nParam(ourModel) - 2*sum(pointLik(ourModel))
+#' log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
 #'
 #' @export pointLik
 pointLik <- function(object, ...) UseMethod("pointLik")
@@ -208,45 +208,69 @@ pointLik.default <- function(object, ...){
 #' @export
 pointLik.alm <- function(object, ...){
     distribution <- object$distribution;
-    y <- getResponse(object);
+    y <- actuals(object);
     ot <- y!=0;
     if(is.alm(object$occurrence)){
-        y <- y[ot];
+        otU <- y!=0;
+        y <- y[otU];
+        mu <- object$mu[otU];
     }
-    mu <- object$mu;
+    else{
+        otU <- rep(TRUE, nobs(object));
+        mu <- object$mu;
+    }
     scale <- object$scale;
 
-    likValues <- switch(distribution,
-                        "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                        "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                        "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                        "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                        "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
-                        "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                        "dt" = dt(y-mu, df=scale, log=TRUE),
-                        "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                        "dpois" = dpois(y, lambda=mu, log=TRUE),
-                        "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                        "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
-                        "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
-                        "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
-                                     plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
-                        "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                                    pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+    likValues <- vector("numeric",nobs(object));
+    likValues[otU] <- switch(distribution,
+                            "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
+                            "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
+                            "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                            "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
+                            "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
+                            "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                            "dt" = dt(y-mu, df=scale, log=TRUE),
+                            "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
+                            "dpois" = dpois(y, lambda=mu, log=TRUE),
+                            "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
+                            "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
+                            "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
+                            "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
+                                         plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                            "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
+                                        pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
     );
-
-    # Sort values if plogis or pnorm was used
-    if(any(distribution==c("plogis","pnorm"))){
-        likValuesNew <- likValues;
-        likValues[ot] <- likValuesNew[1:sum(ot)];
-        likValues[!ot] <- likValuesNew[-c(1:sum(ot))];
-    }
 
     # If this is a mixture model, take the respective probabilities into account
     if(is.alm(object$occurrence)){
-        likValuesNew <- pointLik(object$occurrence);
-        likValuesNew[ot] <- likValuesNew[ot] + likValues;
-        likValues <- likValuesNew;
+        likValues[!otU] <- -switch(distribution,
+                                   "dnorm" =,
+                                   "dfnorm" =,
+                                   "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                   "dlaplace" =,
+                                   "dalaplace" = (1 + log(2*scale)),
+                                   "dlogis" = 2,
+                                   "dt" = ((scale+1)/2 *
+                                               (digamma((scale+1)/2)-digamma(scale/2)) +
+                                               log(sqrt(scale) * beta(scale/2,0.5))),
+                                   "ds" = (2 + 2*log(2*scale)),
+                                   "dchisq" = (log(2)*gamma(scale/2)-
+                                                   (1-scale/2)*digamma(scale/2)+
+                                                   scale/2),
+                                   "dbeta" = log(beta(mu,scale))-
+                                       (mu-1)*
+                                       (digamma(mu)-
+                                            digamma(mu+scale))-
+                                       (scale-1)*
+                                       (digamma(scale)-
+                                            digamma(mu+scale)),
+                                   # This is a normal approximation of the real entropy
+                                   "dpois" = 0.5*log(2*pi*scale)+0.5,
+                                   "dnbinom" = log(sqrt(2*pi)*scale)+0.5,
+                                   0
+        );
+
+        likValues <- likValues + pointLik(object$occurrence);
     }
 
     return(likValues);
@@ -300,7 +324,7 @@ pAIC <- function(object, ...) UseMethod("pAIC")
 #' @export
 pAIC.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(2 * k - 2 * obs * pointLik(object));
 }
 
@@ -311,7 +335,7 @@ pAICc <- function(object, ...) UseMethod("pAICc")
 #' @export
 pAICc.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(2 * k - 2 * obs * pointLik(object) + 2 * k * (k + 1) / (obs - k - 1));
 }
 
@@ -322,7 +346,7 @@ pBIC <- function(object, ...) UseMethod("pBIC")
 #' @export
 pBIC.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return(log(obs) * k - 2 * obs * pointLik(object));
 }
 
@@ -333,12 +357,57 @@ pBICc <- function(object, ...) UseMethod("pBICc")
 #' @export
 pBICc.default <- function(object, ...){
     obs <- nobs(object);
-    k <- nParam(object);
+    k <- nparam(object);
     return((k * log(obs) * obs) / (obs - k - 1)  - 2 * obs * pointLik(object));
 }
 
 
 #### Coefficients and extraction functions ####
+
+#' Function extracts the actual values from the function
+#'
+#' This is a simple method that returns the values of the response variable of the model
+#'
+#' @template author
+#'
+#' @param object Model estimated using one of the functions of smooth package.
+#' @param ... A parameter all can also be provided here. If it is \code{FALSE}, then
+#' in the case of occurrence model, only demand sizes will be returned. Works only with
+#' 'alm' class.
+#' @return The vector of the response variable.
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' ourModel <- stepwise(xreg)
+#'
+#' actuals(ourModel)
+#'
+#' @rdname actuals
+#' @export
+actuals <- function(object, ...) UseMethod("actuals")
+
+#' @rdname actuals
+#' @export
+actuals.default <- function(object, ...){
+    return(object$y);
+}
+
+#' @rdname actuals
+#' @export
+actuals.alm <- function(object, ...){
+    ellipsis <- list(...);
+    returnValues <- rep(TRUE,nobs(object,all=TRUE));
+    if(!is.null(ellipsis$all) && !ellipsis$all){
+        returnValues[] <- object$data[,1]!=0;
+    }
+
+    return(object$data[returnValues,1]);
+}
+
+
 #' @importFrom stats coef
 #' @export
 coef.greybox <- function(object, ...){
@@ -480,7 +549,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     side <- substr(side[1],1,1);
     h <- nrow(newdata);
     levelOriginal <- level;
-    greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
+
+    ariOrderNone <- is.null(object$other$polynomial);
+    if(ariOrderNone){
+        greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
+    }
+    else{
+        greyboxForecast <- predict.almari(object, newdata, interval, level, side=side, ...);
+    }
     greyboxForecast$location <- greyboxForecast$mean;
     greyboxForecast$scale <- sqrt(greyboxForecast$variance);
     greyboxForecast$distribution <- object$distribution;
@@ -644,9 +720,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         else if(interval=="c"){
             greyboxForecast$lower <- (greyboxForecast$mean + qt(levelLow,df=object$df.residual)*
-                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
+                                          sqrt(greyboxForecast$variances/nobs(object)));
             greyboxForecast$upper <- (greyboxForecast$mean + qt(levelUp,df=object$df.residual)*
-                                          sqrt(greyboxForecast$variances/(nobs(object)-nParam(object))));
+                                          sqrt(greyboxForecast$variances/nobs(object)));
         }
     }
     else if(object$distribution=="plogis"){
@@ -694,12 +770,29 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
 #' Forecasting using greybox functions
 #'
-#' \code{predict} is a function for predictions from various model fitting
-#' functions. The function invokes particular method, corresponding to the
-#' class of the first argument.
+#' The functions allow producing forecasts based on the provided model and newdata.
 #'
-#' Although this function is called "forecast", it has functionality similar to
-#' "predict" function.
+#' \code{predict} produces predictions for the provided model and \code{newdata}. If
+#' \code{newdata} is not provided, then the data from the model is extracted and the
+#' fitted values are reproduced. This might be useful when confidence / prediction
+#' intervals are needed for the in-sample values.
+#'
+#' \code{forecast} function produces forecasts for \code{h} steps ahead. There are four
+#' scenarios in this function:
+#' \enumerate{
+#' \item If the \code{newdata} is  not provided, then it will produce forecasts of the
+#' explanatory variables to the horizon \code{h} (using \code{es} from smooth package
+#' or using Naive if \code{smooth} is not installed) and use them as \code{newdata}.
+#' \item If \code{h} and \code{newdata} are provided, then the number of rows to use
+#' will be regulated by \code{h}.
+#' \item If \code{h} is \code{NULL}, then it is set equal to the number of rows in
+#' \code{newdata}.
+#' \item If both \code{h} and \code{newdata} are not provided, then it will use the
+#' data from the model itself, reproducing the fitted values.
+#' }
+#' After forming the \code{newdata} the \code{forecast} function calls for
+#' \code{predict}, so you can provide parameters \code{interval}, \code{level} and
+#' \code{side} in the call for \code{forecast}.
 #'
 #' @aliases forecast forecast.greybox
 #' @param object Time series model for which forecasts are required.
@@ -713,6 +806,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' two parts: ((1-level)/2, (1+level)/2). When \code{"upper"} is specified, then
 #' the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
 #' for (1-level, 1) is returned.
+#' @param h The forecast horizon.
 #' @param ...  Other arguments.
 #' @return \code{predict.greybox()} returns object of class "predict.greybox",
 #' which contains:
@@ -736,8 +830,11 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' \item \code{distribution} - name of the fitted distribution.
 #' }
 #'
+#' \code{forecast()} functions return the same "predict.alm" and
+#' "predict.greybox" classes, with the same set of output variables.
+#'
 #' @template author
-#' @seealso \code{\link[stats]{predict.lm}}
+#' @seealso \link[stats]{predict.lm}, \link[forecast]{forecast}
 #' @keywords ts univar
 #' @examples
 #'
@@ -751,7 +848,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #'
 #' predict(ourModel,outSample)
 #' predict(ourModel,outSample,interval="c")
+#'
 #' plot(predict(ourModel,outSample,interval="p"))
+#' plot(forecast(ourModel,h=10,interval="p"))
 #'
 #' @rdname predict.greybox
 #' @export
@@ -808,7 +907,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         newdataExpanded <- model.frame(testFormula, newdata);
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     nRows <- nrow(matrixOfxreg);
@@ -816,17 +915,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     if(object$distribution=="dbeta"){
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
-
-    # In case of greyboxC and greyboxD insert intercept
-    # if(any(is.greyboxC(object),is.greyboxD(object))){
-    #     matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
-    #     if(ncol(matrixOfxreg)==2){
-    #         colnames(matrixOfxreg) <- parametersNames;
-    #     }
-    #     else{
-    #         colnames(matrixOfxreg)[1] <- parametersNames[1];
-    #     }
-    # }
 
     if(any(is.greyboxC(object),is.greyboxD(object))){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
@@ -836,7 +924,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         else{
             colnames(matrixOfxreg)[1] <- parametersNames[1];
         }
-        matrixOfxreg <- matrixOfxreg[,parametersNames];
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
     if(!is.matrix(matrixOfxreg)){
@@ -882,26 +970,319 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     return(structure(ourModel,class="predict.greybox"));
 }
 
+# The internal function for the predictions from the model with ARI
+predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+                            level=0.95, side=c("both","upper","lower"), ...){
+    interval <- substr(interval[1],1,1);
+
+    side <- substr(side[1],1,1);
+
+    y <- actuals(object, all=FALSE);
+
+    # Write down the AR order
+    if(is.null(object$call$ar)){
+        arOrder <- 0;
+    }
+    else{
+        arOrder <- object$call$ar;
+    }
+
+    ariOrder <- length(object$other$polynomial);
+    ariParameters <- object$other$polynomial;
+    ariNames <- names(ariParameters);
+
+    parameters <- coef.greybox(object);
+    # Split the parameters into normal and polynomial (for ARI)
+    if(arOrder>0){
+        parameters <- parameters[-c(length(parameters)+(1-arOrder):0)];
+    }
+    nonariParametersNumber <- length(parameters);
+    parametersNames <- names(parameters);
+    ourVcov <- vcov(object);
+
+    if(side=="u"){
+        levelLow <- 0;
+        levelUp <- level;
+    }
+    else if(side=="l"){
+        levelLow <- 1-level;
+        levelUp <- 1;
+    }
+    else{
+        levelLow <- (1 - level) / 2;
+        levelUp <- (1 + level) / 2;
+    }
+    paramQuantiles <- qt(c(levelLow, levelUp),df=object$df.residual);
+
+    if(is.null(newdata)){
+        matrixOfxreg <- object$data[,-1,drop=FALSE];
+        newdataProvided <- FALSE;
+        interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
+        if(interceptIsNeeded){
+            matrixOfxreg <- cbind(1,matrixOfxreg);
+        }
+    }
+    else{
+        newdataProvided <- TRUE;
+
+        if(!is.data.frame(newdata)){
+            if(is.vector(newdata)){
+                newdataNames <- names(newdata);
+                newdata <- matrix(newdata, nrow=1, dimnames=list(NULL, newdataNames));
+            }
+            newdata <- as.data.frame(newdata);
+        }
+        else{
+            dataOrders <- unlist(lapply(newdata,is.ordered));
+            # If there is an ordered factor, remove the bloody ordering!
+            if(any(dataOrders)){
+                newdata[dataOrders] <- lapply(newdata[dataOrders],function(x) factor(x, levels=levels(x), ordered=FALSE));
+            }
+        }
+
+        # Extract the formula and get rid of the response variable
+        testFormula <- formula(object)
+        testFormula[[2]] <- NULL;
+        # Expand the data frame
+        newdataExpanded <- model.frame(testFormula, newdata);
+        interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
+        matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
+
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
+    }
+
+    nRows <- nrow(matrixOfxreg);
+
+    if(object$distribution=="dbeta"){
+        parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
+    }
+
+    if(any(is.greyboxC(object),is.greyboxD(object))){
+        matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
+        if(ncol(matrixOfxreg)==2){
+            colnames(matrixOfxreg) <- parametersNames;
+        }
+        else{
+            colnames(matrixOfxreg)[1] <- parametersNames[1];
+        }
+        matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
+    }
+
+    if(!is.matrix(matrixOfxreg)){
+        matrixOfxreg <- matrix(matrixOfxreg,ncol=1);
+        nRows <- nrow(matrixOfxreg);
+    }
+
+    if(nRows==1){
+        matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
+    }
+
+    # Add ARI polynomials to the parameters
+    parameters <- c(parameters,ariParameters);
+
+    # If the newdata is provided, do the recursive thingy
+    if(newdataProvided){
+    # Fill in the tails with the available data
+        if(any(object$distribution==c("plogis","pnorm"))){
+            matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+            matrixOfxregFull <- rbind(matrix(NA,ariOrder,ncol(matrixOfxregFull)),matrixOfxregFull);
+            if(interceptIsNeeded){
+                matrixOfxregFull[1:ariOrder,-1] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+                matrixOfxregFull[1:ariOrder,1] <- 1;
+            }
+            else{
+                matrixOfxregFull[1:ariOrder,] <- tail(object$data[,-1,drop=FALSE],ariOrder);
+            }
+            nRows <- nRows+ariOrder;
+        }
+        else{
+            matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
+            for(i in 1:ariOrder){
+                matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+            }
+        }
+
+        # Transform the lagged response variables
+        if(any(object$distribution==c("dlnorm","dpois","dnbinom"))){
+            if(any(y==0) & !is.alm(object$occurrence)){
+                # Use Box-Cox if there are zeroes
+                matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
+                colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
+            }
+            else{
+                matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- log(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+                colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Log");
+            }
+        }
+        else if(object$distribution=="dchisq"){
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Sqrt");
+        }
+
+        # if(object$distribution=="dbeta"){
+        #     # We predict values for shape1 and shape2 and write them down in mean and variance.
+        #     ourForecast <- as.vector(exp(matrixOfxregFull %*% parameters[1:(length(parameters)/2)]));
+        #     vectorOfVariances <- as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))]));
+        #     # ourForecast <- ourForecast / (ourForecast + as.vector(exp(matrixOfxregFull %*% parameters[-c(1:(length(parameters)/2))])));
+        #
+        #     lower <- NULL;
+        #     upper <- NULL;
+        # }
+        # else{
+
+        # Produce forecasts iteratively
+        ourForecast <- vector("numeric", nRows);
+        for(i in 1:nRows){
+            ourForecast[i] <- matrixOfxregFull[i,] %*% parameters;
+            for(j in 1:ariOrder){
+                if(i+j-1==nRows){
+                    break;
+                }
+                matrixOfxregFull[i+j,nonariParametersNumber+j] <- ourForecast[i];
+            }
+        }
+
+        if(any(object$distribution==c("plogis","pnorm"))){
+            matrixOfxreg <- matrixOfxregFull[-c(1:ariOrder),1:(nonariParametersNumber+arOrder),drop=FALSE];
+            ourForecast <- ourForecast[-c(1:ariOrder)];
+        }
+        else{
+            matrixOfxreg <- matrixOfxregFull[,1:(nonariParametersNumber+arOrder),drop=FALSE];
+        }
+    }
+    else{
+        ourForecast <- object$mu;
+    }
+
+    # abs is needed for some cases, when the likelihoond was not fully optimised
+    vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
+
+    if(interval=="c"){
+        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+    }
+    else if(interval=="p"){
+        vectorOfVariances <- vectorOfVariances + sigma(object)^2;
+        lower <- ourForecast + paramQuantiles[1] * sqrt(vectorOfVariances);
+        upper <- ourForecast + paramQuantiles[2] * sqrt(vectorOfVariances);
+    }
+    else{
+        lower <- NULL;
+        upper <- NULL;
+    }
+    # }
+
+    ourModel <- list(model=object, mean=ourForecast, lower=lower, upper=upper, level=c(levelLow, levelUp), newdata=newdata,
+                     variances=vectorOfVariances, newdataProvided=newdataProvided);
+    return(structure(ourModel,class="predict.greybox"));
+}
+
 #' @importFrom forecast forecast
 #' @export forecast
+#' @rdname predict.greybox
 #' @export
-forecast.greybox <- function(object, newdata, ...){
+forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){
+    if(!is.null(newdata) & is.null(h)){
+        h <- nrow(newdata);
+    }
+
+    if(!is.null(newdata) & !is.null(h)){
+        if(nrow(newdata)>h){
+            newdata <- head(newdata, h);
+        }
+        # If not enough values in the newdata, use naive
+        else if(nrow(newdata)<h){
+            warning("Not enough observations in the newdata. Using Naive in order to fill in the values.", call.=FALSE);
+            newdata <- rbind(newdata,newdata[rep(nrow(newdata),h-nrow(newdata)),]);
+        }
+    }
+    else if(is.null(newdata) & !is.null(h)){
+        warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
+        if(ncol(object$data)>1){
+            # If smooth is not installed, use Naive
+            if(!requireNamespace("smooth", quietly = TRUE)){
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+            }
+            # Otherwise use es()
+            else{
+                newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
+
+                for(i in 1:ncol(newdata)){
+                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                }
+            }
+        }
+        else{
+            newdata <- matrix(NA, h, 1, dimnames=list(NULL, colnames(object$data)[1]));
+        }
+    }
     return(predict(object, newdata, ...));
 }
 
+#' @rdname predict.greybox
 #' @export
-forecast.alm <- function(object, newdata, ...){
-    return(predict(object, newdata, ...));
-}
+forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
+    if(!is.null(newdata) & is.null(h)){
+        h <- nrow(newdata);
+    }
 
-#' @importFrom forecast getResponse
-#' @export
-getResponse.greybox <- function(object, ...){
-    responseVariable <- object$data[,1];
-    return(responseVariable);
+    if(!is.null(newdata) & !is.null(h)){
+        if(nrow(newdata)>h){
+            newdata <- head(newdata, h);
+        }
+        # If not enough values in the newdata, use naive
+        else if(nrow(newdata)<h){
+            warning("Not enough observations in the newdata. Using Naive in order to fill in the values.", call.=FALSE);
+            newdata <- rbind(newdata,newdata[rep(nrow(newdata),h-nrow(newdata)),]);
+        }
+    }
+    else if(is.null(newdata) & !is.null(h)){
+        warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
+        if(ncol(object$data)>1){
+            # If smooth is not installed, use Naive
+            if(!requireNamespace("smooth", quietly = TRUE)){
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+            }
+            # Otherwise use es()
+            else{
+                if(!is.null(object$other$polynomial)){
+                    ariLength <- length(object$other$polynomial);
+                    newdata <- matrix(NA, h, ncol(object$data)-ariLength-1,
+                                      dimnames=list(NULL, colnames(object$data)[-c(1, (ncol(object$data)-ariLength+1):ncol(object$data))]));
+                }
+                else{
+                    newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
+                }
+
+                for(i in 1:ncol(newdata)){
+                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                }
+            }
+        }
+        else{
+            newdata <- matrix(NA, h, 1, dimnames=list(NULL, colnames(object$data)[1]));
+        }
+    }
+    return(predict(object, newdata, ...));
 }
 
 #' @importFrom stats nobs fitted
+#' @export
+nobs.alm <- function(object, ...){
+    ellipsis <- list(...);
+    # if all==FALSE is provided, return non-zeroes only
+    # otherwise return all
+    if(!is.null(ellipsis$all) && !ellipsis$all){
+        returnValue <- sum(object$data[,1]!=0);
+    }
+    else{
+        returnValue <- nobs.greybox(object);
+    }
+    return(returnValue);
+}
+
 #' @export
 nobs.greybox <- function(object, ...){
     return(length(fitted(object)));
@@ -919,7 +1300,7 @@ nobs.varest <- function(object, ...){
 #' This is a very basic and a simple function which does what it says:
 #' extracts number of parameters in the estimated model.
 #'
-#' @aliases nParam
+#' @aliases nparam
 #' @param object Time series model.
 #' @param ... Some other parameters passed to the method.
 #' @return This function returns a numeric value.
@@ -934,44 +1315,45 @@ nobs.varest <- function(object, ...){
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #' ourModel <- lm(y~.,data=as.data.frame(xreg))
 #'
-#' nParam(ourModel)
+#' nparam(ourModel)
 #'
+#' @rdname nparam
 #' @importFrom stats coef
-#' @export nParam
-nParam <- function(object, ...) UseMethod("nParam")
+#' @export nparam
+nparam <- function(object, ...) UseMethod("nparam")
 
 #' @export
-nParam.default <- function(object, ...){
+nparam.default <- function(object, ...){
     # The length of the vector of parameters + variance
     return(length(coef(object))+1);
 }
 
 #' @export
-nParam.alm <- function(object, ...){
+nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
-    if(!is.null(object$occurrence)){
-        return(object$df+object$occurrence$df);
-    }
-    else{
+    # if(!is.null(object$occurrence)){
+    #     return(object$df+object$occurrence$df);
+    # }
+    # else{
         return(object$df);
-    }
+    # }
 }
 
 #' @export
-nParam.logLik <- function(object, ...){
+nparam.logLik <- function(object, ...){
     # The length of the vector of parameters + variance
     return(attributes(object)$df);
 }
 
 #' @export
-nParam.greyboxC <- function(object, ...){
+nparam.greyboxC <- function(object, ...){
     # The length of the vector of parameters + variance
     return(sum(object$importance)+1);
 }
 
 #' @export
-nParam.varest <- function(object, ...){
-    ### This is the nParam per series
+nparam.varest <- function(object, ...){
+    ### This is the nparam per series
     # Parameters in all the matrices + the elements of the covariance matrix
     return(nrow(coef(object)[[1]])*object$K + 0.5*object$K*(object$K+1));
 }
@@ -1033,13 +1415,16 @@ plot.greybox <- function(x, ...){
         ellipsis$ylab <- all.vars(x$call$formula)[1];
     }
 
-    ellipsis$x <- getResponse(x);
+    ellipsis$x <- actuals(x);
     if(is.alm(x)){
         if(any(x$distribution==c("plogis","pnorm"))){
             ellipsis$x <- (ellipsis$x!=0)*1;
         }
     }
     yFitted <- fitted(x);
+    if(is.null(ellipsis$ylim)){
+        ellipsis$ylim <- range(c(actuals(x),yFitted));
+    }
 
     do.call(plot,ellipsis);
     lines(yFitted, col="red");
@@ -1054,7 +1439,7 @@ plot.greybox <- function(x, ...){
 
 #' @export
 plot.predict.greybox <- function(x, ...){
-    yActuals <- getResponse(x$model);
+    yActuals <- actuals(x$model);
     yStart <- start(yActuals);
     yFrequency <- frequency(yActuals);
     yForecastStart <- time(yActuals)[length(yActuals)]+deltat(yActuals);
@@ -1080,7 +1465,7 @@ plot.predict.greybox <- function(x, ...){
 
     # Change values of fitted and forecast, depending on whethere there was a newdata or not
     if(x$newdataProvided){
-        yFitted <- ts(x$model$fitted.values, start=yStart, frequency=yFrequency);
+        yFitted <- ts(fitted(x$model), start=yStart, frequency=yFrequency);
         yForecast <- ts(x$mean, start=yForecastStart, frequency=yFrequency);
         vline <- TRUE;
     }
@@ -1115,7 +1500,6 @@ plot.predict.greybox <- function(x, ...){
         graphmakerCall$level <- level;
         graphmakerCall$lower <- yLower;
         graphmakerCall$upper <- yUpper;
-        graphmakerCall
 
         if((any(is.infinite(yLower)) & any(is.infinite(yUpper))) | (any(is.na(yLower)) & any(is.na(yUpper)))){
             graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
@@ -1272,10 +1656,14 @@ print.summary.alm <- function(x, ...){
 
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
+    if(!is.null(x$arima)){
+        cat(paste0("\n",x$arima," components were included in the model"));
+    }
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("ICs:\n");
     print(round(x$ICs,digits));
+    cat("\nError standard deviation: "); cat(round(sqrt(x$s2),digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
@@ -1311,6 +1699,9 @@ print.summary.greybox <- function(x, ...){
 
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
+    if(!is.null(x$arima)){
+        cat(paste0("\n",x$arima," components were included in the model"));
+    }
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
     cat("---\n");
@@ -1402,7 +1793,7 @@ print.rollingOrigin <- function(x, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, ...){
-    return(sqrt(sum(residuals(object)^2)/nobs(object)));
+    return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
 }
 
 #' @export
@@ -1411,7 +1802,7 @@ sigma.alm <- function(object, ...){
         return(object$scale);
     }
     else{
-        return(sigma.greybox(object));
+        return(sigma.greybox(object, ...));
     }
 }
 
@@ -1423,7 +1814,7 @@ sigma.ets <- function(object, ...){
 #' @export
 sigma.varest <- function(object, ...){
     # OLS estimate of Sigma, without the covariances
-    return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nParam(object)+object$K));
+    return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nparam(object)+object$K));
 }
 
 #' @export
@@ -1447,9 +1838,11 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
+    ourReturn$arima <- object$other$arima;
+    ourReturn$s2 <- sigma(object)^2;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);
@@ -1476,9 +1869,10 @@ summary.greybox <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object),nParam(object),nobs(object)-nParam(object));
+    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
     names(dfTable) <- c("n","k","df");
     ourReturn$dfTable <- dfTable;
+    ourReturn$arima <- object$other$arima;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
@@ -1507,11 +1901,11 @@ summary.greyboxC <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
+    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    dfTable <- c(nobs(object), nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
@@ -1547,18 +1941,18 @@ summary.greyboxD <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((getResponse(object)-mean(getResponse(object)))^2)
+    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2)
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object), nParam(object), object$df.residual);
+    dfTable <- c(nobs(object), nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
                                 ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
-                                nobs=nobs(object), nParam=nParam(object), dfTable=dfTable),
+                                nobs=nobs(object), nparam=nparam(object), dfTable=dfTable),
                            class="summary.greyboxC");
     return(ourReturn);
 }
@@ -1566,13 +1960,19 @@ summary.greyboxD <- function(object, level=0.95, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    if(any(object$distribution==c("dlnorm","plogis","pnorm"))){
+    # Are i orders provided? If not, use simpler methods for calculation, when possible
+    iOrderNone <- is.null(object$call$i) || (object$call$i==0);
+
+    interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
+
+    if(iOrderNone & any(object$distribution==c("dlnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
-        matrixXreg <- as.matrix(object$data[object$subset,-1]);
-        if(any(names(coef(object))=="(Intercept)")){
+        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+        if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
+            colnames(matrixXreg)[1] <- "(Intercept)";
         }
-        colnames(matrixXreg) <- names(coef(object));
+        # colnames(matrixXreg) <- names(coef(object));
         nVariables <- ncol(matrixXreg);
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
@@ -1594,14 +1994,15 @@ vcov.alm <- function(object, ...){
         vcov <- object$scale^2 * vcovMatrix;
         rownames(vcov) <- colnames(vcov) <- names(coef(object));
     }
-    else if(object$distribution=="dnorm"){
+    else if(iOrderNone & (object$distribution=="dnorm")){
         # matrixXreg <- model.matrix(formula(object),data=object$data);
         # rownames(vcov) <- colnames(vcov) <- names(coef(object));
-        matrixXreg <- as.matrix(object$data[object$subset,-1]);
-        if(any(names(coef(object))=="(Intercept)")){
+        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+        if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
+            colnames(matrixXreg)[1] <- "(Intercept)";
         }
-        colnames(matrixXreg) <- names(coef(object));
+        # colnames(matrixXreg) <- names(coef(object));
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(class(vcovMatrixTry)=="try-error"){
@@ -1625,12 +2026,19 @@ vcov.alm <- function(object, ...){
     else{
         # Form the call for alm
         newCall <- object$call;
-        newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
+        if(interceptIsNeeded){
+            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
+        }
+        else{
+            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~.-1"));
+        }
         newCall$data <- object$data;
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
-        newCall$B <- coef(object);
-        newCall$checks <- FALSE;
+        newCall$ar <- object$call$ar;
+        newCall$i <- object$call$i;
+        newCall$parameters <- coef(object);
+        newCall$fast <- TRUE;
         if(object$distribution=="dchisq"){
             newCall$df <- object$other$df;
         }
@@ -1644,8 +2052,8 @@ vcov.alm <- function(object, ...){
             newCall$sigma <- object$other$sigma;
         }
         newCall$vcovProduce <- TRUE;
-        newCall$occurrence <- NULL;
-        # newCall$occurrence <- object$occurrence;
+        # newCall$occurrence <- NULL;
+        newCall$occurrence <- object$occurrence;
         # Recall alm to get hessian
         vcov <- eval(newCall)$vcov;
 

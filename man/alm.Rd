@@ -7,8 +7,8 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
   "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
-  "plogis", "pnorm"), B = NULL, vcovProduce = FALSE, checks = TRUE,
-  ...)
+  "plogis", "pnorm"), ar = 0, i = 0, parameters = NULL,
+  vcovProduce = FALSE, fast = TRUE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -43,20 +43,33 @@ If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 (excluding zeroes from the data).}
 
-\item{B}{vector of parameters of the linear model. When \code{NULL}, it
+\item{ar}{the order of AR to include in the model. Only non-seasonal
+orders are accepted.}
+
+\item{i}{the order of I to include in the model. Only non-seasonal
+orders are accepted.}
+
+\item{parameters}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
 
 \item{vcovProduce}{whether to produce variance-covariance matrix of
 coefficients or not. This is done via hessian calculation, so might be
 computationally costly.}
 
-\item{checks}{if \code{FALSE}, then the function won't check whether
+\item{fast}{if \code{FALSE}, then the function won't check whether
 the data has variability and whether the regressors are correlated. Might
 cause trouble, especially in cases of multicollinearity.}
 
 \item{...}{additional parameters to pass to distribution functions. This
 includes: \code{alpha} value for Asymmetric Laplace distribution,
-\code{size} for the Negative Binomial or \code{df} for the Chi-Squared.}
+\code{size} for the Negative Binomial or \code{df} for the Chi-Squared.
+You can also pass two parameters to the optimiser: 1. \code{maxeval} - maximum
+number of evaluations to carry out (default is 100); 2. \code{xtol_rel} -
+the precision of the optimiser (the default is 1E-6); 3. \code{algorithm} -
+the algorithm to use in optimisation (\code{"NLOPT_LN_SBPLX"} by default). 4.
+\code{print_level} - the level of output for the optimiser (0 by default).
+You can read more about these parameters in the documentation of
+\link[nloptr]{nloptr} function.}
 }
 \value{
 Function returns \code{model} - the final model of the class
@@ -65,7 +78,7 @@ Function returns \code{model} - the final model of the class
 \item coefficients - estimated parameters of the model,
 \item vcov - covariance matrix of parameters of the model (based on Fisher
 Information). Returned only when \code{vcovProduce=TRUE},
-\item fitted.values - fitted values,
+\item fitted - fitted values,
 \item residuals - residuals of the model,
 \item mu - the estimated location parameter of the distribution,
 \item scale - the estimated scale parameter of the distribution,
@@ -157,6 +170,10 @@ ourModel <- alm(y~x1+x2, inSample, distribution="dalaplace")
 summary(ourModel)
 plot(predict(ourModel,outSample))
 
+# An example with AR(1) order
+ourModel <- alm(y~x1+x2, inSample, distribution="dnorm", ar=1)
+summary(ourModel)
+plot(predict(ourModel,outSample))
 
 ### Examples with the count data
 xreg[,1] <- round(exp(xreg[,1]-70),0)

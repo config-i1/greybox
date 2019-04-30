@@ -14,10 +14,10 @@
 #' @param data Data frame containing dependent variable in the first column and
 #' the others in the rest.
 #' @param ic Information criterion to use.
-#' @param bruteForce If \code{TRUE}, then all the possible models are generated
+#' @param bruteforce If \code{TRUE}, then all the possible models are generated
 #' and combined. Otherwise the best model is found and then models around that
 #' one are produced and then combined.
-#' @param silent If \code{FALSE}, then nothing is silent, everything is printed
+#' @param quiet If \code{FALSE}, then nothing is quiet, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
@@ -31,7 +31,7 @@
 #' \itemize{
 #' \item coefficients - mean (over time) parameters of the model,
 #' \item se - mean standard errors of the parameters of the model,
-#' \item fitted.values - the fitted values,
+#' \item fitted - the fitted values,
 #' \item residuals - residual of the model,
 #' \item distribution - distribution used in the estimation,
 #' \item logLik - mean (over time) log-likelihood of the model,
@@ -62,18 +62,22 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- lmDynamic(inSample,bruteForce=TRUE)
+#' ourModel <- lmDynamic(inSample,bruteforce=TRUE)
 #' predict(ourModel,outSample)
 #' plot(predict(ourModel,outSample))
 #'
 #' @export lmDynamic
-lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, silent=TRUE,
+lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, quiet=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                     "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
+
+    #### This is temporary and needs to be removed at some point! ####
+    quiet[] <- depricator(quiet, list(...));
+    bruteforce[] <- depricator(bruteforce, list(...));
 
     ellipsis <- list(...);
 
@@ -163,7 +167,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     #         useALM <- TRUE;
     #         rowsSelected <- rowsSelected | (data[,1]!=0);
     #
-    #         occurrenceModel <- lmCombine(data, ic=ic, bruteForce=bruteForce, silent=silent,
+    #         occurrenceModel <- lmCombine(data, ic=ic, bruteforce=bruteforce, quiet=quiet,
     #                                      distribution=occurrence, parallel=parallel, ...);
     #         occurrenceModel$call <- cl;
     #     }
@@ -186,7 +190,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     # Define what function to use in the estimation
     if(useALM){
         lmCall <- alm;
-        listToCall <- list(distribution=distribution, checks=FALSE);
+        listToCall <- list(distribution=distribution, fast=TRUE);
         listToCall <- c(listToCall,ellipsis);
     }
     else{
@@ -201,26 +205,27 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # Name of the response
     responseName <- as.character(cl$formula[[2]]);
-    y <- as.matrix(data[,responseName]);
+    y <- as.matrix(data[rowsSelected,responseName]);
     colnames(y) <- responseName;
 
-    # Check whether it is possible to do bruteForce
-    if((ncol(data)>nrow(data)) & bruteForce){
-        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteForce=FALSE'.");
-        bruteForce <- FALSE;
+    # Check whether it is possible to do bruteforce
+    if((ncol(data)>nrow(data)) & bruteforce){
+        warning("You have more variables than observations. We have to be smart here. Switching to 'bruteforce=FALSE'.",
+                call.=FALSE, immediate.=TRUE);
+        bruteforce <- FALSE;
     }
 
     # Warning if we have a lot of models
-    if((ncol(data)>14) & bruteForce){
-        warning("You have more than 14 variables. The computation might take a lot of time.");
+    if((ncol(data)>14) & bruteforce){
+        warning("You have more than 14 variables. The computation might take a lot of time.", call.=FALSE, immediate.=TRUE);
     }
 
-    # If this is not bruteForce, then do stepwise first
-    if(!bruteForce){
-        if(!silent){
+    # If this is not bruteforce, then do stepwise first
+    if(!bruteforce){
+        if(!quiet){
             cat("Selecting the best model...\n");
         }
-        bestModel <- stepwise(data, ic=ic, distribution=distribution, silent=silent);
+        ourModel <- stepwise(data, ic=ic, distribution=distribution, quiet=quiet);
     }
 
     # Modify the data and move to the list
@@ -254,17 +259,18 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
 
     # If nVariables is zero, return a simple model. This might be due to the stepwise returning intercept.
     if(nVariables==0){
-        warning("No explanatory variables are selected / provided. Fitting the model with intercept only.", call.=FALSE);
-        if(bruteForce){
+        warning("No explanatory variables are selected / provided. Fitting the model with intercept only.",
+                call.=FALSE, immediate.=TRUE);
+        if(bruteforce){
             return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
         }
         else{
-            return(bestModel);
+            return(ourModel);
         }
     }
 
     # If this is a simple one, go through all the models
-    if(bruteForce){
+    if(bruteforce){
         # Number of combinations in the loop
         nCombinations <- 2^nVariables;
         # Matrix of all the combinations
@@ -297,13 +303,13 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     }
     else{
         # Extract names of the used variables
-        bestExoNames <- names(coef(bestModel))[-1];
-        # If the number of variables is small, do bruteForce
-        if(nParam(bestModel)<16){
-            bestModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
-                                   bruteForce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
-            bestModel$call <- cl;
-            return(bestModel);
+        bestExoNames <- names(coef(ourModel))[-1];
+        # If the number of variables is small, do bruteforce
+        if(nparam(ourModel)<16){
+            ourModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
+                                   bruteforce=TRUE, quiet=quiet, distribution=distribution, parallel=parallel, ...);
+            ourModel$call <- cl;
+            return(ourModel);
         }
         # If we have too many variables, use "stress" analysis
         else{
@@ -348,23 +354,23 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
             pointLiks <- matrix(NA,obsInsample,nCombinations);
 
             # Starting estimating the models with writing down the best one
-            pICs[,1] <- IC(bestModel);
-            bufferCoef <- coef(bestModel)[variablesNames];
+            pICs[,1] <- IC(ourModel);
+            bufferCoef <- coef(ourModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(bestModel))[variablesNames];
+            bufferCoef <- diag(vcov(ourModel))[variablesNames];
             parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            pointLiks[,1] <- pointLik(bestModel);
+            pointLiks[,1] <- pointLik(ourModel);
         }
     }
 
     if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
         otherParameters <- rep(NA, nCombinations);
-        otherParameters[1] <- bestModel$other[[1]];
+        otherParameters[1] <- ourModel$other[[1]];
     }
 
     # Go for the loop of lm models
     if(parallel){
-        if(!silent){
+        if(!quiet){
             cat("Estimation progress: ...");
         }
         forLoopReturns <- foreach::`%dopar%`(foreach::foreach(i=2:nCombinations),{
@@ -402,11 +408,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
         }
     }
     else{
-        if(!silent){
+        if(!quiet){
             cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
         }
         for(i in 2:nCombinations){
-            if(!silent){
+            if(!quiet){
                 cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
                 cat(paste0(round(i/nCombinations,2)*100,"%"));
             }
@@ -527,10 +533,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteForce=FALSE, s
     colnames(parametersSECombined) <- variablesNames;
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
-        warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.", call.=FALSE);
+        warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
+                call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, fitted.values=as.vector(yFitted),
+    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, fitted=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,

@@ -5,14 +5,14 @@
 \alias{determ}
 \title{Determination coefficients}
 \usage{
-determination(xreg, bruteForce = TRUE, ...)
+determination(xreg, bruteforce = TRUE, ...)
 
-determ(xreg, bruteForce = TRUE, ...)
+determ(xreg, bruteforce = TRUE, ...)
 }
 \arguments{
 \item{xreg}{Data frame or a matrix, containing the exogenous variables.}
 
-\item{bruteForce}{If \code{TRUE}, then all the variables will be used
+\item{bruteforce}{If \code{TRUE}, then all the variables will be used
 for the regression construction (sink regression). If the number of
 observations is smaller than the number of series, the function will
 use \link[greybox]{stepwise} function and select only meaningful

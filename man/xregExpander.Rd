@@ -5,7 +5,8 @@
 \title{Exogenous variables expander}
 \usage{
 xregExpander(xreg, lags = c(-frequency(xreg):frequency(xreg)),
-  silent = TRUE, extrapolate = c(NULL, TRUE, FALSE))
+  quiet = TRUE, gaps = c("auto", "NAs", "zero", "naive",
+  "extrapolate"), ...)
 }
 \arguments{
 \item{xreg}{Vector / matrix / data.frame, containing variables that need
@@ -15,14 +16,19 @@ to be expanded. In case of vector / matrix it is recommended to provide
 \item{lags}{Vector of lags / leads that we need to have. Negative values
 mean lags, positive ones mean leads.}
 
-\item{silent}{If \code{silent=FALSE}, then the progress is printed out.
+\item{quiet}{If \code{quiet=FALSE}, then the progress is printed out.
 Otherwise the function won't print anything in the console.}
 
-\item{extrapolate}{If \code{TRUE}, then the missing values will be
-extrapolated either using Naive or using es() / iss() functions from
-smooth package (if installed). By default the function will decide on
-its own, based on the sample size (if it is >10k obs, then it won't
-extrapolate).}
+\item{gaps}{Defines how to fill in the gaps in the data. \code{"NAs"} will
+leave missing values, \code{"zero"} will substitute them by zeroes,
+\code{"naive"} will use the last / the first actual value, while
+\code{"extrapolate"} will use \link[smooth]{es} function from smooth package
+(if present, otherwise - naive) in order to fill in values. Finally,
+\code{"auto"} will let the function select between \code{"extrapolate"} and
+\code{"NAs"} depending on the length of series.}
+
+\item{...}{This is temporary and is needed in order to capture "quiet"
+parameter if it is provided.}
 }
 \value{
 \code{ts} matrix with the expanded variables is returned.
@@ -35,7 +41,7 @@ values with lags and leads specified by \code{lags} variable.
 This function could be handy when you want to check if lags and leads
 of a variable influence the dependent variable. Can be used together
 with \code{xregDo="select"} in \link[smooth]{es}, \link[smooth]{ces},
-\link[smooth]{ges} and \link[smooth]{ssarima}. All the missing values
+\link[smooth]{gum} and \link[smooth]{ssarima}. All the missing values
 in the beginning and at the end of lagged series are substituted by
 mean forecasts produced using \link[smooth]{es}.
 }

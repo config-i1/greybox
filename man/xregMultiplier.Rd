@@ -4,14 +4,17 @@
 \alias{xregMultiplier}
 \title{Exogenous variables cross-products}
 \usage{
-xregMultiplier(xreg, silent = TRUE)
+xregMultiplier(xreg, quiet = TRUE, ...)
 }
 \arguments{
 \item{xreg}{matrix or data.frame, containing variables that need
 to be expanded. This matrix needs to contain at least two columns.}
 
-\item{silent}{If \code{silent=FALSE}, then the progress is printed out.
+\item{quiet}{If \code{quiet=FALSE}, then the progress is printed out.
 Otherwise the function won't print anything in the console.}
+
+\item{...}{This is temporary and is needed in order to capture "quiet"
+parameter if it is provided.}
 }
 \value{
 \code{ts} matrix with the transformed and the original variables

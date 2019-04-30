@@ -16,9 +16,9 @@ utils::globalVariables(c("axis","box","colorRampPalette","brewer.pal",
 # columns.
 # @param level The width of the confidence interval. Default is 0.95.
 # @param sort If \code{TRUE} function sorts the final values of mean ranks.
-# If plots are requested via \code{type} parameter, then this is forced to
+# If plots are requested via \code{outplot} parameter, then this is forced to
 # \code{TRUE}.
-# @param type Type of the plot. This can be: 1. "none" - No plot;
+# @param outplot Type of the plot. This can be: 1. "none" - No plot;
 # 2. "mcb" - MCB style plot; 3. "vmcb" - Vertical MCB style plot;
 # 4. "line" - Line visualisation (ISF style), where numbers next to method
 # names are the mean ranks; 5. "vline" - Vertical line visualisation.
@@ -68,10 +68,10 @@ utils::globalVariables(c("axis","box","colorRampPalette","brewer.pal",
 # ourData[,3] <- ourData[,3]+0.7
 # ourData[,4] <- ourData[,4]+0.5
 # colnames(ourData) <- c("Method A","Method B","Method C - long name","Method D")
-# nemenyi(ourData, level=0.95, type="vline")
+# nemenyi(ourData, level=0.95, outplot="vline")
 #
 # par(mar=c(2,0,2,0),cex=1.5)
-# nemenyi(ourData,level=0.95,type="vline",main="",xlim=range(0,1.5))
+# nemenyi(ourData,level=0.95,outplot="vline",main="",xlim=range(0,1.5))
 #
 
 # @importFrom grDevices colorRampPalette
@@ -81,7 +81,7 @@ utils::globalVariables(c("axis","box","colorRampPalette","brewer.pal",
 #
 # @export nemenyi
 nemenyi <- function(data, level=0.95, sort=TRUE,
-                    type=c("vline","none","mcb","vmcb","line"),
+                    outplot=c("vline","none","mcb","vmcb","line"),
                     select=NULL, labels=NULL, ...)
 {
     # Ivan Svetunkov, Nikolaos Kourentzes, 2014 - 2018.
@@ -95,9 +95,9 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     data <- as.matrix(data);
 
     # Defaults
-    type <- type[1]
+    outplot <- outplot[1]
 
-    if(type!="none"){
+    if(outplot!="none"){
         # Save the current par() values
         parDefault <- par(no.readonly=TRUE);
         parMar <- parDefault$mar;
@@ -191,7 +191,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
 
     #### MCB plot ####
     # MCB style plot
-    if(type=="mcb"){
+    if(outplot=="mcb"){
         cmp <- brewer.pal(3,"Set1")[1:2]
         # Choose colour depending on Friedman test result
         if (friedmanPvalue > 1-level){
@@ -258,7 +258,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     }
     #### Vertical MCB plot ####
     # MCB style plot - vertical
-    else if(type=="vmcb"){
+    else if(outplot=="vmcb"){
         cmp <- brewer.pal(3,"Set1")[1:2]
         # Find max label size
         labelSize <- max(nchar(labels))
@@ -330,7 +330,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     }
     #### Line plot ####
     # Line style plot (as in ISF)
-    else if(type == "line"){
+    else if(outplot == "line"){
         # Find groups
         rline <- matrix(NA, nrow=nMethods, ncol=2)
         for(i in 1:nMethods){
@@ -418,7 +418,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     }
     #### Vertical line plot ####
     # Line style plot (as in ISF) - vertical
-    else if(type=="vline"){
+    else if(outplot=="vline"){
         # Find groups
         rline <- matrix(NA, nrow=nMethods, ncol=2)
         for(i in 1:nMethods){
@@ -506,7 +506,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     }
 
     # Revert to the original par() values
-    if(type!="none"){
+    if(outplot!="none"){
         par(parDefault)
     }
 
