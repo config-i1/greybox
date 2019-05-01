@@ -46,6 +46,9 @@ than step() function from `stats' package.
 \details{
 The algorithm uses alm() to fit different models and cor() to select the next
 regressor in the sequence.
+
+Some details and examples of application are also given in the vignette
+"Greybox": \code{vignette("greybox","greybox")}
 }
 \examples{
 

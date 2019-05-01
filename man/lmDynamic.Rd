@@ -65,6 +65,9 @@ on all the other provided data using pAIC weights
 The algorithm uses alm() to fit different models and then combines the models
 based on the selected point IC. This is a dynamic counterpart of
 \link[greybox]{lmCombine} function.
+
+Some details and examples of application are also given in the vignette
+"Greybox": \code{vignette("greybox","greybox")}
 }
 \examples{
 

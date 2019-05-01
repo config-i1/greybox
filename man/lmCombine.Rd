@@ -58,6 +58,9 @@ The algorithm uses alm() to fit different models and then combines the models
 based on the selected IC. The parameters are combined so that if they are not
 present in some of models, it is assumed that they are equal to zero. Thus,
 there is a shrinkage effect in the combination.
+
+Some details and examples of application are also given in the vignette
+"Greybox": \code{vignette("greybox","greybox")}
 }
 \examples{
 
