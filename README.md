@@ -37,6 +37,7 @@ There are several groups of functions in the package.
 3. qs, ds, rs, ps - functions for S distribution.
 4. qfnorm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
 5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
+6. qbcnorm, dbcnorm, rbcnorm, pbcnorm - functions for Box-Cox normal distribution (discussed in Box & Cox, 1964).
 
 ### Methods for the introduced and some existing classes:
 1. pointLik - point likelihood method for the time series models.

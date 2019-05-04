@@ -35,6 +35,12 @@
 #' respective functions.
 #' \item \link[greybox]{qs}, \link[greybox]{ds}, \link[greybox]{ps},
 #' \link[greybox]{rs} - S distribution and the respective functions.
+#' \item \link[greybox]{qtplnorm}, \link[greybox]{dtplnorm},
+#' \link[greybox]{ptplnorm}, \link[greybox]{rtplnorm} - Three parameter log normal
+#' distribution and the respective functions.
+#' \item \link[greybox]{qbcnorm}, \link[greybox]{dbcnorm},
+#' \link[greybox]{pbcnorm}, \link[greybox]{rbcnorm} - Box-Cox normal distribution and
+#' the respective functions.
 #' }
 #'
 #' @name greybox
