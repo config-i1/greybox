@@ -63,7 +63,7 @@
 ds <- function(q, mu=0, scale=1, log=FALSE){
     svetReturn <- 1/(4*scale^2)*exp(-sqrt(abs(mu-q))/scale);
     if(log){
-        svetReturn <- log(svetReturn);
+        svetReturn[] <- log(svetReturn);
     }
     return(svetReturn);
 }

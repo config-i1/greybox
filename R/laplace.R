@@ -64,7 +64,7 @@
 dlaplace <- function(q, mu=0, scale=1, log=FALSE){
     laplaceReturn <- 1/(2*scale)*exp(-abs(mu-q)/scale);
     if(log){
-        laplaceReturn <- log(laplaceReturn);
+        laplaceReturn[] <- log(laplaceReturn);
     }
     return(laplaceReturn);
 }

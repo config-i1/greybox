@@ -81,7 +81,7 @@
 dalaplace <- function(q, mu=0, scale=1, alpha=0.5, log=FALSE){
     alaplaceReturn <- alpha * (1-alpha) / scale * exp(-(q-mu)/scale * (alpha - (q<=mu)*1));
     if(log){
-        alaplaceReturn <- log(alaplaceReturn);
+        alaplaceReturn[] <- log(alaplaceReturn);
     }
     return(alaplaceReturn);
 }

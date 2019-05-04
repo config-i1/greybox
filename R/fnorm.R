@@ -65,7 +65,7 @@ dfnorm <- function(q, mu=0, sigma=1, log=FALSE){
     fnormReturn <- 1/(sqrt(2 * pi)*sigma) * (exp(-(q-mu)^2 / (2 * sigma^2)) +
                                                  exp(-(q+mu)^2 / (2 * sigma^2)));
     if(log){
-        fnormReturn <- log(fnormReturn);
+        fnormReturn[] <- log(fnormReturn);
     }
     fnormReturn[q<0] <- 0;
 
