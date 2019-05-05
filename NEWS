@@ -6,6 +6,9 @@ Changes:
 * Functions for Box-Cox Normal distribution (based on the original 1964 paper): dbcnorm(), pbcnorm(), rbcnorm() and qbcnorm().
 * alm() now supports Box-Cox Normal distribution (thus box-cox transform of the data).
 
+Bugfixes:
+* Fixed a bug with the estimation of models, where some of the variables did not have any variability (i.e. in cases of occurrence model).
+
 
 greybox v0.5.1 (Release data: 2019-04-27)
 ==============

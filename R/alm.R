@@ -337,10 +337,10 @@ alm <- function(formula, data, subset, na.action,
                        "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
+                       "dbcnorm"=,
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
-                       "dbcnorm"=,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -355,7 +355,7 @@ alm <- function(formula, data, subset, na.action,
                         "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample),
                         "dfnorm" = abs(other),
                         "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
-                        "dbcnorm" = sqrt(sum((bcTransform(y[otU],other) - mu[otU])^2)/obsInsample),
+                        "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
                         "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
                         "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
@@ -785,6 +785,12 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Finish forming the matrix of exogenous variables ####
+    # Remove the redudant dummies, if there are any
+    varsToLeave <- apply(matrixXreg[otU,,drop=FALSE],2,var)!=0;
+    matrixXreg <- matrixXreg[,varsToLeave,drop=FALSE];
+    variablesNames <- variablesNames[varsToLeave];
+    nVariables <- length(variablesNames);
+
     if(interceptIsNeeded){
         matrixXreg <- cbind(1,matrixXreg);
         variablesNames <- c("(Intercept)",variablesNames);
@@ -1044,12 +1050,12 @@ alm <- function(formula, data, subset, na.action,
             xtol_rel <- ellipsis$xtol_rel;
         }
         if(is.null(ellipsis$algorithm)){
-            # if(recursiveModel){
+            if(recursiveModel){
                 algorithm <- "NLOPT_LN_BOBYQA";
-            # }
-            # else{
-            #     algorithm <- "NLOPT_LN_SBPLX";
-            # }
+            }
+            else{
+                algorithm <- "NLOPT_LN_SBPLX";
+            }
         }
         else{
             algorithm <- ellipsis$algorithm;
@@ -1072,16 +1078,16 @@ alm <- function(formula, data, subset, na.action,
                       lb=BLower, ub=BUpper,
                       distribution=distribution, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel);
-        # if(distribution!="dnorm"){
-        #     res2 <- nloptr(res$solution, CF,
-        #                    opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
-        #                    lb=BLower, ub=BUpper,
-        #                    distribution=distribution, y=y, matrixXreg=matrixXreg,
-        #                    recursiveModel=recursiveModel);
-        #     if(res2$objective<res$objective){
-        #         res[] <- res2;
-        #     }
-        # }
+        if(recursiveModel){
+            res2 <- nloptr(res$solution, CF,
+                           opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
+                           lb=BLower, ub=BUpper,
+                           distribution=distribution, y=y, matrixXreg=matrixXreg,
+                           recursiveModel=recursiveModel);
+            if(res2$objective<res$objective){
+                res[] <- res2;
+            }
+        }
         B[] <- res$solution;
 
         CFValue <- res$objective;
@@ -1216,6 +1222,11 @@ alm <- function(formula, data, subset, na.action,
     # If this is the occurrence model, then set unobserved errors to zero
     if(occurrenceModel){
         errors[!otU] <- 0;
+    }
+
+    # If negative values are produced in the mu of dbcnorm, correct the fit
+    if(distribution=="dbcnorm" && any(mu<0)){
+        yFitted[mu<0] <- 0;
     }
 
     # Parameters of the model + scale

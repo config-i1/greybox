@@ -672,6 +672,10 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dbcnorm"){
         sigma <- sqrt(greyboxForecast$variance);
+        # If negative values were produced, zero them out
+        if(any(greyboxForecast$mean<0)){
+            greyboxForecast$mean[greyboxForecast$mean<0] <- 0;
+        }
         if(interval!="n"){
             greyboxForecast$lower[] <- qbcnorm(levelLow,greyboxForecast$mean,sigma,object$other$lambda);
             greyboxForecast$upper[] <- qbcnorm(levelUp,greyboxForecast$mean,sigma,object$other$lambda);
