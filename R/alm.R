@@ -1072,16 +1072,16 @@ alm <- function(formula, data, subset, na.action,
                       lb=BLower, ub=BUpper,
                       distribution=distribution, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel);
-        if(distribution!="dnorm"){
-            res2 <- nloptr(res$solution, CF,
-                           opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
-                           lb=BLower, ub=BUpper,
-                           distribution=distribution, y=y, matrixXreg=matrixXreg,
-                           recursiveModel=recursiveModel);
-            if(res2$objective<res$objective){
-                res[] <- res2;
-            }
-        }
+        # if(distribution!="dnorm"){
+        #     res2 <- nloptr(res$solution, CF,
+        #                    opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
+        #                    lb=BLower, ub=BUpper,
+        #                    distribution=distribution, y=y, matrixXreg=matrixXreg,
+        #                    recursiveModel=recursiveModel);
+        #     if(res2$objective<res$objective){
+        #         res[] <- res2;
+        #     }
+        # }
         B[] <- res$solution;
 
         CFValue <- res$objective;
