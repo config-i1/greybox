@@ -226,6 +226,7 @@ pointLik.alm <- function(object, ...){
                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
@@ -241,11 +242,12 @@ pointLik.alm <- function(object, ...){
                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
     );
 
-    # If this is a mixture model, take the respective probabilities into account
+    # If this is a mixture model, take the respective probabilities into account (differential entropy)
     if(is.alm(object$occurrence)){
         likValues[!otU] <- -switch(distribution,
                                    "dnorm" =,
                                    "dfnorm" =,
+                                   "dbcnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
                                    "dlaplace" =,
                                    "dalaplace" = (1 + log(2*scale)),
@@ -667,6 +669,20 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- sdlog;
+    }
+    else if(object$distribution=="dbcnorm"){
+        sigma <- sqrt(greyboxForecast$variance);
+        if(interval!="n"){
+            greyboxForecast$lower[] <- qbcnorm(levelLow,greyboxForecast$mean,sigma,object$other$lambda);
+            greyboxForecast$upper[] <- qbcnorm(levelUp,greyboxForecast$mean,sigma,object$other$lambda);
+        }
+        if(object$other$lambda==0){
+            greyboxForecast$mean[] <- exp(greyboxForecast$mean)
+        }
+        else{
+            greyboxForecast$mean[] <- (greyboxForecast$mean*object$other$lambda+1)^{1/object$other$lambda};
+        }
+        greyboxForecast$scale <- sigma;
     }
     else if(object$distribution=="dlogis"){
         # Use the connection between the variance and scale in logistic distribution
@@ -1639,6 +1655,7 @@ print.summary.alm <- function(x, ...){
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
+                      "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambda,2)),
                       "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,2)),
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,2)),
@@ -1689,6 +1706,7 @@ print.summary.greybox <- function(x, ...){
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
+                      "dbcnorm" = "Box-Cox Normal",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -1734,6 +1752,7 @@ print.summary.greyboxC <- function(x, ...){
                       "ds" = "S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
+                      "dbcnorm" = "Box-Cox Normal",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -1965,7 +1984,7 @@ vcov.alm <- function(object, ...){
 
     interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
 
-    if(iOrderNone & any(object$distribution==c("dlnorm","plogis","pnorm"))){
+    if(iOrderNone & any(object$distribution==c("dlnorm","dbcnorm","plogis","pnorm"))){
         # This is based on the underlying normal distribution of logit / probit model
         matrixXreg <- object$data[object$subset,-1,drop=FALSE];
         if(interceptIsNeeded){
@@ -2050,6 +2069,9 @@ vcov.alm <- function(object, ...){
         }
         else if(object$distribution=="dfnorm"){
             newCall$sigma <- object$other$sigma;
+        }
+        else if(object$distribution=="dbcnorm"){
+            newCall$lambda <- object$other$lambda;
         }
         newCall$vcovProduce <- TRUE;
         # newCall$occurrence <- NULL;

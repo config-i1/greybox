@@ -196,7 +196,7 @@
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
-                               "dfnorm","dlnorm","dchisq",
+                               "dfnorm","dlnorm","dchisq","dbcnorm",
                                "dpois","dnbinom",
                                "dbeta",
                                "plogis","pnorm"),
@@ -212,7 +212,7 @@ alm <- function(formula, data, subset, na.action,
     fast <- depricator(fast, list(...));
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm","dchisq",
+    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm","dchisq","dbcnorm",
                            "dpois","dnbinom","dbeta","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
@@ -233,6 +233,30 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             return(no);
+        }
+    }
+
+    meanFast <- function(x){
+        return(sum(x) / length(x));
+    }
+
+    # Function for the Box-Cox transform
+    bcTransform <- function(y, lambda){
+        if(lambda==0){
+            return(log(y));
+        }
+        else{
+            return((y^lambda-1)/lambda);
+        }
+    }
+
+    # Function for the inverse Box-Cox transform
+    bcTransformInv <- function(y, lambda){
+        if(lambda==0){
+            return(exp(y));
+        }
+        else{
+            return((y*lambda+1)^{1/lambda});
         }
     }
 
@@ -277,6 +301,15 @@ alm <- function(formula, data, subset, na.action,
                 other <- sigma;
             }
         }
+        else if(distribution=="dbcnorm"){
+            if(!aParameterProvided){
+                other <- B[1];
+                B <- B[-1];
+            }
+            else{
+                other <- lambda;
+            }
+        }
         else{
             other <- NULL;
         }
@@ -307,6 +340,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
+                       "dbcnorm"=,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -321,6 +355,7 @@ alm <- function(formula, data, subset, na.action,
                         "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample),
                         "dfnorm" = abs(other),
                         "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
+                        "dbcnorm" = sqrt(sum((bcTransform(y[otU],other) - mu[otU])^2)/obsInsample),
                         "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
                         "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
@@ -350,6 +385,10 @@ alm <- function(formula, data, subset, na.action,
                                                                           "dpois" =,
                                                                           "dbeta" = log(fitterReturn$mu),
                                                                           fitterReturn$mu)[!otU][1:ariZeroesLengths[i]];
+                    if(distribution=="dbcnorm"){
+                        matrixXreg[,nVariablesExo+i][!ariZeroes[,i]] <- bcTransform(ariElementsOriginal[!ariZeroes[,i],i],
+                                                                                    fitterReturn$other);
+                    }
                 }
             }
         }
@@ -371,6 +410,8 @@ alm <- function(formula, data, subset, na.action,
                                 "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
                                 "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                 "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+                                "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                    lambda=fitterReturn$other, log=TRUE),
                                 "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                 "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
                                                         alpha=fitterReturn$other, log=TRUE),
@@ -392,6 +433,7 @@ alm <- function(formula, data, subset, na.action,
             CFReturn[] <- CFReturn + switch(distribution,
                                             "dnorm" =,
                                             "dfnorm" =,
+                                            "dbcnorm" =,
                                             "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
                                             "dlaplace" =,
                                             "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
@@ -467,6 +509,15 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             sigma <- ellipsis$sigma;
+            aParameterProvided <- TRUE;
+        }
+    }
+    else if(distribution=="dbcnorm"){
+        if(is.null(ellipsis$lambda)){
+            aParameterProvided <- FALSE;
+        }
+        else{
+            lambda <- ellipsis$lambda;
             aParameterProvided <- TRUE;
         }
     }
@@ -614,7 +665,7 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dchisq","dpois","dnbinom"))){
+    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dbcnorm","dchisq","dpois","dnbinom"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
@@ -794,7 +845,7 @@ alm <- function(formula, data, subset, na.action,
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
-                    ariElements[] <- (ariElements^0.01-1)/0.01;
+                    ariElements[] <- bcTransform(ariElements,0.01);
                     ariTransformedNames <- paste0(ariNames,"Box-Cox");
                     colnames(ariElements) <- ariTransformedNames;
                 }
@@ -805,6 +856,12 @@ alm <- function(formula, data, subset, na.action,
                     ariTransformedNames <- paste0(ariNames,"Log");
                     colnames(ariElements) <- ariTransformedNames;
                 }
+            }
+            else if(distribution=="dbcnorm"){
+                ariElementsOriginal <- ariElements;
+                ariElements[] <- bcTransform(ariElements,0.5);
+                ariTransformedNames <- paste0(ariNames,"Box-Cox");
+                colnames(ariElements) <- ariTransformedNames;
             }
             else if(distribution=="dchisq"){
                 ariElements[] <- sqrt(ariElements);
@@ -821,7 +878,7 @@ alm <- function(formula, data, subset, na.action,
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
-                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],(y[otU]^0.01-1)/0.01)$coefficients;
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
                 }
                 else{
                     B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
@@ -829,7 +886,15 @@ alm <- function(formula, data, subset, na.action,
             }
             else if(any(distribution==c("plogis","pnorm"))){
                 # Box-Cox transform in order to get meaningful initials
-                B <- .lm.fit(matrixXreg,(y^0.01-1)/0.01)$coefficients;
+                B <- .lm.fit(matrixXreg,bcTransform(y[otU],0.01))$coefficients;
+            }
+            else if(distribution=="dbcnorm"){
+                if(!aParameterProvided){
+                    B <- c(0.5,.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.5))$coefficients);
+                }
+                else{
+                    B <- c(.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],lambda))$coefficients);
+                }
             }
             else if(distribution=="dbeta"){
                 # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
@@ -867,7 +932,7 @@ alm <- function(formula, data, subset, na.action,
                     # Use Box-Cox if there are zeroes
                     yLog <- y;
                     yLog[!otU] <- min(y[otU]);
-                    yLog[] <- (yLog^0.01-1)/0.01;
+                    yLog[] <- bcTransform(yLog,0.01);
                 }
                 else{
                     yLog <- y;
@@ -880,8 +945,18 @@ alm <- function(formula, data, subset, na.action,
                 # Box-Cox transform in order to get meaningful initials
                 yLog <- y;
                 yLog[!otU] <- min(y[otU]);
-                yLog[] <- (yLog^0.01-1)/0.01;
+                yLog[] <- bcTransform(yLog,0.01);
                 B <- .lm.fit(matrixXregForDiffs,diff(yLog,differences=iOrder)[otU][obsDiffs])$coefficients;
+            }
+            else if(distribution=="dbcnorm"){
+                yLog <- y;
+                yLog[!otU] <- min(y[otU]);
+                if(!aParameterProvided){
+                    B <- c(0.5,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.5)))$coefficients);
+                }
+                else{
+                    B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,lambda)))$coefficients);
+                }
             }
             else if(distribution=="dbeta"){
                 # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
@@ -935,6 +1010,16 @@ alm <- function(formula, data, subset, na.action,
             BLower <- c(0,rep(-Inf,length(B)-1));
             BUpper <- rep(Inf,length(B));
         }
+        else if(distribution=="dbcnorm"){
+            if(aParameterProvided){
+                BLower <- rep(-Inf,length(B));
+                BUpper <- rep(Inf,length(B));
+            }
+            else{
+                BLower <- c(0,rep(-Inf,length(B)-1));
+                BUpper <- c(1,rep(Inf,length(B)-1));
+            }
+        }
         else{
             BLower <- rep(-Inf,length(B));
             BUpper <- rep(Inf,length(B));
@@ -942,7 +1027,7 @@ alm <- function(formula, data, subset, na.action,
 
         # Parameters for the nloptr from the ellipsis
         if(is.null(ellipsis$maxeval)){
-            if(any(distribution==c("dchisq","dpois","dnbinom","plogis","pnorm")) | recursiveModel){
+            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) | recursiveModel){
                 maxeval <- 500;
             }
             else{
@@ -959,12 +1044,12 @@ alm <- function(formula, data, subset, na.action,
             xtol_rel <- ellipsis$xtol_rel;
         }
         if(is.null(ellipsis$algorithm)){
-            if(recursiveModel){
+            # if(recursiveModel){
                 algorithm <- "NLOPT_LN_BOBYQA";
-            }
-            else{
-                algorithm <- "NLOPT_LN_SBPLX";
-            }
+            # }
+            # else{
+            #     algorithm <- "NLOPT_LN_SBPLX";
+            # }
         }
         else{
             algorithm <- ellipsis$algorithm;
@@ -987,6 +1072,16 @@ alm <- function(formula, data, subset, na.action,
                       lb=BLower, ub=BUpper,
                       distribution=distribution, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel);
+        if(distribution!="dnorm"){
+            res2 <- nloptr(res$solution, CF,
+                           opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
+                           lb=BLower, ub=BUpper,
+                           distribution=distribution, y=y, matrixXreg=matrixXreg,
+                           recursiveModel=recursiveModel);
+            if(res2$objective<res$objective){
+                res[] <- res2;
+            }
+        }
         B[] <- res$solution;
 
         CFValue <- res$objective;
@@ -1068,6 +1163,13 @@ alm <- function(formula, data, subset, na.action,
             names(B) <- c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames));
         }
     }
+    else if(distribution=="dbcnorm"){
+        if(!aParameterProvided){
+            ellipsis$lambda <- lambda <- B[1];
+            B <- B[-1];
+        }
+        names(B) <- variablesNames;
+    }
     else{
         names(B) <- variablesNames;
     }
@@ -1085,6 +1187,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnbinom" = mu,
                        "dchisq" = mu + df,
                        "dlnorm" = exp(mu),
+                       "dbcnorm" = bcTransformInv(mu,lambda),
                        "dbeta" = mu / (mu + scale),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
@@ -1104,6 +1207,7 @@ alm <- function(formula, data, subset, na.action,
                        "dpois" = y - mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm"= log(y) - mu,
+                       "dbcnorm"= bcTransform(y,lambda) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))
                        # Here we use the proxy from Svetunkov & Boylan (2019)
@@ -1122,7 +1226,7 @@ alm <- function(formula, data, subset, na.action,
             nParam <- nParam + 1;
         }
     }
-    else if(any(distribution==c("dnbinom","dchisq","dfnorm"))){
+    else if(any(distribution==c("dnbinom","dchisq","dfnorm","dbcnorm"))){
         if(aParameterProvided){
             nParam <- nParam - 1;
         }
@@ -1159,7 +1263,7 @@ alm <- function(formula, data, subset, na.action,
             method.args <- list(d=1e-6, r=6);
         }
         else{
-            if(any(distribution==c("dnbinom","dlaplace","dalaplace"))){
+            if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
                 method.args <- list(d=1e-6, r=6);
             }
             else{

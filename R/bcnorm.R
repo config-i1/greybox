@@ -75,9 +75,8 @@ dbcnorm <- function(q, mu=0, sigma=1, lambda=0, log=FALSE){
         bcnormReturn <- dnorm(x=q, mean=mu+1, sd=sigma, log=FALSE);
     }
     else{
-        bcnormReturn <- vector("numeric", length(q));
+        bcnormReturn <- suppressWarnings(q^(lambda-1) * 1/(sqrt(2*pi)*sigma) * exp(-((q^lambda-1)/lambda - mu)^2/ (2*sigma^2)));
         bcnormReturn[q<=0] <- 0;
-        bcnormReturn[q>0] <- q[q>0]^(lambda-1) * 1/(sqrt(2*pi)*sigma) * exp(-((q[q>0]^lambda-1)/lambda - mu)^2/ (2*sigma^2));
     }
 
     # Return logs if needed

@@ -6,9 +6,9 @@
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dchisq",
-  "dpois", "dnbinom", "dbeta", "plogis", "pnorm"), occurrence = c("none",
-  "plogis", "pnorm"), ar = 0, i = 0, parameters = NULL,
-  vcovProduce = FALSE, fast = TRUE, ...)
+  "dbcnorm", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
+  occurrence = c("none", "plogis", "pnorm"), ar = 0, i = 0,
+  parameters = NULL, vcovProduce = FALSE, fast = TRUE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to

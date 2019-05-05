@@ -1,9 +1,10 @@
-greybox v0.5.2 (Release data: 2019-05-04)
+greybox v0.5.2 (Release data: 2019-05-05)
 ==============
 
 Changes:
 * Added references to the vignettes in the documentation.
 * Functions for Box-Cox Normal distribution (based on the original 1964 paper): dbcnorm(), pbcnorm(), rbcnorm() and qbcnorm().
+* alm() now supports Box-Cox Normal distribution (thus box-cox transform of the data).
 
 
 greybox v0.5.1 (Release data: 2019-04-27)
