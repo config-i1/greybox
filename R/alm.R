@@ -896,7 +896,7 @@ alm <- function(formula, data, subset, na.action,
             }
             else if(distribution=="dbcnorm"){
                 if(!aParameterProvided){
-                    B <- c(0.5,.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.5))$coefficients);
+                    B <- c(0.1,.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.1))$coefficients);
                 }
                 else{
                     B <- c(.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],lambda))$coefficients);
@@ -958,7 +958,7 @@ alm <- function(formula, data, subset, na.action,
                 yLog <- y;
                 yLog[!otU] <- min(y[otU]);
                 if(!aParameterProvided){
-                    B <- c(0.5,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.5),differences=iOrder)[otU][obsDiffs])$coefficients);
+                    B <- c(0.1,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.1),differences=iOrder)[otU][obsDiffs])$coefficients);
                 }
                 else{
                     B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,lambda)))$coefficients);
@@ -1033,7 +1033,7 @@ alm <- function(formula, data, subset, na.action,
 
         # Parameters for the nloptr from the ellipsis
         if(is.null(ellipsis$maxeval)){
-            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) | recursiveModel){
+            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
                 maxeval <- 500;
             }
             else{
