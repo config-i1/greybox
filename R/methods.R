@@ -226,7 +226,7 @@ pointLik.alm <- function(object, ...){
                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, log=TRUE),
+                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambda, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
