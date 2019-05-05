@@ -952,7 +952,7 @@ alm <- function(formula, data, subset, na.action,
                 yLog <- y;
                 yLog[!otU] <- min(y[otU]);
                 if(!aParameterProvided){
-                    B <- c(0.5,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.5)))$coefficients);
+                    B <- c(0.5,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.5),differences=iOrder)[otU][obsDiffs])$coefficients);
                 }
                 else{
                     B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,lambda)))$coefficients);
