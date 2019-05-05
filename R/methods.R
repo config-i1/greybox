@@ -1130,6 +1130,12 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
                 colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Log");
             }
         }
+        else if(object$distribution=="dbcnorm"){
+            # Use Box-Cox if there are zeroes
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^
+                                                                            object$other$lambda-1)/object$other$lambda;
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
+        }
         else if(object$distribution=="dchisq"){
             matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);
             colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Sqrt");
