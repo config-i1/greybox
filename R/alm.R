@@ -380,11 +380,11 @@ alm <- function(formula, data, subset, na.action,
             # Substitute zeroes with the fitted values
             for(i in 1:ariOrder){
                 if(j<=ariZeroesLengths[i]){
-                    matrixXreg[,nVariablesExo+i][ariZeroes[,i]] <- switch(distribution,
-                                                                          "dnbinom" =,
-                                                                          "dpois" =,
-                                                                          "dbeta" = log(fitterReturn$mu),
-                                                                          fitterReturn$mu)[!otU][1:ariZeroesLengths[i]];
+                    matrixXreg[ariZeroes[,i],nVariablesExo+i] <- switch(distribution,
+                                                                        "dnbinom" =,
+                                                                        "dpois" =,
+                                                                        "dbeta" = log(fitterReturn$mu),
+                                                                        fitterReturn$mu)[!otU][1:ariZeroesLengths[i]];
                     if(distribution=="dbcnorm"){
                         matrixXreg[,nVariablesExo+i][!ariZeroes[,i]] <- bcTransform(ariElementsOriginal[!ariZeroes[,i],i],
                                                                                     fitterReturn$other);
@@ -934,34 +934,18 @@ alm <- function(formula, data, subset, na.action,
             obsDiffs <- c(1:nrow(matrixXregForDiffs));
 
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
-                if(any(y[otU]==0)){
-                    # Use Box-Cox if there are zeroes
-                    yLog <- y;
-                    yLog[!otU] <- min(y[otU]);
-                    yLog[] <- bcTransform(yLog,0.01);
-                }
-                else{
-                    yLog <- y;
-                    yLog[!otU] <- min(y[otU]);
-                    yLog[] <- log(yLog);
-                }
-                B <- .lm.fit(matrixXregForDiffs,diff(yLog,differences=iOrder)[otU][obsDiffs])$coefficients;
+                B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
             }
             else if(any(distribution==c("plogis","pnorm"))){
                 # Box-Cox transform in order to get meaningful initials
-                yLog <- y;
-                yLog[!otU] <- min(y[otU]);
-                yLog[] <- bcTransform(yLog,0.01);
-                B <- .lm.fit(matrixXregForDiffs,diff(yLog,differences=iOrder)[otU][obsDiffs])$coefficients;
+                B <- .lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.01),differences=iOrder))$coefficients;
             }
             else if(distribution=="dbcnorm"){
-                yLog <- y;
-                yLog[!otU] <- min(y[otU]);
                 if(!aParameterProvided){
-                    B <- c(0.1,.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,0.1),differences=iOrder)[otU][obsDiffs])$coefficients);
+                    B <- c(0.1,.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
                 }
                 else{
-                    B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(yLog,lambda)))$coefficients);
+                    B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
                 }
             }
             else if(distribution=="dbeta"){
