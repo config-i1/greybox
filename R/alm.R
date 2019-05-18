@@ -374,9 +374,8 @@ alm <- function(formula, data, subset, na.action,
     }
 
     fitterRecursive <- function(B, distribution, y, matrixXreg){
+        fitterReturn <- fitter(B, distribution, y, matrixXreg);
         for(j in 1:max(ariZeroesLengths)){
-            fitterReturn <- fitter(B, distribution, y, matrixXreg);
-
             # Substitute zeroes with the fitted values
             for(i in 1:ariOrder){
                 if(j<=ariZeroesLengths[i]){

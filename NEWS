@@ -1,4 +1,4 @@
-greybox v0.5.2 (Release data: 2019-05-13)
+greybox v0.5.2 (Release data: 2019-05-18)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * Functions for Box-Cox Normal distribution (based on the original 1964 paper): dbcnorm(), pbcnorm(), rbcnorm() and qbcnorm().
 * alm() now supports Box-Cox Normal distribution (thus box-cox transform of the data).
 * Tuned the initial parameters in alm() for recursive models.
+* Tuning in the code for the recursive model. It should work approximately 2 times faster now...
 
 Bugfixes:
 * Fixed a bug with the estimation of models, where some of the variables did not have any variability (i.e. in cases of occurrence model).
