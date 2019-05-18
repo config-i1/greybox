@@ -375,20 +375,15 @@ alm <- function(formula, data, subset, na.action,
 
     fitterRecursive <- function(B, distribution, y, matrixXreg){
         fitterReturn <- fitter(B, distribution, y, matrixXreg);
-        for(j in 1:max(ariZeroesLengths)){
-            # Substitute zeroes with the fitted values
-            for(i in 1:ariOrder){
-                if(j<=ariZeroesLengths[i]){
-                    matrixXreg[ariZeroes[,i],nVariablesExo+i] <- switch(distribution,
-                                                                        "dnbinom" =,
-                                                                        "dpois" =,
-                                                                        "dbeta" = log(fitterReturn$mu),
-                                                                        fitterReturn$mu)[!otU][1:ariZeroesLengths[i]];
-                    if(distribution=="dbcnorm"){
-                        matrixXreg[,nVariablesExo+i][!ariZeroes[,i]] <- bcTransform(ariElementsOriginal[!ariZeroes[,i],i],
-                                                                                    fitterReturn$other);
-                    }
-                }
+        for(i in 1:ariOrder){
+            matrixXreg[ariZeroes[,i],nVariablesExo+i] <- switch(distribution,
+                                                                "dnbinom" =,
+                                                                "dpois" =,
+                                                                "dbeta" = log(fitterReturn$mu),
+                                                                fitterReturn$mu)[!otU][1:ariZeroesLengths[i]];
+            if(distribution=="dbcnorm"){
+                matrixXreg[,nVariablesExo+i][!ariZeroes[,i]] <- bcTransform(ariElementsOriginal[!ariZeroes[,i],i],
+                                                                            fitterReturn$other);
             }
         }
         fitterReturn <- fitter(B, distribution, y, matrixXreg);
@@ -793,8 +788,15 @@ alm <- function(formula, data, subset, na.action,
     if(interceptIsNeeded){
         matrixXreg <- cbind(1,matrixXreg);
         variablesNames <- c("(Intercept)",variablesNames);
-        nVariables <- length(variablesNames);
         colnames(matrixXreg) <- variablesNames;
+
+        # Check, if redundant dummies are left. Remove the first if this is the case
+        determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
+        if(any(determValues==1)){
+            matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
+            variablesNames <- colnames(matrixXreg);
+        }
+        nVariables <- length(variablesNames);
     }
     # The number of exogenous variables (no ARI elements)
     nVariablesExo <- nVariables;
@@ -864,7 +866,7 @@ alm <- function(formula, data, subset, na.action,
             }
             else if(distribution=="dbcnorm"){
                 ariElementsOriginal <- ariElements;
-                ariElements[] <- bcTransform(ariElements,0.5);
+                ariElements[] <- bcTransform(ariElements,0.1);
                 ariTransformedNames <- paste0(ariNames,"Box-Cox");
                 colnames(ariElements) <- ariTransformedNames;
             }
@@ -929,8 +931,16 @@ alm <- function(formula, data, subset, na.action,
         # If this is an I(d) model, do the primary estimation in differences
         else{
             # Matrix without the first D rows and without the last D columns
-            matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
-            obsDiffs <- c(1:nrow(matrixXregForDiffs));
+            # matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
+
+            # Use only AR elements of the matrix, take differences for the initialisation purposes
+            matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE];
+            if(arOrder>0){
+                matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <- diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
+                                                                                    differences=iOrder);
+                matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
+                matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <- colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
+            }
 
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
                 B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
@@ -950,7 +960,7 @@ alm <- function(formula, data, subset, na.action,
             else if(distribution=="dbeta"){
                 # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
                 # Transform y, just in case, to make sure that it does not hit boundary values
-                B <- .lm.fit(matrixXregForDiffs,diff(log(y/(1-y)),differences=iOrder)[obsDiffs])$coefficients;
+                B <- .lm.fit(matrixXregForDiffs,diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
                 B <- c(B, -B);
             }
             else if(distribution=="dchisq"){
@@ -966,7 +976,7 @@ alm <- function(formula, data, subset, na.action,
                 }
             }
             else{
-                B <- .lm.fit(matrixXregForDiffs,diff(y,differences=iOrder)[otU][obsDiffs])$coefficients;
+                B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
                 BLower <- -Inf;
                 BUpper <- Inf;
             }
