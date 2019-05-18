@@ -386,6 +386,7 @@ alm <- function(formula, data, subset, na.action,
                                                                             fitterReturn$other);
             }
         }
+        # matrixXreg <- fitterRecursion(matrixXreg, B, y, ariZeroes, nVariablesExo, distribution);
         fitterReturn <- fitter(B, distribution, y, matrixXreg);
         fitterReturn$matrixXreg <- matrixXreg;
         return(fitterReturn);
@@ -876,6 +877,9 @@ alm <- function(formula, data, subset, na.action,
                 colnames(ariElements) <- ariTransformedNames;
             }
 
+            # Fill in zeroes with the mean values
+            ariElements[ariElements==0] <- mean(ariElements[ariElements[,1]!=0,1]);
+
             matrixXreg <- cbind(matrixXreg, ariElements);
             dataWork <- cbind(dataWork, ariElements);
         }
@@ -940,6 +944,9 @@ alm <- function(formula, data, subset, na.action,
                                                                                     differences=iOrder);
                 matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
                 matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <- colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
+            }
+            else{
+                matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
             }
 
             if(any(distribution==c("dlnorm","dpois","dnbinom"))){
