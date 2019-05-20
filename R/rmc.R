@@ -330,7 +330,8 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
     }
 
     if(ncol(x$groups)>1){
-        pointCol <- "#0C6385";
+        pointCol <- rep("#0DA0DC", nMethods);
+        pointCol[x$groups[,1]] <- "#0C6385";
         lineCol <- "#0DA0DC";
     }
     else{
@@ -338,13 +339,7 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
         lineCol <- "grey";
     }
 
-    # if(("outplot" %in% argsNames)){
     outplot <- match.arg(outplot,c("mcb","lines"));
-    #     args$outplot <- NULL;
-    # }
-    # else{
-    #     outplot <- x$outplot;
-    # }
 
     if(outplot=="mcb"){
         if(!("xlab" %in% argsNames)){
