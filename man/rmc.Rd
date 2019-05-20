@@ -4,39 +4,37 @@
 \alias{rmc}
 \title{Regression for Multiple Comparison}
 \usage{
-rmc(data, distribution = c("dnorm", "dfnorm", "dlnorm"), level = 0.95,
-  outplot = c("mcb", "lines"), select = NULL, plot = TRUE, ...)
+rmc(data, distribution = c("dlnorm", "dnorm", "dfnorm"), level = 0.95,
+  outplot = c("mcb", "lines", "none"), select = NULL, ...)
 }
 \arguments{
 \item{data}{Matrix or data frame with observations in rows and variables in
 columns.}
 
-\item{distribution}{Type of the distribution to use. If this is a clear forecast error,
-then \code{"dnorm"} is appropriate, leading to a simple Gausian linear
-regression. \code{"dfnorm"} would lead to a alm model with folded normal
-distribution. Finally, \code{"dlnorm"} would lead to the alm with log normal
-distribution. This value is passed to \code{alm()} function. You can try some
+\item{distribution}{Type of the distribution to use. This value is passed to
+\code{alm()} function. \code{"dlnorm"} would lead to the alm with log normal
+distribution. If this is a clear forecast error, then \code{"dnorm"} might be
+appropriate, leading to a simple Gausian linear regression. \code{"dfnorm"}
+would lead to an alm model with folded normal distribution. You can try some
 other distributions, but don't expect anything meaningful.}
 
 \item{level}{The width of the confidence interval. Default is 0.95.}
 
-\item{outplot}{What outplot of plot to use after the calculations. This can be
-either "MCB" (\code{"mcb"}) outplot or "Vertical lines" (\code{"lines"}).}
+\item{outplot}{What type of plot to use after the calculations. This can be
+either "MCB" (\code{"mcb"}), or "Vertical lines" (\code{"lines"}), or nothing
+(\code{"none"}). You can also use plot method on the produced object in order
+to get the same effect.}
 
 \item{select}{What column of data to highlight on the plot. If NULL, then
 the method with the lowest value is selected.}
 
-\item{plot}{If \code{TRUE} then the graph is produced after the calculations.
-You can also use plot method on the produced object in order to get the same
-effect.}
-
 \item{...}{Other parameters passed to plot function}
 }
 \value{
-If \code{plot=TRUE}, then the function plots the results after all
+If \code{outplot!="none"}, then the function plots the results after all
 the calculations. In case of \code{distribution="dnorm"}, the closer to zero the
-intervals are, the better model performs. When \code{distribution="dfnorm"} or
-\code{distribution="dlnorm"}, the lower, the better.
+intervals are, the better model performs. When \code{distribution="dlnorm"} or
+\code{distribution="dfnorm"}, the lower, the better.
 
 Function returns a list of a class "rmc", which contains the following
 variables:
@@ -69,7 +67,7 @@ them will have symmetrically distributed residuals, thus normal regression can
 be used for the parameters estimation.
 }
 \details{
-The test constructs the regression model of the kind:
+The test constructs the regression model of the type:
 
 y = b' X + e,
 
@@ -78,22 +76,19 @@ of dummy variables for each column of the data (forecasting method), b is the
 vector of coefficients for the dummies and e is the error term of the model.
 
 Depending on the provided data, it might make sense to use different types of
-regressions. The function supports Gausian linear regression
-(\code{distribution="dnorm"}, when the data is normal), advanced linear regression with
-folded normal distribution (\code{distribution="dfnorm"}, for example, absolute errors,
-assuming that the original errors are normally distributed) and advanced linear
-regression with log normal distribution (\code{distribution="dlnorm"}, which might be
-useful in case of relative error measures.
+regressions. The default one is the log normal distribution for the relative
+error measures. The type of distribution is regulated with \code{distribution}
+and is restricted by the values of it from the \link[greybox]{alm} function.
 
-The advisable error measures to use in the test are RelMAE and RelMSE together with
-\code{distribution="dlnorm"}. They are unbiased and their logarithms are
-symmetrically distributed (Davydenko & Fildes, 2013). Although their distributions
-are not normal, given the typically large samples of datasets, the Central Limit
+The advisable error measures to use in the test are relative measures, such as
+RelMAE, RelRMSE, RelAME. They are unbiased and their logarithms are symmetrically
+distributed (Davydenko & Fildes, 2013). Although their distributions are not log
+normal, given the typically large samples of datasets, the Central Limit
 Theorem helps in the adequate construction of the confidence intervals for the
 parameters.
 
 The test is equivalent to Nemenyi test, when applied to the ranks of the error
-measures on large samples.
+measures on large samples with \code{distribution="dnorm"}.
 
 There is also a \code{plot()} method that allows producing either "mcb" or "lines"
 style of plot. This can be regulated via \code{plot(x, outplot="lines")}.
