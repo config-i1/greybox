@@ -303,6 +303,13 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
     nMethods <- length(x$mean);
     namesMethods <- names(x$mean);
 
+    if(nMethods>5){
+        las <- 2;
+    }
+    else{
+        las <- 0;
+    }
+
     args <- list(...);
     argsNames <- names(args);
 
@@ -355,27 +362,13 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
             args$ylim <- c(args$ylim[1]-0.1,args$ylim[2]+0.1);
         }
 
-        # if(all(parMar==(c(5,4,4,2)+0.1))){
-        #     parMar <- c(2, 2, 0, 0) + 0.1;
-        # }
-        # if(args$main!=""){
-        #     parMar <- parMar + c(0,0,4,0);
-        # }
-        # if(args$ylab!=""){
-        #     parMar <- parMar + c(0,2,0,0);
-        # }
-        # if(args$xlab!=""){
-        #     parMar <- parMar + c(2,0,0,0);
-        # }
-        # par(mar=parMar);
-
         # Use do.call to use manipulated ellipsis (...)
         do.call(plot, args);
         for(i in 1:nMethods){
             lines(rep(i,2),x$interval[i,],col=lineCol,lwd=2);
         }
         points(x$mean, pch=19, col=pointCol);
-        axis(1,c(1:nMethods),namesMethods);
+        axis(1, at=c(1:nMethods), labels=namesMethods, las=las);
         axis(2);
         box(which="plot", col="black");
 
@@ -441,7 +434,7 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
             lines(c(0,1), rep(vlines[1,1],times=2), col=lineCol, lty=2);
             lines(c(0,1), rep(vlines[1,2],times=2), col=lineCol, lty=2);
         }
-        axis(2,c(1:nMethods),namesMethods,las=2);
+        axis(2, at=c(1:nMethods), labels=namesMethods, las=2);
 
         par(parDefault)
     }
