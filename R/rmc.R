@@ -1,7 +1,8 @@
 #' Regression for Multiple Comparison
 #'
-#' RMC stands for "Regression for Methods Comparison". This is a parametric
-#' test for the comparison of means of several distributions
+#' RMC stands for "Regression for Multiple Comparison", referring to the
+#' comparison of forecasting methods. This is a parametric test for the comparison
+#' of means of several distributions
 #
 #' This test is a parametric counterpart of Nemenyi / MCB test (Demsar, 2006) and
 #' uses asymptotic properties of regression models. It relies on distributional
@@ -66,6 +67,8 @@
 #' \item{vlines}{Coordinates used for outplot="l", marking the groups of methods.}
 #' \item{groups}{The table containing the groups. \code{TRUE} - methods are in the
 #' same group, \code{FALSE} - they are not.}
+#' \item{methods}{Similar to \code{group} parameter, but with a slightly different
+#' presentation.}
 #' \item{p.value}{p-value for the test of the significance of the model. This is a
 #' log-likelihood ratios chi-squared test, comparing the model with the one with
 #' intercept only.}
@@ -284,9 +287,19 @@ rmc <- function(data, distribution=c("dlnorm","dnorm","dfnorm"),
         groups[c(vlines[i,1]:vlines[i,2]),i] <- TRUE;
     }
 
+    methodGroups <- matrix(TRUE,nMethods,nMethods,
+                           dimnames=list(names(lmCoefs),names(lmCoefs)));
+    for(i in 1:nMethods){
+        for(j in 1:nMethods){
+            methodGroups[i,j] <- ((lmIntervals[i,2] >= lmIntervals[j,1]) & (lmIntervals[i,1] <= lmIntervals[j,1])
+                                  | (lmIntervals[i,2] >= lmIntervals[j,2]) & (lmIntervals[i,1] <= lmIntervals[j,2]))
+        }
+    }
+
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,
-                                    importance=importance, p.value=p.value, level=level, model=lmModel,
-                                    outplot=outplot, select=select, distribution=distribution),
+                                    methods=methodGroups, importance=importance, p.value=p.value,
+                                    level=level, model=lmModel, outplot=outplot, select=select,
+                                    distribution=distribution),
                                class="rmc");
     if(outplot!="none"){
         plot(returnedClass, ...);
@@ -331,7 +344,7 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
 
     if(ncol(x$groups)>1){
         pointCol <- rep("#0DA0DC", nMethods);
-        pointCol[x$groups[,1]] <- "#0C6385";
+        pointCol[x$methods[,x$select]] <- "#0C6385";
         lineCol <- "#0DA0DC";
     }
     else{

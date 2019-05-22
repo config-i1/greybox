@@ -44,6 +44,8 @@ variables:
 \item{vlines}{Coordinates used for outplot="l", marking the groups of methods.}
 \item{groups}{The table containing the groups. \code{TRUE} - methods are in the
 same group, \code{FALSE} - they are not.}
+\item{methods}{Similar to \code{group} parameter, but with a slightly different
+presentation.}
 \item{p.value}{p-value for the test of the significance of the model. This is a
 log-likelihood ratios chi-squared test, comparing the model with the one with
 intercept only.}
@@ -57,8 +59,9 @@ the estimated model is the best.}
 }
 }
 \description{
-RMC stands for "Regression for Methods Comparison". This is a parametric
-test for the comparison of means of several distributions
+RMC stands for "Regression for Multiple Comparison", referring to the
+comparison of forecasting methods. This is a parametric test for the comparison
+of means of several distributions
 This test is a parametric counterpart of Nemenyi / MCB test (Demsar, 2006) and
 uses asymptotic properties of regression models. It relies on distributional
 assumptions about the provided data. For instance, if the mean forecast errors
