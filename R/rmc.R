@@ -392,6 +392,7 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
         k <- nrow(vlines);
         colours <- c("#0DA0DC","#17850C","#EA3921","#E1C513","#BB6ECE","#5DAD9D");
         colours <- rep(colours,ceiling(k/length(colours)))[1:k];
+        groupElements <- apply(x$groups,2,sum);
 
         labelSize <- max(nchar(namesMethods));
 
@@ -432,9 +433,11 @@ plot.rmc <- function(x, outplot=c("mcb","lines"), ...){
 
         if(k>1){
             for(i in 1:k){
-                lines(c(i,i), vlines[i,], col=colours[i], lwd = 2);
-                lines(c(0,i), rep(vlines[i,1],times=2), col="gray", lty=2);
-                lines(c(0,i), rep(vlines[i,2],times=2), col="gray", lty=2);
+                if(groupElements[i]>1){
+                    lines(c(i,i), vlines[i,], col=colours[i], lwd = 2);
+                    lines(c(0,i), rep(vlines[i,1],times=2), col="gray", lty=2);
+                    lines(c(0,i), rep(vlines[i,2],times=2), col="gray", lty=2);
+                }
             }
         }
         else{
