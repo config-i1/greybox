@@ -302,7 +302,7 @@ rmc <- function(data, distribution=c("dlnorm","dnorm","dfnorm"),
                                     distribution=distribution),
                                class="rmc");
     if(outplot!="none"){
-        plot(returnedClass, ...);
+        plot(returnedClass, outplot=outplot, ...);
     }
     else{
         returnedClass$outplot[] <- "mcb";
