@@ -814,9 +814,11 @@ alm <- function(formula, data, subset, na.action,
                     yNew[is.na(yNew)] <- min(yNew);
                     yNew[yNew==0] <- 1E-10;
                     yNew[] <- log(yNew / (1-yNew));
+                    yNew[is.infinite(yNew) & yNew>0] <- max(yNew[is.finite(yNew)]);
+                    yNew[is.infinite(yNew) & yNew<0] <- min(yNew[is.finite(yNew)]);
                 }
                 else{
-                    yNew <- smooth::oes(y, occurrence="i", model="MNN", h=1)$states[1:obsInsample]
+                    yNew <- smooth::oes(y, occurrence="i", model="MNN", h=1)$fittedModel
                 }
                 ariElements <- xregExpander(yNew, lags=-c(1:ariOrder), gaps="auto")[,-1,drop=FALSE];
                 ariZeroes <- matrix(TRUE,nrow=obsInsample,ncol=ariOrder);
