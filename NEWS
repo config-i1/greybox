@@ -1,4 +1,4 @@
-greybox v0.5.2 (Release data: 2019-05-28)
+greybox v0.5.2 (Release data: 2019-06-03)
 ==============
 
 Changes:
@@ -12,6 +12,7 @@ Changes:
 Bugfixes:
 * Fixed a bug with the estimation of models, where some of the variables did not have any variability (i.e. in cases of occurrence model).
 * alm() with distribution="plogis" sometimes would not work well with Arima() function.
+* A bugfix in plot(forecast), where a list was used in some of the cases for the holdout.
 
 
 greybox v0.5.1 (Release data: 2019-04-27)

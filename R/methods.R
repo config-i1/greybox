@@ -1476,10 +1476,10 @@ plot.predict.greybox <- function(x, ...){
             yHoldout <- x$newdata[,yName];
             if(!any(is.na(yHoldout))){
                 if(x$newdataProvided){
-                    yActuals <- ts(c(yActuals,yHoldout), start=yStart, frequency=yFrequency);
+                    yActuals <- ts(c(yActuals,unlist(yHoldout)), start=yStart, frequency=yFrequency);
                 }
                 else{
-                    yActuals <- ts(yHoldout, start=yForecastStart, frequency=yFrequency);
+                    yActuals <- ts(unlist(yHoldout), start=yForecastStart, frequency=yFrequency);
                 }
                 # If this is occurrence model, then transform actual to the occurrence
                 if(any(x$distribution==c("pnorm","plogis"))){
