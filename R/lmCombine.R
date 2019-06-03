@@ -444,6 +444,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         }
     }
 
+    if(!silent){
+        cat(" Done!\n");
+    }
+
     # Calculate IC weights
     # is.finite is needed in the case of overfitting the data
     modelsGood <- is.finite(ICs);

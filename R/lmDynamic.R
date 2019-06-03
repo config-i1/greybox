@@ -432,6 +432,10 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         }
     }
 
+    if(!silent){
+        cat(" Done!\n");
+    }
+
     # Calculate IC weights
     pICWeights <- pICs - apply(pICs,1,min);
     pICWeights <- exp(-0.5*pICWeights) / apply(exp(-0.5*pICWeights),1,sum)
