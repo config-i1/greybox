@@ -8,9 +8,9 @@
 #'
 #' @param xreg matrix or data.frame, containing variables that need
 #' to be expanded. This matrix needs to contain at least two columns.
-#' @param quiet If \code{quiet=FALSE}, then the progress is printed out.
+#' @param silent If \code{silent=FALSE}, then the progress is printed out.
 #' Otherwise the function won't print anything in the console.
-#' @param ... This is temporary and is needed in order to capture "quiet"
+#' @param ... This is temporary and is needed in order to capture "silent"
 #' parameter if it is provided.
 #'
 #' @return \code{ts} matrix with the transformed and the original variables
@@ -28,10 +28,7 @@
 #' xregMultiplier(x)
 #'
 #' @export xregMultiplier
-xregMultiplier <- function(xreg, quiet=TRUE, ...){
-
-    #### This is temporary and needs to be removed at some point! ####
-    quiet[] <- depricator(quiet, list(...));
+xregMultiplier <- function(xreg, silent=TRUE, ...){
 
     # Check and prepare the data
     if(is.data.frame(xreg)){
@@ -42,7 +39,7 @@ xregMultiplier <- function(xreg, quiet=TRUE, ...){
         stop("Sorry, but we need to have either a matrix or a data.frame in xreg.", call.=FALSE);
     }
 
-    if(!quiet){
+    if(!silent){
         cat("Preparing matrices...    ");
     }
 
@@ -71,7 +68,7 @@ xregMultiplier <- function(xreg, quiet=TRUE, ...){
             if(i==j){
                 next;
             }
-            if(!quiet){
+            if(!silent){
                 if(k==1){
                     cat("\b");
                 }
@@ -83,7 +80,7 @@ xregMultiplier <- function(xreg, quiet=TRUE, ...){
             k <- k + 1;
         }
     }
-    if(!quiet){
+    if(!silent){
         cat(paste0(rep("\b",4),collapse=""));
         cat(" Done! \n");
     }

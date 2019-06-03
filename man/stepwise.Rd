@@ -4,7 +4,7 @@
 \alias{stepwise}
 \title{Stepwise selection of regressors}
 \usage{
-stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), quiet = TRUE,
+stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, method = c("pearson", "kendall", "spearman"),
   distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace", "ds",
   "dchisq", "dlogis", "plogis", "pnorm"), occurrence = c("none",
@@ -16,8 +16,8 @@ the others in the rest.}
 
 \item{ic}{Information criterion to use.}
 
-\item{quiet}{If \code{quiet=FALSE}, then nothing is quiet, everything is
-printed out. \code{quiet=TRUE} means that nothing is produced.}
+\item{silent}{If \code{silent=FALSE}, then nothing is silent, everything is
+printed out. \code{silent=TRUE} means that nothing is produced.}
 
 \item{df}{Number of degrees of freedom to add (should be used if stepwise is
 used on residuals).}
@@ -30,7 +30,7 @@ Tau, which should be applicable to a wide range of data in different scales.}
 \item{occurrence}{what distribution to use for occurrence part. See
 \link[greybox]{alm} for details.}
 
-\item{...}{This is temporary and is needed in order to capture "quiet"
+\item{...}{This is temporary and is needed in order to capture "silent"
 parameter if it is provided.}
 }
 \value{

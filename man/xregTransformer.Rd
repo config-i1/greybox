@@ -5,7 +5,7 @@
 \title{Exogenous variables transformer}
 \usage{
 xregTransformer(xreg, functions = c("log", "exp", "inv", "sqrt",
-  "square"), quiet = TRUE, ...)
+  "square"), silent = TRUE, ...)
 }
 \arguments{
 \item{xreg}{Vector / matrix / data.frame, containing variables that need
@@ -14,10 +14,10 @@ to be expanded. In case of vector / matrix it is recommended to provide
 
 \item{functions}{Vector of names for functions used.}
 
-\item{quiet}{If \code{quiet=FALSE}, then the progress is printed out.
+\item{silent}{If \code{silent=FALSE}, then the progress is printed out.
 Otherwise the function won't print anything in the console.}
 
-\item{...}{This is temporary and is needed in order to capture "quiet"
+\item{...}{This is temporary and is needed in order to capture "silent"
 parameter if it is provided.}
 }
 \value{

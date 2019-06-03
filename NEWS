@@ -8,6 +8,7 @@ Changes:
 * Tuned the initial parameters in alm() for recursive models.
 * Tuning in the code for the recursive model. It should work approximately 2 times faster now...
 * Cosmetic changes in rmc(). In case of "mcb", the methods in the same group as the selected one, have the same darker colour of the mean.
+* Rolling back the "quiet" parameter to "silent".
 
 Bugfixes:
 * Fixed a bug with the estimation of models, where some of the variables did not have any variability (i.e. in cases of occurrence model).

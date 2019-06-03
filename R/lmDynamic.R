@@ -20,7 +20,7 @@
 #' @param bruteforce If \code{TRUE}, then all the possible models are generated
 #' and combined. Otherwise the best model is found and then models around that
 #' one are produced and then combined.
-#' @param quiet If \code{FALSE}, then nothing is quiet, everything is printed
+#' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
 #' @param distribution Distribution to pass to \code{alm()}.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
@@ -70,7 +70,7 @@
 #' plot(predict(ourModel,outSample))
 #'
 #' @export lmDynamic
-lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, quiet=TRUE,
+lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
                                     "plogis","pnorm"),
                       parallel=FALSE, ...){
@@ -79,7 +79,6 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
     cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
 
     #### This is temporary and needs to be removed at some point! ####
-    quiet[] <- depricator(quiet, list(...));
     bruteforce[] <- depricator(bruteforce, list(...));
 
     ellipsis <- list(...);
@@ -170,7 +169,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
     #         useALM <- TRUE;
     #         rowsSelected <- rowsSelected | (data[,1]!=0);
     #
-    #         occurrenceModel <- lmCombine(data, ic=ic, bruteforce=bruteforce, quiet=quiet,
+    #         occurrenceModel <- lmCombine(data, ic=ic, bruteforce=bruteforce, silent=silent,
     #                                      distribution=occurrence, parallel=parallel, ...);
     #         occurrenceModel$call <- cl;
     #     }
@@ -225,10 +224,10 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
 
     # If this is not bruteforce, then do stepwise first
     if(!bruteforce){
-        if(!quiet){
+        if(!silent){
             cat("Selecting the best model...\n");
         }
-        ourModel <- stepwise(data, ic=ic, distribution=distribution, quiet=quiet);
+        ourModel <- stepwise(data, ic=ic, distribution=distribution, silent=silent);
     }
 
     # Modify the data and move to the list
@@ -310,7 +309,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<16){
             ourModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
-                                   bruteforce=TRUE, quiet=quiet, distribution=distribution, parallel=parallel, ...);
+                                   bruteforce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
         }
@@ -373,7 +372,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
 
     # Go for the loop of lm models
     if(parallel){
-        if(!quiet){
+        if(!silent){
             cat("Estimation progress: ...");
         }
         forLoopReturns <- foreach::`%dopar%`(foreach::foreach(i=2:nCombinations),{
@@ -411,11 +410,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, q
         }
     }
     else{
-        if(!quiet){
+        if(!silent){
             cat(paste0("Estimation progress: ", round(1/nCombinations,2)*100,"%"));
         }
         for(i in 2:nCombinations){
-            if(!quiet){
+            if(!silent){
                 cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
                 cat(paste0(round(i/nCombinations,2)*100,"%"));
             }
