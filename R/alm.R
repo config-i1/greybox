@@ -448,8 +448,8 @@ alm <- function(formula, data, subset, na.action,
                                                               (digamma(fitterReturn$scale[otU])-
                                                                    digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
                                             # This is a normal approximation of the real entropy
-                                            "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
-                                            "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                            # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                                            # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
                                             0
             );
         }
@@ -1052,12 +1052,12 @@ alm <- function(formula, data, subset, na.action,
             xtol_rel <- ellipsis$xtol_rel;
         }
         if(is.null(ellipsis$algorithm)){
-            if(recursiveModel){
+            # if(recursiveModel){
                 algorithm <- "NLOPT_LN_BOBYQA";
-            }
-            else{
+            # }
+            # else{
                 algorithm <- "NLOPT_LN_SBPLX";
-            }
+            # }
         }
         else{
             algorithm <- ellipsis$algorithm;
