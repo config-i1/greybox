@@ -292,7 +292,8 @@ rmc <- function(data, distribution=c("dlnorm","dnorm","dfnorm"),
     for(i in 1:nMethods){
         for(j in 1:nMethods){
             methodGroups[i,j] <- ((lmIntervals[i,2] >= lmIntervals[j,1]) & (lmIntervals[i,1] <= lmIntervals[j,1])
-                                  | (lmIntervals[i,2] >= lmIntervals[j,2]) & (lmIntervals[i,1] <= lmIntervals[j,2]))
+                                  | (lmIntervals[i,2] >= lmIntervals[j,2]) & (lmIntervals[i,1] <= lmIntervals[j,2])
+                                  | (lmIntervals[i,2] <= lmIntervals[j,2]) & (lmIntervals[i,1] >= lmIntervals[j,1]))
         }
     }
 
