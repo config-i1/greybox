@@ -791,13 +791,15 @@ alm <- function(formula, data, subset, na.action,
         variablesNames <- c("(Intercept)",variablesNames);
         colnames(matrixXreg) <- variablesNames;
 
-        # Check, if redundant dummies are left. Remove the first if this is the case
-        determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
-        if(any(determValues==1)){
-            matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
-            variablesNames <- colnames(matrixXreg);
+        if(is.null(parameters)){
+            # Check, if redundant dummies are left. Remove the first if this is the case
+            determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
+            if(any(determValues==1)){
+                matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
+                variablesNames <- colnames(matrixXreg);
+            }
+            nVariables <- length(variablesNames);
         }
-        nVariables <- length(variablesNames);
     }
     # The number of exogenous variables (no ARI elements)
     nVariablesExo <- nVariables;
