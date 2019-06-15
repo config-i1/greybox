@@ -1,3 +1,10 @@
+greybox v0.5.3 (Release data: 2019-06-15)
+==============
+
+Bugfixes:
+* lmCombine and lmDynamic did not work if there was only one variable to combine.
+
+
 greybox v0.5.2 (Release data: 2019-06-15)
 ==============
 

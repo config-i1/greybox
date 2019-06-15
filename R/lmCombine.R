@@ -244,10 +244,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Modify the data and move to the list
     if(is.data.frame(data)){
-        listToCall$data <- cbind(y,model.matrix(cl$formula, data=data[rowsSelected,])[,-1]);
+        listToCall$data <- cbind(y,model.matrix(cl$formula, data=data[rowsSelected,])[,-1,drop=FALSE]);
     }
     else{
-        listToCall$data <- cbind(y,as.data.frame(data[rowsSelected,-1]));
+        listToCall$data <- cbind(y,as.data.frame(data[rowsSelected,-1,drop=FALSE]));
     }
     rm(data);
 
@@ -294,8 +294,11 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
         #Produce matrix with binaries for inclusion of variables in the loop
         variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
-        for(i in 2:nVariables){
-            variablesCombinations[,i] <- rep(c(0:variablesBinary[i]),each=prod(variablesBinary[1:(i-1)]+1));
+
+        if(nVariables>1){
+            for(i in 2:nVariables){
+                variablesCombinations[,i] <- rep(c(0:variablesBinary[i]),each=prod(variablesBinary[1:(i-1)]+1));
+            }
         }
 
         # Vector of ICs
@@ -320,7 +323,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         bestExoNames <- names(coef(ourModel))[-1];
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<14){
-            ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames)], ic=ic,
+            ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames),drop=FALSE], ic=ic,
                                    bruteforce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
@@ -430,7 +433,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                 cat(paste0(rep("\b",nchar(round((i-1)/nCombinations,2)*100)+1),collapse=""));
                 cat(paste0(round(i/nCombinations,2)*100,"%"));
             }
-            listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,]==1],collapse="+")));
+            listToCall$formula <- as.formula(paste0(responseName,"~",paste0(exoNames[variablesCombinations[i,,drop=FALSE]==1],collapse="+")));
             ourModel <- do.call(lmCall,listToCall);
 
             ICs[i] <- IC(ourModel);
