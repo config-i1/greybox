@@ -239,15 +239,18 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
     rm(data);
 
-    # Set alpha for the dalaplace
+    # Other stuff for the things like alpha of ALaplace
+    other <- vector("list",1);
+
+    # Set alpha for the dalaplace. If not provided do alpha=0.5
     if(distribution=="dalaplace"){
-        listToCall$alpha <- ellipsis$alpha;
         if(is.null(ellipsis$alpha)){
             alpha <- 0.5;
         }
         else{
             alpha <- ellipsis$alpha;
         }
+        other$alpha <- listToCall$alpha <- alpha;
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
@@ -549,7 +552,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
-                       coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1);
+                       coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
+                       other=other);
 
     return(structure(finalModel,class=c("greyboxD","alm","greybox")));
 }

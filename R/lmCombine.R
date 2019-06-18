@@ -251,15 +251,18 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
     rm(data);
 
-    # Set alpha for the dalaplace
+    # Other stuff for the things like alpha of ALaplace
+    other <- vector("list",1);
+
+    # Set alpha for the dalaplace. If not provided do alpha=0.5
     if(distribution=="dalaplace"){
-        listToCall$alpha <- ellipsis$alpha;
         if(is.null(ellipsis$alpha)){
             alpha <- 0.5;
         }
         else{
             alpha <- ellipsis$alpha;
         }
+        other$alpha <- listToCall$alpha <- alpha;
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
@@ -567,7 +570,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                        df.residual=df, df=sum(importance)+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
-                       combination=variablesCombinations);
+                       combination=variablesCombinations, other=other);
 
     return(structure(finalModel,class=c("greyboxC","alm","greybox")));
 }
