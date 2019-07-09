@@ -187,7 +187,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
     # Create substitute and remove the original data
     dataSubstitute <- substitute(data);
-    rm(data)
+    # Remove the data and clean after yourself
+    rm(data);
+    gc(verbose=FALSE);
 
     # Record the names of the response and the explanatory variables
     responseName <- variablesNames[1];
