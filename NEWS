@@ -5,6 +5,7 @@ Bugfixes:
 * lmCombine and lmDynamic did not work if there was only one variable to combine.
 * A fix for lmCombine and lmDynamic in case of "dalaplace".
 * A fix for the selected variable in occurrenceModel with data.table object.
+* predict.greybox() did not work correctly in case of no newdata provided.
 
 
 greybox v0.5.2 (Release data: 2019-06-15)

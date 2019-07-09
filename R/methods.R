@@ -901,6 +901,13 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     if(is.null(newdata)){
         matrixOfxreg <- object$data;
         newdataProvided <- FALSE;
+        # The first column is the response variable. Either substitute it by ones or remove it.
+        if(any(parametersNames=="(Intercept)")){
+            matrixOfxreg[,1] <- 1;
+        }
+        else{
+            matrixOfxreg <- matrixOfxreg[,-1];
+        }
     }
     else{
         newdataProvided <- TRUE;
