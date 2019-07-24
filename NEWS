@@ -1,5 +1,8 @@
-greybox v0.5.3 (Release data: 2019-06-29)
+greybox v0.5.3 (Release data: 2019-07-24)
 ==============
+
+Changes:
+* The summary is now more consistent with the ones from smooth package v2.5.2.
 
 Bugfixes:
 * lmCombine and lmDynamic did not work if there was only one variable to combine.
