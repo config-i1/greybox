@@ -16,7 +16,8 @@ determ(xreg, bruteforce = TRUE, ...)
 for the regression construction (sink regression). If the number of
 observations is smaller than the number of series, the function will
 use \link[greybox]{stepwise} function and select only meaningful
-variables.}
+variables. So the reported values will be based on stepwise regressions
+for each variable.}
 
 \item{...}{Other values passed to cor function.}
 }

@@ -1,4 +1,4 @@
-greybox v0.5.3 (Release data: 2019-07-24)
+greybox v0.5.3 (Release data: 2019-07-26)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Bugfixes:
 * A fix for lmCombine and lmDynamic in case of "dalaplace".
 * A fix for the selected variable in occurrenceModel with data.table object.
 * predict.greybox() did not work correctly in case of no newdata provided.
+* determination, association and mcor did not work with "data.table" and "tbl" classes well. Now they just change the classes of these objects to data.frame as a temporary solution.
 
 
 greybox v0.5.2 (Release data: 2019-06-15)

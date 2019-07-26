@@ -102,22 +102,46 @@ association <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everyt
     matrixTypes <- matrix("none",nVariables,nVariables, dimnames=list(namesData,namesData));
 
     numericDataX <- vector(mode="logical", length=nVariablesX);
-    for(i in 1:nVariablesX){
-        numericDataX[i] <- is.numeric(x[,i]);
-        if(numericDataX[i]){
-            if(length(unique(x[,i]))<=10){
-                numericDataX[i] <- FALSE;
+    if(is.data.frame(x)){
+        for(i in 1:nVariablesX){
+            numericDataX[i] <- is.numeric(x[[i]]);
+            if(numericDataX[i]){
+                if(length(unique(x[[i]]))<=10){
+                    numericDataX[i] <- FALSE;
+                }
+            }
+        }
+    }
+    else{
+        for(i in 1:nVariablesX){
+            numericDataX[i] <- is.numeric(x[,i]);
+            if(numericDataX[i]){
+                if(length(unique(x[,i]))<=10){
+                    numericDataX[i] <- FALSE;
+                }
             }
         }
     }
 
     if(!is.null(y)){
         numericDataY <- vector(mode="logical", length=nVariablesY);
-        for(i in 1:nVariablesY){
-            numericDataY[i] <- is.numeric(y[,i]);
-            if(numericDataY[i]){
-                if(length(unique(y[,i]))<=10){
-                    numericDataY[i] <- FALSE;
+        if(is.data.frame(y)){
+            for(i in 1:nVariablesY){
+                numericDataY[i] <- is.numeric(y[[i]]);
+                if(numericDataY[i]){
+                    if(length(unique(y[[i]]))<=10){
+                        numericDataY[i] <- FALSE;
+                    }
+                }
+            }
+        }
+        else{
+            for(i in 1:nVariablesY){
+                numericDataY[i] <- is.numeric(y[,i]);
+                if(numericDataY[i]){
+                    if(length(unique(y[,i]))<=10){
+                        numericDataY[i] <- FALSE;
+                    }
                 }
             }
         }
@@ -131,6 +155,17 @@ association <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everyt
         if((use=="c" & nrow(data[!apply(is.na(data),1,any),])<2) | use=="a"){
             variablesNA <- apply(is.na(data),2,any);
             stop(paste0("Missing observations in the variables: ",paste0(namesData[variablesNA],collapse=", ")), call.=FALSE);
+        }
+    }
+
+    # If everything is numeric, then convert the stuff into matrix
+    if(all(numericData)){
+        data <- as.matrix(data);
+    }
+    else{
+        # If it is a bloody tibble, remove the class, treat as data.frame
+        if(any(class(data) %in% c("tbl","tbl_df"))){
+            class(data) <- "data.frame";
         }
     }
 

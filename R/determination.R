@@ -23,7 +23,8 @@
 #' for the regression construction (sink regression). If the number of
 #' observations is smaller than the number of series, the function will
 #' use \link[greybox]{stepwise} function and select only meaningful
-#' variables.
+#' variables. So the reported values will be based on stepwise regressions
+#' for each variable.
 #' @param ... Other values passed to cor function.
 #'
 #' @return Function returns the vector of determination coefficients.
@@ -65,6 +66,11 @@ determination <- function(xreg, bruteforce=TRUE, ...){
         }
     }
 
+    # If it is a bloody tibble or a data.table, remove the class, treat as data.frame
+    if(any(class(xreg) %in% c("tbl","tbl_df","data.table"))){
+        class(xreg) <- "data.frame";
+    }
+
     # Calculate the multiple determinations
     if(bruteforce & nVariables>1){
         for(i in 1:nVariables){
@@ -74,6 +80,8 @@ determination <- function(xreg, bruteforce=TRUE, ...){
     }
     else if(!bruteforce & nVariables>1){
         testXreg <- xreg;
+        # This fix is needed in case the names of variables contain spaces
+        colnames(testXreg) <- paste0("x",c(1:nVariables));
         testModel <- suppressWarnings(stepwise(testXreg));
         vectorCorrelationsMultiple[1] <- determinationCalculator(residuals(testModel),
                                                                  actuals(testModel));

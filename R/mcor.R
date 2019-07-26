@@ -99,12 +99,15 @@ mcor <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.o
     }
 
     if(!is.numeric(y)){
-        warning("The y variable should be numeric in order for this to work! The reported value might be meaningless",call.=FALSE);
         if(is.factor(y)){
+            warning("The y variable should be numeric in order for this to work! The reported value might be meaningless",call.=FALSE);
             if(is.ordered(y)){
                 y <- factor(y,ordered=FALSE,levels=levels(y));
             }
             y <- model.matrix(~y-1);
+        }
+        else if(!is.matrix(y)){
+            y <- as.matrix(y)
         }
     }
     else if(is.data.frame(y)){
