@@ -27,9 +27,9 @@ The functions returns the named vector of errors:
 \item sMAE,
 \item sMSE,
 \item sCE,
-\item RelMAE,
-\item RelRMSE,
-\item RelAME,
+\item rMAE,
+\item rRMSE,
+\item rAME,
 \item cbias,
 \item sPIS.
 }

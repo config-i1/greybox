@@ -9,6 +9,10 @@
 \alias{MPE}
 \alias{MAPE}
 \alias{MASE}
+\alias{rMAE}
+\alias{rRMSE}
+\alias{rAME}
+\alias{rMIS}
 \alias{RelMAE}
 \alias{RelRMSE}
 \alias{RelAME}
@@ -32,6 +36,14 @@ MPE(actual, forecast)
 MAPE(actual, forecast)
 
 MASE(actual, forecast, scale)
+
+rMAE(actual, forecast, benchmark)
+
+rRMSE(actual, forecast, benchmark)
+
+rAME(actual, forecast, benchmark)
+
+rMIS(actual, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
 
 RelMAE(actual, forecast, benchmark)
 
@@ -89,10 +101,10 @@ interval predictions:
 \item MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for
 the critique),
 \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006)),
-\item RelMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
-\item RelRMSE - Relative Root Mean Squared Error,
-\item RelAME - Relative Absolute Mean Error,
-\item RelMIS - Relative Mean Interval Score,
+\item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
+\item rRMSE - Relative Root Mean Squared Error,
+\item rAME - Relative Absolute Mean Error,
+\item rMIS - Relative Mean Interval Score,
 \item sMSE - Scaled Mean Squared Error (Petropoulos & Kourentzes, 2015),
 \item sPIS- Scaled Periods-In-Stock (Wallstrom & Segerstedt, 2010),
 \item sCE - Scaled Cumulative Error,
@@ -132,9 +144,9 @@ MASE(y[91:100],testForecast,mean(abs(diff(y[1:90]))))
 
 testForecast2 <- rep(y[91],10)
 # Relative measures, from and inspired by Davydenko & Fildes (2013)
-RelMAE(y[91:100],testForecast2,testForecast)
-RelRMSE(y[91:100],testForecast2,testForecast)
-RelAME(y[91:100],testForecast2,testForecast)
+rMAE(y[91:100],testForecast2,testForecast)
+rRMSE(y[91:100],testForecast2,testForecast)
+rAME(y[91:100],testForecast2,testForecast)
 
 #### Measures for the prediction intervals
 # An example with mtcars data
@@ -147,7 +159,7 @@ ourBenchmarkForecast <- predict(ourBenchmark, mtcars[-c(1:30),], interval="p")
 
 MIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,0.95)
 sMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,mean(mtcars$mpg[1:30]),0.95)
-RelMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,
+rMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,
        ourBenchmarkForecast$lower,ourBenchmarkForecast$upper,0.95)
 
 ### Also, see pinball function for other measures for the intervals

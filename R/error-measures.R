@@ -11,10 +11,10 @@
 #' \item MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for
 #' the critique),
 #' \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006)),
-#' \item RelMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
-#' \item RelRMSE - Relative Root Mean Squared Error,
-#' \item RelAME - Relative Absolute Mean Error,
-#' \item RelMIS - Relative Mean Interval Score,
+#' \item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
+#' \item rRMSE - Relative Root Mean Squared Error,
+#' \item rAME - Relative Absolute Mean Error,
+#' \item rMIS - Relative Mean Interval Score,
 #' \item sMSE - Scaled Mean Squared Error (Petropoulos & Kourentzes, 2015),
 #' \item sPIS- Scaled Periods-In-Stock (Wallstrom & Segerstedt, 2010),
 #' \item sCE - Scaled Cumulative Error,
@@ -98,9 +98,9 @@
 #'
 #' testForecast2 <- rep(y[91],10)
 #' # Relative measures, from and inspired by Davydenko & Fildes (2013)
-#' RelMAE(y[91:100],testForecast2,testForecast)
-#' RelRMSE(y[91:100],testForecast2,testForecast)
-#' RelAME(y[91:100],testForecast2,testForecast)
+#' rMAE(y[91:100],testForecast2,testForecast)
+#' rRMSE(y[91:100],testForecast2,testForecast)
+#' rAME(y[91:100],testForecast2,testForecast)
 #'
 #' #### Measures for the prediction intervals
 #' # An example with mtcars data
@@ -113,7 +113,7 @@
 #'
 #' MIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,0.95)
 #' sMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,mean(mtcars$mpg[1:30]),0.95)
-#' RelMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,
+#' rMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,
 #'        ourBenchmarkForecast$lower,ourBenchmarkForecast$upper,0.95)
 #'
 #' ### Also, see pinball function for other measures for the intervals
@@ -259,9 +259,9 @@ MASE <- function(actual,forecast,scale){
 }
 
 #' @rdname error-measures
-#' @export RelMAE
-#' @aliases RelMAE
-RelMAE <-function(actual,forecast,benchmark){
+#' @export rMAE
+#' @aliases rMAE
+rMAE <-function(actual,forecast,benchmark){
 # This function calculates Average Relative MAE
 # actual - actual values,
 # forecast - forecasted or fitted values.
@@ -285,9 +285,9 @@ RelMAE <-function(actual,forecast,benchmark){
 }
 
 #' @rdname error-measures
-#' @export RelRMSE
-#' @aliases RelRMSE
-RelRMSE <-function(actual,forecast,benchmark){
+#' @export rRMSE
+#' @aliases rRMSE
+rRMSE <-function(actual,forecast,benchmark){
     # This function calculates Relative MSE
     # actual - actual values,
     # forecast - forecasted or fitted values.
@@ -311,9 +311,9 @@ RelRMSE <-function(actual,forecast,benchmark){
 }
 
 #' @rdname error-measures
-#' @export RelAME
-#' @aliases RelAME
-RelAME <-function(actual,forecast,benchmark){
+#' @export rAME
+#' @aliases rAME
+rAME <-function(actual,forecast,benchmark){
     # This function calculates Relative Absolute ME
     # actual - actual values,
     # forecast - forecasted or fitted values.
@@ -337,9 +337,9 @@ RelAME <-function(actual,forecast,benchmark){
 }
 
 #' @rdname error-measures
-#' @export RelMIS
-#' @aliases RelMIS
-RelMIS <-function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
+#' @export rMIS
+#' @aliases rMIS
+rMIS <-function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
 # This function calculates scaled MIS
 # actual - actual values,
 # forecast - forecasted values.
@@ -357,6 +357,39 @@ RelMIS <-function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
         return(MIS(actual=actual,lower=lower,upper=upper,level=level) /
                    MIS(actual=actual,lower=benchmarkLower,upper=benchmarkUpper,level=level));
     }
+}
+
+
+#' @rdname error-measures
+#' @export RelMAE
+#' @aliases rMAE
+RelMAE <- function(actual,forecast,benchmark){
+    warning("This function is depricated. Please, use rMAE instead");
+    return(rMAE(actual,forecast,benchmark));
+}
+
+#' @rdname error-measures
+#' @export RelRMSE
+#' @aliases rRMSE
+RelRMSE <- function(actual,forecast,benchmark){
+    warning("This function is depricated. Please, use rRMSE instead");
+    return(rRMSE(actual,forecast,benchmark));
+}
+
+#' @rdname error-measures
+#' @export RelAME
+#' @aliases rAME
+RelAME <- function(actual,forecast,benchmark){
+    warning("This function is depricated. Please, use rAME instead");
+    return(rAME(actual,forecast,benchmark));
+}
+
+#' @rdname error-measures
+#' @export RelMIS
+#' @aliases rMIS
+RelMIS <- function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
+    warning("This function is depricated. Please, use rMIS instead");
+    return(rMIS(actual,lower,upper,benchmarkLower,benchmarkUpper,level));
 }
 
 #' @rdname error-measures
@@ -464,9 +497,9 @@ sMIS <- function(actual,lower,upper,scale,level=0.95){
 #' \item sMAE,
 #' \item sMSE,
 #' \item sCE,
-#' \item RelMAE,
-#' \item RelRMSE,
-#' \item RelAME,
+#' \item rMAE,
+#' \item rRMSE,
+#' \item rAME,
 #' \item cbias,
 #' \item sPIS.
 #' }
@@ -512,9 +545,9 @@ measures <- function(holdout, forecast, actual, digits=NULL){
                        MASE(holdout,forecast,mean(abs(actual))),
                        sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        sCE(holdout,forecast,mean(abs(actual[actual!=0]))),
-                       RelMAE(holdout,forecast,benchmark),
-                       RelRMSE(holdout,forecast,benchmark),
-                       RelAME(holdout,forecast,benchmark),
+                       rMAE(holdout,forecast,benchmark),
+                       rRMSE(holdout,forecast,benchmark),
+                       rAME(holdout,forecast,benchmark),
                        cbias(holdout-forecast,0),
                        sPIS(holdout,forecast,mean(abs(actual[actual!=0]))));
     if(!is.null(digits)){
@@ -523,7 +556,7 @@ measures <- function(holdout, forecast, actual, digits=NULL){
     names(errormeasures) <- c("MAE","MSE",
                               "MPE","MAPE",
                               "MASE","sMAE","sMSE","sCE",
-                              "RelMAE","RelRMSE","RelAME","cbias","sPIS");
+                              "rMAE","rRMSE","rAME","cbias","sPIS");
     return(errormeasures);
 }
 
