@@ -238,7 +238,8 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
 
     forecasts <- list(NA);
     if(!silent & !parallel){
-        cat(paste0("Origins done:  "));
+        cat(paste0("Origins done: "));
+        cat(paste(rep(" ",origins),collapse=""))
     }
     else if(!silent & parallel){
         cat(paste0("Working..."));

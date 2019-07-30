@@ -2007,7 +2007,7 @@ vcov.alm <- function(object, ...){
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(class(vcovMatrixTry)=="try-error"){
             warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inacurate."),
+                           "The estimate of the covariance matrix of parameters might be inaccurate."),
                     call.=FALSE);
             vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
             if(class(vcovMatrix)=="try-error"){
@@ -2036,7 +2036,7 @@ vcov.alm <- function(object, ...){
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(class(vcovMatrixTry)=="try-error"){
             warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inacurate."),
+                           "The estimate of the covariance matrix of parameters might be inaccurate."),
                     call.=FALSE);
             vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
             if(class(vcovMatrix)=="try-error"){

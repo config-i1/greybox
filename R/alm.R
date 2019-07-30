@@ -1317,7 +1317,7 @@ alm <- function(formula, data, subset, na.action,
             vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
             if(class(vcovMatrixTry)=="try-error"){
                 warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                               "The estimate of the covariance matrix of parameters might be inacurate."),
+                               "The estimate of the covariance matrix of parameters might be inaccurate."),
                         call.=FALSE);
                 vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
                 if(class(vcovMatrix)=="try-error"){
