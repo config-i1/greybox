@@ -17,10 +17,10 @@ R CMD check results
 0 errors | 0 warnings | 0 note
 
 ## Other checks
-Rhub on Fedora Linux, R-devel, clang, gfortran gives a note:
+Rhub on Windows Server 2008 R2 SP1, R-devel, 32/64 bit; Fedora Linux, R-devel, clang, gfortran gives a note:
 Package which this enhances but not available for checking: ‘vars’
 
-However, the package is available on CRAN and there are no notes on my local installations of R.
+However, the package is available on CRAN and there are no notes on my local installations of R on on Travis.
 
 
 Checks for Windows give (as always) a NOTE about doMC, which is not available for Windows (for obvious reasons). The package is included in suggested of greybox.
