@@ -4,7 +4,8 @@
 \alias{measures}
 \title{Error measures for the provided forecasts}
 \usage{
-measures(holdout, forecast, actual, digits = NULL)
+measures(holdout, forecast, actual, digits = NULL,
+  benchmark = c("naive", "mean"))
 }
 \arguments{
 \item{holdout}{The vector of the holdout values.}
@@ -15,6 +16,11 @@ measures(holdout, forecast, actual, digits = NULL)
 
 \item{digits}{Number of digits of the output. If \code{NULL}
 then no rounding is done.}
+
+\item{benchmark}{The character variable, defining what to use as
+benchmark for relative measures. Can be either \code{"naive"} or
+\code{"mean"} (arithmetic mean of the whole series. The latter
+can be useful when dealing with intermittent data.}
 }
 \value{
 The functions returns the named vector of errors:

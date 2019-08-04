@@ -487,6 +487,10 @@ sMIS <- function(actual,lower,upper,scale,level=0.95){
 #' @param actual The vector of actual in-sample values.
 #' @param digits Number of digits of the output. If \code{NULL}
 #' then no rounding is done.
+#' @param benchmark The character variable, defining what to use as
+#' benchmark for relative measures. Can be either \code{"naive"} or
+#' \code{"mean"} (arithmetic mean of the whole series. The latter
+#' can be useful when dealing with intermittent data.
 #' @return The functions returns the named vector of errors:
 #' \itemize{
 #' \item MAE,
@@ -532,11 +536,16 @@ sMIS <- function(actual,lower,upper,scale,level=0.95){
 #' measures(y[91:100],ourForecast,y[1:90],digits=5)
 #'
 #' @export measures
-measures <- function(holdout, forecast, actual, digits=NULL){
+measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive","mean")){
     holdout <- as.vector(holdout);
+    h <- length(holdout)
     forecast <- as.vector(forecast);
     actual <- as.vector(actual);
-    benchmark <- rep(actual[length(actual)],length(holdout));
+    benchmark <- match.arg(benchmark,c("naive","mean"));
+    becnhmarkForecast <- switch(benchmark,
+                                "naive"=rep(actual[length(actual)],h),
+                                "mean"=rep(mean(actual),h));
+
     errormeasures <- c(MAE(holdout,forecast),
                        MSE(holdout,forecast),
                        MPE(holdout,forecast),
@@ -545,9 +554,9 @@ measures <- function(holdout, forecast, actual, digits=NULL){
                        MASE(holdout,forecast,mean(abs(actual))),
                        sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        sCE(holdout,forecast,mean(abs(actual[actual!=0]))),
-                       rMAE(holdout,forecast,benchmark),
-                       rRMSE(holdout,forecast,benchmark),
-                       rAME(holdout,forecast,benchmark),
+                       rMAE(holdout,forecast,becnhmarkForecast),
+                       rRMSE(holdout,forecast,becnhmarkForecast),
+                       rAME(holdout,forecast,becnhmarkForecast),
                        cbias(holdout-forecast,0),
                        sPIS(holdout,forecast,mean(abs(actual[actual!=0]))));
     if(!is.null(digits)){

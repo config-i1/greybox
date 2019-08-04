@@ -2,6 +2,13 @@ greybox v0.5.3 (Release data: 2019-07-31)
 ==============
 
 Changes:
+* The function measures() now allows selecting between Naive and Arithmetic Mean benchmarks for relative measures.
+
+
+greybox v0.5.3 (Release data: 2019-07-31)
+==============
+
+Changes:
 * The summary is now more consistent with the ones from smooth package v2.5.2.
 * Corrected typos in the outputs.
 * Renamed RelMAE into rMAE and RelRMSE into rRMSE for consistency purposes. Similar renaming of RelAME into rAME and RelMIS into rMIS.
