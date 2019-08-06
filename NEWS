@@ -6,7 +6,8 @@ Changes:
 
 Bugfixes:
 * Fix for spread() and names of variables with spaces and special characters.
-* Similar fix for stepwise(). lmCombine() and lmDynamic() will follow.
+* Similar fix for stepwise().
+* Fixes for the names with spaces and special characters in lmCombine() and lmDynamic().
 
 
 greybox v0.5.3 (Release data: 2019-07-31)

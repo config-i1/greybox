@@ -76,7 +76,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
-    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
+    cl$formula <- as.formula(paste0("`",colnames(data)[1],"`~ ."));
 
     #### This is temporary and needs to be removed at some point! ####
     bruteforce[] <- depricator(bruteforce, list(...));
@@ -206,8 +206,9 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
 
     # Name of the response
-    responseName <- as.character(cl$formula[[2]]);
-    y <- as.matrix(data[rowsSelected,responseName]);
+    responseNameOriginal <- as.character(cl$formula[[2]]);
+    responseName <-"y";
+    y <- as.matrix(data[rowsSelected,responseNameOriginal]);
     colnames(y) <- responseName;
 
     # Check whether it is possible to do bruteforce
@@ -227,7 +228,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         if(!silent){
             cat("Selecting the best model...\n");
         }
-        ourModel <- stepwise(data, ic=ic, distribution=distribution, silent=silent);
+        ourModel <- stepwise(data, ic=ic, distribution=distribution);
     }
 
     # Modify the data and move to the list
@@ -256,8 +257,11 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # Observations in sample, assuming that the missing values are for the holdout
     obsInsample <- sum(!is.na(listToCall$data[,1]));
     # Names of the exogenous variables (without the intercept)
-    exoNames <- colnames(listToCall$data)[-1];
+    exoNamesOriginal <- colnames(listToCall$data)[-1];
+    exoNames <- paste0("x",c(1:length(exoNamesOriginal)));
+    colnames(listToCall$data)[-1] <- exoNames;
     # Names of all the variables
+    variablesNamesOriginal <- c("(Intercept)",exoNamesOriginal);
     variablesNames <- c("(Intercept)",exoNames);
     # Number of variables
     nVariables <- length(exoNames);
@@ -267,7 +271,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         warning("No explanatory variables are selected / provided. Fitting the model with intercept only.",
                 call.=FALSE, immediate.=TRUE);
         if(bruteforce){
-            return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
+            return(alm(as.formula(paste0("`",responseName,"`~1")),listToCall$data,distribution=distribution,...));
         }
         else{
             return(ourModel);
@@ -285,6 +289,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
         #Produce matrix with binaries for inclusion of variables in the loop
         variablesCombinations[,1] <- rep(c(0:1),times=prod(variablesBinary[-1]+1));
+
         if(nVariables>1){
             for(i in 2:nVariables){
                 variablesCombinations[,i] <- rep(c(0:variablesBinary[i]),each=prod(variablesBinary[1:(i-1)]+1));
@@ -310,10 +315,13 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
     else{
         # Extract names of the used variables
-        bestExoNames <- names(coef(ourModel))[-1];
+        bestExoNamesOriginal <- names(coef(ourModel))[-1];
+        bestExoNames <- exoNames[match(bestExoNamesOriginal,exoNamesOriginal)];
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<16){
-            ourModel <- lmDynamic(listToCall$data[,c(responseName,bestExoNames),drop=FALSE], ic=ic,
+            listToCall$data <- listToCall$data[,c(responseName,bestExoNames),drop=FALSE];
+            colnames(listToCall$data) <- c(responseNameOriginal,bestExoNamesOriginal);
+            ourModel <- lmDynamic(listToCall$data, ic=ic,
                                    bruteforce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
@@ -448,14 +456,15 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Calculate weighted parameters
     parametersWeighted <- pICWeights %*% parameters;
-    colnames(parametersWeighted) <- variablesNames;
+    colnames(parametersWeighted) <- variablesNamesOriginal;
 
     parametersMean <- colMeans(parametersWeighted);
-    names(parametersMean) <- variablesNames;
+    names(parametersMean) <- variablesNamesOriginal;
 
     # From the matrix of exogenous variables without the response variable
     ourDataExo <- cbind(1,listToCall$data[,-1]);
-    colnames(ourDataExo) <- variablesNames;
+    colnames(ourDataExo) <- variablesNamesOriginal;
+    colnames(listToCall$data) <- variablesNamesOriginal;
 
     # Calculate the mean based on the mean values of parameters
     mu <- switch(distribution,
@@ -525,7 +534,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Relative importance of variables
     importance <- cbind(1,pICWeights %*% variablesCombinations);
-    colnames(importance) <- variablesNames;
+    colnames(importance) <- variablesNamesOriginal;
 
     # Some of the variables have partial inclusion, 1 stands for constant
     # This is the dynamic degrees of freedom
@@ -541,7 +550,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Models SE
     parametersSECombined <- pICWeights %*% sqrt(parametersSE +(parameters - matrix(parametersMean,nrow(parameters),ncol(parameters),byrow=T))^2);
-    colnames(parametersSECombined) <- variablesNames;
+    colnames(parametersSECombined) <- variablesNamesOriginal;
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",

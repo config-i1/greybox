@@ -88,7 +88,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
     cl <- match.call();
-    cl$formula <- as.formula(paste0(colnames(data)[1]," ~ ."));
+    cl$formula <- as.formula(paste0("`",colnames(data)[1],"`~ ."));
 
     #### This is temporary and needs to be removed at some point! ####
     bruteforce[] <- depricator(bruteforce, list(...));
@@ -219,8 +219,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
 
     # Name of the response
-    responseName <- as.character(cl$formula[[2]]);
-    y <- as.matrix(data[rowsSelected,responseName]);
+    responseNameOriginal <- as.character(cl$formula[[2]]);
+    responseName <-"y";
+    y <- as.matrix(data[rowsSelected,responseNameOriginal]);
     colnames(y) <- responseName;
 
     # Check whether it is possible to do bruteforce
@@ -235,6 +236,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         warning("You have more than 14 variables. The computation might take a lot of time.", call.=FALSE, immediate.=TRUE);
     }
 
+    # If this is not bruteforce, then do stepwise first
     if(!bruteforce){
         if(!silent){
             cat("Selecting the best model...\n");
@@ -265,14 +267,14 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         other$alpha <- listToCall$alpha <- alpha;
     }
 
-    # Check for the special characters in the names of variables
-    # grepl('[^[:alnum:]]', exoNames)
-
     # Observations in sample, assuming that the missing values are for the holdout
     obsInsample <- sum(!is.na(listToCall$data[,1]));
     # Names of the exogenous variables (without the intercept)
-    exoNames <- colnames(listToCall$data)[-1];
+    exoNamesOriginal <- colnames(listToCall$data)[-1];
+    exoNames <- paste0("x",c(1:length(exoNamesOriginal)));
+    colnames(listToCall$data)[-1] <- exoNames;
     # Names of all the variables
+    variablesNamesOriginal <- c("(Intercept)",exoNamesOriginal);
     variablesNames <- c("(Intercept)",exoNames);
     # Number of variables
     nVariables <- length(exoNames);
@@ -326,10 +328,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
     else{
         # Extract names of the used variables
-        bestExoNames <- names(coef(ourModel))[-1];
+        bestExoNamesOriginal <- names(coef(ourModel))[-1];
+        bestExoNames <- exoNames[match(bestExoNamesOriginal,exoNamesOriginal)];
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<14){
-            ourModel <- lmCombine(listToCall$data[,c(responseName,bestExoNames),drop=FALSE], ic=ic,
+            listToCall$data <- listToCall$data[,c(responseName,bestExoNames),drop=FALSE];
+            colnames(listToCall$data) <- c(responseNameOriginal,bestExoNamesOriginal);
+            ourModel <- lmCombine(listToCall$data, ic=ic,
                                    bruteforce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
@@ -471,11 +476,12 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
     parametersCombined <- colSums(parametersWeighted);
 
-    names(parametersCombined) <- variablesNames;
+    names(parametersCombined) <- variablesNamesOriginal;
 
     # From the matrix of exogenous variables without the response variable
     ourDataExo <- cbind(1,listToCall$data[,-1]);
-    colnames(ourDataExo) <- variablesNames;
+    colnames(ourDataExo) <- variablesNamesOriginal;
+    colnames(listToCall$data) <- variablesNamesOriginal;
 
     mu <- switch(distribution,
                  "dpois" = exp(as.matrix(ourDataExo) %*% parametersCombined),
@@ -544,7 +550,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Relative importance of variables
     importance <- c(1,round(ICWeights %*% variablesCombinations,3));
-    names(importance) <- variablesNames;
+    names(importance) <- variablesNamesOriginal;
 
     # Some of the variables have partial inclusion, 1 stands for sigma
     df <- obsInsample - sum(importance) - 1;
@@ -557,12 +563,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # Form matrix for variables combination with weights and ICs
     ICValue <- c(ICWeights %*% ICs);
     names(ICValue) <- ic;
+    colnames(variablesCombinations) <- exoNamesOriginal;
     variablesCombinations <- cbind(variablesCombinations,ICWeights,ICs);
     colnames(variablesCombinations)[nVariables+1] <- "IC weights";
 
     # Models SE
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
-    names(parametersSECombined) <- variablesNames;
+    names(parametersSECombined) <- variablesNamesOriginal;
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
