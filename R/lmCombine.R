@@ -265,6 +265,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         other$alpha <- listToCall$alpha <- alpha;
     }
 
+    # Check for the special characters in the names of variables
+    # grepl('[^[:alnum:]]', exoNames)
+
     # Observations in sample, assuming that the missing values are for the holdout
     obsInsample <- sum(!is.na(listToCall$data[,1]));
     # Names of the exogenous variables (without the intercept)
@@ -279,7 +282,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         warning("No explanatory variables are selected / provided. Fitting the model with intercept only.",
                 call.=FALSE, immediate.=TRUE);
         if(bruteforce){
-            return(alm(as.formula(paste0(responseName,"~1")),listToCall$data,distribution=distribution,...));
+            return(alm(as.formula(paste0("`",responseName,"`~1")),listToCall$data,distribution=distribution,...));
         }
         else{
             return(ourModel);
