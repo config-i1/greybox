@@ -132,11 +132,13 @@ spread <- function(data, histograms=FALSE, log=FALSE, ...){
                         plot(data[[i]],data[[j]], main="", axes=FALSE);
                     }
                     else if(numericData[i]){
-                        boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
+                        # boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
+                        boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),data,horizontal=TRUE, main="", axes=FALSE);
                         points(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), pch=19, col="darkgrey")
                     }
                     else if(numericData[j]){
-                        boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
+                        # boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
+                        boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),data, main="", axes=FALSE);
                         points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey")
                     }
                     else{

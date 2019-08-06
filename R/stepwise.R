@@ -243,7 +243,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     bestICNotFound <- TRUE;
     allICs <- list(NA);
     # Run the simplest model y = const
-    testFormula <- paste0(responseName,"~ 1");
+    testFormula <- paste0("`",responseName,"`~ 1");
     listToCall$formula <- as.formula(testFormula);
     testModel <- do.call(lmCall,listToCall);
     # Write down the logLik and take df into account
@@ -275,7 +275,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
             break;
         }
         # Include the new element in the original model
-        testFormula <- paste0(testFormula,"+",newElement);
+        testFormula <- paste0(testFormula,"+`",newElement,"`");
         listToCall$formula <- as.formula(testFormula);
         testModel <- do.call(lmCall,listToCall);
         # Modify logLik
