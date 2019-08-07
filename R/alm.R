@@ -627,17 +627,18 @@ alm <- function(formula, data, subset, na.action,
         variablesNames <- colnames(dataWork)[-1];
         matrixXreg <- as.matrix(dataWork[,-1,drop=FALSE]);
         # Include response to the data
-        dataWork <- cbind(y,dataWork[,-1,drop=FALSE]);
+        # dataWork <- cbind(y,dataWork[,-1,drop=FALSE]);
     }
     else{
         variablesNames <- colnames(dataWork);
         matrixXreg <- dataWork;
         # Include response to the data
-        dataWork <- cbind(y,dataWork);
+        # dataWork <- cbind(y,dataWork);
         warning(paste0("You have asked not to include intercept in the model. We will try to fit the model, ",
                       "but this is a very naughty thing to do, and we cannot guarantee that it will work..."), call.=FALSE);
     }
-    colnames(dataWork) <- c(responseName, variablesNames);
+    # colnames(dataWork) <- c(responseName, variablesNames);
+    rm(dataWork);
 
     nVariables <- length(variablesNames);
     colnames(matrixXreg) <- variablesNames;
@@ -885,7 +886,7 @@ alm <- function(formula, data, subset, na.action,
             ariElements[ariElements==0] <- mean(ariElements[ariElements[,1]!=0,1]);
 
             matrixXreg <- cbind(matrixXreg, ariElements);
-            dataWork <- cbind(dataWork, ariElements);
+            # dataWork <- cbind(dataWork, ariElements);
         }
 
         #### I(0) initialisation ####
@@ -1439,6 +1440,7 @@ alm <- function(formula, data, subset, na.action,
             dataWork <- cbind(y,matrixXreg);
             variablesUsed <- variablesNames;
         }
+        colnames(dataWork) <- c(responseName, variablesUsed);
     }
 
     if(distribution=="dbeta"){
