@@ -32,8 +32,7 @@ c.ts <- function(...){
     #     ellipsis <- ellipsis[tsOrders];
     # }
 
-    newTS <- ts(unlist(ellipsis), start=start(ellipsis[[1]]), frequency=frequency(ellipsis[[1]]));
-    return(newTS);
+    return(ts(unlist(ellipsis), start=start(ellipsis[[1]]), frequency=frequency(ellipsis[[1]])));
 }
 
 ##### IC functions #####
