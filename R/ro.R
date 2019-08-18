@@ -250,13 +250,13 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         if(!co){
             for(ivan41 in 1:origins){
                 # Adjust forecasting horizon to not exeed the sample size
-                h <- min(hh,obs - (inSample+ivan41-1));
+                h[] <- min(hh,obs - (inSample+ivan41-1));
                 # Make the in-sample
                 if(!ci){
-                    counti <- 1:(inSample+ivan41);
+                    counti <- 1:(inSample+ivan41-1);
                 }
                 else{
-                    counti <- ivan41:(inSample+ivan41);
+                    counti <- ivan41:(inSample+ivan41-1);
                 }
                 counto <- (inSample+ivan41):(inSample+ivan41+h-1);
                 countf <- c(counti,counto);
@@ -319,7 +319,7 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         callpackages <- callpackages[callpackages!="datasets"];
         callpackages <- callpackages[callpackages!="methods"];
 
-        if(co==FALSE){
+        if(!co){
             forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
                 # Adjust forecasting horizon to not exeed the sample size
                 h <- min(hh,obs - (inSample+ivan41-1));
@@ -348,10 +348,10 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
             forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
                 # Make the in-sample
                 if(ci==FALSE){
-                    counti <- 1:(inSample-h+ivan41-1);
+                    counti <- 1:(inSample-h+ivan41);
                 }
                 else{
-                    counti <- ivan41:(inSample-h+ivan41-1);
+                    counti <- ivan41:(inSample-h+ivan41);
                 }
                 counto <- (inSample+ivan41-h+1):(inSample+ivan41);
                 countf <- c(counti,counto);

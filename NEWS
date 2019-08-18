@@ -1,4 +1,4 @@
-greybox v0.5.3 (Release data: 2019-08-08)
+greybox v0.5.4 (Release data: 2019-08-18)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Bugfixes:
 * Similar fix for stepwise().
 * Fixes for the names with spaces and special characters in lmCombine() and lmDynamic().
 * Fixed a bug for alm(), which sometimes produced "y" instead of the proper name of the response variable.
+* A bugfix in ro() with co=FALSE - it produced the forecasts for the wrong samples. Thanks to Zhan Peng for reporting the bug! :)
 
 
 greybox v0.5.3 (Release data: 2019-07-31)
