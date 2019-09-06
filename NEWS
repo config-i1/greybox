@@ -1,10 +1,11 @@
-greybox v0.5.4 (Release data: 2019-08-18)
+greybox v0.5.4 (Release data: 2019-09-06)
 ==============
 
 Changes:
 * The function measures() now allows selecting between Naive and Arithmetic Mean benchmarks for relative measures.
 * A small optimisation in alm(), removing the unnecessary data from the memory.
 * New method - c.ts() - enhancing the work of ts() class of stats package. Combines several ts objects in one, stacking them one after another.
+* lmDynamic() now reports the weights for the models.
 
 Bugfixes:
 * Fix for spread() and names of variables with spaces and special characters.

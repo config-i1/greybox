@@ -55,6 +55,7 @@ the model,
 the time,
 \item df.residualDynamic - dynamic df.residual,
 \item dfDynamic - dynamic df.
+\item weights - the dynamic weights for each model under consideration.
 }
 }
 \description{

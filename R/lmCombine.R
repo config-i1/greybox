@@ -566,6 +566,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     colnames(variablesCombinations) <- exoNamesOriginal;
     variablesCombinations <- cbind(variablesCombinations,ICWeights,ICs);
     colnames(variablesCombinations)[nVariables+1] <- "IC weights";
+    rownames(variablesCombinations) <- paste0("Model",c(1:length(ICWeights)));
 
     # Models SE
     parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
