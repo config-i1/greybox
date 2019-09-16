@@ -52,6 +52,7 @@
 #' the time,
 #' \item df.residualDynamic - dynamic df.residual,
 #' \item dfDynamic - dynamic df.
+#' \item weights - the dynamic weights for each model under consideration.
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
@@ -551,6 +552,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # Models SE
     parametersSECombined <- pICWeights %*% sqrt(parametersSE +(parameters - matrix(parametersMean,nrow(parameters),ncol(parameters),byrow=T))^2);
     colnames(parametersSECombined) <- variablesNamesOriginal;
+    colnames(pICWeights) <- paste0("Model",c(1:ncol(pICWeights)));
 
     if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
@@ -562,7 +564,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                        df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                        coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                       other=other);
+                       weights=pICWeights, other=other);
 
     return(structure(finalModel,class=c("greyboxD","alm","greybox")));
 }
