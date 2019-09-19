@@ -1,11 +1,17 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "16 September 2019"
+date: "19 September 2019"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.5.4
+This is the release of the package ``greybox``, v0.5.5
+
+***The reason for an early resubmission***
+In greybox v0.5.4, a method c.ts() was introduced, which caused recursion issues (Error: C stack usage 7969664 is too close to the limit) in some functions of packages (not related to greybox) loaded in the same environment. The v0.5.5 removes this method, so that the issue can be resolved.
+
+My appologies for the mess!
+
 
 # Test environments
 * local ubuntu 19.04, R 3.5.2
