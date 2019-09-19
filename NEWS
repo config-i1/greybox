@@ -1,3 +1,10 @@
+greybox v0.5.5 (Release data: 2019-09-19)
+==============
+
+Bugfixes:
+* Removed c.ts(), as it caused recursive behaviour.
+
+
 greybox v0.5.4 (Release data: 2019-09-16)
 ==============
 
