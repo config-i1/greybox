@@ -1442,20 +1442,43 @@ plot.coef.greyboxD <- function(x, ...){
 #'
 #' The list of produced plots includes:
 #' \enumerate{
-#' \item Fitted over time;
-#' \item Standardised residuals vs Fitted;
-#' \item Absolute residuals vs Fitted;
-#' \item Q-Q plot with the specified distribution.
+#' \item Fitted over time. Plots actuals (black line), fitted values (purple line) and
+#' prediction interval (red lines) of width \code{level}, but only in the case, when there
+#' are some values lying outside of it. Can be used in order to make sure that the model
+#' did not miss any important events over time;
+#' \item Standardised residuals vs Fitted. Plots the points and the confidence bounds
+#' (red lines) for the specified confidence \code{level}. Useful for the analysis of outliers;
+#' \item Absolute residuals vs Fitted. Useful for the analysis of heteroscedasticity;
+#' \item Q-Q plot with the specified distribution. Can be used in order to see if the
+#' residuals follow the assumed distribution. The type of distribution depends on the one used
+#' in the estimation (see \code{distribution} parameter in \link[greybox]{alm});
+#' \item Squared residuals vs Fitted - similar to (3), but with squared values;
+#' \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
+#' details;
+#' \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
+#' for details
 #' }
-#' Which of the plots to produce, is specified via the \code{which} parameter. The first
-#' two plots also use the parameters \code{level}, which specifies the confidence level for
+#' Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2,
+#' 6 and 7 also use the parameters \code{level}, which specifies the confidence level for
 #' the intervals.
 #'
 #' @param x Time series model for which forecasts are required.
-#' @param which Forecast horizon
-#' @param level Confidence level. Defines width of prediction interval.
-#' @param ... The parameters passed to the plot functions.
-#' @return The function produces 4 plots and, if \code{any(which==3)} also prints the number
+#' @param which Which of the plots to produce. The possible options (see details for explanations):
+#' \enumerate{
+#' \item Fitted over time;
+#' \item Standardised residuals vs Fitted;
+#' \item Absolute residuals vs Fitted;
+#' \item Q-Q plot with the specified distribution;
+#' \item Squared residuals vs Fitted;
+#' \item ACF of the residuals;
+#' \item PACF of the residuals.
+#' }
+#' @param level Confidence level. Defines width of prediction interval. Useful for plots (1), (2),
+#' (6) and (7)
+#' @param legend If \code{TRUE}, then the legend is produced on plots (1) and (2).
+#' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
+#' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.
+#' @return The function produces 4 plots and, if \code{any(which==2)} also reports the number
 #' of residuals otside the bounds.
 #'
 #' @template author
@@ -1469,11 +1492,21 @@ plot.coef.greyboxD <- function(x, ...){
 #'
 #' ourModel <- alm(y~x1+x2, xreg, distribution="dlaplace")
 #'
-#' plot(ourModel)
+#' par(mfcol=c(2,3))
+#' plot(ourModel, c(1:4,6,7))
 #'
-#' @importFrom stats ppoints qqline qqnorm qqplot
+#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf
+#' @importFrom grDevices dev.interactive devAskNewPage
+#' @aliases plot.alm
 #' @export
-plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
+plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
+                         ask=prod(par("mfcol")) < length(which) && dev.interactive(), ...){
+
+    # Define, whether to wait for the hit of "Enter"
+    if(ask){
+        oask <- devAskNewPage(TRUE);
+        on.exit(devAskNewPage(oask));
+    }
 
     # 1. Linear graph,
     plot1 <- function(x, ...){
@@ -1501,19 +1534,21 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
         }
         yFitted <- fitted(x);
 
-        if(yFitted[length(yFitted)]>mean(yFitted)){
-            legendPosition <- "bottomright";
-        }
-        else{
-            legendPosition <- "topright";
-        }
-        if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(actuals(x),yFitted));
-            if(legendPosition=="bottomright"){
-                ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.1*diff(ellipsis$ylim);
+        if(legend){
+            if(yFitted[length(yFitted)]>mean(yFitted)){
+                legendPosition <- "bottomright";
             }
             else{
-                ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.1*diff(ellipsis$ylim);
+                legendPosition <- "topright";
+            }
+            if(!any(names(ellipsis)=="ylim")){
+                ellipsis$ylim <- range(c(actuals(x),yFitted));
+                if(legendPosition=="bottomright"){
+                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+                }
+                else{
+                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+                }
             }
         }
 
@@ -1528,12 +1563,16 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
                     c(zValues$lower, rev(zValues$upper)),
                     col="lightgrey", border=NA, density=10);
 
-            legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
-                   col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
+            if(legend){
+                legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
+                       col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
+            }
         }
         else{
-            legend(legendPosition,legend=c("Actuals","Fitted"),
-                   col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+            if(legend){
+                legend(legendPosition,legend=c("Actuals","Fitted"),
+                       col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+            }
         }
     }
 
@@ -1561,6 +1600,25 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
             ellipsis$ylab <- "Standardised Residuals";
         }
 
+        if(legend){
+            if(ellipsis$x[length(ellipsis$x)]>mean(ellipsis$x)){
+                legendPosition <- "bottomright";
+            }
+            else{
+                legendPosition <- "topright";
+            }
+
+            if(!any(names(ellipsis)=="ylim")){
+                ellipsis$ylim <- range(ellipsis$y);
+                if(legendPosition=="bottomright"){
+                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+                }
+                else{
+                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+                }
+            }
+        }
+
         zValues <- switch(x$distribution,
                           "dlaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
                           "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
@@ -1585,37 +1643,48 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
             text(ellipsis$x[outliers], ellipsis$y[outliers], labels=outliers, pos=4);
         }
 
-        if(ellipsis$x[length(ellipsis$x)]>mean(ellipsis$x)){
-            legendPosition <- "bottomright";
+        if(legend){
+            legend(legendPosition,
+                   legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
+                   col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA, 16));
         }
-        else{
-            legendPosition <- "topright";
-        }
-        legend(legendPosition,
-               legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
-               col=c("red", "black"), lwd=c(1,0), lty=c(2,1), pch=c(NA, 16));
     }
 
-    # 3. Fitted vs |Residuals|,
-    plot3 <- function(x, ...){
+    # 3 and 5. Fitted vs |Residuals| or Fitted vs Residuals^2
+    plot3 <- function(x, type="abs", ...){
         ellipsis <- list(...);
 
         ellipsis$x <- fitted(x);
-        ellipsis$y <- abs(residuals(x));
+        if(type=="abs"){
+            ellipsis$y <- abs(residuals(x));
+        }
+        else{
+            ellipsis$y <- residuals(x)^2;
+        }
 
         if(is.alm(x$occurrence)){
             ellipsis$x <- ellipsis$x[ellipsis$y!=0];
             ellipsis$y <- ellipsis$y[ellipsis$y!=0];
         }
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "|Residuals| vs Fitted";
+            if(type=="abs"){
+                ellipsis$main <- "|Residuals| vs Fitted";
+            }
+            else{
+                ellipsis$main <- "Residuals^2 vs Fitted";
+            }
         }
 
         if(!any(names(ellipsis)=="xlab")){
             ellipsis$xlab <- "Fitted";
         }
         if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- "|Residuals|";
+            if(type=="abs"){
+                ellipsis$ylab <- "|Residuals|";
+            }
+            else{
+                ellipsis$ylab <- "Residuals^2";
+            }
         }
 
         do.call(plot,ellipsis);
@@ -1707,29 +1776,76 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, ...){
         }
     }
 
+    # 6 and 7. ACF and PACF
+    plot6 <- function(x, type="acf", ...){
+        ellipsis <- list(...);
+
+        if(!any(names(ellipsis)=="main")){
+            if(type=="acf"){
+                ellipsis$main <- "Autocorrelation Function";
+            }
+            else{
+                ellipsis$main <- "Partial Autocorrelation Function";
+            }
+        }
+
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Lags";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            if(type=="acf"){
+                ellipsis$ylab <- "ACF";
+            }
+            else{
+                ellipsis$ylab <- "PACF";
+            }
+        }
+
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- c(-1,1);
+        }
+
+        if(type=="acf"){
+            theValues <- acf(residuals(x), plot=FALSE)
+        }
+        else{
+            theValues <- pacf(residuals(x), plot=FALSE);
+        }
+        ellipsis$x <- theValues$acf[-1];
+
+        ellipsis$type <- "h"
+
+        do.call(plot,ellipsis);
+        abline(h=0, col="black", lty=1);
+        abline(h=qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x))), col="red", lty=2);
+    }
+
     if(any(which==1)){
         plot1(x, ...);
-        if(any(which!=1)){
-            invisible(readline(prompt="Press [Enter] to see the next plot"))
-        }
     }
 
     if(any(which==2)){
         plot2(x, ...);
-        if(any(which %in% c(3,4))){
-            invisible(readline(prompt="Press [Enter] to see the next plot"))
-        }
     }
 
     if(any(which==3)){
         plot3(x, ...);
-        if(any(which==4)){
-            invisible(readline(prompt="Press [Enter] to see the next plot"))
-        }
     }
 
     if(any(which==4)){
         plot4(x, ...);
+    }
+
+    if(any(which==5)){
+        plot3(x, type="squared", ...);
+    }
+
+    if(any(which==6)){
+        plot6(x, type="acf", ...);
+    }
+
+    if(any(which==7)){
+        plot6(x, type="pacf", ...);
     }
 
 }

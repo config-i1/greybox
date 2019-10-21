@@ -2,7 +2,8 @@ greybox v0.5.6 (Release data: 2019-10-20)
 ==============
 
 Changes:
-* plot.greybox() now produces 4 plots instead of one: Fitted over time, Standardised residuals vs Fitted, Absolute residuals vs Fitted and Q-Q plot with the specified distribution. Should be useful for model diagnostics.
+* plot.greybox() now produces 4 plots instead of one: Fitted over time, Standardised residuals vs Fitted, Absolute Residuals vs Fitted and Q-Q plot with the specified distribution. Should be useful for model diagnostics.
+* In fact, plot.greybox() can now also produce Residuals Squared vs Fitted, ACF and PACF. Choose your value!
 * An update in the alm() vignette, explaining the Box-Cox Normal distribution.
 
 Bugfixes:

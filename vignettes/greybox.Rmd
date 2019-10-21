@@ -73,6 +73,7 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 12. `summary()` - produces the summary of the model.
 13. `predict()` - produces the predictions based on the model and the provided `newdata`. If the `newdata` is not provided, then it uses the already available data in the model. Can also produce `confidence` and `prediction` intervals.
 14. `forecast()` - acts similarly to `predict()` with few differences. It has a parameter `h` - forecast horizon - which is `NULL` by default and is set to be equal to the number of rows in `newdata`. However, if the `newdata` is not provided, then it will produce forecasts of the explanatory variables to the horizon `h` and use them as `newdata`. Finally, if `h` and `newdata` are provided, then the number of rows to use will be regulated by `h`.
+15. `plot()` - produces several plots for the analysis of the residuals. This includes: Fitted over time, Standardised residuals vs Fitted, Absolute residuals vs Fitted, Q-Q plot with the specified distribution, Squared residuals vs Fitted, ACF of the residuals and PACF of the residuals, which is regulated by `which` parameter. See documentation for more info: `?plot.greybox`.
 
 
 ## Exogenous variables transformation tools
