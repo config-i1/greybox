@@ -28,15 +28,15 @@ The core of the function is the likelihood approach. The estimation of parameter
 
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
-1. Density functions of continuous distributions,
-2. Density functions for continuous positive data,
-3. Continuous distributions on a specific interval,
-4. Density functions of discrete distributions,
-5. Cumulative functions for binary variables.
+1. [Density functions of continuous distributions](#cont),
+2. [Density functions for continuous positive data](#contPlus),
+3. [Continuous distributions on a specific interval](#contInterval),
+4. [Density functions of discrete distributions](#discrete),
+5. [Cumulative functions for binary variables](#cumul).
 
 All of them rely on respective d- and p- functions in R. For example, Log Normal distribution uses `dlnorm()` function from `stats` package.
 
-The `alm()` function also supports `occurrence` parameter, which allows modelling non-zero values and the occurrence of non-zeroes as two different models. The combination of any distribution from (1) - (3) for the non-zero values and a distribution from (4) for the occurrence will result in a mixture distribution model, e.g. a mixture of Log-Normal and Cumulative Logistic or a Hurdle Poisson (with Cumulative Normal for the occurrence part).
+The `alm()` function also supports `occurrence` parameter, which allows modelling non-zero values and the occurrence of non-zeroes as two different models. The combination of any distribution from (1) - (3) for the non-zero values and a distribution from (4) for the occurrence will result in a [mixture distribution model](#mixture), e.g. a mixture of Log-Normal and Cumulative Logistic or a Hurdle Poisson (with Cumulative Normal for the occurrence part).
 
 Every model produced using `alm()` can be represented as:
 \begin{equation} \label{eq:basicALM}
@@ -62,19 +62,19 @@ The covariance matrix of parameters almost in all the cases is calculated as an 
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
-## Density functions of continuous distributions
+## Density functions of continuous distributions {#cont}
 This group of functions includes:
 
-1. Normal distribution,
-2. Laplace distribution,
-3. Asymmetric Laplace distribution,
-4. Logistic distribution,
-5. S distribution,
-6. Student t distribution,
+1. [Normal distribution](#normal),
+2. [Laplace distribution](#laplace),
+3. [Asymmetric Laplace distribution](#alaplace),
+4. [Logistic distribution](#logis),
+5. [S distribution](#svetunkov),
+6. [Student t distribution](#student),
 
 For all the functions in this category `resid()` method returns $e_t = y_t - \mu_t$.
 
-### Normal distribution
+### Normal distribution {#normal}
 The density of normal distribution is:
 \begin{equation} \label{eq:Normal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
@@ -118,7 +118,7 @@ where $s^2$ is the bias-corrected variance of the error term, calculated using:
 where $k$ is the number of estimated parameters (including the variance itself). This value is then used for the construction of the prediction intervals of a specify level, also using the distribution of Student, in a similar manner as with the confidence intervals.
 
 
-### Laplace distribution
+### Laplace distribution {#laplace}
 Laplace distribution has some similarities with the Normal one:
 \begin{equation} \label{eq:Laplace}
     f(y_t) = \frac{1}{2 s} \exp \left( -\frac{\left| y_t - \mu_t \right|}{s} \right) ,
@@ -138,7 +138,7 @@ where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or
 The kurtosis of Laplace distribution is 6, making it suitable for modelling rarely occurring events.
 
 
-### Asymmetric Laplace distribution
+### Asymmetric Laplace distribution {#alaplace}
 Asymmetric Laplace distribution can be considered as a two Laplace distributions with different parameters $s$ for left and right side. There are several ways to summarise the probability density function, the one used in `alm()` relies on the asymmetry parameter $\alpha$ [@Yu2005]:
 \begin{equation} \label{eq:ALaplace}
     f(y_t) = \frac{\alpha (1- \alpha)}{s} \exp \left( -\frac{y_t - \mu_t}{s} (\alpha - I(y_t \leq \mu_t)) \right) ,
@@ -158,7 +158,7 @@ In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
 
-### Logistic distribution
+### Logistic distribution {#logis}
 The density function of Logistic distribution is:
 \begin{equation} \label{eq:Logistic}
     f(y_t) = \frac{\exp \left(- \frac{y_t - \mu_t}{s} \right)} {s \left( 1 + \exp \left(- \frac{y_t - \mu_t}{s} \right) \right)^{2}},
@@ -174,7 +174,7 @@ Logistic is considered a fat tailed distribution, but its tails are not as fat a
 `alm()` function with `distribution="dlogis"` returns $\mu_t$ in `mu` and in `fitted.values` variables, and $s$ in the `scale` variable. Similar to Laplace distribution, the prediction intervals use the connection between the variance and scale, and rely on the `qlogis` function.
 
 
-### S distribution
+### S distribution {#svetunkov}
 The S distribution has the following density function:
 \begin{equation} \label{eq:S}
     f(y_t) = \frac{1}{4b^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{s} \right) ,
@@ -194,7 +194,7 @@ S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distri
 where once again $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
 
-### Student t distribution
+### Student t distribution {#student}
 The Student t distribution has a difficult density function:
 \begin{equation} \label{eq:T}
     f(y_t) = \frac{\Gamma\left(\frac{d+1}{2}\right)}{\sqrt{d \pi} \Gamma\left(\frac{d}{2}\right)} \left( 1 + \frac{x^2}{d} \right)^{-\frac{d+1}{2}} ,
@@ -236,16 +236,17 @@ plot(predict(ourModel,outSample))
 ```
 
 
-## Density functions for continuous positive data
+## Density functions for continuous positive data {#contPlus}
 This group includes:
 
-1. Log Normal distribution,
-2. Folded Normal distribution,
-3. Noncentral Chi Squared distribution.
+1. [Log Normal distribution](#lnormal),
+2. [Box-Cox Normal distribution](#bcnormal),
+3. [Folded Normal distribution](#fnormal),
+4. [Noncentral Chi Squared distribution](#chisq).
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
 
-### Log Normal distribution
+### Log Normal distribution {#lnormal}
 Log Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathcal{N}(\mu, \sigma^2)$. The density function of Log Normal distribution is:
 \begin{equation} \label{eq:LogNormal}
     f(y_t) = \frac{1}{y_t \sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\log y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
@@ -265,7 +266,27 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 `alm()` with `distribution="dlnorm"` does not transform the provided data and estimates the density directly using `dlnorm()` function with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogNormal}. If you need a log-log model, then you would need to take logarithms of the external variables. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Log Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
-### Folded Normal distribution
+### Box-Cox Normal distribution {#bcnormal}
+Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformations. This means that if $x=\frac{y^\lambda+1}{\lambda}$, $x \sim \mathcal{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathcal{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
+\begin{equation} \label{eq:BCNormal}
+    f(y_t) = \frac{y_t^{\lambda-1}} {\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2}{2 \sigma^2} \right) ,
+\end{equation}
+where the variance estimated using likelihood is:
+\begin{equation} \label{eq:sigmaBCNormal}
+    \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2 .
+\end{equation}
+Estimating the model with Box-Cox Normal distribution is equivalent to estimating the parameters of a linear model after the Box-Cox transform:
+\begin{equation} \label{eq:BCLinearModel}
+    \frac{y_t^{\lambda}-1}{\lambda} = \mu_t + \epsilon_t,
+\end{equation}
+where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+\begin{equation} \label{eq:BCLinearModelExp}
+    y_t = \left((\mu_t + \epsilon_t) \lambda +1 \right)^{\frac{1}{\lambda}}.
+\end{equation}
+
+`alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$.
+
+### Folded Normal distribution {#fnormal}
 Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
 \begin{equation} \label{eq:foldedNormal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
@@ -283,7 +304,7 @@ The model that is assumed in the case of Folded Normal distribution can be summa
 
 The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
-### Noncentral Chi Squared distribution
+### Noncentral Chi Squared distribution {#chisq}
 Noncentral Chi Squared distribution arises, when a normally distributed variable with a unity variance is squared and summed up: if $x_i \sim \mathcal{N}(\mu_i, 1)$, then $\sum_{i=1}^k x_i^2 \sim \chi^2(k, \lambda)$, where $k$ is the number of degrees of freedom and $\lambda = \sum_{i=1}^k \mu_i^2$. In the case of non-unity variance, with $z_i \sim \mathcal{N}(\mu_i, \sigma^2)$, the variable can also be represented as $z_i = \sigma x_i$, and then it can be assumed that $\sum_{i=1}^k z_i^2 \sim \chi^2(k \sigma, \lambda)$. In the perfect world, $\lambda_t$ would correspond to the location of the original distribution of $z_i$, while $k$ would need to be time varying and would need to include both number of elements $k$ and the individual variances $\sigma^2_i$ for each of the element, depending on the external variables values. However, given that the squares of the normal data are used, it is not possible to disaggregate the values into the original two parts. Thus we assume that the variance is constant for all the cases, and estimate it using likelihood. As a result the non-centrality parameter covers two parts that would be split in the ideal world.
 
 The density function of Noncentral Chi Squared distribution is quite difficult. `alm()` uses `dchisq()` function from `stats` package,  assuming constant number of degrees of freedom $k$ and time varying noncentrality parameter $\lambda_t$:
@@ -319,7 +340,7 @@ plot(predict(ourModel,outSample))
 ```
 
 
-## Continuous distributions on a specific interval
+## Continuous distributions on a specific interval {#contInterval}
 There is currently only one distribution in this group:
 
 1. Beta distribution.
@@ -356,15 +377,15 @@ while the conditional variance is:
 Respectively, when `predict()` function is used for the `alm` model with Beta distribution, the two models are used in order to produce predicted values for $\alpha_t$ and $\beta_t$. After that the conditional mean `mu` and conditional variance `variances` are produced using the formulae above. The prediction intervals are generated using `qbeta` function with the provided shape parameters for the holdout. As for the confidence intervals, they are produced assuming normality for the parameters of the model and using the estimate of the variance of the mean based on the `variances` (which is weird and probably wrong).
 
 
-## Density functions of discrete distributions
+## Density functions of discrete distributions {#discrete}
 This group includes:
 
-1. Poisson distribution,
-2. Negative Binomial distribution,
+1. [Poisson distribution](#poisson),
+2. [Negative Binomial distribution](#nbinom),
 
 These distributions should be used in cases of count data.
 
-### Poisson distribution
+### Poisson distribution {#poisson}
 Poisson distribution used in ALM has the following standard probability mass function:
 \begin{equation} \label{eq:Poisson}
     P(X=y_t) = \frac{\lambda_t^{y_t} \exp(-\lambda_t)}{y_t!},
@@ -373,7 +394,7 @@ where $\lambda_t = \mu_t = \sigma^2_t = \exp(x_t' B)$. As it can be noticed, her
 
 `alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful...
 
-### Negative Binomial distribution
+### Negative Binomial distribution {#nbinom}
 Negative Binomial distribution implemented in `alm()` is parameterised in terms of mean and variance:
 \begin{equation} \label{eq:NegBin}
     P(X=y_t) = \binom{y_t+\frac{\mu_t^2}{\sigma^2-\mu_t}}{y_t} \left( \frac{\sigma^2 - \mu_t}{\sigma^2} \right)^{y_t} \left( \frac{\mu_t}{\sigma^2} \right)^\frac{\mu_t^2}{\sigma^2 - \mu_t},
@@ -400,11 +421,11 @@ ourModel <- alm(y~x1+x2, data=inSample, distribution="dnbinom", size=30)
 summary(ourModel)
 ```
 
-## Cumulative functions for binary variables
+## Cumulative functions for binary variables {#cumul}
 The final class of models includes two cases:
 
-1. Logistic distribution (logit model),
-2. Normal distribution (probit model).
+1. [Logistic distribution (logit model)](#logit),
+2. [Normal distribution (probit model)](#probit).
 
 In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with a binary one. As a reminder, all the models eventually assume that:
 \begin{equation} \label{eq:basicALMCumulative}
@@ -438,7 +459,7 @@ However this error is not useful and should be somehow transformed into the scal
 
 This transformation means that, when $o_t=\hat{p}_t$, then the error $u_t=0.5$, when $o_t=1$ and $\hat{p}_t=0$ then $u_t=1$ and finally, in the opposite case of $o_t=0$ and $\hat{p}_t=1$, it is $u_t=0$. After that this error is transformed using either Logistic or Normal quantile generation function into the scale of $q_t$, making sure that the case of $u_t=0.5$ corresponds to zero, the $u_t>0.5$ corresponds to the positive and $u_t<0.5$ corresponds to the negative errors.
 
-### Cumulative Logistic distribution
+### Cumulative Logistic distribution {#logit}
 We have previously discussed the density function of logistic distribution. The standardised cumulative distribution function used in `alm()` is:
 \begin{equation} \label{eq:LogisticCDFALM}
     \hat{p}_t = \frac{1}{1+\exp(-\nu_t)},
@@ -451,7 +472,7 @@ This way the error varies from $-\infty$ to $\infty$ and is equal to zero, when 
 
 The `alm()` function with `distribution="plogis"` returns $\nu_t$ in `mu`, standard deviation, calculated using the respective errors \eqref{eq:LogisticError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:LogisticCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term, generating respective quantiles (based on the estimated $\nu_t$ and variance of the error) and then transforming them into the scale of probability using Logistic CDF.
 
-### Cumulative Normal distribution
+### Cumulative Normal distribution {#probit}
 The case of cumulative Normal distribution is quite similar to the cumulative Logistic one. The transformation is done using the standard normal CDF:
 \begin{equation} \label{eq:NormalCDFALM}
     \hat{p}_t = \Phi(\nu_t) = \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\nu_t} \exp \left(-\frac{1}{2}x^2 \right) dx ,
@@ -465,7 +486,7 @@ It acts similar to the error from Logistic distribution, but is based on the dif
 Similar to the Logistic CDF, the `alm()` function with `distribution="pnorm"` returns $\nu_t$ in `mu`, standard deviation, calculated based on the errors \eqref{eq:NormalError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:NormalCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term and are based on the same idea as in Logistic CDF: quantiles of normal distribution (using the estimated mean and standard deviation) and then the transformation using the standard Normal CDF.
 
 
-## Mixture distribution models
+## Mixture distribution models {#mixture}
 Finally, mixture distribution models can be used in `alm()` by defining `distribution` and `occurrence` parameters. Currently only `plogis()` and `pnorm()` are supported for the occurrence variable, but all the other distributions discussed above can be used for the modelling of the non-zero values. If `occurrence="plogis"` or `occurrence="pnorm"`, then `alm()` is fit two times: first on the non-zero data only (defining the subset) and second - using the same data, substituting the response variable by the binary occurrence variable and specifying `distribution=occurrence`. As an alternative option, occurrence `alm()` model can be estimated separately and then provided as a variable in `occurrence`.
 
 As an example of mixture model, let's generate some data:

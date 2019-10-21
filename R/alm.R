@@ -1181,6 +1181,10 @@ alm <- function(formula, data, subset, na.action,
         }
         names(B) <- variablesNames;
     }
+    else if(distribution=="dt"){
+        ellipsis$df <- scale;
+        names(B) <- variablesNames;
+    }
     else{
         names(B) <- variablesNames;
     }

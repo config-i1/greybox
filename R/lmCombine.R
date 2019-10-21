@@ -242,6 +242,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             cat("Selecting the best model...\n");
         }
         ourModel <- stepwise(data, ic=ic, distribution=distribution);
+        # If the selected model does not contain variables
+        if(length(coef(ourModel))==1){
+            return(ourModel);
+        }
     }
 
     # Modify the data and move to the list
@@ -330,6 +334,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         # Extract names of the used variables
         bestExoNamesOriginal <- names(coef(ourModel))[-1];
         bestExoNames <- exoNames[match(bestExoNamesOriginal,exoNamesOriginal)];
+
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<14){
             listToCall$data <- listToCall$data[,c(responseName,bestExoNames),drop=FALSE];
@@ -479,9 +484,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     names(parametersCombined) <- variablesNamesOriginal;
 
     # From the matrix of exogenous variables without the response variable
-    ourDataExo <- cbind(1,listToCall$data[,-1]);
+    ourDataExo <- cbind(1,listToCall$data[,-1,drop=FALSE]);
     colnames(ourDataExo) <- variablesNamesOriginal;
-    colnames(listToCall$data) <- variablesNamesOriginal;
+    colnames(listToCall$data) <- c(responseName,variablesNamesOriginal[-1]);
 
     mu <- switch(distribution,
                  "dpois" = exp(as.matrix(ourDataExo) %*% parametersCombined),

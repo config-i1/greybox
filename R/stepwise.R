@@ -312,7 +312,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     # Remove "1+" from the best formula
-    bestFormula <- sub(" 1+", "", bestFormula,fixed=T);
+    bestFormula <- sub(" 1+", "", bestFormula,fixed=TRUE);
     bestFormula <- as.formula(bestFormula);
 
     # If this is a big data just wrap up the stuff using lmCall

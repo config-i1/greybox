@@ -230,6 +230,10 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             cat("Selecting the best model...\n");
         }
         ourModel <- stepwise(data, ic=ic, distribution=distribution);
+        # If the selected model does not contain variables
+        if(length(coef(ourModel))==1){
+            return(ourModel);
+        }
     }
 
     # Modify the data and move to the list
