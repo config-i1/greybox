@@ -554,7 +554,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     );
 
     # Relative importance of variables
-    importance <- c(1,round(ICWeights %*% variablesCombinations,3));
+    importance <- c(1,ICWeights %*% variablesCombinations);
     names(importance) <- variablesNamesOriginal;
 
     # Some of the variables have partial inclusion, 1 stands for sigma

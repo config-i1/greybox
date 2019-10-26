@@ -9,6 +9,7 @@ Changes:
 Bugfixes:
 * Fixed issues with lmCombine and lmDynamic, when no variables are selected.
 * A bugfix in the interval construction for the Student's distribution.
+* Don't round the importance in lmCombine!
 
 
 greybox v0.5.5 (Release data: 2019-09-19)
