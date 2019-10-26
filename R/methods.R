@@ -2493,26 +2493,23 @@ vcov.alm <- function(object, ...){
 
 #' @export
 vcov.greyboxC <- function(object, ...){
-    s2 <- sigma(object)^2;
-    xreg <- as.matrix(object$data[,-1,drop=FALSE]);
-    xreg <- cbind(1,xreg);
+    xreg <- as.matrix(object$data);
+    xreg[,1] <- 1;
     colnames(xreg)[1] <- "(Intercept)";
-    importance <- object$importance;
 
-    vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
+    vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * object$importance %*% t(object$importance);
     warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
     return(vcovValue);
 }
 
 #' @export
 vcov.greyboxD <- function(object, ...){
-    s2 <- sigma(object)^2;
-    xreg <- as.matrix(object$data[,-1,drop=FALSE]);
-    xreg <- cbind(1,xreg);
+    xreg <- as.matrix(object$data);
+    xreg[,1] <- 1;
     colnames(xreg)[1] <- "(Intercept)";
     importance <- apply(object$importance,2,mean);
 
-    vcovValue <- s2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
+    vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
     warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
     return(vcovValue);
 }
