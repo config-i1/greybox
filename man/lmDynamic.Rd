@@ -35,13 +35,14 @@ Function returns \code{model} - the final model of the class
 "greyboxD", which includes time varying parameters and dynamic importance
 of each variable. The list of variables:
 \itemize{
-\item coefficients - mean (over time) parameters of the model,
-\item se - mean standard errors of the parameters of the model,
+\item coefficients - the mean (over time) parameters of the model,
+\item vcov - the combined covariance matrix of the model,
 \item fitted - the fitted values,
-\item residuals - residual of the model,
-\item distribution - distribution used in the estimation,
-\item logLik - mean (over time) log-likelihood of the model,
+\item residuals - the residuals of the model,
+\item distribution - the distribution used in the estimation,
+\item logLik - the mean (over time) log-likelihood of the model,
 \item IC - dynamic values of the information criterion (pIC),
+\item ICType - the type of information criterion used,
 \item df.residual - mean number of degrees of freedom of the residuals of
 the model,
 \item df - mean number of degrees of freedom of the model,

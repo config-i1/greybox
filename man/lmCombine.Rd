@@ -35,12 +35,13 @@ Function returns \code{model} - the final model of the class
 "greyboxC". The list of variables:
 \itemize{
 \item coefficients - combined parameters of the model,
-\item se - combined standard errors of the parameters of the model,
+\item vcov - combined covariance matrix of the model,
 \item fitted - the fitted values,
 \item residuals - residual of the model,
 \item distribution - distribution used in the estimation,
 \item logLik - combined log-likelihood of the model,
 \item IC - the values of the combined information criterion,
+\item ICType - the type of information criterion used,
 \item df.residual - number of degrees of freedom of the residuals of
 the combined model,
 \item df - number of degrees of freedom of the combined model,

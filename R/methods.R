@@ -418,7 +418,7 @@ coef.greybox <- function(object, ...){
 
 #' @export
 coef.greyboxD <- function(object, ...){
-    coefReturned <- list(coefficients=object$coefficients,se=object$se,
+    coefReturned <- list(coefficients=object$coefficients,
                          dynamic=object$coefficientsDynamic,importance=object$importance);
     return(structure(coefReturned,class="coef.greyboxD"));
 }
@@ -462,7 +462,7 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
     # Extract parameters
     parameters <- coef(object);
     # Extract SE
-    parametersSE <- object$se;
+    parametersSE <- sqrt(abs(diag(vcov(object))));
     # Define quantiles using Student distribution
     paramQuantiles <- qt((1+level)/2,df=object$df.residual);
     # Do the stuff
@@ -488,23 +488,23 @@ confint.greyboxC <- function(object, parm, level=0.95, ...){
 confint.greyboxD <- function(object, parm, level=0.95, ...){
 
     # Extract parameters
-    parameters <- coef(object)$dynamic;
+    parameters <- coef(object)$coefficients;
     # Extract SE
-    parametersSE <- object$se;
+    parametersSE <- sqrt(abs(diag(vcov(object))));
     # Define quantiles using Student distribution
     paramQuantiles <- qt((1+level)/2,df=object$df.residual);
     # Do the stuff
-    confintValues <- array(NA,c(dim(parameters),2),
-                           dimnames=list(NULL, dimnames(parameters)[[2]],
+    confintValues <- array(NA,c(length(parameters),2),
+                           dimnames=list(dimnames(parameters)[[2]],
                                          c(paste0((1-level)/2*100,"%"),paste0((1+level)/2*100,"%"))));
-    confintValues[,,1] <- parameters-paramQuantiles*parametersSE;
-    confintValues[,,2] <- parameters+paramQuantiles*parametersSE;
+    confintValues[,1] <- parameters-paramQuantiles*parametersSE;
+    confintValues[,2] <- parameters+paramQuantiles*parametersSE;
 
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
         parm <- colnames(parameters);
     }
-    return(confintValues[,parm,]);
+    return(confintValues[parm,]);
 }
 
 # This is needed for lmCombine and other functions, using fast regressions
@@ -2154,6 +2154,13 @@ print.summary.greyboxC <- function(x, ...){
                       "pnorm" = "Cumulative normal"
     );
 
+    # The name of the model used
+    if(is.null(x$dynamic)){
+        cat(paste0("The ",x$ICType," combined model\n"));
+    }
+    else{
+        cat(paste0("The p",x$ICType," combined model\n"));
+    }
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
@@ -2307,7 +2314,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
     # Extract the values from the object
     errors <- residuals(object);
     obs <- nobs(object);
-    parametersTable <- cbind(coef(object),object$se,object$importance);
+    parametersTable <- cbind(coef(object),sqrt(abs(diag(vcov(object)))),object$importance);
 
     # Calculate the quantiles for parameters and add them to the table
     parametersTable <- cbind(parametersTable,confint(object, level=level));
@@ -2332,7 +2339,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
-                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
+                                ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 dfTable=dfTable),
                            class="summary.greyboxC");
@@ -2345,11 +2352,11 @@ summary.greyboxD <- function(object, level=0.95, ...){
     # Extract the values from the object
     errors <- residuals(object);
     obs <- nobs(object);
-    parametersTable <- cbind(coef.greybox(object),apply(object$se,2,mean),apply(object$importance,2,mean));
+    parametersTable <- cbind(coef.greybox(object),sqrt(abs(diag(vcov(object)))),apply(object$importance,2,mean));
 
     parametersConfint <- confint(object, level=level);
     # Calculate the quantiles for parameters and add them to the table
-    parametersTable <- cbind(parametersTable,apply(parametersConfint,c(2,3),mean));
+    parametersTable <- cbind(parametersTable,parametersConfint);
 
     rownames(parametersTable) <- names(coef.greybox(object));
     colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
@@ -2372,8 +2379,8 @@ summary.greyboxD <- function(object, level=0.95, ...){
     names(dfTable) <- c("n","k","df");
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
-                                confintDynamic=parametersConfint, dynamic=coef(object)$dynamic,
-                                ICs=ICs, df=df, r.squared=R2, adj.r.squared=R2Adj,
+                                dynamic=coef(object)$dynamic,
+                                ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 nobs=nobs(object), nparam=nparam(object), dfTable=dfTable),
                            class="summary.greyboxC");
@@ -2493,25 +2500,26 @@ vcov.alm <- function(object, ...){
 
 #' @export
 vcov.greyboxC <- function(object, ...){
-    xreg <- as.matrix(object$data);
-    xreg[,1] <- 1;
-    colnames(xreg)[1] <- "(Intercept)";
-
-    vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * object$importance %*% t(object$importance);
-    warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
-    return(vcovValue);
+    # xreg <- as.matrix(object$data);
+    # xreg[,1] <- 1;
+    # colnames(xreg)[1] <- "(Intercept)";
+    #
+    # vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * object$importance %*% t(object$importance);
+    # warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
+    return(object$vcov);
 }
 
 #' @export
 vcov.greyboxD <- function(object, ...){
-    xreg <- as.matrix(object$data);
-    xreg[,1] <- 1;
-    colnames(xreg)[1] <- "(Intercept)";
-    importance <- apply(object$importance,2,mean);
-
-    vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
-    warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
-    return(vcovValue);
+    return(object$vcov);
+    # xreg <- as.matrix(object$data);
+    # xreg[,1] <- 1;
+    # colnames(xreg)[1] <- "(Intercept)";
+    # importance <- apply(object$importance,2,mean);
+    #
+    # vcovValue <- sigma(object)^2 * solve(t(xreg) %*% xreg) * importance %*% t(importance);
+    # warning("The covariance matrix for combined models is approximate. Don't rely too much on that.",call.=FALSE);
+    # return(vcovValue);
 }
 
 # This is needed for lmCombine and other functions, using fast regressions

@@ -32,13 +32,14 @@
 #' "greyboxD", which includes time varying parameters and dynamic importance
 #' of each variable. The list of variables:
 #' \itemize{
-#' \item coefficients - mean (over time) parameters of the model,
-#' \item se - mean standard errors of the parameters of the model,
+#' \item coefficients - the mean (over time) parameters of the model,
+#' \item vcov - the combined covariance matrix of the model,
 #' \item fitted - the fitted values,
-#' \item residuals - residual of the model,
-#' \item distribution - distribution used in the estimation,
-#' \item logLik - mean (over time) log-likelihood of the model,
+#' \item residuals - the residuals of the model,
+#' \item distribution - the distribution used in the estimation,
+#' \item logLik - the mean (over time) log-likelihood of the model,
 #' \item IC - dynamic values of the information criterion (pIC),
+#' \item ICType - the type of information criterion used,
 #' \item df.residual - mean number of degrees of freedom of the residuals of
 #' the model,
 #' \item df - mean number of degrees of freedom of the model,
@@ -305,8 +306,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         pICs <- matrix(NA,obsInsample,nCombinations);
         # Matrix of parameters
         parameters <- matrix(0,nCombinations,nVariables+1);
-        # Matrix of s.e. of parameters
-        parametersSE <- matrix(0,nCombinations,nVariables+1);
+        # Array of vcov of parameters
+        vcovValues <- array(0,c(nCombinations,nVariables+1,nVariables+1));
         # Matrix of point likelihoods
         pointLiks <- matrix(NA,obsInsample,nCombinations);
 
@@ -315,7 +316,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         ourModel <- do.call(lmCall,listToCall);
         pICs[,1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
-        parametersSE[1,1] <- diag(vcov(ourModel));
+        vcovValues[1,1,1] <- vcov(ourModel);
         pointLiks[,1] <- pointLik(ourModel);
     }
     else{
@@ -368,8 +369,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             pICs <- matrix(NA,obsInsample,nCombinations);
             # Matrix of parameters
             parameters <- matrix(0,nCombinations,nVariables+1);
-            # Matrix of s.e. of parameters
-            parametersSE <- matrix(0,nCombinations,nVariables+1);
+            # Array of vcov of parameters
+            vcovValues <- array(0,c(nCombinations,nVariables+1,nVariables+1));
             # Matrix of point likelihoods
             pointLiks <- matrix(NA,obsInsample,nCombinations);
 
@@ -377,8 +378,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             pICs[,1] <- IC(ourModel);
             bufferCoef <- coef(ourModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(ourModel))[variablesNames];
-            parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+            bufferCoef <- vcov(ourModel)[variablesNames,variablesNames];
+            vcovValues[1,c(1,variablesCombinations[1,])==1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
             pointLiks[,1] <- pointLik(ourModel);
         }
     }
@@ -399,7 +400,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
             ICs <- IC(ourModel);
             parameters <- coef(ourModel);
-            parametersSE <- diag(vcov(ourModel));
+            vcovValues <- vcov(ourModel);
             pointLiks <- pointLik(ourModel);
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -408,14 +409,14 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             else{
                 otherParameters <- NULL;
             }
-            return(list(ICs=ICs,parameters=parameters,parametersSE=parametersSE,
+            return(list(ICs=ICs,parameters=parameters,vcovValues=vcovValues,
                         pointLiks=pointLiks,otherParameters=otherParameters));
         });
 
         for(i in 2:nCombinations){
             pICs[,i] <- forLoopReturns[[i-1]]$ICs;
             parameters[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parameters;
-            parametersSE[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parametersSE;
+            vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$vcovValues;
             pointLiks[,i] <- forLoopReturns[[i-1]]$pointLiks;
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -441,7 +442,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
             pICs[,i] <- IC(ourModel);
             parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
-            parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
+            vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- vcov(ourModel);
             pointLiks[,i] <- pointLik(ourModel);
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -553,19 +554,32 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # Dynamic weighted mean pAIC
     ICValue <- apply(pICWeights * pICs,1,sum);
 
-    # Models SE
-    parametersSECombined <- pICWeights %*% sqrt(parametersSE +(parameters - matrix(parametersMean,nrow(parameters),ncol(parameters),byrow=T))^2);
-    colnames(parametersSECombined) <- variablesNamesOriginal;
+    # Models vcov
+    # Although we can make an array of vcvo over time, it is just too much...
+    # So here we produce the mean vcov
+    vcovCombined <- matrix(NA, nVariables+1, nVariables+1, dimnames=list(variablesNamesOriginal, variablesNamesOriginal));
+    for(i in 1:(nVariables+1)){
+        for(j in 1:(nVariables+1)){
+            if(i<=j){
+                vcovCombined[i,j] <- (pICWeightsMean^2 %*% (vcovValues[,i,j] +
+                                                           (parameters[,i] - parametersMean[i]) *
+                                                           (parameters[,j] - parametersMean[j])));
+            }
+            else{
+                vcovCombined[i,j] <- vcovCombined[j,i];
+            }
+        }
+    }
     colnames(pICWeights) <- paste0("Model",c(1:ncol(pICWeights)));
 
-    if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
+    if(any(is.nan(vcovCombined)) | any(is.infinite(vcovCombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
                 call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersMean, se=parametersSECombined, fitted=as.vector(yFitted),
+    finalModel <- list(coefficients=parametersMean, vcov=vcovCombined, fitted=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
-                       df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
+                       ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                        coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
                        weights=pICWeights, other=other);

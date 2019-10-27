@@ -33,12 +33,13 @@
 #' "greyboxC". The list of variables:
 #' \itemize{
 #' \item coefficients - combined parameters of the model,
-#' \item se - combined standard errors of the parameters of the model,
+#' \item vcov - combined covariance matrix of the model,
 #' \item fitted - the fitted values,
 #' \item residuals - residual of the model,
 #' \item distribution - distribution used in the estimation,
 #' \item logLik - combined log-likelihood of the model,
 #' \item IC - the values of the combined information criterion,
+#' \item ICType - the type of information criterion used,
 #' \item df.residual - number of degrees of freedom of the residuals of
 #' the combined model,
 #' \item df - number of degrees of freedom of the combined model,
@@ -317,8 +318,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         ICs <- rep(NA,nCombinations);
         # Matrix of parameters
         parameters <- matrix(0,nCombinations,nVariables+1);
-        # Matrix of s.e. of parameters
-        parametersSE <- matrix(0,nCombinations,nVariables+1);
+        # Array of vcov of parameters
+        vcovValues <- array(0,c(nCombinations,nVariables+1,nVariables+1));
         # Vector of log-likelihoods
         logLiks <- rep(NA,nCombinations);
 
@@ -327,7 +328,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         ourModel <- do.call(lmCall,listToCall);
         ICs[1] <- IC(ourModel);
         parameters[1,1] <- coef(ourModel)[1];
-        parametersSE[1,1] <- diag(vcov(ourModel));
+        vcovValues[1,1,1] <- vcov(ourModel);
         logLiks[1] <- logLik(ourModel);
     }
     else{
@@ -381,8 +382,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             ICs <- rep(NA,nCombinations);
             # Matrix of parameters
             parameters <- matrix(0,nCombinations,nVariables+1);
-            # Matrix of s.e. of parameters
-            parametersSE <- matrix(0,nCombinations,nVariables+1);
+            # Array of vcov of parameters
+            vcovValues <- array(0,c(nCombinations,nVariables+1,nVariables+1));
             # Vector of log-likelihoods
             logLiks <- rep(NA,nCombinations);
 
@@ -390,8 +391,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             ICs[1] <- IC(ourModel);
             bufferCoef <- coef(ourModel)[variablesNames];
             parameters[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
-            bufferCoef <- diag(vcov(ourModel))[variablesNames];
-            parametersSE[1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
+            bufferCoef <- vcov(ourModel)[variablesNames,variablesNames];
+            vcovValues[1,c(1,variablesCombinations[1,])==1,c(1,variablesCombinations[1,])==1] <- bufferCoef[!is.na(bufferCoef)];
             logLiks[1] <- logLik(ourModel);
         }
     }
@@ -412,7 +413,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
             ICs <- IC(ourModel);
             parameters <- coef(ourModel);
-            parametersSE <- diag(vcov(ourModel));
+            vcovValues <- vcov(ourModel);
             logLiks <- logLik(ourModel);
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -421,14 +422,14 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             else{
                 otherParameters <- NULL;
             }
-            return(list(ICs=ICs,parameters=parameters,parametersSE=parametersSE,
+            return(list(ICs=ICs,parameters=parameters,vcovValues=vcovValues,
                         logLiks=logLiks,otherParameters=otherParameters));
         });
 
         for(i in 2:nCombinations){
             ICs[i] <- forLoopReturns[[i-1]]$ICs;
             parameters[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parameters;
-            parametersSE[i,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$parametersSE;
+            vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$vcovValues;
             logLiks[i] <- forLoopReturns[[i-1]]$logLiks;
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -454,7 +455,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
             ICs[i] <- IC(ourModel);
             parameters[i,c(1,variablesCombinations[i,])==1] <- coef(ourModel);
-            parametersSE[i,c(1,variablesCombinations[i,])==1] <- diag(vcov(ourModel));
+            vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- vcov(ourModel);
             logLiks[i] <- logLik(ourModel);
 
             if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
@@ -478,7 +479,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     }
 
     # Calculate weighted parameters
-    parametersWeighted <- parameters * matrix(ICWeights,nrow(parameters),ncol(parameters));
+    parametersWeighted <- parameters * matrix(ICWeights,nCombinations,nVariables+1);
     parametersCombined <- colSums(parametersWeighted);
 
     names(parametersCombined) <- variablesNamesOriginal;
@@ -573,18 +574,29 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     colnames(variablesCombinations)[nVariables+1] <- "IC weights";
     rownames(variablesCombinations) <- paste0("Model",c(1:length(ICWeights)));
 
-    # Models SE
-    parametersSECombined <- c(ICWeights %*% sqrt(parametersSE +(parameters - matrix(apply(parametersWeighted,2,sum),nrow(parameters),ncol(parameters),byrow=T))^2))
-    names(parametersSECombined) <- variablesNamesOriginal;
+    # Models vcov
+    vcovCombined <- matrix(NA, nVariables+1, nVariables+1, dimnames=list(variablesNamesOriginal, variablesNamesOriginal));
+    for(i in 1:(nVariables+1)){
+        for(j in 1:(nVariables+1)){
+            if(i<=j){
+                vcovCombined[i,j] <- (ICWeights^2 %*% (vcovValues[,i,j] +
+                                                           (parameters[,i] - parametersCombined[i]) *
+                                                           (parameters[,j] - parametersCombined[j])));
+            }
+            else{
+                vcovCombined[i,j] <- vcovCombined[j,i];
+            }
+        }
+    }
 
-    if(any(is.nan(parametersSECombined)) | any(is.infinite(parametersSECombined))){
+    if(any(is.nan(vcovCombined)) | any(is.infinite(vcovCombined))){
         warning("The standard errors of the parameters cannot be produced properly. It seems that we have overfitted the data.",
                 call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersCombined, se=parametersSECombined, fitted=as.vector(yFitted),
+    finalModel <- list(coefficients=parametersCombined, vcov=vcovCombined, fitted=as.vector(yFitted),
                        residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
-                       df.residual=df, df=sum(importance)+1, importance=importance,
+                       ICType=ic, df.residual=df, df=sum(importance)+1, importance=importance,
                        call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                        combination=variablesCombinations, other=other);
 
