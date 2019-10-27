@@ -6,6 +6,9 @@ Changes:
 * In fact, plot.greybox() can now also produce Residuals Squared vs Fitted, ACF and PACF. Choose your value!
 * An update in the alm() vignette, explaining the Box-Cox Normal distribution.
 * Updates in lmCombine and lmDynamic - now we produce the correct covariance matrix of the parameters from the functions.
+* rstudent() is now also available, together with the plots. See plot.greybox() for more detail.
+* Tuned the vcov calculation for alm(). Hopefully, it will result in more accurate covariance matrix of parameters.
+* alm() now estimates df for the distribution="dt" if it is not provided.
 
 Bugfixes:
 * Fixed issues with lmCombine and lmDynamic, when no variables are selected.

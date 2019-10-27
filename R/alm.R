@@ -79,14 +79,14 @@
 #' cause trouble, especially in cases of multicollinearity.
 #' @param ... additional parameters to pass to distribution functions. This
 #' includes: \code{alpha} value for Asymmetric Laplace distribution,
-#' \code{size} for the Negative Binomial or \code{df} for the Chi-Squared.
-#' You can also pass two parameters to the optimiser: 1. \code{maxeval} - maximum
-#' number of evaluations to carry out (default is 100); 2. \code{xtol_rel} -
-#' the precision of the optimiser (the default is 1E-6); 3. \code{algorithm} -
-#' the algorithm to use in optimisation (\code{"NLOPT_LN_SBPLX"} by default). 4.
-#' \code{print_level} - the level of output for the optimiser (0 by default).
-#' You can read more about these parameters in the documentation of
-#' \link[nloptr]{nloptr} function.
+#' \code{size} for the Negative Binomial or \code{df} for the Chi-Squared and
+#' Student's t. You can also pass two parameters to the optimiser: 1.
+#' \code{maxeval} - maximum number of evaluations to carry out (default is
+#' 100); 2. \code{xtol_rel} - the precision of the optimiser (the default is
+#' 1E-6); 3. \code{algorithm} - the algorithm to use in optimisation
+#' (\code{"NLOPT_LN_SBPLX"} by default). 4. \code{print_level} - the level of
+#' output for the optimiser (0 by default). You can read more about these
+#' parameters in the documentation of \link[nloptr]{nloptr} function.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "alm", which contains:
@@ -310,6 +310,15 @@ alm <- function(formula, data, subset, na.action,
                 other <- lambda;
             }
         }
+        else if(distribution=="dt"){
+            if(!aParameterProvided){
+                other <- B[1];
+                B <- B[-1];
+            }
+            else{
+                other <- df;
+            }
+        }
         else{
             other <- NULL;
         }
@@ -360,7 +369,7 @@ alm <- function(formula, data, subset, na.action,
                         "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
                         "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (obsInsample*2),
-                        "dt" = max(2,2/(1-(sum((y[otU]-mu[otU])^2)/obsInsample)^{-1})),
+                        "dt" = ,
                         "dchisq" =,
                         "dnbinom" = abs(other),
                         "dpois" = mu[otU],
@@ -513,6 +522,15 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             lambda <- ellipsis$lambda;
+            aParameterProvided <- TRUE;
+        }
+    }
+    else if(distribution=="dt"){
+        if(is.null(ellipsis$df)){
+            aParameterProvided <- FALSE;
+        }
+        else{
+            df <- ellipsis$df;
             aParameterProvided <- TRUE;
         }
     }
@@ -930,6 +948,18 @@ alm <- function(formula, data, subset, na.action,
                     BUpper <- rep(Inf,length(B));
                 }
             }
+            else if(distribution=="dt"){
+                B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
+                if(aParameterProvided){
+                    BLower <- rep(-Inf,length(B));
+                    BUpper <- rep(Inf,length(B));
+                }
+                else{
+                    B <- c(2, B);
+                    BLower <- c(0,rep(-Inf,length(B)-1));
+                    BUpper <- rep(Inf,length(B));
+                }
+            }
             else{
                 B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
                 BLower <- -Inf;
@@ -983,6 +1013,18 @@ alm <- function(formula, data, subset, na.action,
                 }
                 else{
                     B <- c(1, B);
+                    BLower <- c(0,rep(-Inf,length(B)-1));
+                    BUpper <- rep(Inf,length(B));
+                }
+            }
+            else if(distribution=="dt"){
+                B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
+                if(aParameterProvided){
+                    BLower <- rep(-Inf,length(B));
+                    BUpper <- rep(Inf,length(B));
+                }
+                else{
+                    B <- c(2, B);
                     BLower <- c(0,rep(-Inf,length(B)-1));
                     BUpper <- rep(Inf,length(B));
                 }
@@ -1155,6 +1197,13 @@ alm <- function(formula, data, subset, na.action,
         }
         names(B) <- c(variablesNames);
     }
+    else if(distribution==c("dt")){
+        if(!aParameterProvided){
+            ellipsis$df <- df <- abs(B[1]);
+            B <- B[-1];
+        }
+        names(B) <- c(variablesNames);
+    }
     else if(distribution==c("dfnorm")){
         if(!aParameterProvided){
             ellipsis$sigma <- sigma <- abs(B[1]);
@@ -1246,7 +1295,7 @@ alm <- function(formula, data, subset, na.action,
             nParam <- nParam + 1;
         }
     }
-    else if(any(distribution==c("dnbinom","dchisq","dfnorm","dbcnorm"))){
+    else if(any(distribution==c("dnbinom","dchisq","dt","dfnorm","dbcnorm"))){
         if(aParameterProvided){
             nParam <- nParam - 1;
         }
@@ -1279,17 +1328,18 @@ alm <- function(formula, data, subset, na.action,
     if(vcovProduce){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        if(CDF){
-            method.args <- list(d=1e-6, r=6);
-        }
-        else{
-            if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
-                method.args <- list(d=1e-6, r=6);
-            }
-            else{
-                method.args <- list(d=1e-4, r=4);
-            }
-        }
+        method.args <- list(eps=1e-4, d=0.1, r=4)
+        # if(CDF){
+        #     method.args <- list(d=1e-6, r=6);
+        # }
+        # else{
+        #     if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
+        #         method.args <- list(d=1e-6, r=6);
+        #     }
+        #     else{
+        #         method.args <- list(d=1e-4, r=4);
+        #     }
+        # }
 
         if(distribution=="dpois"){
             # Produce analytical hessian for Poisson distribution

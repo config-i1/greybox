@@ -203,11 +203,10 @@ where $d$ is the number of degrees of freedom, which can also be considered as t
 \begin{equation} \label{eq:scaleOfT}
     d = \frac{2}{1-\sigma^{-2}}.
 \end{equation}
-Given that the formula \eqref{eq:scaleOfT} holds only for cases of $d>2$ (and respectively for $\sigma^2>1$), the degrees of freedom in this case are restricted by 2 from below.
 
 Kurtosis of Student t distribution depends on the value of $d$, and for the cases of $d>4$ is equal to $\frac{6}{d-4}$.
 
-`alm()` function with `distribution="dt"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the estimated in-sample value of $d$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
+`alm()` function with `distribution="dt"` estimates the parameters of the model along with the $d$ (if it is not provided by the user as a `df` parameter) and returns $\mu_t$ in the variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the conventional number of degrees of freedom $T-k$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
 
 ### An example of application
 

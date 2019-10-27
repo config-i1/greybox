@@ -5,7 +5,7 @@
 \alias{plot.alm}
 \title{Plots for the fit and residuals}
 \usage{
-\method{plot}{greybox}(x, which = c(1, 2, 3, 4), level = 0.95,
+\method{plot}{greybox}(x, which = c(1, 2, 4, 6), level = 0.95,
   legend = FALSE, ask = prod(par("mfcol")) < length(which) &&
   dev.interactive(), ...)
 }
@@ -16,9 +16,10 @@
 \enumerate{
 \item Fitted over time;
 \item Standardised residuals vs Fitted;
+\item Studentised residuals vs Fitted;
 \item Absolute residuals vs Fitted;
-\item Q-Q plot with the specified distribution;
 \item Squared residuals vs Fitted;
+\item Q-Q plot with the specified distribution;
 \item ACF of the residuals;
 \item PACF of the residuals.
 }}
@@ -48,6 +49,9 @@ are some values lying outside of it. Can be used in order to make sure that the 
 did not miss any important events over time;
 \item Standardised residuals vs Fitted. Plots the points and the confidence bounds
 (red lines) for the specified confidence \code{level}. Useful for the analysis of outliers;
+\item Studentised residuals vs Fitted. This is similar to the previous plot, but with the
+residuals divided by the scales with the leave-one-out approach. Should be more sensitive
+to outliers;
 \item Absolute residuals vs Fitted. Useful for the analysis of heteroscedasticity;
 \item Q-Q plot with the specified distribution. Can be used in order to see if the
 residuals follow the assumed distribution. The type of distribution depends on the one used
@@ -58,8 +62,8 @@ details;
 \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
 for details
 }
-Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2,
-6 and 7 also use the parameters \code{level}, which specifies the confidence level for
+Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2, 3,
+7 and 8 also use the parameters \code{level}, which specifies the confidence level for
 the intervals.
 }
 \examples{
@@ -71,11 +75,11 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 ourModel <- alm(y~x1+x2, xreg, distribution="dlaplace")
 
 par(mfcol=c(2,3))
-plot(ourModel, c(1:4,6,7))
+plot(ourModel, c(1,2,4,5,7,8))
 
 }
 \seealso{
-\link[stats]{plot.lm}
+\link[stats]{plot.lm}, \link[stats]{rstandard}, \link[stats]{rstudent}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

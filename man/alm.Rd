@@ -62,14 +62,14 @@ cause trouble, especially in cases of multicollinearity.}
 
 \item{...}{additional parameters to pass to distribution functions. This
 includes: \code{alpha} value for Asymmetric Laplace distribution,
-\code{size} for the Negative Binomial or \code{df} for the Chi-Squared.
-You can also pass two parameters to the optimiser: 1. \code{maxeval} - maximum
-number of evaluations to carry out (default is 100); 2. \code{xtol_rel} -
-the precision of the optimiser (the default is 1E-6); 3. \code{algorithm} -
-the algorithm to use in optimisation (\code{"NLOPT_LN_SBPLX"} by default). 4.
-\code{print_level} - the level of output for the optimiser (0 by default).
-You can read more about these parameters in the documentation of
-\link[nloptr]{nloptr} function.}
+\code{size} for the Negative Binomial or \code{df} for the Chi-Squared and
+Student's t. You can also pass two parameters to the optimiser: 1.
+\code{maxeval} - maximum number of evaluations to carry out (default is
+100); 2. \code{xtol_rel} - the precision of the optimiser (the default is
+1E-6); 3. \code{algorithm} - the algorithm to use in optimisation
+(\code{"NLOPT_LN_SBPLX"} by default). 4. \code{print_level} - the level of
+output for the optimiser (0 by default). You can read more about these
+parameters in the documentation of \link[nloptr]{nloptr} function.}
 }
 \value{
 Function returns \code{model} - the final model of the class

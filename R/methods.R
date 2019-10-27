@@ -618,7 +618,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dt"){
         # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
-        df <- object$scale;
+        df <- nobs(object) - nparam(object);
         if(interval!="n"){
             greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
             greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
@@ -1448,6 +1448,9 @@ plot.coef.greyboxD <- function(x, ...){
 #' did not miss any important events over time;
 #' \item Standardised residuals vs Fitted. Plots the points and the confidence bounds
 #' (red lines) for the specified confidence \code{level}. Useful for the analysis of outliers;
+#' \item Studentised residuals vs Fitted. This is similar to the previous plot, but with the
+#' residuals divided by the scales with the leave-one-out approach. Should be more sensitive
+#' to outliers;
 #' \item Absolute residuals vs Fitted. Useful for the analysis of heteroscedasticity;
 #' \item Q-Q plot with the specified distribution. Can be used in order to see if the
 #' residuals follow the assumed distribution. The type of distribution depends on the one used
@@ -1458,8 +1461,8 @@ plot.coef.greyboxD <- function(x, ...){
 #' \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
 #' for details
 #' }
-#' Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2,
-#' 6 and 7 also use the parameters \code{level}, which specifies the confidence level for
+#' Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2, 3,
+#' 7 and 8 also use the parameters \code{level}, which specifies the confidence level for
 #' the intervals.
 #'
 #' @param x Time series model for which forecasts are required.
@@ -1467,9 +1470,10 @@ plot.coef.greyboxD <- function(x, ...){
 #' \enumerate{
 #' \item Fitted over time;
 #' \item Standardised residuals vs Fitted;
+#' \item Studentised residuals vs Fitted;
 #' \item Absolute residuals vs Fitted;
-#' \item Q-Q plot with the specified distribution;
 #' \item Squared residuals vs Fitted;
+#' \item Q-Q plot with the specified distribution;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals.
 #' }
@@ -1482,7 +1486,7 @@ plot.coef.greyboxD <- function(x, ...){
 #' of residuals otside the bounds.
 #'
 #' @template author
-#' @seealso \link[stats]{plot.lm}
+#' @seealso \link[stats]{plot.lm}, \link[stats]{rstandard}, \link[stats]{rstudent}
 #' @keywords ts univar
 #' @examples
 #'
@@ -1493,13 +1497,13 @@ plot.coef.greyboxD <- function(x, ...){
 #' ourModel <- alm(y~x1+x2, xreg, distribution="dlaplace")
 #'
 #' par(mfcol=c(2,3))
-#' plot(ourModel, c(1:4,6,7))
+#' plot(ourModel, c(1,2,4,5,7,8))
 #'
 #' @importFrom stats ppoints qqline qqnorm qqplot acf pacf
 #' @importFrom grDevices dev.interactive devAskNewPage
 #' @aliases plot.alm
 #' @export
-plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
+plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                          ask=prod(par("mfcol")) < length(which) && dev.interactive(), ...){
 
     # Define, whether to wait for the hit of "Enter"
@@ -1526,6 +1530,7 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
             ellipsis$xlab <- "Time";
         }
 
+        # Get the actuals and the fitted values
         ellipsis$x <- actuals(x);
         if(is.alm(x)){
             if(any(x$distribution==c("plogis","pnorm"))){
@@ -1552,8 +1557,15 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
             }
         }
 
-        zValues <- suppressWarnings(predict(x, interval="p", level=level));
+        # If the mixture distribution, then do the upper bound
+        if(is.alm(x$occurrence)){
+            zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
+        }
+        else{
+            zValues <- suppressWarnings(predict(x, interval="p", level=level));
+        }
 
+        # Start plotting
         do.call(plot,ellipsis);
         lines(yFitted, col="purple");
         if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
@@ -1576,12 +1588,19 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
         }
     }
 
-    # 2. Standardised residuals vs Fitted
-    plot2 <- function(x, ...){
+    # 2 and 3: Standardised  / studentised residuals vs Fitted
+    plot2 <- function(x, type="rstandard", ...){
         ellipsis <- list(...);
 
         ellipsis$x <- fitted(x);
-        ellipsis$y <- rstandard(x);
+        if(type=="rstandard"){
+            ellipsis$y <- rstandard(x);
+            yName <- "Standardised";
+        }
+        else{
+            ellipsis$y <- rstudent(x);
+            yName <- "Studentised";
+        }
 
         if(is.alm(x$occurrence)){
             ellipsis$x <- ellipsis$x[ellipsis$y!=0];
@@ -1590,14 +1609,14 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
         ellipsis$y[] <- ellipsis$y;
 
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Standardised Residuals vs Fitted";
+            ellipsis$main <- paste0(yName," Residuals vs Fitted");
         }
 
         if(!any(names(ellipsis)=="xlab")){
             ellipsis$xlab <- "Fitted";
         }
         if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- "Standardised Residuals";
+            ellipsis$ylab <- paste0(yName," Residuals");
         }
 
         if(legend){
@@ -1623,9 +1642,9 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
                           "dlaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
                           "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
                           "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
-                          "dt"=qt(c((1-level)/2, (1+level)/2), x$scale),
+                          "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
                           "ds"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                          qnorm(c((1-level)/2, (1+level)/2),0,1));
+                          qnorm(c((1-level)/2, (1+level)/2), 0, 1));
         outliers <- which(abs(ellipsis$y)>zValues[2]);
         cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
@@ -1650,7 +1669,7 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
         }
     }
 
-    # 3 and 5. Fitted vs |Residuals| or Fitted vs Residuals^2
+    # 4 and 5. Fitted vs |Residuals| or Fitted vs Residuals^2
     plot3 <- function(x, type="abs", ...){
         ellipsis <- list(...);
 
@@ -1691,7 +1710,7 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
         abline(h=0, col="grey", lty=2);
     }
 
-    # 4. Q-Q with the specified distribution
+    # 6. Q-Q with the specified distribution
     plot4 <- function(x, ...){
         ellipsis <- list(...);
 
@@ -1776,8 +1795,8 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
         }
     }
 
-    # 6 and 7. ACF and PACF
-    plot6 <- function(x, type="acf", ...){
+    # 7 and 8. ACF and PACF
+    plot5 <- function(x, type="acf", ...){
         ellipsis <- list(...);
 
         if(!any(names(ellipsis)=="main")){
@@ -1829,11 +1848,11 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
     }
 
     if(any(which==3)){
-        plot3(x, ...);
+        plot2(x, "rstudent", ...);
     }
 
     if(any(which==4)){
-        plot4(x, ...);
+        plot3(x, ...);
     }
 
     if(any(which==5)){
@@ -1841,11 +1860,15 @@ plot.greybox <- function(x, which=c(1,2,3,4), level=0.95, legend=FALSE,
     }
 
     if(any(which==6)){
-        plot6(x, type="acf", ...);
+        plot4(x, ...);
     }
 
     if(any(which==7)){
-        plot6(x, type="pacf", ...);
+        plot5(x, type="acf", ...);
+    }
+
+    if(any(which==8)){
+        plot5(x, type="pacf", ...);
     }
 
 }
@@ -2209,15 +2232,58 @@ print.rollingOrigin <- function(x, ...){
 #' @importFrom stats rstandard
 #' @export
 rstandard.greybox <- function(model, ...){
-    if(model$distribution=="dt"){
-        return(residuals(model) / sd(residuals(model)));
+    obs <- nobs(model);
+    df <- obs - nparam(model);
+    errors <- residuals(model);
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
+        return((errors - mean(errors)) / sqrt(sum(residuals(model)^2) / df));
     }
     else if(model$distribution=="ds"){
-        return(residuals(model) / model$scale^2);
+            return((errors - mean(errors)) / (model$scale * obs / df)^2);
     }
     else{
-        return(residuals(model) / model$scale);
+        return((errors - mean(errors)) / model$scale * obs / df);
     }
+}
+
+#' @importFrom stats rstudent
+#' @export
+rstudent.greybox <- function(model, ...){
+    obs <- nobs(model);
+    df <- obs - nparam(model) - 1;
+    rstudentised <- errors <- residuals(model);
+    errors[] <- errors - mean(errors);
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
+        }
+    }
+    else if(model$distribution=="ds"){
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
+        }
+    }
+    else if(model$distribution=="dlaplace"){
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / (sum(abs(errors[-i])) / df);
+        }
+    }
+    else if(model$distribution=="dalaplace"){
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / (sum(errors[-i] * (model$other$alpha - (errors[-i]<=0)*1)) / df);
+        }
+    }
+    else if(model$distribution=="dlogis"){
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
+        }
+    }
+    else{
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
+        }
+    }
+    return(rstudentised)
 }
 
 #' @importFrom stats sigma
@@ -2469,7 +2535,7 @@ vcov.alm <- function(object, ...){
         newCall$i <- object$call$i;
         newCall$parameters <- coef(object);
         newCall$fast <- TRUE;
-        if(object$distribution=="dchisq"){
+        if(any(object$distribution==c("dchisq","dt"))){
             newCall$df <- object$other$df;
         }
         else if(object$distribution=="dnbinom"){
