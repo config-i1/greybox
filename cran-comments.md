@@ -1,20 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "19 September 2019"
+date: "29 October 2019"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.5.5
-
-***The reason for an early resubmission***
-In greybox v0.5.4, a method c.ts() was introduced, which caused recursion issues (Error: C stack usage 7969664 is too close to the limit) in some functions of packages (not related to greybox) loaded in the same environment. The v0.5.5 removes this method, so that the issue can be resolved.
-
-My appologies for the mess!
-
+This is the release of the package ``greybox``, v0.5.6
 
 # Test environments
-* local ubuntu 19.04, R 3.5.2
+* local ubuntu 19.04, R 3.6.1
 * ubuntu 14.04.5 (on travis-ci), R 3.6.1
 * win-builder (devel and release)
 
@@ -23,10 +17,10 @@ R CMD check results
 0 errors | 0 warnings | 0 note
 
 ## Other checks
-Rhub on Windows Server 2008 R2 SP1, R-devel, 32/64 bit; Fedora Linux, R-devel, clang, gfortran gives a note:
-Package which this enhances but not available for checking: ‘vars’
+Rhub on Windows Server 2008 R2 SP1, R-devel, 32/64 bit; Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran give the error:
+Package which this enhances but not available for checking: 'vars'
 
-However, the package is available on CRAN and there are no notes on my local installations of R on on Travis.
+However, the package is available on CRAN and there are no notes on my local installations of R or on Travis.
 
 
 Checks for Windows give (as always) a NOTE about doMC, which is not available for Windows (for obvious reasons). The package is included in suggested of greybox.
