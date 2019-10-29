@@ -35,7 +35,7 @@
 }
 \value{
 The function produces 4 plots and, if \code{any(which==2)} also reports the number
-of residuals otside the bounds.
+of residuals outside the bounds.
 }
 \description{
 The function produces fitted values and plots for the residuals of the greybox functions

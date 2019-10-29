@@ -1483,7 +1483,7 @@ plot.coef.greyboxD <- function(x, ...){
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
 #' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.
 #' @return The function produces 4 plots and, if \code{any(which==2)} also reports the number
-#' of residuals otside the bounds.
+#' of residuals outside the bounds.
 #'
 #' @template author
 #' @seealso \link[stats]{plot.lm}, \link[stats]{rstandard}, \link[stats]{rstudent}
