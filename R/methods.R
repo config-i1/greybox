@@ -1481,6 +1481,7 @@ plot.coef.greyboxD <- function(x, ...){
 #' (6) and (7)
 #' @param legend If \code{TRUE}, then the legend is produced on plots (1) and (2).
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
+#' @param lowess Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.
 #' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.
 #' @return The function produces 4 plots and, if \code{any(which==2)} also reports the number
 #' of residuals outside the bounds.
@@ -1499,12 +1500,13 @@ plot.coef.greyboxD <- function(x, ...){
 #' par(mfcol=c(2,3))
 #' plot(ourModel, c(1,2,4,5,7,8))
 #'
-#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf
+#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess
 #' @importFrom grDevices dev.interactive devAskNewPage
 #' @aliases plot.alm
 #' @export
 plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
-                         ask=prod(par("mfcol")) < length(which) && dev.interactive(), ...){
+                         ask=prod(par("mfcol")) < length(which) && dev.interactive(),
+                         lowess=TRUE, ...){
 
     # Define, whether to wait for the hit of "Enter"
     if(ask){
@@ -1661,11 +1663,21 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             points(ellipsis$x[outliers], ellipsis$y[outliers], pch=16);
             text(ellipsis$x[outliers], ellipsis$y[outliers], labels=outliers, pos=4);
         }
+        if(lowess){
+            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+        }
 
         if(legend){
-            legend(legendPosition,
-                   legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
-                   col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA, 16));
+            if(lowess){
+                legend(legendPosition,
+                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds","LOWESS line"),
+                       col=c("red", "black","red"), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
+            }
+            else{
+                legend(legendPosition,
+                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
+                       col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
+            }
         }
     }
 
@@ -1708,6 +1720,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
+        if(lowess){
+            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+        }
     }
 
     # 6. Q-Q with the specified distribution

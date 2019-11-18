@@ -7,7 +7,7 @@
 \usage{
 \method{plot}{greybox}(x, which = c(1, 2, 4, 6), level = 0.95,
   legend = FALSE, ask = prod(par("mfcol")) < length(which) &&
-  dev.interactive(), ...)
+  dev.interactive(), lowess = TRUE, ...)
 }
 \arguments{
 \item{x}{Time series model for which forecasts are required.}
@@ -30,6 +30,8 @@
 \item{legend}{If \code{TRUE}, then the legend is produced on plots (1) and (2).}
 
 \item{ask}{Logical; if \code{TRUE}, the user is asked to press Enter before each plot.}
+
+\item{lowess}{Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.}
 
 \item{...}{The parameters passed to the plot functions. Recommended to use with separate plots.}
 }

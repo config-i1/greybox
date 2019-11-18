@@ -1,3 +1,10 @@
+greybox v0.5.7 (Release data: 2019-11-18)
+==============
+
+Changes:
+* plot.greybox() now also produces LOWESS lines on the scatterplots. There is a parameters that regulates this.
+
+
 greybox v0.5.6 (Release data: 2019-10-29)
 ==============
 
