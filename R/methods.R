@@ -1628,16 +1628,6 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             else{
                 legendPosition <- "topright";
             }
-
-            if(!any(names(ellipsis)=="ylim")){
-                ellipsis$ylim <- range(ellipsis$y);
-                if(legendPosition=="bottomright"){
-                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
-                }
-                else{
-                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
-                }
-            }
         }
 
         zValues <- switch(x$distribution,
@@ -1648,7 +1638,19 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "ds"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                           qnorm(c((1-level)/2, (1+level)/2), 0, 1));
         outliers <- which(abs(ellipsis$y)>zValues[2]);
-        cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
+        # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
+
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- range(c(ellipsis$y,zValues));
+            if(legend){
+                if(legendPosition=="bottomright"){
+                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+                }
+                else{
+                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+                }
+            }
+        }
 
         xRange <- range(ellipsis$x);
         xRange[1] <- xRange[1] - sd(ellipsis$x);
