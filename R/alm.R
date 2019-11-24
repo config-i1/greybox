@@ -5,33 +5,33 @@
 #' This is a function, similar to \link[stats]{lm}, but for the cases of several
 #' non-normal distributions. These include:
 #' \enumerate{
-#' \item Normal distribution, \link[stats]{dnorm},
-#' \item Logistic Distribution, \link[stats]{dlogis},
-#' \item Laplace distribution, \link[greybox]{dlaplace},
-#' \item Asymmetric Laplace distribution, \link[greybox]{dalaplace},
-#' \item T-distribution, \link[stats]{dt},
-#' \item S-distribution, \link[greybox]{ds},
-#' \item Folded normal distribution, \link[greybox]{dfnorm},
-#' \item Log normal distribution, \link[stats]{dlnorm},
-#' \item Chi-Squared Distribution, \link[stats]{dchisq},
-#' \item Beta distribution, \link[stats]{dbeta},
-#' \item Poisson Distribution, \link[stats]{dpois},
-#' \item Negative Binomial Distribution, \link[stats]{dnbinom},
-#' \item Cumulative Logistic Distribution, \link[stats]{plogis},
-#' \item Cumulative Normal distribution, \link[stats]{pnorm}.
+#' \item \link[stats]{dnorm} - Normal distribution,
+#' \item \link[stats]{dlogis} - Logistic Distribution,
+#' \item \link[greybox]{dlaplace} - Laplace distribution,
+#' \item \link[greybox]{dalaplace} - Asymmetric Laplace distribution,
+#' \item \link[stats]{dt} - T-distribution,
+#' \item \link[greybox]{ds} - S-distribution,
+#' \item \link[greybox]{dfnorm} - Folded normal distribution,
+#' \item \link[stats]{dlnorm} - Log normal distribution,
+#' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
+#' \item \link[stats]{dchisq} - Chi-Squared Distribution,
+# \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
+#' \item \link[stats]{dbeta} - Beta distribution,
+#' \item \link[stats]{dpois} - Poisson Distribution,
+#' \item \link[stats]{dnbinom} - Negative Binomial Distribution,
+#' \item \link[stats]{plogis} - Cumulative Logistic Distribution,
+#' \item \link[stats]{pnorm} - Cumulative Normal distribution.
 #' }
+#'
+#' This function can be considered as an analogue of \link[stats]{glm}, but with the
+#' focus on time series. This is why, for example, the function has \code{ar} and
+#' \code{i} parameters and produces time series analysis plots with \code{plot(alm(...))}.
 #'
 #' This function is slower than \code{lm}, because it relies on likelihood estimation
 #' of parameters, hessian calculation and matrix multiplication. So think twice when
 #' using \code{distribution="dnorm"} here.
 #'
-#' Probably some other distributions will be added to this function at some point...
-#'
 #' The estimation is done using likelihood of respective distributions.
-#'
-#' ALM function currently does not work with factors and does not accept
-#' transformations of variables in the formula. So you need to do transformations
-#' separately before using the function.
 #'
 #' See more details and examples in the vignette "ALM":
 #' \code{vignette("alm","greybox")}
@@ -196,7 +196,7 @@
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
-                               "dfnorm","dlnorm","dchisq","dbcnorm",
+                               "dfnorm","dlnorm","dbcnorm","dinvgauss",
                                "dpois","dnbinom",
                                "dbeta",
                                "plogis","pnorm"),
@@ -212,7 +212,8 @@ alm <- function(formula, data, subset, na.action,
     fast <- depricator(fast, list(...));
 
     distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm","dchisq","dbcnorm",
+    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm",
+                           "dchisq","dbcnorm","dinvgauss",
                            "dpois","dnbinom","dbeta","plogis","pnorm"))){
         if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
             warning(paste0("You are using the old value of the distribution parameter.\n",
