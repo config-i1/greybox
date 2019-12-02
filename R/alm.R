@@ -814,6 +814,7 @@ alm <- function(formula, data, subset, na.action,
         if(is.null(parameters)){
             # Check, if redundant dummies are left. Remove the first if this is the case
             determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
+            determValues[is.nan(determValues)] <- 0;
             if(any(determValues==1)){
                 matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
                 variablesNames <- colnames(matrixXreg);
