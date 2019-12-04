@@ -1,4 +1,4 @@
-greybox v0.5.7 (Release data: 2019-12-02)
+greybox v0.5.7 (Release data: 2019-12-04)
 ==============
 
 Changes:
@@ -8,6 +8,7 @@ Changes:
 
 Bugfixes:
 * alm() would be stuck in some cases, when determination returns NaNs.
+* Fix of a bug in alm() for the new version of R, where class(matrix) is now c("matrix","array"), and not just "matrix".
 
 
 greybox v0.5.6 (Release data: 2019-10-29)

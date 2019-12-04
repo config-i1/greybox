@@ -1372,12 +1372,12 @@ alm <- function(formula, data, subset, na.action,
         else{
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
-            if(class(vcovMatrixTry)=="try-error"){
+            if(any(class(vcovMatrixTry)=="try-error")){
                 warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
                                "The estimate of the covariance matrix of parameters might be inaccurate."),
                         call.=FALSE);
                 vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
-                if(class(vcovMatrix)=="try-error"){
+                if(any(class(vcovMatrix)=="try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "We failed to produce the covariance matrix of parameters."),
                             call.=FALSE);
