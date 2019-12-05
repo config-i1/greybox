@@ -26,7 +26,8 @@ Imports:
     utils,
     lamW,
     numDeriv,
-    nloptr
+    nloptr,
+    statmod
 LinkingTo: Rcpp
 Suggests:
     smooth (>= 2.5.1),
