@@ -540,7 +540,7 @@ confint.lmGreybox <- function(object, parm, level=0.95, ...){
 
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
-#' @importFrom statmode qinvgauss
+#' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){

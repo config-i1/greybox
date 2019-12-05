@@ -112,6 +112,7 @@ non-normal distributions. These include:
 \item \link[stats]{dlnorm} - Log normal distribution,
 \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 \item \link[stats]{dchisq} - Chi-Squared Distribution,
+\item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 \item \link[stats]{dbeta} - Beta distribution,
 \item \link[stats]{dpois} - Poisson Distribution,
 \item \link[stats]{dnbinom} - Negative Binomial Distribution,
