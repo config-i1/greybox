@@ -227,6 +227,7 @@ pointLik.alm <- function(object, ...){
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambda, log=TRUE),
+                            "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
@@ -249,6 +250,7 @@ pointLik.alm <- function(object, ...){
                                    "dfnorm" =,
                                    "dbcnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                   "dinvgauss" = 0.5*(log(pi)+1-log(2*scale)),
                                    "dlaplace" =,
                                    "dalaplace" = (1 + log(2*scale)),
                                    "dlogis" = 2,
@@ -538,6 +540,7 @@ confint.lmGreybox <- function(object, parm, level=0.95, ...){
 
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
+#' @importFrom statmode qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
@@ -687,6 +690,13 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$mean[] <- (greyboxForecast$mean*object$other$lambda+1)^{1/object$other$lambda};
         }
         greyboxForecast$scale <- sigma;
+    }
+    else if(object$distribution=="dinvgauss"){
+        greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
+        if(interval!="n"){
+            greyboxForecast$lower[] <- qinvgauss(levelLow,mean=greyboxForecast$mean,dispersion=greyboxForecast$scale);
+            greyboxForecast$upper[] <- qinvgauss(levelUp,mean=greyboxForecast$mean,dispersion=greyboxForecast$scale);
+        }
     }
     else if(object$distribution=="dlogis"){
         # Use the connection between the variance and scale in logistic distribution
@@ -1636,6 +1646,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
                           "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
                           "ds"=qs(c((1-level)/2, (1+level)/2), 0, 1),
+                          # The next one is not correct...
+                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1, shape=1),
                           qnorm(c((1-level)/2, (1+level)/2), 0, 1));
         outliers <- which(abs(ellipsis$y)>zValues[2]);
         # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
@@ -1797,6 +1809,17 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
             do.call(qqplot, ellipsis);
             qqline(ellipsis$y, distribution=function(p) qt(p, df=x$scale));
+        }
+        else if(x$distribution=="dinvgauss"){
+            # Transform residuals for something meaningful
+            # This is not 100% accurate, because the dispersion should change as well as mean...
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
+            }
+            ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=x$scale);
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=x$scale));
         }
         else if(x$distribution=="dchisq"){
             message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
@@ -2093,6 +2116,7 @@ print.summary.alm <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambda,2)),
+                      "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,2)),
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,2)),
@@ -2143,6 +2167,7 @@ print.summary.greybox <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = "Box-Cox Normal",
+                      "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -2186,6 +2211,7 @@ print.summary.greyboxC <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = "Box-Cox Normal",
+                      "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -2258,6 +2284,9 @@ rstandard.greybox <- function(model, ...){
     else if(model$distribution=="ds"){
             return((errors - mean(errors)) / (model$scale * obs / df)^2);
     }
+    else if(model$distribution=="dinvgauss"){
+            return(errors / mean(errors));
+    }
     else{
         return((errors - mean(errors)) / model$scale * obs / df);
     }
@@ -2293,6 +2322,12 @@ rstudent.greybox <- function(model, ...){
     else if(model$distribution=="dlogis"){
         for(i in 1:obs){
             rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
+        }
+    }
+    else if(model$distribution=="dinvgauss"){
+        errors[] <- residuals(model);
+        for(i in 1:obs){
+            rstudentised[i] <- errors[i] / mean(errors[-i]);
         }
     }
     else{
@@ -2489,12 +2524,12 @@ vcov.alm <- function(object, ...){
         nVariables <- ncol(matrixXreg);
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
-        if(class(vcovMatrixTry)=="try-error"){
+        if(any(class(vcovMatrixTry)=="try-error")){
             warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
                            "The estimate of the covariance matrix of parameters might be inaccurate."),
                     call.=FALSE);
             vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-            if(class(vcovMatrix)=="try-error"){
+            if(any(class(vcovMatrix)=="try-error")){
                 warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
                                "We failed to produce the covariance matrix of parameters."),
                         call.=FALSE);
@@ -2518,12 +2553,12 @@ vcov.alm <- function(object, ...){
         # colnames(matrixXreg) <- names(coef(object));
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
-        if(class(vcovMatrixTry)=="try-error"){
+        if(any(class(vcovMatrixTry)=="try-error")){
             warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
                            "The estimate of the covariance matrix of parameters might be inaccurate."),
                     call.=FALSE);
             vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-            if(class(vcovMatrix)=="try-error"){
+            if(any(class(vcovMatrix)=="try-error")){
                 warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
                                "We failed to produce the covariance matrix of parameters."),
                         call.=FALSE);
@@ -2540,10 +2575,10 @@ vcov.alm <- function(object, ...){
         # Form the call for alm
         newCall <- object$call;
         if(interceptIsNeeded){
-            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~."));
+            newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~."));
         }
         else{
-            newCall$formula <- as.formula(paste0(all.vars(newCall$formula)[1],"~.-1"));
+            newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~.-1"));
         }
         newCall$data <- object$data;
         newCall$subset <- object$subset;

@@ -15,7 +15,7 @@
 #' \item \link[stats]{dlnorm} - Log normal distribution,
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 #' \item \link[stats]{dchisq} - Chi-Squared Distribution,
-# \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
+#' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
 #' \item \link[stats]{dnbinom} - Negative Binomial Distribution,
@@ -192,6 +192,7 @@
 #' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
+#' @importFrom statmod dinvgauss
 #' @importFrom forecast Arima
 #' @export alm
 alm <- function(formula, data, subset, na.action,
@@ -347,10 +348,11 @@ alm <- function(formula, data, subset, na.action,
                        "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
-                       "dbcnorm"=,
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
+                       "dbcnorm"=,
+                       "dinvgauss" =,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -366,6 +368,7 @@ alm <- function(formula, data, subset, na.action,
                         "dfnorm" = abs(other),
                         "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
                         "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
+                        "dinvgauss" = sum((y[otU]-mu[otU])^2 / (mu[otU]^2*y[otU]))/obsInsample,
                         "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
                         "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
@@ -417,6 +420,7 @@ alm <- function(formula, data, subset, na.action,
                                 "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
                                 "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
                                                     lambda=fitterReturn$other, log=TRUE),
+                                "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU], dispersion=fitterReturn$scale, log=TRUE),
                                 "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                 "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
                                                         alpha=fitterReturn$other, log=TRUE),
@@ -440,6 +444,7 @@ alm <- function(formula, data, subset, na.action,
                                             "dfnorm" =,
                                             "dbcnorm" =,
                                             "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                            "dinvgauss" = obsZero*0.5*(log(pi)+1-log(2/fitterReturn$scale)),
                                             "dlaplace" =,
                                             "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
                                             "dlogis" = obsZero*2,
@@ -680,8 +685,13 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dbcnorm","dchisq","dpois","dnbinom"))){
+    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dbcnorm","dinvgauss","dchisq","dpois","dnbinom"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
+             call.=FALSE);
+    }
+
+    if(any(y==0) & any(distribution==c("dinvgauss"))){
+        stop(paste0("Zero values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
 
@@ -962,6 +972,11 @@ alm <- function(formula, data, subset, na.action,
                     BUpper <- rep(Inf,length(B));
                 }
             }
+            else if(distribution==c("dinvgauss")){
+                B <- solve(t(matrixXreg[otU,,drop=FALSE]) %*% diag(y[otU]) %*% matrixXreg[otU,,drop=FALSE]) %*% t(matrixXreg[otU,,drop=FALSE]) %*% rep(1,sum(otU));
+                BLower <- -Inf;
+                BUpper <- Inf;
+            }
             else{
                 B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
                 BLower <- -Inf;
@@ -1100,7 +1115,7 @@ alm <- function(formula, data, subset, na.action,
         }
         if(is.null(ellipsis$algorithm)){
             # if(recursiveModel){
-                algorithm <- "NLOPT_LN_BOBYQA";
+                # algorithm <- "NLOPT_LN_BOBYQA";
             # }
             # else{
                 algorithm <- "NLOPT_LN_SBPLX";
@@ -1244,6 +1259,7 @@ alm <- function(formula, data, subset, na.action,
     yFitted[] <- switch(distribution,
                        "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
                        "dnorm" =,
+                       "dinvgauss" =,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -1271,6 +1287,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnorm" =,
                        "dnbinom" =,
                        "dpois" = y - mu,
+                       "dinvgauss" = y / mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm"= log(y) - mu,
                        "dbcnorm"= bcTransform(y,lambda) - mu,
@@ -1330,14 +1347,15 @@ alm <- function(formula, data, subset, na.action,
     if(vcovProduce){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        method.args <- list(eps=1e-4, d=0.1, r=4)
+        method.args <- list(eps=1e-4, d=0.1, r=4);
         # if(CDF){
         #     method.args <- list(d=1e-6, r=6);
         # }
         # else{
         #     if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
-        #         method.args <- list(d=1e-6, r=6);
-        #     }
+        if(distribution==c("dinvgauss")){
+            method.args <- list(d=1e-6, r=6);
+        }
         #     else{
         #         method.args <- list(d=1e-4, r=4);
         #     }
