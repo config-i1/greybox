@@ -5,6 +5,7 @@ Changes:
 * plot.greybox() now also produces LOWESS lines on the scatterplots. There is a parameters that regulates this.
 * A bit of tuning of plot.greybox() graphs.
 * Inverse Gaussian distribution for alm() is now available. Not all the methods work okay yet. Predictions might be off.
+* Legend for tableplot() is now by default FALSE.
 
 Bugfixes:
 * alm() would be stuck in some cases, when determination returns NaNs.

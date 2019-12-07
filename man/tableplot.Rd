@@ -4,7 +4,7 @@
 \alias{tableplot}
 \title{Construct a plot for categorical variable}
 \usage{
-tableplot(x, y = NULL, labels = TRUE, legend = TRUE, ...)
+tableplot(x, y = NULL, labels = TRUE, legend = FALSE, ...)
 }
 \arguments{
 \item{x}{First categorical variable. Can be either vector, factor, matrix or a data
@@ -16,7 +16,8 @@ plotted.}
 
 \item{labels}{Whether to print table labels inside the plot or not.}
 
-\item{legend}{If \code{TRUE}, then the legend for the tableplot is drawn.}
+\item{legend}{If \code{TRUE}, then the legend for the tableplot is drawn. The plot is
+then produced on a separate canvas (new \code{par()}).}
 
 \item{...}{Other parameters passed to the plot function.}
 }

@@ -19,7 +19,8 @@
 #' @param y Second categorical variable. If not provided, then only \code{x} will be
 #' plotted.
 #' @param labels Whether to print table labels inside the plot or not.
-#' @param legend If \code{TRUE}, then the legend for the tableplot is drawn.
+#' @param legend If \code{TRUE}, then the legend for the tableplot is drawn. The plot is
+#' then produced on a separate canvas (new \code{par()}).
 #' @param ... Other parameters passed to the plot function.
 #'
 #' @return Function does not return anything. It just plots things.
@@ -32,7 +33,7 @@
 #'
 #' @importFrom utils head tail
 #' @export tableplot
-tableplot <- function(x, y=NULL, labels=TRUE, legend=TRUE, ...){
+tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
     ellipsis <- list(...);
 
     if(is.null(y)){
