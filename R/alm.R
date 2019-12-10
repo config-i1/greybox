@@ -422,8 +422,6 @@ alm <- function(formula, data, subset, na.action,
                                                     lambda=fitterReturn$other, log=TRUE),
                                 "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
                                                         dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
-                                # "dinvgauss" = dinvgauss(y[otU]/fitterReturn$mu[otU], mean=1, dispersion=fitterReturn$scale, log=TRUE),
-                                # "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU], dispersion=fitterReturn$scale, log=TRUE),
                                 "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                 "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
                                                         alpha=fitterReturn$other, log=TRUE),
@@ -447,7 +445,7 @@ alm <- function(formula, data, subset, na.action,
                                             "dfnorm" =,
                                             "dbcnorm" =,
                                             "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                            "dinvgauss" = obsZero*0.5*(log(pi)+1-log(2/fitterReturn$scale)),
+                                            "dinvgauss" = obsZero*0.5*(log(pi)+1-suppressWarnings(log(2/fitterReturn$scale))),
                                             "dlaplace" =,
                                             "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
                                             "dlogis" = obsZero*2,
@@ -693,7 +691,7 @@ alm <- function(formula, data, subset, na.action,
              call.=FALSE);
     }
 
-    if(any(y==0) & any(distribution==c("dinvgauss"))){
+    if(any(y==0) & any(distribution==c("dinvgauss")) & !occurrenceModel){
         stop(paste0("Zero values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }

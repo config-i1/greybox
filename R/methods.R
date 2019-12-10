@@ -692,7 +692,20 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         greyboxForecast$scale <- sigma;
     }
     else if(object$distribution=="dinvgauss"){
-        greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
+        # This is a multiplicative model, so the variance is different
+        # if(interval=="p"){
+        #     residualsVariance <- sigma(object)^2;
+        #     greyboxForecast$variance[] <- greyboxForecast$variance - residualsVariance;
+        #     greyboxForecast$variance[] <- (greyboxForecast$variance * (residualsVariance+1) +
+        #                                        residualsVariance * greyboxForecast$mean^2);
+        # }
+        # greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
+        if(interval=="p"){
+            greyboxForecast$scale <- object$scale;
+        }
+        else if(interval=="c"){
+            greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
+        }
         if(interval!="n"){
             greyboxForecast$lower[] <- greyboxForecast$mean*qinvgauss(levelLow,mean=1,
                                                                       dispersion=greyboxForecast$scale);
@@ -1617,10 +1630,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(is.alm(x$occurrence)){
-            ellipsis$x <- ellipsis$x[ellipsis$y!=0];
-            ellipsis$y <- ellipsis$y[ellipsis$y!=0];
+            ellipsis$x <- ellipsis$x[actuals(x$occurrence)!=0];
+            ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
         }
-        ellipsis$y[] <- ellipsis$y;
 
         if(!any(names(ellipsis)=="main")){
             ellipsis$main <- paste0(yName," Residuals vs Fitted");
@@ -1648,11 +1660,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
                           "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
                           "ds"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                          # The next one is not correct...
-                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1, dispersion=x$scale),
+                          # In the next one, the scale is debiased, taking n-k into account
+                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
+                                                dispersion=x$scale * nobs(x) / (nobs(x)-nparam(x))),
                           qnorm(c((1-level)/2, (1+level)/2), 0, 1));
-        outliers <- which(ellipsis$y >zValues[2] | ellipsis$y < zValues[1]);
-        cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
+        outliers <- which(ellipsis$y >zValues[2] | ellipsis$y <zValues[1]);
+        # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
         if(!any(names(ellipsis)=="ylim")){
             ellipsis$ylim <- range(c(ellipsis$y,zValues));
@@ -1747,7 +1760,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         ellipsis$y <- residuals(x);
         if(is.alm(x$occurrence)){
-            ellipsis$y <- ellipsis$y[ellipsis$y!=0];
+            ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
         }
 
         if(!any(names(ellipsis)=="xlab")){
@@ -2280,17 +2293,24 @@ rstandard.greybox <- function(model, ...){
     obs <- nobs(model);
     df <- obs - nparam(model);
     errors <- residuals(model);
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
-        return((errors - mean(errors)) / sqrt(sum(residuals(model)^2) / df));
-    }
-    else if(model$distribution=="ds"){
-            return((errors - mean(errors)) / (model$scale * obs / df)^2);
-    }
-    else if(model$distribution=="dinvgauss"){
-            return(errors / mean(errors));
+    # If this is an occurrence model, then only modify the non-zero obs
+    if(is.alm(model$occurrence)){
+        residsToGo <- actuals(model$occurrence)!=0;
     }
     else{
-        return((errors - mean(errors)) / model$scale * obs / df);
+        residsToGo <- c(1:obs);
+    }
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
+        return((errors - mean(errors[residsToGo])) / sqrt(sum(residuals(model)^2) / df));
+    }
+    else if(model$distribution=="ds"){
+            return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
+    }
+    else if(model$distribution=="dinvgauss"){
+            return(errors / mean(errors[residsToGo]));
+    }
+    else{
+        return((errors - mean(errors[residsToGo])) / model$scale * obs / df);
     }
 }
 
@@ -2301,39 +2321,46 @@ rstudent.greybox <- function(model, ...){
     df <- obs - nparam(model) - 1;
     rstudentised <- errors <- residuals(model);
     errors[] <- errors - mean(errors);
+    # If this is an occurrence model, then only modify the non-zero obs
+    if(is.alm(model$occurrence)){
+        residsToGo <- actuals(model$occurrence)!=0;
+    }
+    else{
+        residsToGo <- c(1:obs);
+    }
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
         }
     }
     else if(model$distribution=="ds"){
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
         }
     }
     else if(model$distribution=="dlaplace"){
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(abs(errors[-i])) / df);
         }
     }
     else if(model$distribution=="dalaplace"){
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(errors[-i] * (model$other$alpha - (errors[-i]<=0)*1)) / df);
         }
     }
     else if(model$distribution=="dlogis"){
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
         }
     }
     else if(model$distribution=="dinvgauss"){
         errors[] <- residuals(model);
-        for(i in 1:obs){
-            rstudentised[i] <- errors[i] / mean(errors[-i]);
+        for(i in residsToGo){
+            rstudentised[i] <- errors[i] / mean(errors[residsToGo][-i]);
         }
     }
     else{
-        for(i in 1:obs){
+        for(i in residsToGo){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
         }
     }

@@ -1,10 +1,10 @@
-greybox v0.5.7 (Release data: 2019-12-04)
+greybox v0.5.7 (Release data: 2019-12-10)
 ==============
 
 Changes:
 * plot.greybox() now also produces LOWESS lines on the scatterplots. There is a parameters that regulates this.
 * A bit of tuning of plot.greybox() graphs.
-* Inverse Gaussian distribution for alm() is now available. Not all the methods work okay yet. Predictions might be off.
+* Inverse Gaussian distribution for alm() is now available and works okay. Note that this is a non-conventional model. Check vignette for alm() function.
 * Legend for tableplot() is now by default FALSE.
 
 Bugfixes:

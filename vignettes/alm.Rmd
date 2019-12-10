@@ -240,8 +240,9 @@ This group includes:
 
 1. [Log Normal distribution](#lnormal),
 2. [Box-Cox Normal distribution](#bcnormal),
-3. [Folded Normal distribution](#fnormal),
-4. [Noncentral Chi Squared distribution](#chisq).
+3. [Inverse Gaussian distribution](#invgauss),
+4. [Folded Normal distribution](#fnormal),
+5. [Noncentral Chi Squared distribution](#chisq).
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
 
@@ -284,6 +285,23 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 \end{equation}
 
 `alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$.
+
+### Inverse Gaussian distribution {#invgauss}
+Inverse Gaussian distribution is an interesting distribution, which is defined for positive values only and has some properties similar to the properties of the Normal distribution. It has two parameters: location $\mu_t$ and scale $\phi$ (aka "dispersion"). There are different ways to parameterise this distribution, we use the dispersion-based one. The important thing that distincts the implementation in `alm()` from the one in `glm()` or in any other function is that we assume that the model has the following form:
+\begin{equation} \label{eq:InverseGaussianModel}
+    y_t = \mu_t \times \epsilon_t 
+\end{equation}
+and that $\epsilon_t \sim \mathcal{IG}(1, \phi)$. This means that $y_t \sim \mathcal{IG}\left(\mu_t, \frac{\phi}{\mu_t} \right)$, implying that the dispersion of the model changes together with the expectation. The density function for the error term in this case is:
+\begin{equation} \label{eq:InverseGaussian}
+    f(\epsilon_t) = \frac{1}{\sqrt{2 \pi \phi \epsilon_t^3}} \exp \left( -\frac{\left(\epsilon_t - 1 \right)^2}{2 \phi \epsilon_t} \right) ,
+\end{equation}
+where the dispersion parameter is estimated via maximising the likelihood and is calculated using:
+\begin{equation} \label{eq:InverseGaussianDispersion}
+    \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \frac{\left(\epsilon_t - 1 \right)^2}{\epsilon_t} .
+\end{equation}
+One of the main issues in this formulation is that we are dealing with a mixed model, where $\mu_t$ is an additive term and $\epsilon_t$ is the multiplicative one. In many cases this should be okay, but in theory the model might fail in the holdout sample, when unobserved values of explanatory variables are used. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution.
+
+`alm()` with `distribution="dinvgauss"` estimates the density for $y_t$ using `dinvgauss()` function from `statmod` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the dispersion $\phi$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qinvgauss()` function from the `statmod` package.
 
 ### Folded Normal distribution {#fnormal}
 Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
