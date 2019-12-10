@@ -1,11 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "29 October 2019"
+date: "10 December 2019"
 output: html_document
 ---
 ## Version
-This is the release of the package ``greybox``, v0.5.6
+This is the release of the package ``greybox``, v0.5.7
+
+# Comments from the maintainer
+This release fixes the issue with class(object) returing c("matrix","array") for matrices in the recent release of R.
 
 # Test environments
 * local ubuntu 19.04, R 3.6.1
