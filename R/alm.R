@@ -368,7 +368,7 @@ alm <- function(formula, data, subset, na.action,
                         "dfnorm" = abs(other),
                         "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
                         "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
-                        "dinvgauss" = sum((y[otU]-mu[otU])^2 / (mu[otU]^2*y[otU]))/obsInsample,
+                        "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
                         "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
                         "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
@@ -420,7 +420,10 @@ alm <- function(formula, data, subset, na.action,
                                 "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
                                 "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
                                                     lambda=fitterReturn$other, log=TRUE),
-                                "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU], dispersion=fitterReturn$scale, log=TRUE),
+                                "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+                                                        dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+                                # "dinvgauss" = dinvgauss(y[otU]/fitterReturn$mu[otU], mean=1, dispersion=fitterReturn$scale, log=TRUE),
+                                # "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU], dispersion=fitterReturn$scale, log=TRUE),
                                 "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                 "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
                                                         alpha=fitterReturn$other, log=TRUE),
@@ -971,11 +974,6 @@ alm <- function(formula, data, subset, na.action,
                     BLower <- c(0,rep(-Inf,length(B)-1));
                     BUpper <- rep(Inf,length(B));
                 }
-            }
-            else if(distribution==c("dinvgauss")){
-                B <- solve(t(matrixXreg[otU,,drop=FALSE]) %*% diag(y[otU]) %*% matrixXreg[otU,,drop=FALSE]) %*% t(matrixXreg[otU,,drop=FALSE]) %*% rep(1,sum(otU));
-                BLower <- -Inf;
-                BUpper <- Inf;
             }
             else{
                 B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;

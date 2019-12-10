@@ -227,7 +227,7 @@ pointLik.alm <- function(object, ...){
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambda, log=TRUE),
-                            "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale, log=TRUE),
+                            "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
@@ -250,7 +250,7 @@ pointLik.alm <- function(object, ...){
                                    "dfnorm" =,
                                    "dbcnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
-                                   "dinvgauss" = 0.5*(log(pi)+1-log(2*scale)),
+                                   "dinvgauss" = 0.5*(log(pi)+1-log(2/scale)),
                                    "dlaplace" =,
                                    "dalaplace" = (1 + log(2*scale)),
                                    "dlogis" = 2,
@@ -694,8 +694,10 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dinvgauss"){
         greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
         if(interval!="n"){
-            greyboxForecast$lower[] <- qinvgauss(levelLow,mean=greyboxForecast$mean,dispersion=greyboxForecast$scale);
-            greyboxForecast$upper[] <- qinvgauss(levelUp,mean=greyboxForecast$mean,dispersion=greyboxForecast$scale);
+            greyboxForecast$lower[] <- greyboxForecast$mean*qinvgauss(levelLow,mean=1,
+                                                                      dispersion=greyboxForecast$scale);
+            greyboxForecast$upper[] <- greyboxForecast$mean*qinvgauss(levelUp,mean=1,
+                                                                      dispersion=greyboxForecast$scale);
         }
     }
     else if(object$distribution=="dlogis"){
@@ -1647,10 +1649,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
                           "ds"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                           # The next one is not correct...
-                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1, shape=1),
+                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1, dispersion=x$scale),
                           qnorm(c((1-level)/2, (1+level)/2), 0, 1));
-        outliers <- which(abs(ellipsis$y)>zValues[2]);
-        # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
+        outliers <- which(ellipsis$y >zValues[2] | ellipsis$y < zValues[1]);
+        cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
         if(!any(names(ellipsis)=="ylim")){
             ellipsis$ylim <- range(c(ellipsis$y,zValues));
