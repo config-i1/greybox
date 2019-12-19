@@ -1,3 +1,10 @@
+greybox v0.5.8 (Release data: 2019-12-19)
+==============
+
+Changes:
+* assoc() function now has a method parameter, which allows to force the function to use specific measure of association.
+
+
 greybox v0.5.7 (Release data: 2019-12-10)
 ==============
 

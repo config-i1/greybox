@@ -6,10 +6,12 @@
 \title{Measures of association}
 \usage{
 association(x, y = NULL, use = c("na.or.complete", "complete.obs",
-  "everything", "all.obs"))
+  "everything", "all.obs"), method = c("auto", "pearson", "spearman",
+  "kendall", "cramer"))
 
 assoc(x, y = NULL, use = c("na.or.complete", "complete.obs",
-  "everything", "all.obs"))
+  "everything", "all.obs"), method = c("auto", "pearson", "spearman",
+  "kendall", "cramer"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix}
@@ -18,6 +20,19 @@ assoc(x, y = NULL, use = c("na.or.complete", "complete.obs",
 
 \item{use}{What observations to use. See \link[stats]{cor} function for details.
 The only option that is not available here is \code{"pairwise.complete.obs"}.}
+
+\item{method}{Which method to use for the calculation of measures of association.
+By default this is \code{"auto"}, which means that the function will use:
+\link[stats]{cor}, \link[greybox]{mcor} or \link[greybox]{cramer} - depending on
+the scales of variables. The other options force the function to use one and
+the same method for all the variables:
+\itemize{
+\item \code{"pearson"} - Pearson's correlation coefficient using \link[stats]{cor};
+\item \code{"spearman"} - Spearman's correlation coefficient based on \link[stats]{cor};
+\item \code{"kendall"} - Kendall's correlation coefficient via \link[stats]{cor};
+\item \code{"cramer"} - Cramer's V using \link[greybox]{cramer};
+}
+Be aware that the wrong usage of measures of association might give misleading results.}
 }
 \value{
 The following list of values is returned:
