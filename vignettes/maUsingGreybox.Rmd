@@ -95,6 +95,8 @@ print(assocValues,digits=2)
 
 One thing to note is that the function considers numerical variables as categorical, when they only have up to 10 unique values. This is useful in case of number of gears in the dataset.
 
+In addition, there is a parameter `method` in the function, which forces it to apply a specific measure of association to all the variables. This can be either Pearson / Spearman / Kendall correlation (using `cor.test()` function) or Cramer's V (`cramer()` function from `greybox`). Note however, that it won't work with factors in case of forcing `cor.test()` and might not be meaningful, when applied to variables in some scales (e.g. correlation does not make sense between price and colour).
+
 
 ## Plots of association between several variables
 Similarly to the problem with `cor()`, scatterplot matrix (produced using `plot()`) is not meaningful in case of a mixture of variables:
