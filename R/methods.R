@@ -2077,6 +2077,22 @@ print.association <- function(x, ...){
 }
 
 #' @export
+print.pcor <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    cat("Partial correlations: ")
+    cat("\nvalues:\n"); print(round(x$value,digits));
+    cat("\np-values:\n"); print(round(x$p.value,digits));
+    cat("\n");
+}
+
+#' @export
 print.cramer <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){

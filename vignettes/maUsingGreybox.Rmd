@@ -95,8 +95,16 @@ print(assocValues,digits=2)
 
 One thing to note is that the function considers numerical variables as categorical, when they only have up to 10 unique values. This is useful in case of number of gears in the dataset.
 
-In addition, there is a parameter `method` in the function, which forces it to apply a specific measure of association to all the variables. This can be either Pearson / Spearman / Kendall correlation (using `cor.test()` function) or Cramer's V (`cramer()` function from `greybox`). Note however, that it won't work with factors in case of forcing `cor.test()` and might not be meaningful, when applied to variables in some scales (e.g. correlation does not make sense between price and colour).
+In addition, there is a parameter `method` in the function, which forces it to apply a specific measure of association to all the variables. This can be either Pearson / Spearman / Kendall correlation (using `cor.test()` function) or Cramer's V (`cramer()` function from `greybox`). Note however, that it might not produce anything meaningful, when you apply the function with some methods to variables in categorical scales (e.g. correlation does not make sense between price and colour).
 
+## Partial correlations
+Sometimes you might want to get an idea of the pure correlation between two variables, `x` and `y` - the one that is free of the potential influence of other variables, for example, some variable `z`. This is called "partial correlation". It is based on the two regression models: y = b0 + b1 z + e and x = a0 + a1 z + u - and then on the calculation of the Pearson's correlations between the residuals of models, `cor(e,u)`. This is what the function `pcor()` does, using all the provided variables for `z`. It returns a matrix of partial correlations and a matrix of the respective p-values from the `cor.test()`:
+```{r pcor}
+pcorValues <- pcor(mtcars)
+print(pcorValues,digits=2)
+```
+
+These values might be useful on the stages of the variables selection.
 
 ## Plots of association between several variables
 Similarly to the problem with `cor()`, scatterplot matrix (produced using `plot()`) is not meaningful in case of a mixture of variables:
