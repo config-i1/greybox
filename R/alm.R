@@ -74,13 +74,13 @@
 #' @param vcovProduce whether to produce variance-covariance matrix of
 #' coefficients or not. This is done via hessian calculation, so might be
 #' computationally costly.
-#' @param fast if \code{FALSE}, then the function won't check whether
+#' @param fast if \code{TRUE}, then the function won't check whether
 #' the data has variability and whether the regressors are correlated. Might
 #' cause trouble, especially in cases of multicollinearity.
 #' @param ... additional parameters to pass to distribution functions. This
 #' includes: \code{alpha} value for Asymmetric Laplace distribution,
 #' \code{size} for the Negative Binomial or \code{df} for the Chi-Squared and
-#' Student's t. You can also pass two parameters to the optimiser: 1.
+#' Student's t. You can also pass parameters to the optimiser: 1.
 #' \code{maxeval} - maximum number of evaluations to carry out (default is
 #' 100); 2. \code{xtol_rel} - the precision of the optimiser (the default is
 #' 1E-6); 3. \code{algorithm} - the algorithm to use in optimisation
@@ -203,7 +203,7 @@ alm <- function(formula, data, subset, na.action,
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
                 ar=0, i=0,
-                parameters=NULL, vcovProduce=FALSE, fast=TRUE, ...){
+                parameters=NULL, vcovProduce=FALSE, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     cl <- match.call();
