@@ -5,7 +5,7 @@
 \title{Partial correlations}
 \usage{
 pcor(x, y = NULL, use = c("na.or.complete", "complete.obs",
-  "everything", "all.obs"))
+  "everything", "all.obs"), method = c("pearson", "spearman", "kendall"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix with numeric values.}
@@ -14,12 +14,17 @@ pcor(x, y = NULL, use = c("na.or.complete", "complete.obs",
 
 \item{use}{What observations to use. See \link[stats]{cor} function for details.
 The only option that is not available here is \code{"pairwise.complete.obs"}.}
+
+\item{method}{Which method to use for the calculation of the partial correlations.
+This can be either Pearson's, Spearman's or Kendall's coefficient. See \link[stats]{cor}
+for details.}
 }
 \value{
 The following list of values is returned:
 \itemize{
 \item{value - Matrix of the coefficients of partial correlations;}
-\item{p.value - The p-values for the parameters.}
+\item{p.value - The p-values for the parameters;}
+\item{method - The method used in the calculations.}
 }
 }
 \description{
@@ -36,8 +41,7 @@ pcor(mtcars)
 
 }
 \seealso{
-\code{\link[greybox]{mcor}, \link[greybox]{spread}, \link[greybox]{cramer},
-\link[greybox]{association}}
+\code{\link[greybox]{mcor}, \link[greybox]{cramer}, \link[greybox]{association}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

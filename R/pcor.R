@@ -13,24 +13,29 @@
 #' @param y The numerical variable.
 #' @param use What observations to use. See \link[stats]{cor} function for details.
 #' The only option that is not available here is \code{"pairwise.complete.obs"}.
+#' @param method Which method to use for the calculation of the partial correlations.
+#' This can be either Pearson's, Spearman's or Kendall's coefficient. See \link[stats]{cor}
+#' for details.
 #'
 #' @return The following list of values is returned:
 #' \itemize{
 #' \item{value - Matrix of the coefficients of partial correlations;}
-#' \item{p.value - The p-values for the parameters.}
+#' \item{p.value - The p-values for the parameters;}
+#' \item{method - The method used in the calculations.}
 #' }
 #'
-#' @seealso \code{\link[greybox]{mcor}, \link[greybox]{spread}, \link[greybox]{cramer},
-#' \link[greybox]{association}}
+#' @seealso \code{\link[greybox]{mcor}, \link[greybox]{cramer}, \link[greybox]{association}}
 #'
 #' @examples
 #'
 #' pcor(mtcars)
 #'
 #' @export pcor
-pcor <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","all.obs")){
+pcor <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","all.obs"),
+                 method=c("pearson","spearman","kendall")){
 
     use <- match.arg(use,c("na.or.complete","complete.obs","everything","all.obs"));
+    method <- match.arg(method,c("pearson","spearman","kendall"));
     # everything - returns NA if NA
     # all.obs - returns error if NA
     # complete.obs - NAs are removed, returns an error if nothing is left
@@ -108,7 +113,7 @@ pcor <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","
             namesData <- namesX;
         }
         else{
-            return(structure(list(value=1, p.value=1),class="pcor"));
+            return(structure(list(value=1, p.value=1, method=method),class="pcor"));
         }
     }
 
@@ -130,8 +135,9 @@ pcor <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","
 
                 model1 <- .lm.fit(data[,-c(i,j),drop=FALSE],data[,i,drop=FALSE]);
                 model2 <- .lm.fit(data[,-c(i,j),drop=FALSE],data[,j,drop=FALSE]);
-                matrixAssociation[i,j] <- cor(residuals(model1),residuals(model2),use=use,method="p");
-                matrixPValues[i,j] <- cor.test(residuals(model1),residuals(model2),method="p")$p.value;
+                corOutput <- suppressWarnings(cor.test(residuals(model1),residuals(model2),method=method));
+                matrixAssociation[i,j] <- corOutput$estimate;
+                matrixPValues[i,j] <- corOutput$p.value;
             }
         }
 
@@ -145,12 +151,13 @@ pcor <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everything","
             for(i in 1:nVariablesX){
                 model1 <- .lm.fit(cbind(x[,-i,drop=FALSE],y[,-j,drop=FALSE]),y[,j,drop=FALSE]);
                 model2 <- .lm.fit(cbind(x[,-i,drop=FALSE],y[,-j,drop=FALSE]),x[,i,drop=FALSE]);
-                matrixAssociation[j,i] <- cor(residuals(model1),residuals(model2),use=use,method="p");
-                matrixPValues[j,i] <- cor.test(residuals(model1),residuals(model2),method="p")$p.value;
+                corOutput <- suppressWarnings(cor.test(residuals(model1),residuals(model2),method=method));
+                matrixAssociation[j,i] <- corOutput$estimate;
+                matrixPValues[j,i] <- corOutput$p.value;
             }
         }
     }
 
-    return(structure(list(value=matrixAssociation, p.value=matrixPValues, type=NULL),
+    return(structure(list(value=matrixAssociation, p.value=matrixPValues, method=method),
                      class="pcor"));
 }

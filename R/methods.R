@@ -2086,7 +2086,7 @@ print.pcor <- function(x, ...){
         digits <- ellipsis$digits;
     }
 
-    cat("Partial correlations: ")
+    cat(paste0("Partial correlations using ",x$method," method: "))
     cat("\nvalues:\n"); print(round(x$value,digits));
     cat("\np-values:\n"); print(round(x$p.value,digits));
     cat("\n");
