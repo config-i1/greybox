@@ -63,8 +63,6 @@
 #' }
 #'
 #' @rdname bcnorm-distribution
-
-#' @rdname bcnorm-distribution
 #' @importFrom stats dnorm pnorm qnorm rnorm
 #' @export dbcnorm
 dbcnorm <- function(q, mu=0, sigma=1, lambda=0, log=FALSE){

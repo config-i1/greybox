@@ -56,8 +56,6 @@
 #'
 #' @rdname s-distribution
 #' @importFrom stats optimize runif
-#'
-#' @rdname s-distribution
 #' @export ds
 #' @aliases ds
 ds <- function(q, mu=0, scale=1, log=FALSE){

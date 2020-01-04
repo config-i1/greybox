@@ -74,8 +74,6 @@
 #' }
 #'
 #' @rdname alaplace-distribution
-
-#' @rdname alaplace-distribution
 #' @export dalaplace
 #' @aliases dalaplace
 dalaplace <- function(q, mu=0, scale=1, alpha=0.5, log=FALSE){

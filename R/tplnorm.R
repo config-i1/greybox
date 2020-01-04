@@ -62,8 +62,6 @@
 #' }
 #'
 #' @rdname tplnorm-distribution
-
-#' @rdname tplnorm-distribution
 #' @importFrom stats plnorm qlnorm rlnorm
 #' @export dtplnorm
 dtplnorm <- function(q, mu=0, sigma=1, shift=0, log=FALSE){

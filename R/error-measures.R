@@ -119,9 +119,6 @@
 #' ### Also, see pinball function for other measures for the intervals
 #'
 #' @rdname error-measures
-
-
-#' @rdname error-measures
 #' @export MAE
 #' @aliases MAE
 MAE <- function(actual,forecast){

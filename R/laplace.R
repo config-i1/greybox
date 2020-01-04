@@ -57,8 +57,6 @@
 #' }
 #'
 #' @rdname laplace-distribution
-
-#' @rdname laplace-distribution
 #' @export dlaplace
 #' @aliases dlaplace
 dlaplace <- function(q, mu=0, scale=1, log=FALSE){

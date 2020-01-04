@@ -57,8 +57,6 @@
 #' }
 #'
 #' @rdname fnorm-distribution
-
-#' @rdname fnorm-distribution
 #' @importFrom stats optim pnorm qnorm rnorm
 #' @export dfnorm
 dfnorm <- function(q, mu=0, sigma=1, log=FALSE){
