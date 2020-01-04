@@ -3,7 +3,6 @@
 \docType{package}
 \name{greybox}
 \alias{greybox}
-\alias{greybox-package}
 \title{Grey box}
 \description{
 Toolbox for working with multivariate models for purposes of analysis and forecasting

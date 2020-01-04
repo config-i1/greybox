@@ -51,8 +51,7 @@ RelRMSE(actual, forecast, benchmark)
 
 RelAME(actual, forecast, benchmark)
 
-RelMIS(actual, lower, upper, benchmarkLower, benchmarkUpper,
-  level = 0.95)
+RelMIS(actual, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
 
 sMSE(actual, forecast, scale)
 

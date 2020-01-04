@@ -4,9 +4,19 @@
 \alias{graphmaker}
 \title{Linear graph construction function}
 \usage{
-graphmaker(actuals, forecast, fitted = NULL, lower = NULL,
-  upper = NULL, level = NULL, legend = TRUE, cumulative = FALSE,
-  vline = TRUE, parReset = TRUE, ...)
+graphmaker(
+  actuals,
+  forecast,
+  fitted = NULL,
+  lower = NULL,
+  upper = NULL,
+  level = NULL,
+  legend = TRUE,
+  cumulative = FALSE,
+  vline = TRUE,
+  parReset = TRUE,
+  ...
+)
 }
 \arguments{
 \item{actuals}{The vector of actual values}

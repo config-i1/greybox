@@ -4,10 +4,16 @@
 \alias{lmDynamic}
 \title{Combine regressions based on point information criteria}
 \usage{
-lmDynamic(data, ic = c("AICc", "AIC", "BIC", "BICc"),
-  bruteforce = FALSE, silent = TRUE, distribution = c("dnorm",
-  "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis", "plogis",
-  "pnorm"), parallel = FALSE, ...)
+lmDynamic(
+  data,
+  ic = c("AICc", "AIC", "BIC", "BICc"),
+  bruteforce = FALSE,
+  silent = TRUE,
+  distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq", "dlogis",
+    "plogis", "pnorm"),
+  parallel = FALSE,
+  ...
+)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and

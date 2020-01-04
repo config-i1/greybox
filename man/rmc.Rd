@@ -4,8 +4,14 @@
 \alias{rmc}
 \title{Regression for Multiple Comparison}
 \usage{
-rmc(data, distribution = c("dlnorm", "dnorm", "dfnorm"), level = 0.95,
-  outplot = c("mcb", "lines", "none"), select = NULL, ...)
+rmc(
+  data,
+  distribution = c("dlnorm", "dnorm", "dfnorm"),
+  level = 0.95,
+  outplot = c("mcb", "lines", "none"),
+  select = NULL,
+  ...
+)
 }
 \arguments{
 \item{data}{Matrix or data frame with observations in rows and variables in

@@ -4,8 +4,12 @@
 \alias{xregTransformer}
 \title{Exogenous variables transformer}
 \usage{
-xregTransformer(xreg, functions = c("log", "exp", "inv", "sqrt",
-  "square"), silent = TRUE, ...)
+xregTransformer(
+  xreg,
+  functions = c("log", "exp", "inv", "sqrt", "square"),
+  silent = TRUE,
+  ...
+)
 }
 \arguments{
 \item{xreg}{Vector / matrix / data.frame, containing variables that need
