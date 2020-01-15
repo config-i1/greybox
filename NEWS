@@ -7,6 +7,8 @@ Changes:
 * New function pcor() - partial correlations.
 * Both assoc() and pcor() now give warnings in cases with categorical variables and pearson / spearman / kendall correlations. They will also convert the factors into the numeric values in order to be able to proceed with calculations.
 * And a minor optimisation in assoc() - it now fully relies on cor.test(), ignoring cor() function.
+* Use NumDeriv for the calculation of Hessian for plogis and pnorm.
+* Use non-MLE variance in the calculation of vcov in case of mixture distribution models.
 
 
 greybox v0.5.7 (Release data: 2019-12-10)

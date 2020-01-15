@@ -435,8 +435,8 @@ confint.alm <- function(object, parm, level=0.95, ...){
     paramQuantiles <- qt((1+level)/2,df=object$df.residual);
 
     # We can use normal distribution, because of the asymptotics of MLE
-    confintValues <- cbind(parameters-qt((1+level)/2,df=object$df.residual)*parametersSE,
-                           parameters+qt((1+level)/2,df=object$df.residual)*parametersSE);
+    confintValues <- cbind(parameters-paramQuantiles*parametersSE,
+                           parameters+paramQuantiles*parametersSE);
     confintNames <- c(paste0((1-level)/2*100,"%"),
                                  paste0((1+level)/2*100,"%"));
     colnames(confintValues) <- confintNames;
@@ -2387,6 +2387,7 @@ rstudent.greybox <- function(model, ...){
 #' @export
 sigma.greybox <- function(object, ...){
     return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
+    # return(sqrt(sum(residuals(object)^2)/(nobs(object, ...)-nparam(object))));
 }
 
 #' @export
@@ -2558,8 +2559,7 @@ vcov.alm <- function(object, ...){
 
     interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
 
-    if(iOrderNone & any(object$distribution==c("dlnorm","dbcnorm","plogis","pnorm"))){
-        # This is based on the underlying normal distribution of logit / probit model
+    if(iOrderNone & any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
         matrixXreg <- object$data[object$subset,-1,drop=FALSE];
         if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
@@ -2584,38 +2584,40 @@ vcov.alm <- function(object, ...){
         else{
             vcovMatrix <- vcovMatrixTry;
         }
-        vcov <- object$scale^2 * vcovMatrix;
+        # vcov <- object$scale^2 * vcovMatrix;
+        vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
         rownames(vcov) <- colnames(vcov) <- names(coef(object));
     }
-    else if(iOrderNone & (object$distribution=="dnorm")){
-        # matrixXreg <- model.matrix(formula(object),data=object$data);
-        # rownames(vcov) <- colnames(vcov) <- names(coef(object));
-        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
-        if(interceptIsNeeded){
-            matrixXreg <- cbind(1,matrixXreg);
-            colnames(matrixXreg)[1] <- "(Intercept)";
-        }
-        # colnames(matrixXreg) <- names(coef(object));
-        matrixXreg <- crossprod(matrixXreg);
-        vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
-        if(any(class(vcovMatrixTry)=="try-error")){
-            warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inaccurate."),
-                    call.=FALSE);
-            vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-            if(any(class(vcovMatrix)=="try-error")){
-                warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
-                               "We failed to produce the covariance matrix of parameters."),
-                        call.=FALSE);
-                vcovMatrix <- diag(1e+100,nVariables);
-            }
-        }
-        else{
-            vcovMatrix <- vcovMatrixTry;
-        }
-        vcov <- sigma(object)^2 * vcovMatrix;
-        rownames(vcov) <- colnames(vcov) <- names(coef(object));
-    }
+    # else if(iOrderNone & (object$distribution=="dnorm")){
+    #     # matrixXreg <- model.matrix(formula(object),data=object$data);
+    #     # rownames(vcov) <- colnames(vcov) <- names(coef(object));
+    #     matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+    #     if(interceptIsNeeded){
+    #         matrixXreg <- cbind(1,matrixXreg);
+    #         colnames(matrixXreg)[1] <- "(Intercept)";
+    #     }
+    #     # colnames(matrixXreg) <- names(coef(object));
+    #     nVariables <- ncol(matrixXreg);
+    #     matrixXreg <- crossprod(matrixXreg);
+    #     vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
+    #     if(any(class(vcovMatrixTry)=="try-error")){
+    #         warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
+    #                        "The estimate of the covariance matrix of parameters might be inaccurate."),
+    #                 call.=FALSE);
+    #         vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
+    #         if(any(class(vcovMatrix)=="try-error")){
+    #             warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
+    #                            "We failed to produce the covariance matrix of parameters."),
+    #                     call.=FALSE);
+    #             vcovMatrix <- diag(1e+100,nVariables);
+    #         }
+    #     }
+    #     else{
+    #         vcovMatrix <- vcovMatrixTry;
+    #     }
+    #     vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
+    #     rownames(vcov) <- colnames(vcov) <- names(coef(object));
+    # }
     else{
         # Form the call for alm
         newCall <- object$call;
