@@ -1587,6 +1587,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         # If the mixture distribution, then do the upper bound
         if(is.alm(x$occurrence)){
             zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
+            if(any(is.infinite(zValues$lower))){
+                zValues$lower[is.infinite(zValues$lower)] <- 0;
+            }
+            if(any(is.infinite(zValues$upper))){
+                zValues$upper[is.infinite(zValues$upper)] <- 0;
+            }
         }
         else{
             zValues <- suppressWarnings(predict(x, interval="p", level=level));
@@ -1598,7 +1604,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
             lines(zValues$lower, col="red", lty=2);
             lines(zValues$upper, col="red", lty=2);
-            polygon(c(1:length(yFitted), length(yFitted):1),
+            polygon(c(1:length(yFitted), c(length(yFitted):1)),
                     c(zValues$lower, rev(zValues$upper)),
                     col="lightgrey", border=NA, density=10);
 

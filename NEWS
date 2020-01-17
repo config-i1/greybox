@@ -13,6 +13,7 @@ Changes:
 Bugfixes:
 * alm(): AR model with provided parameters would not work correctly.
 * alm(): fixed the entropy calculation for the dinvgauss.
+* plot.greybox() did not work in case of the infinite bounds.
 
 greybox v0.5.7 (Release data: 2019-12-10)
 ==============
