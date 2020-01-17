@@ -10,6 +10,9 @@ Changes:
 * Use NumDeriv for the calculation of Hessian for plogis and pnorm.
 * Use non-MLE variance in the calculation of vcov in case of mixture distribution models.
 
+Bugfixes:
+* alm(): AR model with provided parameters would not work correctly.
+* alm(): fixed the entropy calculation for the dinvgauss.
 
 greybox v0.5.7 (Release data: 2019-12-10)
 ==============

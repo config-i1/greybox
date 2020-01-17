@@ -445,7 +445,7 @@ alm <- function(formula, data, subset, na.action,
                                             "dfnorm" =,
                                             "dbcnorm" =,
                                             "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                            "dinvgauss" = obsZero*0.5*(log(pi)+1-suppressWarnings(log(2/fitterReturn$scale))),
+                                            "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
                                             "dlaplace" =,
                                             "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
                                             "dlogis" = obsZero*2,
@@ -1173,13 +1173,14 @@ alm <- function(formula, data, subset, na.action,
             ellipsis$arima <- paste0("ARIMA(",paste0(ellipsis$arima,collapse=","),")");
         }
     }
+    # If the parameters are provided
     else{
         # The data are provided, so no need to do recursive fitting
         recursiveModel <- FALSE;
         # If this was ARI, then don't count the AR parameters
-        if(ariModel){
-            nVariablesExo <- nVariablesExo - ariOrder;
-        }
+        # if(ariModel){
+        #     nVariablesExo <- nVariablesExo - ariOrder;
+        # }
         nVariables <- length(B);
         variablesNames <- names(B);
         CFValue <- CF(B, distribution, y, matrixXreg, recursiveModel);

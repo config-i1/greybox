@@ -250,7 +250,7 @@ pointLik.alm <- function(object, ...){
                                    "dfnorm" =,
                                    "dbcnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
-                                   "dinvgauss" = 0.5*(log(pi)+1-log(2/scale)),
+                                   "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
                                    "dlaplace" =,
                                    "dalaplace" = (1 + log(2*scale)),
                                    "dlogis" = 2,
