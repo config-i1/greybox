@@ -2311,7 +2311,7 @@ rstandard.greybox <- function(model, ...){
     errors <- residuals(model);
     # If this is an occurrence model, then only modify the non-zero obs
     if(is.alm(model$occurrence)){
-        residsToGo <- actuals(model$occurrence)!=0;
+        residsToGo <- which(actuals(model$occurrence)!=0);
     }
     else{
         residsToGo <- c(1:obs);
@@ -2339,7 +2339,7 @@ rstudent.greybox <- function(model, ...){
     errors[] <- errors - mean(errors);
     # If this is an occurrence model, then only modify the non-zero obs
     if(is.alm(model$occurrence)){
-        residsToGo <- actuals(model$occurrence)!=0;
+        residsToGo <- which(actuals(model$occurrence)!=0);
     }
     else{
         residsToGo <- c(1:obs);
