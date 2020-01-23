@@ -2419,6 +2419,8 @@ sigma.varest <- function(object, ...){
 
 #' @export
 summary.alm <- function(object, level=0.95, ...){
+    errors <- residuals(object);
+    obs <- nobs(object, all=TRUE);
 
     # Collect parameters and their standard errors
     parametersConfint <- confint(object, level=level);
@@ -2438,8 +2440,12 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
+    dfTable <- c(obs,nparam(object),obs-nparam(object));
     names(dfTable) <- c("n","k","df");
+
+    ourReturn$r.squared <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
+    ourReturn$adj.r.squared <- 1 - (1 - ourReturn$r.squared) * (obs - 1) / (dfTable[3]);
+
     ourReturn$dfTable <- dfTable;
     ourReturn$arima <- object$other$arima;
     ourReturn$s2 <- sigma(object)^2;
@@ -2452,6 +2458,8 @@ summary.alm <- function(object, level=0.95, ...){
 #' @export
 summary.greybox <- function(object, level=0.95, ...){
     ourReturn <- summary.lm(object, ...);
+    errors <- residuals(object);
+    obs <- nobs(object, all=TRUE);
 
     # Collect parameters and their standard errors
     parametersTable <- ourReturn$coefficients[,1:2];
@@ -2469,8 +2477,12 @@ summary.greybox <- function(object, level=0.95, ...){
     ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
-    dfTable <- c(nobs(object, all=TRUE),nparam(object),nobs(object, all=TRUE)-nparam(object));
+    dfTable <- c(obs,nparam(object),obs-nparam(object));
     names(dfTable) <- c("n","k","df");
+
+    ourReturn$r.squared <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
+    ourReturn$adj.r.squared <- 1 - (1 - ourReturn$r.squared) * (obs - 1) / (dfTable[3]);
+
     ourReturn$dfTable <- dfTable;
     ourReturn$arima <- object$other$arima;
 
@@ -2501,12 +2513,12 @@ summary.greyboxC <- function(object, level=0.95, ...){
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
 
-    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2)
-    R2Adj <- 1 - (1 - R2) * (obs - 1) / (obs - df[1]);
-
     # Table with degrees of freedom
-    dfTable <- c(nobs(object), nparam(object), object$df.residual);
+    dfTable <- c(obs, nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
+
+    R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
+    R2Adj <- 1 - (1 - R2) * (obs - 1) / (dfTable[3]);
 
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,

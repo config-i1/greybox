@@ -1,7 +1,7 @@
 identifyID <- function(y, ic="AIC"){
 
     if(all(y!=0) | all(y==0)){
-        retrn(FALSE);
+        return(FALSE);
     }
 
     # First model with normal distribution
