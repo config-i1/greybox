@@ -822,7 +822,7 @@ alm <- function(formula, data, subset, na.action,
         variablesNames <- c("(Intercept)",variablesNames);
         colnames(matrixXreg) <- variablesNames;
 
-        if(is.null(parameters)){
+        if(is.null(parameters) && !fast){
             # Check, if redundant dummies are left. Remove the first if this is the case
             determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
             determValues[is.nan(determValues)] <- 0;
