@@ -3,7 +3,7 @@
 \name{plot.greybox}
 \alias{plot.greybox}
 \alias{plot.alm}
-\title{Plots for the fit and residuals}
+\title{Plots of the fit and residuals}
 \usage{
 \method{plot}{greybox}(x, which = c(1, 2, 4, 6), level = 0.95,
   legend = FALSE, ask = prod(par("mfcol")) < length(which) &&
@@ -24,10 +24,10 @@
 \item PACF of the residuals.
 }}
 
-\item{level}{Confidence level. Defines width of prediction interval. Useful for plots (1), (2),
-(6) and (7)}
+\item{level}{Confidence level. Defines width of confidence interval. Used in plots (1), (2),
+(6) and (7).}
 
-\item{legend}{If \code{TRUE}, then the legend is produced on plots (1) and (2).}
+\item{legend}{If \code{TRUE}, then the legend is produced on plots (1), (2) and (3).}
 
 \item{ask}{Logical; if \code{TRUE}, the user is asked to press Enter before each plot.}
 
@@ -36,8 +36,7 @@
 \item{...}{The parameters passed to the plot functions. Recommended to use with separate plots.}
 }
 \value{
-The function produces 4 plots and, if \code{any(which==2)} also reports the number
-of residuals outside the bounds.
+The function produces the number of plots, specified in the parameter \code{which}.
 }
 \description{
 The function produces fitted values and plots for the residuals of the greybox functions
@@ -55,14 +54,14 @@ did not miss any important events over time;
 residuals divided by the scales with the leave-one-out approach. Should be more sensitive
 to outliers;
 \item Absolute residuals vs Fitted. Useful for the analysis of heteroscedasticity;
+\item Squared residuals vs Fitted - similar to (3), but with squared values;
 \item Q-Q plot with the specified distribution. Can be used in order to see if the
 residuals follow the assumed distribution. The type of distribution depends on the one used
 in the estimation (see \code{distribution} parameter in \link[greybox]{alm});
-\item Squared residuals vs Fitted - similar to (3), but with squared values;
 \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
 details;
 \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
-for details
+for details;
 }
 Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2, 3,
 7 and 8 also use the parameters \code{level}, which specifies the confidence level for
