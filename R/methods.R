@@ -1502,9 +1502,9 @@ plot.coef.greyboxD <- function(x, ...){
 #' \item ACF of the residuals;
 #' \item PACF of the residuals.
 #' }
-#' @param level Confidence level. Defines width of prediction interval. Useful for plots (1), (2),
-#' (6) and (7)
-#' @param legend If \code{TRUE}, then the legend is produced on plots (1) and (2).
+#' @param level Confidence level. Defines width of confidence interval. Used in plots (1), (2),
+#' (6) and (7).
+#' @param legend If \code{TRUE}, then the legend is produced on plots (1), (2) and (3).
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
 #' @param lowess Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.
 #' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.

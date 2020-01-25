@@ -30,10 +30,10 @@
 \item PACF of the residuals.
 }}
 
-\item{level}{Confidence level. Defines width of prediction interval. Useful for plots (1), (2),
-(6) and (7)}
+\item{level}{Confidence level. Defines width of confidence interval. Used in plots (1), (2),
+(6) and (7).}
 
-\item{legend}{If \code{TRUE}, then the legend is produced on plots (1) and (2).}
+\item{legend}{If \code{TRUE}, then the legend is produced on plots (1), (2) and (3).}
 
 \item{ask}{Logical; if \code{TRUE}, the user is asked to press Enter before each plot.}
 
