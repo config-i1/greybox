@@ -1461,7 +1461,7 @@ plot.coef.greyboxD <- function(x, ...){
     par(parDefault);
 }
 
-#' Plots for the fit and residuals
+#' Plots of the fit and residuals
 #'
 #' The function produces fitted values and plots for the residuals of the greybox functions
 #'
@@ -1477,14 +1477,14 @@ plot.coef.greyboxD <- function(x, ...){
 #' residuals divided by the scales with the leave-one-out approach. Should be more sensitive
 #' to outliers;
 #' \item Absolute residuals vs Fitted. Useful for the analysis of heteroscedasticity;
+#' \item Squared residuals vs Fitted - similar to (3), but with squared values;
 #' \item Q-Q plot with the specified distribution. Can be used in order to see if the
 #' residuals follow the assumed distribution. The type of distribution depends on the one used
 #' in the estimation (see \code{distribution} parameter in \link[greybox]{alm});
-#' \item Squared residuals vs Fitted - similar to (3), but with squared values;
 #' \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
 #' details;
 #' \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
-#' for details
+#' for details;
 #' }
 #' Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2, 3,
 #' 7 and 8 also use the parameters \code{level}, which specifies the confidence level for
@@ -1508,8 +1508,7 @@ plot.coef.greyboxD <- function(x, ...){
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
 #' @param lowess Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.
 #' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.
-#' @return The function produces 4 plots and, if \code{any(which==2)} also reports the number
-#' of residuals outside the bounds.
+#' @return The function produces the number of plots, specified in the parameter \code{which}.
 #'
 #' @template author
 #' @seealso \link[stats]{plot.lm}, \link[stats]{rstandard}, \link[stats]{rstudent}
@@ -2352,7 +2351,7 @@ rstudent.greybox <- function(model, ...){
     }
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
         for(i in residsToGo){
-            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
+            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
         }
     }
     else if(model$distribution=="ds"){
@@ -2383,10 +2382,10 @@ rstudent.greybox <- function(model, ...){
     }
     else{
         for(i in residsToGo){
-            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df)
+            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
         }
     }
-    return(rstudentised)
+    return(rstudentised);
 }
 
 #' @importFrom stats sigma
