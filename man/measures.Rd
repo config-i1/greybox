@@ -4,13 +4,8 @@
 \alias{measures}
 \title{Error measures for the provided forecasts}
 \usage{
-measures(
-  holdout,
-  forecast,
-  actual,
-  digits = NULL,
-  benchmark = c("naive", "mean")
-)
+measures(holdout, forecast, actual, digits = NULL, benchmark = c("naive",
+  "mean"))
 }
 \arguments{
 \item{holdout}{The vector of the holdout values.}

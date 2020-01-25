@@ -4,21 +4,11 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(
-  formula,
-  data,
-  subset,
-  na.action,
-  distribution = c("dnorm", "dlogis", "dlaplace", "dalaplace", "ds", "dt", "dfnorm",
-    "dlnorm", "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
-  occurrence = c("none", "plogis", "pnorm"),
-  ar = 0,
-  i = 0,
-  parameters = NULL,
-  vcovProduce = FALSE,
-  fast = FALSE,
-  ...
-)
+alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
+  "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dbcnorm",
+  "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
+  occurrence = c("none", "plogis", "pnorm"), ar = 0, i = 0,
+  parameters = NULL, vcovProduce = FALSE, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to

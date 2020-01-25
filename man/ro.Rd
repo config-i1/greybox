@@ -4,18 +4,8 @@
 \alias{ro}
 \title{Rolling Origin}
 \usage{
-ro(
-  data,
-  h = 10,
-  origins = 10,
-  call,
-  value = NULL,
-  ci = FALSE,
-  co = FALSE,
-  silent = TRUE,
-  parallel = FALSE,
-  ...
-)
+ro(data, h = 10, origins = 10, call, value = NULL, ci = FALSE,
+  co = FALSE, silent = TRUE, parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data vector or ts object passed to the function.}

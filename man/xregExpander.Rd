@@ -4,13 +4,9 @@
 \alias{xregExpander}
 \title{Exogenous variables expander}
 \usage{
-xregExpander(
-  xreg,
-  lags = c(-frequency(xreg):frequency(xreg)),
-  silent = TRUE,
-  gaps = c("auto", "NAs", "zero", "naive", "extrapolate"),
-  ...
-)
+xregExpander(xreg, lags = c(-frequency(xreg):frequency(xreg)),
+  silent = TRUE, gaps = c("auto", "NAs", "zero", "naive", "extrapolate"),
+  ...)
 }
 \arguments{
 \item{xreg}{Vector / matrix / data.frame, containing variables that need

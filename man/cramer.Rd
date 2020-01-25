@@ -4,11 +4,8 @@
 \alias{cramer}
 \title{Calculate Cramer's V for categorical variables}
 \usage{
-cramer(
-  x,
-  y,
-  use = c("na.or.complete", "complete.obs", "everything", "all.obs")
-)
+cramer(x, y, use = c("na.or.complete", "complete.obs", "everything",
+  "all.obs"))
 }
 \arguments{
 \item{x}{First categorical variable.}

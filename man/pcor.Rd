@@ -4,12 +4,8 @@
 \alias{pcor}
 \title{Partial correlations}
 \usage{
-pcor(
-  x,
-  y = NULL,
-  use = c("na.or.complete", "complete.obs", "everything", "all.obs"),
-  method = c("pearson", "spearman", "kendall")
-)
+pcor(x, y = NULL, use = c("na.or.complete", "complete.obs", "everything",
+  "all.obs"), method = c("pearson", "spearman", "kendall"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix with numeric values.}

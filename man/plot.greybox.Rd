@@ -5,15 +5,9 @@
 \alias{plot.alm}
 \title{Plots for the fit and residuals}
 \usage{
-\method{plot}{greybox}(
-  x,
-  which = c(1, 2, 4, 6),
-  level = 0.95,
-  legend = FALSE,
-  ask = prod(par("mfcol")) < length(which) && dev.interactive(),
-  lowess = TRUE,
-  ...
-)
+\method{plot}{greybox}(x, which = c(1, 2, 4, 6), level = 0.95,
+  legend = FALSE, ask = prod(par("mfcol")) < length(which) &&
+  dev.interactive(), lowess = TRUE, ...)
 }
 \arguments{
 \item{x}{Time series model for which forecasts are required.}

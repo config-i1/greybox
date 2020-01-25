@@ -5,19 +5,12 @@
 \alias{assoc}
 \title{Measures of association}
 \usage{
-association(
-  x,
-  y = NULL,
-  use = c("na.or.complete", "complete.obs", "everything", "all.obs"),
-  method = c("auto", "pearson", "spearman", "kendall", "cramer")
-)
+association(x, y = NULL, use = c("na.or.complete", "complete.obs",
+  "everything", "all.obs"), method = c("auto", "pearson", "spearman",
+  "kendall", "cramer"))
 
-assoc(
-  x,
-  y = NULL,
-  use = c("na.or.complete", "complete.obs", "everything", "all.obs"),
-  method = c("auto", "pearson", "spearman", "kendall", "cramer")
-)
+assoc(x, y = NULL, use = c("na.or.complete", "complete.obs", "everything",
+  "all.obs"), method = c("auto", "pearson", "spearman", "kendall", "cramer"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix}
