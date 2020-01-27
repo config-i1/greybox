@@ -1,10 +1,12 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 0.5.8.41007
-Date: 2020-01-24
-Authors@R: person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
-                  comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK")
+Version: 0.5.8.41008
+Date: 2020-01-27
+Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
+                  comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
+             person("Yves R.", "Sagaert", role = c("ctb"),
+                  comment="Visiting Research at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"))
 URL: https://github.com/config-i1/greybox
 BugReports: https://github.com/config-i1/greybox/issues
 Language: en-GB
