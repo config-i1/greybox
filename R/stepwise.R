@@ -331,7 +331,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel$logLik <- logLik(bestModel);
         bestModel$mu <- bestModel$fitted <- bestModel$data[,1] - c(bestModel$residuals);
         # This is number of variables + constant + variance
-        bestModel$df <- length(varsNames) + 1 + 1;
+        bestModel$df <- length(bestModel$coefficients) + 1;
         bestModel$df.residual <- obsInsample - bestModel$df;
         names(bestModel$coefficients) <- colnames(bestModel$qr);
         # Remove redundant bits
