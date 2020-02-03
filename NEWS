@@ -1,4 +1,4 @@
-greybox v0.5.8 (Release data: 2020-01-28)
+greybox v0.5.8 (Release data: 2020-02-03)
 ==============
 
 Changes:
@@ -10,6 +10,8 @@ Changes:
 * Use NumDeriv for the calculation of Hessian for plogis and pnorm.
 * Use non-MLE variance in the calculation of vcov in case of mixture distribution models.
 * summary() now also calculates the R^2 and R^2-adj, but does not print them out.
+* Minor improvements in speed of mcor() and determination().
+* alm() now does not reestimate parameters if distribution=c("dnorm","dlnorm").
 
 Bugfixes:
 * alm(): AR model with provided parameters would not work correctly.
@@ -17,6 +19,7 @@ Bugfixes:
 * plot.greybox() did not work in case of the infinite bounds.
 * A bugfix for lmCombine() + alm(), which caused alm() to drop some of the variables, failing the lmCombine(). Now if fast=TRUE, alm() will not do that.
 * stepwise() did not calculate the number of parameters correctly in case of distribution="dnorm" and factor variables.
+* Fix for alm() when data is not provided, but is in the environment.
 
 
 greybox v0.5.7 (Release data: 2019-12-10)

@@ -74,9 +74,8 @@ determination <- function(xreg, bruteforce=TRUE, ...){
     # Calculate the multiple determinations
     if(bruteforce & nVariables>1){
         for(i in 1:nVariables){
-            vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value);
+            vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value^2);
         }
-        vectorCorrelationsMultiple <- vectorCorrelationsMultiple^2;
     }
     else if(!bruteforce & nVariables>1){
         testXreg <- xreg;

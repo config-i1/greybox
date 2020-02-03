@@ -120,9 +120,9 @@
 #' mtcars2 <- within(mtcars, {
 #'    vs <- factor(vs, labels = c("V", "S"))
 #'    am <- factor(am, labels = c("automatic", "manual"))
-#'    cyl  <- ordered(cyl)
-#'    gear <- ordered(gear)
-#'    carb <- ordered(carb)
+#'    cyl  <- factor(cyl)
+#'    gear <- factor(gear)
+#'    carb <- factor(carb)
 #' })
 #' # The standard model with Log Normal distribution
 #' ourModel <- alm(mpg~., mtcars2[1:30,], distribution="dlnorm")
@@ -602,33 +602,36 @@ alm <- function(formula, data, subset, na.action,
     mf$drop.unused.levels <- TRUE;
     mf[[1L]] <- quote(stats::model.frame);
 
-    if(!is.data.frame(data)){
-        data <- as.data.frame(data);
-    }
-    else{
-        dataOrders <- unlist(lapply(data,is.ordered));
-        # If there is an ordered factor, remove the bloody ordering!
-        if(any(dataOrders)){
-            data[dataOrders] <- lapply(data[dataOrders],function(x) factor(x, levels=levels(x), ordered=FALSE));
-        }
-    }
-    mf$data <- data;
-
-    # If there are NaN values, remove the respective observations
-    if(any(sapply(mf$data,is.nan))){
-        warning("There are NaN values in the data. This might cause problems. Removing these observations.", call.=FALSE);
-        NonNaNValues <- !apply(sapply(mf$data,is.nan),1,any);
-        # If subset was not provided, change it
-        if(is.null(mf$subset)){
-            mf$subset <- NonNaNValues
+    # If data is provided explicitly, check it
+    if(exists("data",inherits=FALSE,mode="numeric") || exists("data",inherits=FALSE,mode="list")){
+        if(!is.data.frame(data)){
+            data <- as.data.frame(data);
         }
         else{
-            mf$subset <- NonNaNValues & mf$subset;
+            dataOrders <- unlist(lapply(data,is.ordered));
+            # If there is an ordered factor, remove the bloody ordering!
+            if(any(dataOrders)){
+                data[dataOrders] <- lapply(data[dataOrders],function(x) factor(x, levels=levels(x), ordered=FALSE));
+            }
         }
-        dataContainsNaNs <- TRUE;
-    }
-    else{
-        dataContainsNaNs <- FALSE;
+        mf$data <- data;
+
+        # If there are NaN values, remove the respective observations
+        if(any(sapply(mf$data,is.nan))){
+            warning("There are NaN values in the data. This might cause problems. Removing these observations.", call.=FALSE);
+            NonNaNValues <- !apply(sapply(mf$data,is.nan),1,any);
+            # If subset was not provided, change it
+            if(is.null(mf$subset)){
+                mf$subset <- NonNaNValues
+            }
+            else{
+                mf$subset <- NonNaNValues & mf$subset;
+            }
+            dataContainsNaNs <- TRUE;
+        }
+        else{
+            dataContainsNaNs <- FALSE;
+        }
     }
 
     responseName <- all.vars(formula)[1];
@@ -1095,6 +1098,10 @@ alm <- function(formula, data, subset, na.action,
         if(is.null(ellipsis$maxeval)){
             if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
                 maxeval <- 500;
+            }
+            # The following ones don't really need the estimation. This is for consistency only
+            else if(any(distribution==c("dnorm","dlnorm")) & !recursiveModel){
+                maxeval <- 2;
             }
             else{
                 maxeval <- 100;

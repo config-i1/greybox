@@ -35,11 +35,12 @@
 #'
 #' mcor(mtcars$am, mtcars$mpg)
 #'
-#' @importFrom stats cor.test pf
+#' @importFrom stats cor.test pf na.omit
 #' @export mcor
 mcor <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.obs")){
 
-    use <- substr(use[1],1,1);
+    # use <- substr(use[1],1,1);
+    use <- match.arg(use,c("na.or.complete","complete.obs","everything","all.obs"));
     # everything - returns NA if NA
     # all.obs - returns error if NA
     # complete.obs - NAs are removed, returns an error if nothing is left
@@ -116,22 +117,33 @@ mcor <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.o
     else{
         y <- as.matrix(y);
     }
+    obs <- length(y);
 
     # Check the presence of NAs
-    obsNAx <- apply(is.na(x),1,any);
-    obsNAy <- apply(is.na(y),1,any);
-    if(any(obsNAx) | any(obsNAy)){
-        if(use=="e"){
+    # obsNAy <- obsNAx <- vector("logical",obs);
+    # obsNAx[] <- FALSE;
+    # for(i in 1:ncol(x)){
+    #     obsNAx[] <- obsNAx[] & is.na(x[,i]);
+    # }
+    # obsNAy[] <- is.na(y);
+    obsNAy <- any(is.na(y));
+    obsNAx <- any(is.na(x));
+    # if(any(obsNAx) | any(obsNAy)){
+    if(obsNAx || obsNAy){
+        if(use=="everything"){
             return(returner(1));
         }
-        else if(use=="a"){
+        else if(use=="all.obs"){
             returner(2);
         }
-        else if(any(use==c("n","c"))){
-            x <- x[!obsNAx & !obsNAy,];
-            y <- y[!obsNAx & !obsNAy,];
+        else if(any(use==c("na.or.complete","complete.obs"))){
+            # x <- x[!obsNAx & !obsNAy,];
+            # y <- y[!obsNAx & !obsNAy,];
+            dataMatrix <- na.omit(cbind(y,x));
+            y <- dataMatrix[,1];
+            x <- dataMatrix[,-1];
             if(nrow(x)<2){
-                if(use=="c"){
+                if(use=="complete.obs"){
                     return(returner(1));
                 }
                 else{

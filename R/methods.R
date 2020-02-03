@@ -953,7 +953,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         }
 
         # Extract the formula and get rid of the response variable
-        testFormula <- formula(object)
+        testFormula <- formula(object);
         testFormula[[2]] <- NULL;
         # Expand the data frame
         newdataExpanded <- model.frame(testFormula, newdata);
