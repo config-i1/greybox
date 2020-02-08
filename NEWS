@@ -1,4 +1,4 @@
-greybox v0.5.8 (Release data: 2020-02-03)
+greybox v0.5.8 (Release data: 2020-02-08)
 ==============
 
 Changes:
@@ -12,6 +12,7 @@ Changes:
 * summary() now also calculates the R^2 and R^2-adj, but does not print them out.
 * Minor improvements in speed of mcor() and determination().
 * alm() now does not reestimate parameters if distribution=c("dnorm","dlnorm").
+* Updated vignette of alm() with more reasonable explanation of the occurrence variable.
 
 Bugfixes:
 * alm(): AR model with provided parameters would not work correctly.

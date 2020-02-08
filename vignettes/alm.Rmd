@@ -47,18 +47,18 @@ where $y_t$ is the value of the response variable, $x_t$ is the vector of exogen
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
         o_t \sim \text{Bernoulli}(p_t) \\
-        p_t = g(z_t' A, \eta_t)
+        p_t = g(z_t' A)
     \end{matrix},
 \end{equation}
-where $o_t$ is the binary variable, $p_t$ is the probability of occurrence, $z_t$ is the vector of exogenous variables, $A$ is the vector of parameters and $\eta$ is the error term for the $p_t$.
+where $o_t$ is the binary variable, $p_t$ is the probability of occurrence, $z_t$ is the vector of exogenous variables and $A$ is the vector of parameters for the $p_t$.
 
 The `alm()` function returns, along with the set of common for `lm()` variables (such as `coefficient` and `fitted.values`), the variable `mu`, which corresponds to the conditional mean used inside the distribution, and `scale` -- the second parameter, which usually corresponds to standard error or dispersion parameter. The values of these two variables vary from distribution to distribution. Note, however, that the `model` variable returned by `lm()` function was renamed into `data` in `alm()`, and that `alm()` does not return `terms` and QR decomposition.
 
 Given that the parameters of any model in `alm()` are estimated via likelihood, it can be assumed that they have asymptotically normal distribution, thus the confidence intervals for any model rely on the normality and are constructed based on the unbiased estimate of variance, extracted using `sigma()` function.
 
-The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution function. The exclusions are Normal, Log-Normal, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
+The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution function. The exclusions are Normal, Log-Normal, Poisson, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
 
-`alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cube etc levels for ordered variables, which makes the interpretation of the parameters difficult.
+`alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cubic etc levels for ordered variables, which makes the interpretation of the parameters difficult.
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
@@ -444,11 +444,11 @@ The final class of models includes two cases:
 1. [Logistic distribution (logit model)](#logit),
 2. [Normal distribution (probit model)](#probit).
 
-In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with a binary one. As a reminder, all the models eventually assume that:
+In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with the binary one. As a reminder, all the models eventually assume that:
 \begin{equation} \label{eq:basicALMCumulative}
     \begin{matrix}
         o_t \sim \text{Bernoulli}(p_t) \\
-        p_t = g(x_t' A, \eta_t)
+        p_t = g(x_t' A)
     \end{matrix},
 \end{equation}
 where $o_t$ is the binary response variable and $g(\cdot)$ is the cumulative distribution function. Given that we work with the probability of occurrence, the `predict()` method produces forecasts for the probability of occurrence rather than the binary variable itself. Finally, although many other cumulative distribution functions can be used for this transformation (e.g. `plaplace()` or `plnorm()`), the most popular ones are logistic and normal CDFs.
@@ -459,48 +459,44 @@ Given that the binary variable has Bernoulli distribution, its log-likelihood is
 \end{equation}
 So the estimation of parameters for all the CDFs can be done maximising this likelihood.
 
-In all the functions it is assumed that there is an actual level $q_t$ that underlies the probability $p_t$. This level can be modelled as:
-\begin{equation} \label{eq:CDFLevelALM}
-    q_t = \nu_t + \eta_t ,
-\end{equation}
-and it can be transformed to the probability with $p_t = g(q_t)$. So the aim of all the functions is to estimate the expectation $\nu_t$ and transform it to the estimate of the probability $\hat{p}_t$.
+In all the functions it is assumed that the probability $p_t$ corresponds to some sort of unobservable `level' $q_t = x_t' A$, and that there is no randomness in this level. So the aim of all the functions is to estimate correctly this level and then get an estimate of probability based on it.
 
-In order to estimate the error $\eta_t$, we assume that $o_t=1$ happens mainly when the respective estimated probability $\hat{p}_t$ is very close to one as well. Based on that the error can be calculated as:
+The error of the model is calculated using the observed occurrence variable and the estimated probability $\hat{p}_t$. In a way, in this calculation we assume that $o_t=1$ happens mainly when the respective estimated probability $\hat{p}_t$ is very close to one. So, the error can be calculated as:
 \begin{equation} \label{eq:BinaryError}
     u_t' = o_t - \hat{p}_t .
 \end{equation}
-However this error is not useful and should be somehow transformed into the scale of the underlying unobserved variable $q_t$. Given that both $o_t \in (0, 1)$ and $\hat{p}_t \in (0, 1)$, the error will lie in $(-1, 1)$. We therefore standardise it so that it lies in the region of $(0, 1)$:
+However this error is not useful and should be somehow transformed into the original scale of $q_t$. Given that both $o_t \in (0, 1)$ and $\hat{p}_t \in (0, 1)$, the error will lie in $(-1, 1)$. We therefore standardise it so that it lies in the region of $(0, 1)$:
 \begin{equation} \label{eq:BinaryErrorBounded}
     u_t = \frac{u_t' + 1}{2} = \frac{o_t - \hat{p}_t + 1}{2}.
 \end{equation}
 
-This transformation means that, when $o_t=\hat{p}_t$, then the error $u_t=0.5$, when $o_t=1$ and $\hat{p}_t=0$ then $u_t=1$ and finally, in the opposite case of $o_t=0$ and $\hat{p}_t=1$, it is $u_t=0$. After that this error is transformed using either Logistic or Normal quantile generation function into the scale of $q_t$, making sure that the case of $u_t=0.5$ corresponds to zero, the $u_t>0.5$ corresponds to the positive and $u_t<0.5$ corresponds to the negative errors.
+This transformation means that, when $o_t=\hat{p}_t$, then the error $u_t=0.5$, when $o_t=1$ and $\hat{p}_t=0$ then $u_t=1$ and finally, in the opposite case of $o_t=0$ and $\hat{p}_t=1$, $u_t=0$. After that this error is transformed using either Logistic or Normal quantile generation function into the scale of $q_t$, making sure that the case of $u_t=0.5$ corresponds to zero, the $u_t>0.5$ corresponds to the positive and $u_t<0.5$ corresponds to the negative errors. The distribution of the error term is unknown, but it is in general bimodal.
 
 ### Cumulative Logistic distribution {#logit}
 We have previously discussed the density function of logistic distribution. The standardised cumulative distribution function used in `alm()` is:
 \begin{equation} \label{eq:LogisticCDFALM}
-    \hat{p}_t = \frac{1}{1+\exp(-\nu_t)},
+    \hat{p}_t = \frac{1}{1+\exp(-\hat{q}_t)},
 \end{equation}
-where $\nu_t = x_t' A$ is the conditional mean of the level, underlying the probability. This value is then used in the likelihood \eqref{eq:BernoulliLikelihood} in order to estimate the parameters of the model. The error term of the model is calculated using the formula:
+where $\hat{q}_t = x_t' A$ is the conditional mean of the level, underlying the probability. This value is then used in the likelihood \eqref{eq:BernoulliLikelihood} in order to estimate the parameters of the model. The error term of the model is calculated using the formula:
 \begin{equation} \label{eq:LogisticError}
-    e_t = \log \left( \frac{u_t}{1 - u_t} \right) = \log \left( \frac{1 + o_t (1 + \exp(\nu_t))}{1 + \exp(\nu_t) (2 - o_t) - o_t} \right).
+    e_t = \log \left( \frac{u_t}{1 - u_t} \right) = \log \left( \frac{1 + o_t (1 + \exp(\hat{q}_t))}{1 + \exp(\hat{q}_t) (2 - o_t) - o_t} \right).
 \end{equation}
-This way the error varies from $-\infty$ to $\infty$ and is equal to zero, when $u_t=0.5$. The error is assumed to be normally distributed (because... why not?).
+This way the error varies from $-\infty$ to $\infty$ and is equal to zero, when $u_t=0.5$.
 
-The `alm()` function with `distribution="plogis"` returns $\nu_t$ in `mu`, standard deviation, calculated using the respective errors \eqref{eq:LogisticError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:LogisticCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term, generating respective quantiles (based on the estimated $\nu_t$ and variance of the error) and then transforming them into the scale of probability using Logistic CDF.
+The `alm()` function with `distribution="plogis"` returns $q_t$ in `mu`, standard deviation, calculated using the respective errors \eqref{eq:LogisticError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:LogisticCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term, generating respective quantiles (based on the estimated $q_t$ and variance of the error) and then transforming them into the scale of probability using Logistic CDF. *This method for intervals calculation is approximate and should not be considered as a final solution!*
 
 ### Cumulative Normal distribution {#probit}
 The case of cumulative Normal distribution is quite similar to the cumulative Logistic one. The transformation is done using the standard normal CDF:
 \begin{equation} \label{eq:NormalCDFALM}
-    \hat{p}_t = \Phi(\nu_t) = \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{\nu_t} \exp \left(-\frac{1}{2}x^2 \right) dx ,
+    \hat{p}_t = \Phi(q_t) = \frac{1}{\sqrt{2 \pi}} \int_{-\infty}^{q_t} \exp \left(-\frac{1}{2}x^2 \right) dx ,
 \end{equation}
-where $\nu_t = x_t' A$. Similarly to the Logistic CDF, the estimated probability is used in the likelihood \eqref{eq:BernoulliLikelihood} in order to estimate the parameters of the model. The error term is calculated using the standardised quantile function of Normal distribution:
+where $q_t = x_t' A$. Similarly to the Logistic CDF, the estimated probability is used in the likelihood \eqref{eq:BernoulliLikelihood} in order to estimate the parameters of the model. The error term is calculated using the standardised quantile function of Normal distribution:
 \begin{equation} \label{eq:NormalError}
     e_t = \Phi \left(\frac{o_t - \hat{p}_t + 1}{2}\right)^{-1} .
 \end{equation}
-It acts similar to the error from Logistic distribution, but is based on the different functions. Once again we assume that the error has Normal distribution.
+It acts similar to the error from the [Logistic distribution](#logit), but is based on the different functions.
 
-Similar to the Logistic CDF, the `alm()` function with `distribution="pnorm"` returns $\nu_t$ in `mu`, standard deviation, calculated based on the errors \eqref{eq:NormalError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:NormalCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term and are based on the same idea as in Logistic CDF: quantiles of normal distribution (using the estimated mean and standard deviation) and then the transformation using the standard Normal CDF.
+Similar to the Logistic CDF, the `alm()` function with `distribution="pnorm"` returns $q_t$ in `mu`, standard deviation, calculated based on the errors \eqref{eq:NormalError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:NormalCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. *The intervals are also approximate and use the same principle as in Logistic CDF.*
 
 
 ## Mixture distribution models {#mixture}
