@@ -414,7 +414,7 @@ alm <- function(formula, data, subset, na.action,
         }
 
         # The original log-likelilhood
-        CFReturn <- -sum(switch(distribution,
+        CFValue <- -sum(switch(distribution,
                                 "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
                                 "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                 "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
@@ -440,7 +440,7 @@ alm <- function(formula, data, subset, na.action,
 
         # The differential entropy for the models with the missing data
         if(occurrenceModel){
-            CFReturn[] <- CFReturn + switch(distribution,
+            CFValue[] <- CFValue + switch(distribution,
                                             "dnorm" =,
                                             "dfnorm" =,
                                             "dbcnorm" =,
@@ -470,16 +470,16 @@ alm <- function(formula, data, subset, na.action,
             );
         }
 
-        if(is.nan(CFReturn) | is.na(CFReturn) | is.infinite(CFReturn)){
-            CFReturn[] <- 1E+300;
+        if(is.nan(CFValue) | is.na(CFValue) | is.infinite(CFValue)){
+            CFValue[] <- 1E+300;
         }
 
         # Check the roots of polynomials
         if(arOrder>0 && any(abs(polyroot(fitterReturn$poly1))<1)){
-            CFReturn[] <- CFReturn / min(abs(polyroot(fitterReturn$poly1)));
+            CFValue[] <- CFValue / min(abs(polyroot(fitterReturn$poly1)));
         }
 
-        return(CFReturn);
+        return(CFValue);
     }
 
     #### Define the rest of parameters ####
@@ -632,6 +632,9 @@ alm <- function(formula, data, subset, na.action,
         else{
             dataContainsNaNs <- FALSE;
         }
+    }
+    else{
+        dataContainsNaNs <- FALSE;
     }
 
     responseName <- all.vars(formula)[1];
