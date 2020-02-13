@@ -3,6 +3,7 @@ greybox v0.5.9 (Release data: 2020-02-12)
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.
+* Fix for vcov, which used subset without evaluating it.
 
 
 greybox v0.5.8 (Release data: 2020-02-08)

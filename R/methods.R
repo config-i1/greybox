@@ -2577,7 +2577,7 @@ vcov.alm <- function(object, ...){
     interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
 
     if(iOrderNone & any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
-        matrixXreg <- object$data[object$subset,-1,drop=FALSE];
+        matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
         if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
             colnames(matrixXreg)[1] <- "(Intercept)";
