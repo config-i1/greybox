@@ -20,7 +20,7 @@
 #' the diagonal of the matrix. Otherwise the names of the variables are written there.
 #' @param log If \code{TRUE}, then the logarithms of all numerical variables are taken.
 #' @param lowess If \code{TRUE}, then LOWESS lines are added to scatterplots and means
-#' are connected with lines on boxplots.
+#' are connected with lines on boxplots, see \link[stats]{lowess} for details.
 #' @param ... Other parameters passed to the plot function. Currently only "main"
 #' parameter is accepted.
 #'
