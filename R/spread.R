@@ -19,6 +19,8 @@
 #' @param histograms If \code{TRUE}, then the histograms and barplots are produced on
 #' the diagonal of the matrix. Otherwise the names of the variables are written there.
 #' @param log If \code{TRUE}, then the logarithms of all numerical variables are taken.
+#' @param lowess If \code{TRUE}, then LOWESS lines are added to scatterplots and means
+#' are connected with lines on boxplots.
 #' @param ... Other parameters passed to the plot function. Currently only "main"
 #' parameter is accepted.
 #'
@@ -35,7 +37,8 @@
 #' @importFrom graphics barplot boxplot hist mtext text title
 #' @importFrom stats formula
 #' @export spread
-spread <- function(data, histograms=FALSE, log=FALSE, ...){
+spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
+                   ...){
     ellipsis <- list(...);
 
     if(is.null(ellipsis$main)){
@@ -130,16 +133,25 @@ spread <- function(data, histograms=FALSE, log=FALSE, ...){
                 else{
                     if(numericData[i] & numericData[j]){
                         plot(data[[i]],data[[j]], main="", axes=FALSE);
+                        if(lowess){
+                            lines(lowess(data[[i]], data[[j]]), col="darkgrey", lty=2, lwd=2);
+                        }
                     }
                     else if(numericData[i]){
                         # boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
                         boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),data,horizontal=TRUE, main="", axes=FALSE);
-                        points(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), pch=19, col="darkgrey")
+                        if(lowess){
+                            lines(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), col="darkgrey", lty=2, lwd=2);
+                        }
+                        points(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), pch=19, col="darkgrey");
                     }
                     else if(numericData[j]){
                         # boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
                         boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),data, main="", axes=FALSE);
-                        points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey")
+                        if(lowess){
+                            lines(tapply(data[[j]],data[[i]],mean), col="darkgrey", lty=2, lwd=2);
+                        }
+                        points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey");
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);

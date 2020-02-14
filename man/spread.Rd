@@ -4,7 +4,7 @@
 \alias{spread}
 \title{Construct scatterplot / boxplots for the data}
 \usage{
-spread(data, histograms = FALSE, log = FALSE, ...)
+spread(data, histograms = FALSE, log = FALSE, lowess = FALSE, ...)
 }
 \arguments{
 \item{data}{Either matrix or data frame with the data.}
@@ -13,6 +13,9 @@ spread(data, histograms = FALSE, log = FALSE, ...)
 the diagonal of the matrix. Otherwise the names of the variables are written there.}
 
 \item{log}{If \code{TRUE}, then the logarithms of all numerical variables are taken.}
+
+\item{lowess}{If \code{TRUE}, then LOWESS lines are added to scatterplots and means
+are connected with lines on boxplots.}
 
 \item{...}{Other parameters passed to the plot function. Currently only "main"
 parameter is accepted.}

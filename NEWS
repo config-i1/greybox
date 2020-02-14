@@ -1,5 +1,8 @@
-greybox v0.5.9 (Release data: 2020-02-12)
+greybox v0.5.9 (Release data: 2020-02-14)
 ==============
+
+Changes:
+* A parameter lowess is added to the spread() function. It plots lowess lines on scatterplots and connects means on boxplots of the function.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.
