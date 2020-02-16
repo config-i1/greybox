@@ -2331,7 +2331,7 @@ rstandard.greybox <- function(model, ...){
             return(errors / mean(errors[residsToGo]));
     }
     else{
-        return((errors - mean(errors[residsToGo])) / model$scale * obs / df);
+        return(errors / model$scale * obs / df);
     }
 }
 
@@ -2341,7 +2341,6 @@ rstudent.greybox <- function(model, ...){
     obs <- nobs(model);
     df <- obs - nparam(model) - 1;
     rstudentised <- errors <- residuals(model);
-    errors[] <- errors - mean(errors);
     # If this is an occurrence model, then only modify the non-zero obs
     if(is.alm(model$occurrence)){
         residsToGo <- which(actuals(model$occurrence)!=0);
@@ -2350,16 +2349,19 @@ rstudent.greybox <- function(model, ...){
         residsToGo <- c(1:obs);
     }
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
+        errors[] <- errors - mean(errors);
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
         }
     }
     else if(model$distribution=="ds"){
+        errors[] <- errors - mean(errors);
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
         }
     }
     else if(model$distribution=="dlaplace"){
+        errors[] <- errors - mean(errors);
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(abs(errors[-i])) / df);
         }
@@ -2370,12 +2372,12 @@ rstudent.greybox <- function(model, ...){
         }
     }
     else if(model$distribution=="dlogis"){
+        errors[] <- errors - mean(errors);
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
         }
     }
     else if(model$distribution=="dinvgauss"){
-        errors[] <- residuals(model);
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / mean(errors[residsToGo][-i]);
         }
