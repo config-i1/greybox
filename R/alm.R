@@ -344,8 +344,9 @@ alm <- function(formula, data, subset, na.action,
         }
 
         mu[] <- switch(distribution,
+                       "dinvgauss"=,
                        "dpois" =,
-                       "dinvgauss" =,
+                       "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dnorm" =,
