@@ -299,7 +299,7 @@ where the dispersion parameter is estimated via maximising the likelihood and is
 \begin{equation} \label{eq:InverseGaussianDispersion}
     \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \frac{\left(\epsilon_t - 1 \right)^2}{\epsilon_t} .
 \end{equation}
-One of the main issues in this formulation is that we are dealing with a mixed model, where $\mu_t$ is an additive term and $\epsilon_t$ is the multiplicative one. In many cases this should be okay, but in theory the model might fail in the holdout sample, when unobserved values of explanatory variables are used. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution.
+Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the means is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution.
 
 `alm()` with `distribution="dinvgauss"` estimates the density for $y_t$ using `dinvgauss()` function from `statmod` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the dispersion $\phi$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qinvgauss()` function from the `statmod` package.
 

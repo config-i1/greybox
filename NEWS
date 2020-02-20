@@ -1,8 +1,9 @@
-greybox v0.5.9 (Release data: 2020-02-16)
+greybox v0.5.9 (Release data: 2020-02-19)
 ==============
 
 Changes:
 * A parameter lowess is added to the spread() function. It plots lowess lines on scatterplots and connects means on boxplots of the function.
+* Inverse Gaussian now implies a pure multiplicative model - we take exponent of the x'B. This way the mean is always positive.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

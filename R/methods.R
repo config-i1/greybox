@@ -692,14 +692,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         greyboxForecast$scale <- sigma;
     }
     else if(object$distribution=="dinvgauss"){
-        # This is a multiplicative model, so the variance is different
-        # if(interval=="p"){
-        #     residualsVariance <- sigma(object)^2;
-        #     greyboxForecast$variance[] <- greyboxForecast$variance - residualsVariance;
-        #     greyboxForecast$variance[] <- (greyboxForecast$variance * (residualsVariance+1) +
-        #                                        residualsVariance * greyboxForecast$mean^2);
-        # }
-        # greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval=="p"){
             greyboxForecast$scale <- object$scale;
         }

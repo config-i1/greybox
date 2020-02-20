@@ -345,14 +345,13 @@ alm <- function(formula, data, subset, na.action,
 
         mu[] <- switch(distribution,
                        "dpois" =,
-                       "dnbinom" = exp(matrixXreg %*% B),
+                       "dinvgauss" =,
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dnorm" =,
                        "dfnorm" =,
                        "dlnorm" =,
                        "dbcnorm"=,
-                       "dinvgauss" =,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -928,7 +927,7 @@ alm <- function(formula, data, subset, na.action,
 
         #### I(0) initialisation ####
         if(iOrder==0){
-            if(any(distribution==c("dlnorm","dpois","dnbinom"))){
+            if(any(distribution==c("dlnorm","dpois","dnbinom","dinvgauss"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
                     B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
@@ -1003,7 +1002,7 @@ alm <- function(formula, data, subset, na.action,
                 matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
             }
 
-            if(any(distribution==c("dlnorm","dpois","dnbinom"))){
+            if(any(distribution==c("dlnorm","dpois","dnbinom","dinvgauss"))){
                 B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
             }
             else if(any(distribution==c("plogis","pnorm"))){
@@ -1361,7 +1360,7 @@ alm <- function(formula, data, subset, na.action,
         # else{
         #     if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
         if(distribution==c("dinvgauss")){
-            method.args <- list(d=1e-6, r=6);
+            method.args <- list(d=1e-6, r=4);
         }
         #     else{
         #         method.args <- list(d=1e-4, r=4);
