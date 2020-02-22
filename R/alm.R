@@ -187,7 +187,7 @@
 #' summary(ourModel)
 #' plot(predict(ourModel,outSample,interval="p"))
 #'
-#' @importFrom numDeriv hessian
+#' @importFrom pracma hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
@@ -1354,15 +1354,15 @@ alm <- function(formula, data, subset, na.action,
     if(vcovProduce){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        method.args <- list(eps=1e-4, d=0.1, r=4);
+        # method.args <- list(eps=1e-4, d=0.1, r=4);
         # if(CDF){
         #     method.args <- list(d=1e-6, r=6);
         # }
         # else{
         #     if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
-        if(distribution==c("dinvgauss")){
-            method.args <- list(d=1e-6, r=4);
-        }
+        # if(distribution==c("dinvgauss")){
+        #     method.args <- list(d=1e-6, r=4);
+        # }
         #     else{
         #         method.args <- list(d=1e-4, r=4);
         #     }
@@ -1379,7 +1379,7 @@ alm <- function(formula, data, subset, na.action,
             }
         }
         else{
-            vcovMatrix <- hessian(CF, B, method.args=method.args,
+            vcovMatrix <- hessian(CF, B, #method.args=method.args,
                                   distribution=distribution, y=y, matrixXreg=matrixXreg,
                                   recursiveModel=recursiveModel);
         }

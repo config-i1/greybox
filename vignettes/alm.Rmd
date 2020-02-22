@@ -177,15 +177,15 @@ Logistic is considered a fat tailed distribution, but its tails are not as fat a
 ### S distribution {#svetunkov}
 The S distribution has the following density function:
 \begin{equation} \label{eq:S}
-    f(y_t) = \frac{1}{4b^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{s} \right) ,
+    f(y_t) = \frac{1}{4 s^2} \exp \left( -\frac{\sqrt{|y_t - \mu_t|}}{s} \right) ,
 \end{equation}
 where $s$ is the scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
 \begin{equation} \label{eq:bS}
-    s = \frac{1}{T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
+    s = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
 \end{equation}
-which corresponds to the minimisation of "Half Absolute Error" or "Half Absolute Moment", which is equal to $2b$.
+which corresponds to the minimisation of a half of "Mean Root Absolute Error" or "Half Absolute Moment".
 
-S distribution has a kurtosis of 25.2, which makes it an "extreme excess" distribution. It might be useful in cases of randomly occurring incidents and extreme values (Black Swans?).
+S distribution has a kurtosis of 25.2, which makes it a "severe excess" distribution (thus the name). It might be useful in cases of randomly occurring incidents and extreme values (Black Swans?).
 
 `alm()` function with `distribution="ds"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $s$ in the `scale` variable. Similarly to the previous functions, the prediction intervals are based on the `qs()` function from `greybox` package and use the connection between the scale and the variance:
 \begin{equation} \label{eq:bSAndSigma}
