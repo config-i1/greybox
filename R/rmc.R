@@ -141,7 +141,6 @@
 #' rmc(ourData^2, distribution="dchisq", level=0.95)
 #'
 #' @importFrom stats pchisq
-#' @export rmc
 rmc <- function(data, distribution=c("dlnorm","dnorm","dfnorm"),
                 level=0.95, outplot=c("mcb","lines","none"), select=NULL, ...){
 

@@ -28,7 +28,7 @@ There are several groups of functions in the package.
 
 ### Models evaluation functions
 1. ro - rolling origin evaluation (see the vignette).
-2. rmc - Regression for Multiple Comparison of forecasting methods. Can be used, for example, when RelMAE is calculated for several forecasting methods and an analysis of statistical significance in accuracy of methods needs to be carried out. This can be especially useful when you have a lot of methods to compare. The test is faster than Nemenyi in this case and becomes more powerful and accurate.
+2. rmc - Regression for Multiple Comparison of forecasting methods. This function has been removed from the package, starting from the v0.5.9
 3. measures - the error measures for the provided forecasts. Includes MPE, MAPE, MASE, sMAE, sMSE, RelMAE, RelRMSE, MIS, sMIS, RelMIS, pinball and others.
 <!--5. nemenyi - non-parametric test for comparison of multiple classifiers / methods. This function not only conducts the test, but also provide the plots, showing the ranks of the different methods together with their confidence intervals.-->
 

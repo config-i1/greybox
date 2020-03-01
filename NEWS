@@ -5,6 +5,7 @@ Changes:
 * A parameter lowess is added to the spread() function. It plots lowess lines on scatterplots and connects means on boxplots of the function.
 * Inverse Gaussian now implies a pure multiplicative model - we take exponent of the x'B. This way the mean is always positive.
 * Moved to Hessian from pracma package instead of numDeriv. It is faster.
+* rmc() is removed from the package.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

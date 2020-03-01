@@ -42,8 +42,7 @@ See discussion of some of these functions in this vignette below.
 
 ## Models evaluation functions
 1. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
-2. `rmc()` - regression for multiple comparison of methods. This is a parametric counterpart of `nemenyi()`, which is more informative than `nemenyi()` and should work better on large samples. This can be efficiently used together with RelMAE / RelMSE measures.
-3. `measures()` - function, returning a bunch of error measures for the provided forecast and the holdout sample.
+2. `measures()` - function, returning a bunch of error measures for the provided forecast and the holdout sample.
 
 
 ## Marketing analytics tools

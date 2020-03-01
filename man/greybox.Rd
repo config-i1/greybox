@@ -36,6 +36,9 @@ based on information criteria weights.
 \item \link[greybox]{qlaplace}, \link[greybox]{dlaplace},
 \link[greybox]{plaplace}, \link[greybox]{rlaplace} - Laplace distribution and the
 respective functions.
+\item \link[greybox]{qalaplace}, \link[greybox]{dalaplace},
+\link[greybox]{palaplace}, \link[greybox]{ralaplace} - Asymmetric Laplace distribution and the
+respective functions.
 \item \link[greybox]{qfnorm}, \link[greybox]{dfnorm},
 \link[greybox]{pfnorm}, \link[greybox]{rfnorm} - Folded normal distribution and the
 respective functions.
@@ -47,6 +50,13 @@ distribution and the respective functions.
 \item \link[greybox]{qbcnorm}, \link[greybox]{dbcnorm},
 \link[greybox]{pbcnorm}, \link[greybox]{rbcnorm} - Box-Cox normal distribution and
 the respective functions.
+\item \link[greybox]{qtplnorm}, \link[greybox]{dtplnorm},
+\link[greybox]{ptplnorm}, \link[greybox]{rtplnorm} - Three parameter log normal distribution and
+the respective functions.
+\item \link[greybox]{spread} - function that produces scatterplots / boxplots / tableplots,
+depending on the types of variables.
+\item \link[greybox]{assoc} - function that calculates measures of association,
+depending on the types of variables.
 }
 }
 \examples{

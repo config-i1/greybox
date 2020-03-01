@@ -103,3 +103,6 @@ determination <- function(xreg, bruteforce=TRUE, ...){
 #' @rdname determination
 #' @export determ
 determ <- determination;
+
+# Create a method determ, which would call determination
+# determ.alm <- function(object, ...);
