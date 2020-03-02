@@ -43,6 +43,7 @@ See discussion of some of these functions in this vignette below.
 ## Models evaluation functions
 1. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
 2. `measures()` - function, returning a bunch of error measures for the provided forecast and the holdout sample.
+3. `rmcb()` - regression on ranks of forecasting methods. This is a fast alternative to the classical nemenyi / MCB test.
 
 
 ## Marketing analytics tools

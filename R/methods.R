@@ -2705,3 +2705,14 @@ vcov.lmGreybox <- function(object, ...){
     vcov <- sigma(object)^2 * solve(crossprod(object$xreg));
     return(vcov);
 }
+
+#' @export
+summary.lmGreybox <- function(object, level=0.95, ...){
+    parametersTable <- cbind(coef(object),sqrt(diag(vcov(object))));
+    parametersTable <- cbind(parametersTable, parametersTable[,1]+qnorm((1-level)/2,0,parametersTable[,2]),
+                             parametersTable[,1]+qnorm((1+level)/2,0,parametersTable[,2]));
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+    return(parametersTable)
+}
