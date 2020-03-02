@@ -37,13 +37,9 @@ variables:
 same group, \code{FALSE} - they are not.}
 \item{methods}{Similar to \code{group} parameter, but with a slightly different
 presentation.}
-\item{p.value}{p-value for the test of the significance of the model. This is a
-log-likelihood ratios chi-squared test, comparing the model with the one with
-intercept only.}
-\item{importance}{The weights of the estimated model in comparison with the
-model with the constant only. 0 means that the constant is better, 1 means that
-the estimated model is the best.}
-\item{level}{Significance level.}
+\item{p.value}{p-value for the test of the significance of the model. This is the
+value from the F test of the linear regression.}
+\item{level}{Confidence level.}
 \item{model}{lm model produced for the calculation of the intervals.}
 \item{outplot}{Style of the plot to produce.}
 \item{select}{The selected variable to highlight.}

@@ -42,13 +42,9 @@
 #' same group, \code{FALSE} - they are not.}
 #' \item{methods}{Similar to \code{group} parameter, but with a slightly different
 #' presentation.}
-#' \item{p.value}{p-value for the test of the significance of the model. This is a
-#' log-likelihood ratios chi-squared test, comparing the model with the one with
-#' intercept only.}
-#' \item{importance}{The weights of the estimated model in comparison with the
-#' model with the constant only. 0 means that the constant is better, 1 means that
-#' the estimated model is the best.}
-#' \item{level}{Significance level.}
+#' \item{p.value}{p-value for the test of the significance of the model. This is the
+#' value from the F test of the linear regression.}
+#' \item{level}{Confidence level.}
 #' \item{model}{lm model produced for the calculation of the intervals.}
 #' \item{outplot}{Style of the plot to produce.}
 #' \item{select}{The selected variable to highlight.}
@@ -162,10 +158,6 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
         class(lmModel) <- c("lmGreybox","lm");
         lmModel$fitted <- dataNew[,1] - residuals(lmModel);
         lmModel$actuals <- dataNew[,1];
-
-        lmModel2 <- .lm.fit(as.matrix(dataNew[,2]), dataNew[,1]);
-        lmModel2$df.residual <- obsAll - 1;
-        class(lmModel2) <- c("lmGreybox","lm");
     }
     else if(distribution=="dlnorm"){
         lmModel <- .lm.fit(dataNew[,-1], log(dataNew[,1]));
@@ -198,16 +190,16 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
 
     #### Relative importance of the model and the test ####
-    AICs <- c(AIC(lmModel2),AIC(lmModel));
-    delta <- AICs - min(AICs);
-    importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
-
     if(distribution=="dnorm"){
         R2 <- 1 - sum(residuals(lmModel)^2) / sum((lmModel$actuals-mean(lmModel$actuals))^2);
         FValue <- R2 / (nMethods-1) / ((1-R2)/lmModel$df.residual);
         p.value <- pf(FValue, df1=(nMethods-1), df2=lmModel$df.residual, lower.tail=FALSE);
     }
     else{
+        AICs <- c(AIC(lmModel2),AIC(lmModel));
+        # delta <- AICs - min(AICs);
+        # importance <- (exp(-0.5*delta) / sum(exp(-0.5*c(delta))))[2];
+
         # Chi-squared test. +logLikExp is because the logLik is negative
         p.value <- pchisq(-(logLik(lmModel2)-logLik(lmModel)),
                           lmModel2$df.residual-lmModel$df.residual, lower.tail=FALSE);
@@ -266,7 +258,7 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     }
 
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,
-                                    methods=methodGroups, importance=importance, p.value=p.value,
+                                    methods=methodGroups, p.value=p.value,
                                     level=level, model=lmModel, outplot=outplot, select=select,
                                     distribution=distribution),
                                class="rmcb");
