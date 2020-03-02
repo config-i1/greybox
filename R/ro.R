@@ -166,6 +166,8 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         }
     }
     else{
+        warning(paste0("You have not specified the 'value' to produce.",
+                       "We will try to return everything, but we cannot promise anything."), call.=FALSE);
         value <- "";
         valueLength <- 1;
     }
