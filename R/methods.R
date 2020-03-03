@@ -117,7 +117,7 @@ BICc.varest <- function(object, ...){
 #'
 #' @param object Model estimated using one of the functions of smooth package.
 #' @param ... Currently nothing is accepted via ellipsis.
-#' @return     Either \code{"A"} for additive error or \code{"M"} for multiplicative.
+#' @return Either \code{"A"} for additive error or \code{"M"} for multiplicative.
 #' All the other functions return strings of character.
 #' @examples
 #'

@@ -1,4 +1,4 @@
-greybox v0.5.9 (Release data: 2020-03-02)
+greybox v0.5.9 (Release data: 2020-03-03)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * Inverse Gaussian now implies a pure multiplicative model - we take exponent of the x'B. This way the mean is always positive.
 * Moved to Hessian from pracma package instead of numDeriv. It is faster.
 * rmc() is renamed into rmcb() and now focuses on doing regression on ranks. This is equivalent to MCB, but faster.
+* determ() is now a method that returns determination for different classes.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

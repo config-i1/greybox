@@ -1,16 +1,19 @@
-#' Determination coefficients
+#' Coefficients of determination
 #'
-#' Function produces determination coefficient for the provided data
+#' Function produces coefficients of determination for the provided data
 #'
-#' The function calculates determination coefficients (aka R^2)
-#' between all the provided variables. The higher the coefficient is,
-#' the higher the potential multicollinearity effect in the model with
-#' the variables will be. Coefficients of determination are connected
-#' directly to Variance Inflation Factor (VIF): VIF = 1 / (1 -
+#' The function calculates coefficients of determination (aka R^2)
+#' between all the provided variables. The higher the coefficient for a
+#' variable is, the higher the potential multicollinearity effect in the
+#' model with the variable will be. Coefficients of determination are
+#' connected directly to Variance Inflation Factor (VIF): VIF = 1 / (1 -
 #' determination). Arguably it is easier to interpret, because it is
 #' restricted with (0, 1) bounds. The multicollinearity can be
 #' considered as serious, when determination > 0.9 (which corresponds
 #' to VIF > 10).
+#'
+#' The method \code{determ} can be applied to wide variety of classes,
+#' including \code{lm}, \code{glm} and \code{alm}.
 #'
 #' See details in the vignette "Marketing analytics with greybox":
 #' \code{vignette("maUsingGreybox","greybox")}
@@ -26,6 +29,8 @@
 #' variables. So the reported values will be based on stepwise regressions
 #' for each variable.
 #' @param ... Other values passed to cor function.
+#' @param object The object, for which to calculate the coefficients of
+#' determination.
 #'
 #' @return Function returns the vector of determination coefficients.
 #'
@@ -43,9 +48,6 @@
 #' @aliases determ
 #' @export determination
 determination <- function(xreg, bruteforce=TRUE, ...){
-
-    #### This is temporary and needs to be removed at some point! ####
-    bruteforce[] <- depricator(bruteforce, list(...));
 
     nVariables <- ncol(xreg);
     nSeries <- nrow(xreg);
@@ -102,7 +104,19 @@ determination <- function(xreg, bruteforce=TRUE, ...){
 
 #' @rdname determination
 #' @export determ
-determ <- determination;
+determ <- function(object, ...) UseMethod("determ")
 
-# Create a method determ, which would call determination
-# determ.alm <- function(object, ...);
+#' @export
+determ.default <- function(object, ...){
+    return(determination(object, ...));
+}
+
+#' @export
+determ.lm <- function(object, ...){
+    return(determination(object$model[,-1], ...));
+}
+
+#' @export
+determ.alm <- function(object, ...){
+    return(determination(object$data[,-1], ...));
+}
