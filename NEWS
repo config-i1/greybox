@@ -1,4 +1,4 @@
-greybox v0.5.9 (Release data: 2020-03-03)
+greybox v0.5.9 (Release data: 2020-03-12)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * Moved to Hessian from pracma package instead of numDeriv. It is faster.
 * rmc() is renamed into rmcb() and now focuses on doing regression on ranks. This is equivalent to MCB, but faster.
 * determ() is now a method that returns determination for different classes.
+* Removed dchisq from the alm().
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

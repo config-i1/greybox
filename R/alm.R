@@ -14,7 +14,7 @@
 #' \item \link[greybox]{dfnorm} - Folded normal distribution,
 #' \item \link[stats]{dlnorm} - Log normal distribution,
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
-#' \item \link[stats]{dchisq} - Chi-Squared Distribution,
+# \item \link[stats]{dchisq} - Chi-Squared Distribution,
 #' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
@@ -206,27 +206,9 @@ alm <- function(formula, data, subset, na.action,
                 parameters=NULL, vcovProduce=FALSE, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
+    B <- parameters;
     cl <- match.call();
-
-    #### This is temporary and needs to be removed at some point! ####
-    B <- depricator(parameters, list(...));
-    fast <- depricator(fast, list(...));
-
-    distribution <- distribution[1];
-    if(all(distribution!=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt","dfnorm","dlnorm",
-                           "dchisq","dbcnorm","dinvgauss",
-                           "dpois","dnbinom","dbeta","plogis","pnorm"))){
-        if(any(distribution==c("norm","fnorm","lnorm","laplace","s","chisq","logis"))){
-            warning(paste0("You are using the old value of the distribution parameter.\n",
-                           "Use distribution='d",distribution,"' instead."),
-                    call.=FALSE);
-            distribution <- paste0("d",distribution);
-        }
-        else{
-            stop(paste0("Sorry, but the distribution '",distribution,
-                        "' is not yet supported"), call.=FALSE);
-        }
-    }
+    distribution <- match.arg(distribution);
 
     #### Functions used in the estimation ####
     ifelseFast <- function(condition, yes, no){

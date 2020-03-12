@@ -242,7 +242,7 @@ This group includes:
 2. [Box-Cox Normal distribution](#bcnormal),
 3. [Inverse Gaussian distribution](#invgauss),
 4. [Folded Normal distribution](#fnormal),
-5. [Noncentral Chi Squared distribution](#chisq).
+<!-- 5. [Noncentral Chi Squared distribution](#chisq). -->
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
 
@@ -321,24 +321,24 @@ The model that is assumed in the case of Folded Normal distribution can be summa
 
 The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
-### Noncentral Chi Squared distribution {#chisq}
-Noncentral Chi Squared distribution arises, when a normally distributed variable with a unity variance is squared and summed up: if $x_i \sim \mathcal{N}(\mu_i, 1)$, then $\sum_{i=1}^k x_i^2 \sim \chi^2(k, \lambda)$, where $k$ is the number of degrees of freedom and $\lambda = \sum_{i=1}^k \mu_i^2$. In the case of non-unity variance, with $z_i \sim \mathcal{N}(\mu_i, \sigma^2)$, the variable can also be represented as $z_i = \sigma x_i$, and then it can be assumed that $\sum_{i=1}^k z_i^2 \sim \chi^2(k \sigma, \lambda)$. In the perfect world, $\lambda_t$ would correspond to the location of the original distribution of $z_i$, while $k$ would need to be time varying and would need to include both number of elements $k$ and the individual variances $\sigma^2_i$ for each of the element, depending on the external variables values. However, given that the squares of the normal data are used, it is not possible to disaggregate the values into the original two parts. Thus we assume that the variance is constant for all the cases, and estimate it using likelihood. As a result the non-centrality parameter covers two parts that would be split in the ideal world.
+<!-- ### Noncentral Chi Squared distribution {#chisq} -->
+<!-- Noncentral Chi Squared distribution arises, when a normally distributed variable with a unity variance is squared and summed up: if $x_i \sim \mathcal{N}(\mu_i, 1)$, then $\sum_{i=1}^k x_i^2 \sim \chi^2(k, \lambda)$, where $k$ is the number of degrees of freedom and $\lambda = \sum_{i=1}^k \mu_i^2$. In the case of non-unity variance, with $z_i \sim \mathcal{N}(\mu_i, \sigma^2)$, the variable can also be represented as $z_i = \sigma x_i$, and then it can be assumed that $\sum_{i=1}^k z_i^2 \sim \chi^2(k \sigma, \lambda)$. In the perfect world, $\lambda_t$ would correspond to the location of the original distribution of $z_i$, while $k$ would need to be time varying and would need to include both number of elements $k$ and the individual variances $\sigma^2_i$ for each of the element, depending on the external variables values. However, given that the squares of the normal data are used, it is not possible to disaggregate the values into the original two parts. Thus we assume that the variance is constant for all the cases, and estimate it using likelihood. As a result the non-centrality parameter covers two parts that would be split in the ideal world. -->
 
-The density function of Noncentral Chi Squared distribution is quite difficult. `alm()` uses `dchisq()` function from `stats` package,  assuming constant number of degrees of freedom $k$ and time varying noncentrality parameter $\lambda_t$:
-\begin{equation} \label{eq:NCChiSquared}
-    f(y_t) = \frac{1}{2} \exp \left( -\frac{y_t + \lambda_t}{2} \right) \left(\frac{y_t}{\lambda_t} \right)^{\frac{k}{4}-0.5} I_{\frac{k}{2}-1}(\sqrt{\lambda_t y_t}),
-\end{equation}
-where $I_k(x)$ is the Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables:
-\begin{equation} \label{eq:lambdaValue}
-    \lambda_t = ( x_t' B )^2 ,
-\end{equation}
-where $\exp$ is taken in order to make $\lambda_t$ strictly positive, while $k$ is estimated directly by maximising the likelihood. In order to avoid the negative values of $k$, it's absolute value is used.
+<!-- The density function of Noncentral Chi Squared distribution is quite difficult. `alm()` uses `dchisq()` function from `stats` package,  assuming constant number of degrees of freedom $k$ and time varying noncentrality parameter $\lambda_t$: -->
+<!-- \begin{equation} \label{eq:NCChiSquared} -->
+<!--     f(y_t) = \frac{1}{2} \exp \left( -\frac{y_t + \lambda_t}{2} \right) \left(\frac{y_t}{\lambda_t} \right)^{\frac{k}{4}-0.5} I_{\frac{k}{2}-1}(\sqrt{\lambda_t y_t}), -->
+<!-- \end{equation} -->
+<!-- where $I_k(x)$ is the Bessel function of the first kind. The $\lambda_t$ parameter is estimated from a regression with exogenous variables: -->
+<!-- \begin{equation} \label{eq:lambdaValue} -->
+<!--     \lambda_t = ( x_t' B )^2 , -->
+<!-- \end{equation} -->
+<!-- where $\exp$ is taken in order to make $\lambda_t$ strictly positive, while $k$ is estimated directly by maximising the likelihood. In order to avoid the negative values of $k$, it's absolute value is used. -->
 
-The model that is assumed in the case of Noncentral Chi Squared distribution is:
-\begin{equation} \label{eq:chiSquaredModel}
-    y_t = \left( \mu_t + \epsilon_t \right)^2.
-\end{equation}
-Given that square function is not monotonic, there are always two sets of parameters that give exactly the same $\lambda_t$ with positive and negative $\mu_t$. The `alm()` function returns the positive one (due to the restrictions imposed on the solver).
+<!-- The model that is assumed in the case of Noncentral Chi Squared distribution is: -->
+<!-- \begin{equation} \label{eq:chiSquaredModel} -->
+<!--     y_t = \left( \mu_t + \epsilon_t \right)^2. -->
+<!-- \end{equation} -->
+<!-- Given that square function is not monotonic, there are always two sets of parameters that give exactly the same $\lambda_t$ with positive and negative $\mu_t$. The `alm()` function returns the positive one (due to the restrictions imposed on the solver). -->
 
 $\lambda_t$ is returned in the variable `mu`, while $k$ is returned in `scale`. Finally, `fitted.values` returns $\lambda_t + k$. Similar correction is done in `predict()` function. As for the prediction intervals, they are generated using `qchisq()` function from `stats` package. Last but not least, `resid()` method returns $e_t = \sqrt{y_t} - \sqrt{\mu_t}$.
 
@@ -348,12 +348,6 @@ Square the response variable for the next example:
 xreg[,1] <- xreg[,1]^2
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
-```
-An example with exotic Chi-Squared distribution with predefined number of degrees of freedom:
-```{r chisqREgression}
-ourModel <- alm(y~x1+x2, data=inSample, distribution="dchisq",df=1)
-summary(ourModel)
-plot(predict(ourModel,outSample))
 ```
 
 
