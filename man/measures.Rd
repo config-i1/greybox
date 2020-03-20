@@ -25,12 +25,14 @@ can be useful when dealing with intermittent data.}
 \value{
 The functions returns the named vector of errors:
 \itemize{
+\item ME,
 \item MAE,
 \item MSE
 \item MPE,
 \item MAPE,
 \item MASE,
 \item sMAE,
+\item RMSSE,
 \item sMSE,
 \item sCE,
 \item rMAE,

@@ -3,6 +3,7 @@
 #' Functions allow to calculate different types of errors for point and
 #' interval predictions:
 #' \enumerate{
+#' \item ME - Mean Error,
 #' \item MAE - Mean Absolute Error,
 #' \item MSE - Mean Squared Error,
 #' \item MRE - Mean Root Error (Kourentzes, 2014),
@@ -10,7 +11,8 @@
 #' \item MPE - Mean Percentage Error,
 #' \item MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for
 #' the critique),
-#' \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006)),
+#' \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006),
+#' \item RMSSE - Root Mean Squared Scaled Error (used in M5 Competition),
 #' \item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
 #' \item rRMSE - Relative Root Mean Squared Error,
 #' \item rAME - Relative Absolute Mean Error,
@@ -118,6 +120,24 @@
 #'
 #' ### Also, see pinball function for other measures for the intervals
 #'
+#' @rdname error-measures
+#' @export ME
+#' @aliases ME
+ME <- function(actual,forecast){
+# This function calculates Mean Error
+# actual - actual values,
+# forecast - forecasted values.
+    if(length(actual) != length(forecast)){
+        message("The length of the provided data differs.");
+        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of forecast: ",length(forecast)));
+        stop("Cannot proceed.",call.=FALSE);
+    }
+    else{
+        return(mean(actual-forecast,na.rm=TRUE));
+    }
+}
+
 #' @rdname error-measures
 #' @export MAE
 #' @aliases MAE
@@ -510,12 +530,14 @@ sMIS <- function(actual,lower,upper,scale,level=0.95){
 #' can be useful when dealing with intermittent data.
 #' @return The functions returns the named vector of errors:
 #' \itemize{
+#' \item ME,
 #' \item MAE,
 #' \item MSE
 #' \item MPE,
 #' \item MAPE,
 #' \item MASE,
 #' \item sMAE,
+#' \item RMSSE,
 #' \item sMSE,
 #' \item sCE,
 #' \item rMAE,
@@ -563,7 +585,8 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
                                 "naive"=rep(actual[length(actual)],h),
                                 "mean"=rep(mean(actual),h));
 
-    errormeasures <- c(MAE(holdout,forecast),
+    errormeasures <- c(ME(holdout,forecast),
+                       MAE(holdout,forecast),
                        MSE(holdout,forecast),
                        MPE(holdout,forecast),
                        MAPE(holdout,forecast),
@@ -580,7 +603,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
     if(!is.null(digits)){
         errormeasures[] <- round(errormeasures, digits);
     }
-    names(errormeasures) <- c("MAE","MSE",
+    names(errormeasures) <- c("ME","MAE","MSE",
                               "MPE","MAPE",
                               "MASE","sMAE","RMSSE","sMSE","sCE",
                               "rMAE","rRMSE","rAME","cbias","sPIS");
