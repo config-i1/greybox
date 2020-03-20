@@ -290,7 +290,7 @@ RMSSE <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean(abs(actual-forecast),na.rm=TRUE)/scale));
+        return(sqrt(mean((actual-forecast)^2,na.rm=TRUE)/scale));
     }
 }
 
