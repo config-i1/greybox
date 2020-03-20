@@ -9,6 +9,7 @@
 \alias{MPE}
 \alias{MAPE}
 \alias{MASE}
+\alias{RMSSE}
 \alias{rMAE}
 \alias{rRMSE}
 \alias{rAME}
@@ -36,6 +37,8 @@ MPE(actual, forecast)
 MAPE(actual, forecast)
 
 MASE(actual, forecast, scale)
+
+RMSSE(actual, forecast, scale)
 
 rMAE(actual, forecast, benchmark)
 

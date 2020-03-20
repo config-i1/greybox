@@ -256,6 +256,26 @@ MASE <- function(actual,forecast,scale){
 }
 
 #' @rdname error-measures
+#' @export RMSSE
+#' @aliases RMSSE
+RMSSE <- function(actual,forecast,scale){
+# This function calculates Root Mean Squared Scaled Error from M5 competition
+# actual - actual values,
+# forecast - forecasted values.
+# scale - the measure to scale errors with. Usually - MSE of in-sample.
+    if(length(actual) != length(forecast)){
+        message("The length of the provided data differs.");
+        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of forecast: ",length(forecast)));
+        stop("Cannot proceed.",call.=FALSE);
+    }
+    else{
+        return(sqrt(mean(abs(actual-forecast),na.rm=TRUE)/scale));
+    }
+}
+
+
+#' @rdname error-measures
 #' @export rMAE
 #' @aliases rMAE
 rMAE <-function(actual,forecast,benchmark){
@@ -549,6 +569,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
                        MAPE(holdout,forecast),
                        MASE(holdout,forecast,mean(abs(diff(actual)))),
                        MASE(holdout,forecast,mean(abs(actual))),
+                       RMSSE(holdout,forecast,mean(diff(actual)^2)),
                        sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        sCE(holdout,forecast,mean(abs(actual[actual!=0]))),
                        rMAE(holdout,forecast,becnhmarkForecast),
@@ -561,7 +582,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
     }
     names(errormeasures) <- c("MAE","MSE",
                               "MPE","MAPE",
-                              "MASE","sMAE","sMSE","sCE",
+                              "MASE","sMAE","RMSSE","sMSE","sCE",
                               "rMAE","rRMSE","rAME","cbias","sPIS");
     return(errormeasures);
 }
