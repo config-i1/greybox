@@ -427,6 +427,8 @@ alm <- function(formula, data, subset, na.action,
                                             "dfnorm" =,
                                             "dbcnorm" =,
                                             "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                            # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                                            #                                 sum(log(fitterReturn$mu[!otU]))),
                                             "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
                                             "dlaplace" =,
                                             "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
