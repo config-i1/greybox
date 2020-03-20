@@ -590,11 +590,11 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
                        MSE(holdout,forecast),
                        MPE(holdout,forecast),
                        MAPE(holdout,forecast),
-                       MASE(holdout,forecast,mean(abs(diff(actual)))),
-                       MASE(holdout,forecast,mean(abs(actual))),
-                       RMSSE(holdout,forecast,mean(diff(actual)^2)),
-                       sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        sCE(holdout,forecast,mean(abs(actual[actual!=0]))),
+                       MASE(holdout,forecast,mean(abs(actual))),
+                       sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
+                       MASE(holdout,forecast,mean(abs(diff(actual)))),
+                       RMSSE(holdout,forecast,mean(diff(actual)^2)),
                        rMAE(holdout,forecast,becnhmarkForecast),
                        rRMSE(holdout,forecast,becnhmarkForecast),
                        rAME(holdout,forecast,becnhmarkForecast),
@@ -605,7 +605,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
     }
     names(errormeasures) <- c("ME","MAE","MSE",
                               "MPE","MAPE",
-                              "MASE","sMAE","RMSSE","sMSE","sCE",
+                              "sCE","sMAE","sMSE","MASE","RMSSE",
                               "rMAE","rRMSE","rAME","cbias","sPIS");
     return(errormeasures);
 }
