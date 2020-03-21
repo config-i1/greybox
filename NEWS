@@ -1,4 +1,4 @@
-greybox v0.5.9 (Release data: 2020-03-20)
+greybox v0.5.9 (Release data: 2020-03-21)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 * determ() is now a method that returns determination for different classes.
 * Removed dchisq from the alm().
 * RMSSE in error measures().
+* plot.rmcb() now has a "select" parameter.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

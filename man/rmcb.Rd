@@ -2,10 +2,13 @@
 % Please edit documentation in R/rmcb.R
 \name{rmcb}
 \alias{rmcb}
+\alias{plot.rmcb}
 \title{Regression for Multiple Comparison with the Best}
 \usage{
 rmcb(data, level = 0.95, outplot = c("mcb", "lines", "none"),
   select = NULL, ...)
+
+\method{plot}{rmcb}(x, outplot = c("mcb", "lines"), select = NULL, ...)
 }
 \arguments{
 \item{data}{Matrix or data frame with observations in rows and variables in
@@ -22,6 +25,8 @@ to get the same effect.}
 the method with the lowest value is selected.}
 
 \item{...}{Other parameters passed to \link[base]{rank} function.}
+
+\item{x}{The produced rmcb model.}
 }
 \value{
 If \code{outplot!="none"}, then the function plots the results after all

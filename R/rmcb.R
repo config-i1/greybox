@@ -83,6 +83,7 @@
 #' plot(ourTest, main="Four methods")
 #'
 #' @importFrom stats pchisq
+#' @rdname rmcb
 #' @export rmcb
 rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL, ...){
 
@@ -259,21 +260,20 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
 
     returnedClass <- structure(list(mean=lmCoefs, interval=lmIntervals, vlines=vlines, groups=groups,
                                     methods=methodGroups, p.value=p.value,
-                                    level=level, model=lmModel, outplot=outplot, select=select,
+                                    level=level, model=lmModel, select=select,
                                     distribution=distribution),
                                class="rmcb");
     if(outplot!="none"){
         plot(returnedClass, outplot=outplot);
     }
-    else{
-        returnedClass$outplot[] <- "mcb";
-    }
     return(returnedClass);
 }
 
+#' @param x The produced rmcb model.
 #' @importFrom graphics axis box
+#' @rdname rmcb
 #' @export
-plot.rmcb <- function(x, outplot=c("mcb","lines"), ...){
+plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
     outplot <- match.arg(outplot);
     nMethods <- length(x$mean);
     namesMethods <- names(x$mean);
@@ -287,6 +287,11 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), ...){
 
     args <- list(...);
     argsNames <- names(args);
+
+    # If the user asked for it, use it
+    if(!is.null(select)){
+        x$select <- select;
+    }
 
     if(!("xaxs" %in% argsNames)){
         args$xaxs <- "i";
