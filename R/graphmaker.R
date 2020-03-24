@@ -145,8 +145,14 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     if(time(forecast)[1]==time(actuals)[1]){
         forecast <- ts(forecast, start=time(actuals)[length(actuals)]+deltat(actuals), frequency=frequency(actuals));
         if(intervals){
-            upper <- ts(upper, start=start(forecast), frequency=frequency(actuals));
-            lower <- ts(lower, start=start(forecast), frequency=frequency(actuals));
+            if(length(upper)!=length(fitted) && length(lower)!=length(fitted)){
+                upper <- ts(upper, start=start(forecast), frequency=frequency(actuals));
+                lower <- ts(lower, start=start(forecast), frequency=frequency(actuals));
+            }
+            else{
+                upper <- ts(upper, start=start(actuals), frequency=frequency(actuals));
+                lower <- ts(lower, start=start(actuals), frequency=frequency(actuals));
+            }
         }
     }
 
@@ -210,7 +216,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
 
     if(vline){
-        abline(v=deltat(forecast)*(start(forecast)[2]-2)+start(forecast)[1],col="red",lwd=2);
+        abline(v=time(forecast)[1]-deltat(forecast),col="red",lwd=2);
     }
 
     if(intervals){
@@ -218,68 +224,24 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             lines(lower,col="darkgrey",lwd=3,lty=2);
             lines(upper,col="darkgrey",lwd=3,lty=2);
             # Draw the nice areas between the borders
-            polygon(c(seq(deltat(upper)*(start(upper)[2]-1)+start(upper)[1],deltat(upper)*(end(upper)[2]-1)+end(upper)[1],deltat(upper)),
-                      rev(seq(deltat(lower)*(start(lower)[2]-1)+start(lower)[1],deltat(lower)*(end(lower)[2]-1)+end(lower)[1],deltat(lower)))),
-                    c(as.vector(upper), rev(as.vector(lower))), col="lightgrey", border=NA, density=10);
+            polygon(c(time(upper),rev(time(lower))),
+                    c(as.vector(upper), rev(as.vector(lower))),
+                    col="lightgrey", border=NA, density=10);
 
             lines(forecast,col="blue",lwd=2);
-
-            #If legend is needed do the stuff...
-            # if(legend){
-            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-            #     plot(0,0,col="white")
-            #     legend(x="bottom",
-            #            legend=c("Series","Fitted values",pointForecastLabel,
-            #                     paste0(level*100,"% prediction interval"),"Forecast origin"),
-            #            col=c("black","purple","blue","darkgrey","red"),
-            #            lwd=c(1,2,2,3,2),
-            #            lty=c(1,2,1,2,1),ncol=3);
-            # }
         }
         else{
             points(lower,col="darkgrey",lwd=3,pch=4);
             points(upper,col="darkgrey",lwd=3,pch=4);
             points(forecast,col="blue",lwd=2,pch=4);
-
-            # if(legend){
-            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-            #     plot(0,0,col="white")
-            #     legend(x="bottom",
-            #            legend=c("Series","Fitted values",pointForecastLabel,
-            #                     paste0(level*100,"% prediction interval"),"Forecast origin"),
-            #            col=c("black","purple","blue","darkgrey","red"),
-            #            lwd=c(1,2,2,3,2),
-            #            lty=c(1,2,NA,NA,1),
-            #            pch=c(NA,NA,4,4,NA),ncol=3)
-            # }
         }
     }
     else{
         if(h!=1){
             lines(forecast,col="blue",lwd=2);
-
-            # if(legend){
-            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-            #     plot(0,0,col="white")
-            #     legend(x="bottom",
-            #            legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
-            #            col=c("black","purple","blue","red"),
-            #            lwd=c(1,2,2,2),
-            #            lty=c(1,2,1,1),ncol=2);
-            # }
         }
         else{
             points(forecast,col="blue",lwd=2,pch=4);
-            # if(legend){
-            #     par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
-            #     plot(0,0,col="white")
-            #     legend(x="bottom",
-            #            legend=c("Series","Fitted values",pointForecastLabel,"Forecast origin"),
-            #            col=c("black","purple","blue","red"),
-            #            lwd=c(1,2,2,2),
-            #            lty=c(1,2,NA,1),
-            #            pch=c(NA,NA,4,NA),ncol=2);
-            # }
         }
     }
 
