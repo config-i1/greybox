@@ -531,7 +531,7 @@ alm <- function(formula, data, subset, na.action,
         occurrence <- "none";
     }
     # See if the occurrence model is provided, and whether we need to treat the data as intermittent
-    if(inherits(occurrence,"occurrence") || is.alm(occurrence)){
+    if(is.occurrence(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
     }

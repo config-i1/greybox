@@ -106,7 +106,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         occurrence <- "none";
     }
     # Check occurrence. If it is not "none" then use alm().
-    if(inherits(occurrence,"occurrence") || is.alm(occurrence)){
+    if(is.occurrence(occurrence)){
         useALM <- TRUE;
         rowsSelected <- rowsSelected & (data[,1]!=0);
     }
@@ -354,6 +354,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                              envir = parent.frame());
         bestModel$call$occurrence <- substitute(occurrence);
         class(bestModel) <- c("alm","greybox");
+        if(any(distribution==c("plogis","pnorm"))){
+            class(bestModel) <- c(class(bestModel),"occurrence");
+        }
     }
 
     bestModel$ICs <- unlist(allICs);

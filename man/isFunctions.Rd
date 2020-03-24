@@ -3,6 +3,7 @@
 \name{is.greybox}
 \alias{is.greybox}
 \alias{is.alm}
+\alias{is.occurrence}
 \alias{is.greyboxC}
 \alias{is.greyboxD}
 \alias{is.rollingOrigin}
@@ -12,6 +13,8 @@
 is.greybox(x)
 
 is.alm(x)
+
+is.occurrence(x)
 
 is.greyboxC(x)
 
@@ -37,6 +40,7 @@ The list of functions includes:
 (e.g. \link[greybox]{alm} / \link[greybox]{stepwise} / \link[greybox]{lmCombine}
 / \link[greybox]{lmDynamic});
 \item \code{is.alm()} tests if the object was produced by \code{alm()} function;
+\item \code{is.occurrence()} tests if an occurrence part of the model was produced;
 \item \code{is.greyboxC()} tests if the object was produced by \code{lmCombine()}
 function;
 \item \code{is.greyboxD()} tests if the object was produced by \code{lmDynamic()}

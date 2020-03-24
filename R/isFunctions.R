@@ -8,6 +8,7 @@
 #' (e.g. \link[greybox]{alm} / \link[greybox]{stepwise} / \link[greybox]{lmCombine}
 #' / \link[greybox]{lmDynamic});
 #' \item \code{is.alm()} tests if the object was produced by \code{alm()} function;
+#' \item \code{is.occurrence()} tests if an occurrence part of the model was produced;
 #' \item \code{is.greyboxC()} tests if the object was produced by \code{lmCombine()}
 #' function;
 #' \item \code{is.greyboxD()} tests if the object was produced by \code{lmDynamic()}
@@ -45,6 +46,12 @@ is.greybox <- function(x){
 #' @export
 is.alm <- function(x){
     return(inherits(x,"alm"))
+}
+
+#' @rdname isFunctions
+#' @export
+is.occurrence <- function(x){
+    return(inherits(x,"occurrence"))
 }
 
 #' @rdname isFunctions

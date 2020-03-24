@@ -149,7 +149,7 @@ errorType.ets <- function(object, ...){
 #' @importFrom stats logLik
 #' @export
 logLik.alm <- function(object, ...){
-    if(is.alm(object$occurrence)){
+    if(is.occurrence(object$occurrence)){
         return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
     }
     else{
@@ -210,7 +210,7 @@ pointLik.alm <- function(object, ...){
     distribution <- object$distribution;
     y <- actuals(object);
     ot <- y!=0;
-    if(is.alm(object$occurrence)){
+    if(is.occurrence(object$occurrence)){
         otU <- y!=0;
         y <- y[otU];
         mu <- object$mu[otU];
@@ -244,7 +244,7 @@ pointLik.alm <- function(object, ...){
     );
 
     # If this is a mixture model, take the respective probabilities into account (differential entropy)
-    if(is.alm(object$occurrence)){
+    if(is.occurrence(object$occurrence)){
         likValues[!otU] <- -switch(distribution,
                                    "dnorm" =,
                                    "dfnorm" =,
@@ -567,7 +567,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     greyboxForecast$distribution <- object$distribution;
 
     # If there is an occurrence part of the model, use it
-    if(is.alm(object$occurrence)){
+    if(is.occurrence(object$occurrence)){
         occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, side=side, ...);
         # The probability of having zero should be subtracted from that thing...
         if(interval=="p"){
@@ -594,7 +594,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     levelUp[levelUp<0] <- 0;
 
     if(object$distribution=="dnorm"){
-        if(is.alm(object$occurrence) & interval!="n"){
+        if(is.occurrence(object$occurrence) & interval!="n"){
             greyboxForecast$lower[] <- qnorm(levelLow,greyboxForecast$mean,greyboxForecast$scale);
             greyboxForecast$upper[] <- qnorm(levelUp,greyboxForecast$mean,greyboxForecast$scale);
         }
@@ -791,7 +791,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
 
     # If there is an occurrence part of the model, use it
-    if(is.alm(object$occurrence)){
+    if(is.occurrence(object$occurrence)){
         greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
         #### This is weird and probably wrong. But I don't know yet what the confidence intervals mean in case of occurrence model.
         if(interval=="c"){
@@ -1148,7 +1148,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
         # Transform the lagged response variables
         if(any(object$distribution==c("dlnorm","dpois","dnbinom"))){
-            if(any(y==0) & !is.alm(object$occurrence)){
+            if(any(y==0) & !is.occurrence(object$occurrence)){
                 # Use Box-Cox if there are zeroes
                 matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
                 colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
@@ -1577,7 +1577,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         # If the mixture distribution, then do the upper bound
-        if(is.alm(x$occurrence)){
+        if(is.occurrence(x$occurrence)){
             zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
             if(any(is.infinite(zValues$lower))){
                 zValues$lower[is.infinite(zValues$lower)] <- 0;
@@ -1627,7 +1627,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             yName <- "Studentised";
         }
 
-        if(is.alm(x$occurrence)){
+        if(is.occurrence(x$occurrence)){
             ellipsis$x <- ellipsis$x[actuals(x$occurrence)!=0];
             ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
         }
@@ -1720,7 +1720,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$y <- residuals(x)^2;
         }
 
-        if(is.alm(x$occurrence)){
+        if(is.occurrence(x$occurrence)){
             ellipsis$x <- ellipsis$x[ellipsis$y!=0];
             ellipsis$y <- ellipsis$y[ellipsis$y!=0];
         }
@@ -1757,7 +1757,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         ellipsis <- list(...);
 
         ellipsis$y <- residuals(x);
-        if(is.alm(x$occurrence)){
+        if(is.occurrence(x$occurrence)){
             ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
         }
 
@@ -2153,7 +2153,7 @@ print.summary.alm <- function(x, ...){
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
     );
-    if(is.alm(x$occurrence)){
+    if(is.occurrence(x$occurrence)){
         distribOccurrence <- switch(x$occurrence$distribution,
                                     "plogis" = "Cumulative logistic",
                                     "pnorm" = "Cumulative normal"
@@ -2308,7 +2308,7 @@ rstandard.greybox <- function(model, ...){
     df <- obs - nparam(model);
     errors <- residuals(model);
     # If this is an occurrence model, then only modify the non-zero obs
-    if(is.alm(model$occurrence)){
+    if(is.occurrence(model$occurrence)){
         residsToGo <- which(actuals(model$occurrence)!=0);
     }
     else{
@@ -2335,7 +2335,7 @@ rstudent.greybox <- function(model, ...){
     df <- obs - nparam(model) - 1;
     rstudentised <- errors <- residuals(model);
     # If this is an occurrence model, then only modify the non-zero obs
-    if(is.alm(model$occurrence)){
+    if(is.occurrence(model$occurrence)){
         residsToGo <- which(actuals(model$occurrence)!=0);
     }
     else{
