@@ -10,6 +10,7 @@ Changes:
 * Removed dchisq from the alm().
 * RMSSE in error measures().
 * plot.rmcb() now has a "select" parameter.
+* alm() now returns class "occurrence" if occurrence was used. This is needed in order to connect alm() with es() / mes() from smooth.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

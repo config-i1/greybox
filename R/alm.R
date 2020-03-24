@@ -526,8 +526,12 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
+    # If occurrence is not provideded, then set it to "none"
+    if(is.null(occurrence)){
+        occurrence <- "none";
+    }
     # See if the occurrence model is provided, and whether we need to treat the data as intermittent
-    if(is.alm(occurrence)){
+    if(inherits(occurrence,"occurrence") || is.alm(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
     }
@@ -1520,11 +1524,17 @@ alm <- function(formula, data, subset, na.action,
         mu <- yFitted;
     }
 
-    finalModel <- list(coefficients=B, vcov=vcovMatrix, fitted=yFitted, residuals=as.vector(errors),
-                       mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
-                       df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
-                       data=dataWork,
-                       occurrence=occurrence, subset=subset, other=ellipsis);
+    finalModel <- structure(list(coefficients=B, vcov=vcovMatrix, fitted=yFitted, residuals=as.vector(errors),
+                                 mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
+                                 df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
+                                 data=dataWork,
+                                 occurrence=occurrence, subset=subset, other=ellipsis),
+                            class=c("alm","greybox"));
 
-    return(structure(finalModel,class=c("alm","greybox")));
+    # If this is an occurrence model, flag it as one
+    if(any(distribution==c("plogis","pnorm"))){
+        class(finalModel) <- c(class(finalModel),"occurrence");
+    }
+
+    return(finalModel);
 }

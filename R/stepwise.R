@@ -101,19 +101,17 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         rowsSelected <- rep(TRUE,nrow(data));
     }
 
+    # If occurrence is not provideded, then set it to "none"
+    if(is.null(occurrence)){
+        occurrence <- "none";
+    }
     # Check occurrence. If it is not "none" then use alm().
-    if(is.alm(occurrence)){
+    if(inherits(occurrence,"occurrence") || is.alm(occurrence)){
         useALM <- TRUE;
         rowsSelected <- rowsSelected & (data[,1]!=0);
     }
     else{
-        occurrence <- occurrence[1];
-        if(all(occurrence!=c("none","plogis","pnorm"))){
-            warning(paste0("Sorry, but we don't know what to do with the occurrence '",occurrence,
-                        "'. Switching to 'none'."), call.=FALSE);
-            occurrence <- "none";
-        }
-
+        occurrence <- match.arg(occurrence);
         if(any(occurrence==c("plogis","pnorm"))){
             useALM <- TRUE;
             rowsSelected <- rowsSelected & (data[,1]!=0);
