@@ -322,7 +322,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel <- do.call(lmCall,listToCall);
         # Expand the data from the final model
         bestModel$data <- cbind(listToCall$data[[1]],model.matrix(bestFormula,listToCall$data)[,-1]);
-        colnames(bestModel$data) <- c(responseName,colnames(bestModel$qr)[-1]);
+        colnames(bestModel$data) <- c(responseName,varsNames);
         rm(listToCall);
 
         bestModel$distribution <- distribution;
@@ -331,7 +331,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         # This is number of variables + constant + variance
         bestModel$df <- length(bestModel$coefficients) + 1;
         bestModel$df.residual <- obsInsample - bestModel$df;
-        names(bestModel$coefficients) <- colnames(bestModel$qr);
+        names(bestModel$coefficients) <- c("(Intercept)",varsNames);
         # Remove redundant bits
         bestModel$effects <- NULL;
         bestModel$qr <- NULL;

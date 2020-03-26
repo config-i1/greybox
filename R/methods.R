@@ -1662,6 +1662,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
                                                 dispersion=x$scale * nobs(x) / (nobs(x)-nparam(x))),
                           qnorm(c((1-level)/2, (1+level)/2), 0, 1));
+        # Analyse stuff in logarithms if the error is multiplicative
+        if(x$distribution=="dinvgauss"){
+            ellipsis$y[] <- log(ellipsis$y);
+            zValues[] <- log(zValues);
+        }
         outliers <- which(ellipsis$y >zValues[2] | ellipsis$y <zValues[1]);
         # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
@@ -1713,11 +1718,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         ellipsis <- list(...);
 
         ellipsis$x <- fitted(x);
+        ellipsis$y <- as.vector(residuals(x));
+        if(x$distribution=="dinvgauss"){
+            ellipsis$y[] <- log(ellipsis$y);
+        }
         if(type=="abs"){
-            ellipsis$y <- abs(residuals(x));
+            ellipsis$y[] <- abs(ellipsis$y);
         }
         else{
-            ellipsis$y <- residuals(x)^2;
+            ellipsis$y[] <- as.vector(ellipsis$y)^2;
         }
 
         if(is.occurrence(x$occurrence)){

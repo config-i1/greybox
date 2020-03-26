@@ -1,4 +1,4 @@
-greybox v0.5.9 (Release data: 2020-03-24)
+greybox v0.5.9 (Release data: 2020-03-26)
 ==============
 
 Changes:
@@ -17,7 +17,8 @@ Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.
 * Fix for vcov, which used subset without evaluating it.
 * A bugfix in rstandard and rstudent for distribution="dalaplace".
-* graphmaker() would fail if start was not a vector
+* graphmaker() would fail if start was not a vector.
+* stepwise() would sometimes fail in case of distribution="dnorm", returing NULL qr.
 
 
 greybox v0.5.8 (Release data: 2020-02-08)
