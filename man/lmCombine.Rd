@@ -5,8 +5,9 @@
 \title{Combine regressions based on information criteria}
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteforce = FALSE,
-  silent = TRUE, distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace",
-  "ds", "dchisq", "dlogis", "plogis", "pnorm"), parallel = FALSE, ...)
+  silent = TRUE, distribution = c("dnorm", "dlogis", "dlaplace",
+  "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dllaplace", "dls", "dbcnorm",
+  "dinvgauss", "dpois", "dnbinom", "plogis", "pnorm"), parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -21,7 +22,8 @@ one are produced and then combined.}
 \item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
 out. \code{TRUE} means that nothing is produced.}
 
-\item{distribution}{Distribution to pass to \code{alm()}.}
+\item{distribution}{Distribution to pass to \code{alm()}. See \link[greybox]{alm}
+for details.}
 
 \item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
 WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)

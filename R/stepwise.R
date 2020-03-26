@@ -24,7 +24,8 @@
 #' used on residuals).
 #' @param method Method of correlations calculation. The default is Kendall's
 #' Tau, which should be applicable to a wide range of data in different scales.
-#' @param distribution Distribution to pass to \code{alm()}.
+#' @param distribution Distribution to pass to \code{alm()}. See \link[greybox]{alm}
+#' for details.
 #' @param occurrence what distribution to use for occurrence part. See
 #' \link[greybox]{alm} for details.
 #' @param ... This is temporary and is needed in order to capture "silent"
@@ -64,7 +65,9 @@
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
-                     distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
+                     distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
+                                    "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
+                                    "dpois","dnbinom",
                                     "plogis","pnorm"),
                      occurrence=c("none","plogis","pnorm"), ...){
 ##### Function that selects variables based on IC and using partial correlations

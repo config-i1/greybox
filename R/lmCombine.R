@@ -23,7 +23,8 @@
 #' one are produced and then combined.
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
-#' @param distribution Distribution to pass to \code{alm()}.
+#' @param distribution Distribution to pass to \code{alm()}. See \link[greybox]{alm}
+#' for details.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
 #' WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
 #' or \code{doParallel} are needed in order to run the function in parallel.
@@ -84,7 +85,9 @@
 #'
 #' @export lmCombine
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
-                      distribution=c("dnorm","dfnorm","dlnorm","dlaplace","ds","dchisq","dlogis",
+                      distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
+                                     "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
+                                     "dpois","dnbinom",
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.

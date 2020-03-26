@@ -46,7 +46,7 @@ where $y_t$ is the value of the response variable, $x_t$ is the vector of exogen
 \begin{equation} \label{eq:basicALMMixture}
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
-        o_t \sim \text{Bernoulli}(p_t) \\
+        o_t \sim \mathcal{Bernoulli}(p_t) \\
         p_t = g(z_t' A)
     \end{matrix},
 \end{equation}
@@ -127,7 +127,7 @@ where $s$ is the scale parameter, which, when estimated using likelihood, is equ
 \begin{equation} \label{eq:bLaplace}
     s = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
 \end{equation}
-So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \text{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails.
+So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathcal{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails.
 
 `alm()` function with `distribution="dlaplace"` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $s$ is returned in the `scale` variable. The prediction intervals are derived from the quantiles of Laplace distribution after transforming the conditional variance into the conditional scale parameter $s$ using the connection between the two in Laplace distribution:
 \begin{equation} \label{eq:bLaplaceAndSigma}
@@ -147,7 +147,7 @@ where $s$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq
 \begin{equation} \label{eq:bALaplace}
     s = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
 \end{equation}
-Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \text{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
+Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \mathcal{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
 
 In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\frac{1}{2}\text{MAE}$.
 
@@ -167,7 +167,7 @@ where $s$ is the scale parameter, which is estimated in `alm()` based on the con
 \begin{equation} \label{eq:sLogisticAndSigma}
     s = \sigma \sqrt{\frac{3}{\pi^2}}.
 \end{equation}
-Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \text{Logistic}(0, s)$.
+Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathcal{Logistic}(0, s)$.
 
 Logistic is considered a fat tailed distribution, but its tails are not as fat as in Laplace. Kurtosis of standard Logistic is 4.2.
 
@@ -241,7 +241,9 @@ This group includes:
 1. [Log Normal distribution](#lnormal),
 2. [Box-Cox Normal distribution](#bcnormal),
 3. [Inverse Gaussian distribution](#invgauss),
-4. [Folded Normal distribution](#fnormal),
+4. [Log Laplace distribution](#llaplace),
+5. [Log S distribution](#lsvetunkov),
+6. [Folded Normal distribution](#fnormal),
 <!-- 5. [Noncentral Chi Squared distribution](#chisq). -->
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
@@ -266,6 +268,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 `alm()` with `distribution="dlnorm"` does not transform the provided data and estimates the density directly using `dlnorm()` function with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogNormal}. If you need a log-log model, then you would need to take logarithms of the external variables. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Log Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
+
 ### Box-Cox Normal distribution {#bcnormal}
 Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformations. This means that if $x=\frac{y^\lambda+1}{\lambda}$, $x \sim \mathcal{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathcal{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
 \begin{equation} \label{eq:BCNormal}
@@ -286,6 +289,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 `alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$.
 
+
 ### Inverse Gaussian distribution {#invgauss}
 Inverse Gaussian distribution is an interesting distribution, which is defined for positive values only and has some properties similar to the properties of the Normal distribution. It has two parameters: location $\mu_t$ and scale $\phi$ (aka "dispersion"). There are different ways to parameterise this distribution, we use the dispersion-based one. The important thing that distincts the implementation in `alm()` from the one in `glm()` or in any other function is that we assume that the model has the following form:
 \begin{equation} \label{eq:InverseGaussianModel}
@@ -302,6 +306,43 @@ where the dispersion parameter is estimated via maximising the likelihood and is
 Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the means is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution.
 
 `alm()` with `distribution="dinvgauss"` estimates the density for $y_t$ using `dinvgauss()` function from `statmod` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the dispersion $\phi$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qinvgauss()` function from the `statmod` package.
+
+
+### Log Laplace distribution {#llaplace}
+This is based on the exponent of [Laplace distribution](#laplace), which means that the PDF in this case is:
+\begin{equation} \label{eq:lLaplace}
+    f(y_t) = \frac{1}{2 s y_t} \exp \left( -\frac{\left| \log y_t - \mu_t \right|}{s} \right) .
+\end{equation}
+The model implemented in the package has similarity with [Log Normal distribution](#lnormal). The MLE scale is:
+\begin{equation} \label{eq:bLogLaplace}
+    \hat{s} = \frac{1}{T} \sum_{t=1}^T \left|\log y_t - \mu_t \right| .
+\end{equation}
+Estimating the model with Log Laplace distribution is equivalent to estimating the parameters of log-linear model:
+\begin{equation*}
+    \log y_t = \mu_t + \epsilon_t,
+\end{equation*}
+where $\epsilon_t \sim \mathcal{Laplace}(0, \sigma^2)$. This distribution might be useful if the data has a strong skewness (larger than in case of log normal distribution).
+
+`alm()` with `distribution="dllaplace"` uses `dlaplace()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
+
+
+### Log S distribution {#lsvetunkov}
+This is based on the exponent of [S distribution](#svetunkov), giving the PDF:
+\begin{equation} \label{eq:ls}
+    f(y_t) = \frac{1}{4 y_t s^2} \exp \left( -\frac{\sqrt{|\log y_t - \mu_t|}}{s} \right) ,
+\end{equation}
+The model implemented in the package has similarity with [Log Normal](#lnormal) and [Log Laplace](#llaplace) distributions. The MLE scale is:
+\begin{equation} \label{eq:bLogS}
+    s = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| \log(y_t) - \mu_t \right|} ,
+\end{equation}
+Estimating the model with Log Laplace distribution is equivalent to estimating the parameters of log-linear model:
+\begin{equation*}
+    \log y_t = \mu_t + \epsilon_t,
+\end{equation*}
+where $\epsilon_t \sim \mathcal{S}(0, \sigma^2)$. This distribution can be used for sever seldom right tail cases.
+
+`alm()` with `distribution="dls"` uses `ds()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
+
 
 ### Folded Normal distribution {#fnormal}
 Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
@@ -441,7 +482,7 @@ The final class of models includes two cases:
 In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with the binary one. As a reminder, all the models eventually assume that:
 \begin{equation} \label{eq:basicALMCumulative}
     \begin{matrix}
-        o_t \sim \text{Bernoulli}(p_t) \\
+        o_t \sim \mathcal{Bernoulli}(p_t) \\
         p_t = g(x_t' A)
     \end{matrix},
 \end{equation}

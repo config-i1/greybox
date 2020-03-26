@@ -12,6 +12,7 @@ Changes:
 * plot.rmcb() now has a "select" parameter.
 * alm() now returns class "occurrence" if occurrence was used. This is needed in order to connect alm() with es() / mes() from smooth.
 * Introduced a proper is.occurrence() method.
+* Log Laplace and Log S distributions in alm.
 
 Bugfixes:
 * A fix of a bug in case the data is not provided explicitly.

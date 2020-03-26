@@ -5,8 +5,8 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
-  "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dbcnorm",
-  "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
+  "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dllaplace", "dls",
+  "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
   occurrence = c("none", "plogis", "pnorm"), ar = 0, i = 0,
   parameters = NULL, vcovProduce = FALSE, fast = FALSE, ...)
 }
@@ -105,9 +105,11 @@ non-normal distributions. These include:
 \item \link[stats]{dnorm} - Normal distribution,
 \item \link[stats]{dlogis} - Logistic Distribution,
 \item \link[greybox]{dlaplace} - Laplace distribution,
+\item dllaplace - Log Laplace distribution,
 \item \link[greybox]{dalaplace} - Asymmetric Laplace distribution,
 \item \link[stats]{dt} - T-distribution,
 \item \link[greybox]{ds} - S-distribution,
+\item dls - Log S-distribution,
 \item \link[greybox]{dfnorm} - Folded normal distribution,
 \item \link[stats]{dlnorm} - Log normal distribution,
 \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,

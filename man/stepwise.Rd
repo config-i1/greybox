@@ -6,8 +6,9 @@
 \usage{
 stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, method = c("pearson", "kendall", "spearman"),
-  distribution = c("dnorm", "dfnorm", "dlnorm", "dlaplace", "ds", "dchisq",
-  "dlogis", "plogis", "pnorm"), occurrence = c("none", "plogis", "pnorm"),
+  distribution = c("dnorm", "dlogis", "dlaplace", "dalaplace", "ds", "dt",
+  "dfnorm", "dlnorm", "dllaplace", "dls", "dbcnorm", "dinvgauss", "dpois",
+  "dnbinom", "plogis", "pnorm"), occurrence = c("none", "plogis", "pnorm"),
   ...)
 }
 \arguments{
@@ -25,7 +26,8 @@ used on residuals).}
 \item{method}{Method of correlations calculation. The default is Kendall's
 Tau, which should be applicable to a wide range of data in different scales.}
 
-\item{distribution}{Distribution to pass to \code{alm()}.}
+\item{distribution}{Distribution to pass to \code{alm()}. See \link[greybox]{alm}
+for details.}
 
 \item{occurrence}{what distribution to use for occurrence part. See
 \link[greybox]{alm} for details.}
