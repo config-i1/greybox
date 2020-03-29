@@ -11,6 +11,7 @@ This is the release of the package ``greybox``, v0.5.9
 * local ubuntu 19.10, R 3.6.1
 * ubuntu 14.04.5 (on travis-ci), R 3.6.1
 * win-builder (devel and release)
+* rhub
 
 ## R CMD check results
 R CMD check results
