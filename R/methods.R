@@ -1484,10 +1484,9 @@ plot.coef.greyboxD <- function(x, ...){
 #'
 #' The list of produced plots includes:
 #' \enumerate{
-#' \item Fitted over time. Plots actuals (black line), fitted values (purple line) and
-#' prediction interval (red lines) of width \code{level}, but only in the case, when there
-#' are some values lying outside of it. Can be used in order to make sure that the model
-#' did not miss any important events over time;
+#' \item Actuals vs Fitted values. Allows analysing, whether there are any issues in the fit.
+#' Does the variability of actuals increase with the increase of fitted values? Is the relation
+#' well captured? They grey line on the plot corresponds to the perfect fit of the model.
 #' \item Standardised residuals vs Fitted. Plots the points and the confidence bounds
 #' (red lines) for the specified confidence \code{level}. Useful for the analysis of outliers;
 #' \item Studentised residuals vs Fitted. This is similar to the previous plot, but with the
@@ -1498,13 +1497,17 @@ plot.coef.greyboxD <- function(x, ...){
 #' \item Q-Q plot with the specified distribution. Can be used in order to see if the
 #' residuals follow the assumed distribution. The type of distribution depends on the one used
 #' in the estimation (see \code{distribution} parameter in \link[greybox]{alm});
+#' \item Fitted over time. Plots actuals (black line), fitted values (purple line) and
+#' prediction interval (red lines) of width \code{level}, but only in the case, when there
+#' are some values lying outside of it. Can be used in order to make sure that the model
+#' did not miss any important events over time;
 #' \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
 #' details;
 #' \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
 #' for details;
 #' }
-#' Which of the plots to produce, is specified via the \code{which} parameter. The plots 1, 2, 3,
-#' 7 and 8 also use the parameters \code{level}, which specifies the confidence level for
+#' Which of the plots to produce, is specified via the \code{which} parameter. The plots 2, 3, 7,
+#' 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
 #' the intervals.
 #'
 #' @param x Time series model for which forecasts are required.
@@ -1520,9 +1523,9 @@ plot.coef.greyboxD <- function(x, ...){
 #' \item ACF of the residuals;
 #' \item PACF of the residuals.
 #' }
-#' @param level Confidence level. Defines width of confidence interval. Used in plots (1), (2),
-#' (6) and (7).
-#' @param legend If \code{TRUE}, then the legend is produced on plots (1), (2) and (3).
+#' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
+#' (8) and (9).
+#' @param legend If \code{TRUE}, then the legend is produced on plots (2), (3) and (7).
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
 #' @param lowess Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.
 #' @param ... The parameters passed to the plot functions. Recommended to use with separate plots.
@@ -1562,12 +1565,28 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Get the actuals and the fitted values
         ellipsis$y <- c(actuals(x));
-        if(is.alm(x)){
+        if(is.occurrence(x)){
             if(any(x$distribution==c("plogis","pnorm"))){
                 ellipsis$y <- (ellipsis$y!=0)*1;
             }
         }
         ellipsis$x <- c(fitted(x));
+
+        # If this is a mixture model, remove zeroes
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x <- ellipsis$x[ellipsis$y!=0];
+            ellipsis$y <- ellipsis$y[ellipsis$y!=0];
+        }
+
+        # Remove NAs
+        if(any(is.na(ellipsis$x))){
+            ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
+            ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
+        }
+        if(any(is.na(ellipsis$y))){
+            ellipsis$x <- ellipsis$x[!is.na(ellipsis$y)];
+            ellipsis$y <- ellipsis$y[!is.na(ellipsis$y)];
+        }
 
         # Title
         if(!any(names(ellipsis)=="main")){
