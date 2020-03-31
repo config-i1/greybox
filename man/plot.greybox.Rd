@@ -14,12 +14,13 @@
 
 \item{which}{Which of the plots to produce. The possible options (see details for explanations):
 \enumerate{
-\item Fitted over time;
+\item Actuals vs Fitted values;
 \item Standardised residuals vs Fitted;
 \item Studentised residuals vs Fitted;
 \item Absolute residuals vs Fitted;
 \item Squared residuals vs Fitted;
 \item Q-Q plot with the specified distribution;
+\item Fitted over time;
 \item ACF of the residuals;
 \item PACF of the residuals.
 }}

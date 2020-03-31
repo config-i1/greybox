@@ -1510,12 +1510,13 @@ plot.coef.greyboxD <- function(x, ...){
 #' @param x Time series model for which forecasts are required.
 #' @param which Which of the plots to produce. The possible options (see details for explanations):
 #' \enumerate{
-#' \item Fitted over time;
+#' \item Actuals vs Fitted values;
 #' \item Standardised residuals vs Fitted;
 #' \item Studentised residuals vs Fitted;
 #' \item Absolute residuals vs Fitted;
 #' \item Squared residuals vs Fitted;
 #' \item Q-Q plot with the specified distribution;
+#' \item Fitted over time;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals.
 #' }
@@ -1555,85 +1556,46 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         on.exit(devAskNewPage(oask));
     }
 
-    # 1. Linear graph,
+    # 1. Fitted vs Actuals values
     plot1 <- function(x, ...){
         ellipsis <- list(...);
-        if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Fit over time";
-        }
-
-        # If type and ylab are not provided, set them...
-        if(!any(names(ellipsis)=="type")){
-            ellipsis$type <- "l";
-        }
-        if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- all.vars(x$call$formula)[1];
-        }
-        if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Time";
-        }
 
         # Get the actuals and the fitted values
-        ellipsis$x <- actuals(x);
+        ellipsis$y <- c(actuals(x));
         if(is.alm(x)){
             if(any(x$distribution==c("plogis","pnorm"))){
-                ellipsis$x <- (ellipsis$x!=0)*1;
+                ellipsis$y <- (ellipsis$y!=0)*1;
             }
         }
-        yFitted <- fitted(x);
+        ellipsis$x <- c(fitted(x));
 
-        if(legend){
-            if(yFitted[length(yFitted)]>mean(yFitted)){
-                legendPosition <- "bottomright";
-            }
-            else{
-                legendPosition <- "topright";
-            }
-            if(!any(names(ellipsis)=="ylim")){
-                ellipsis$ylim <- range(c(actuals(x),yFitted));
-                if(legendPosition=="bottomright"){
-                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
-                }
-                else{
-                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
-                }
-            }
+        # Title
+        if(!any(names(ellipsis)=="main")){
+            ellipsis$main <- "Actuals vs Fitted";
         }
-
-        # If the mixture distribution, then do the upper bound
-        if(is.occurrence(x$occurrence)){
-            zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
-            if(any(is.infinite(zValues$lower))){
-                zValues$lower[is.infinite(zValues$lower)] <- 0;
-            }
-            if(any(is.infinite(zValues$upper))){
-                zValues$upper[is.infinite(zValues$upper)] <- 0;
-            }
+        # If type and ylab are not provided, set them...
+        if(!any(names(ellipsis)=="type")){
+            ellipsis$type <- "p";
         }
-        else{
-            zValues <- suppressWarnings(predict(x, interval="p", level=level));
+        if(!any(names(ellipsis)=="ylab")){
+            ellipsis$ylab <- paste0("Actual ",all.vars(x$call$formula)[1]);
+        }
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Fitted";
+        }
+        # xlim and ylim
+        if(!any(names(ellipsis)=="xlim")){
+            ellipsis$xlim <- range(c(ellipsis$x,ellipsis$y));
+        }
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- range(c(ellipsis$x,ellipsis$y));
         }
 
         # Start plotting
         do.call(plot,ellipsis);
-        lines(yFitted, col="purple");
-        if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
-            lines(zValues$lower, col="red", lty=2);
-            lines(zValues$upper, col="red", lty=2);
-            polygon(c(1:length(yFitted), c(length(yFitted):1)),
-                    c(zValues$lower, rev(zValues$upper)),
-                    col="lightgrey", border=NA, density=10);
-
-            if(legend){
-                legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
-                       col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
-            }
-        }
-        else{
-            if(legend){
-                legend(legendPosition,legend=c("Actuals","Fitted"),
-                       col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
-            }
+        abline(a=0,b=1,col="grey",lwd=2,lty=2)
+        if(lowess){
+            lines(lowess(ellipsis$x, ellipsis$y), col="red");
         }
     }
 
@@ -1883,8 +1845,90 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
-    # 7 and 8. ACF and PACF
-    plot5 <- function(x, type="acf", ...){
+    # 7. Linear graph,
+    plot5 <- function(x, ...){
+        ellipsis <- list(...);
+        if(!any(names(ellipsis)=="main")){
+            ellipsis$main <- "Fit over time";
+        }
+
+        # If type and ylab are not provided, set them...
+        if(!any(names(ellipsis)=="type")){
+            ellipsis$type <- "l";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            ellipsis$ylab <- all.vars(x$call$formula)[1];
+        }
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Time";
+        }
+
+        # Get the actuals and the fitted values
+        ellipsis$x <- actuals(x);
+        if(is.alm(x)){
+            if(any(x$distribution==c("plogis","pnorm"))){
+                ellipsis$x <- (ellipsis$x!=0)*1;
+            }
+        }
+        yFitted <- fitted(x);
+
+        if(legend){
+            if(yFitted[length(yFitted)]>mean(yFitted)){
+                legendPosition <- "bottomright";
+            }
+            else{
+                legendPosition <- "topright";
+            }
+            if(!any(names(ellipsis)=="ylim")){
+                ellipsis$ylim <- range(c(actuals(x),yFitted));
+                if(legendPosition=="bottomright"){
+                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+                }
+                else{
+                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+                }
+            }
+        }
+
+        # If the mixture distribution, then do the upper bound
+        if(is.occurrence(x$occurrence)){
+            zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
+            if(any(is.infinite(zValues$lower))){
+                zValues$lower[is.infinite(zValues$lower)] <- 0;
+            }
+            if(any(is.infinite(zValues$upper))){
+                zValues$upper[is.infinite(zValues$upper)] <- 0;
+            }
+        }
+        else{
+            zValues <- suppressWarnings(predict(x, interval="p", level=level));
+        }
+
+        # Start plotting
+        do.call(plot,ellipsis);
+        lines(yFitted, col="purple");
+        if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
+            lines(zValues$lower, col="red", lty=2);
+            lines(zValues$upper, col="red", lty=2);
+            polygon(c(1:length(yFitted), c(length(yFitted):1)),
+                    c(zValues$lower, rev(zValues$upper)),
+                    col="lightgrey", border=NA, density=10);
+
+            if(legend){
+                legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
+                       col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
+            }
+        }
+        else{
+            if(legend){
+                legend(legendPosition,legend=c("Actuals","Fitted"),
+                       col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+            }
+        }
+    }
+
+    # 8 and 9. ACF and PACF
+    plot6 <- function(x, type="acf", ...){
         ellipsis <- list(...);
 
         if(!any(names(ellipsis)=="main")){
@@ -1927,7 +1971,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         abline(h=qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x))), col="red", lty=2);
     }
 
-    if(any(which==1)){
+
+    if(any(which==2)){
         plot1(x, ...);
     }
 
@@ -1952,11 +1997,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     if(any(which==7)){
-        plot5(x, type="acf", ...);
+        plot5(x, ...);
     }
 
     if(any(which==8)){
-        plot5(x, type="pacf", ...);
+        plot6(x, type="acf", ...);
+    }
+
+    if(any(which==9)){
+        plot6(x, type="pacf", ...);
     }
 
 }

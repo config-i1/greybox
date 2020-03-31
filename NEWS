@@ -1,3 +1,10 @@
+greybox v0.6.0 (Release data: 2020-03-31)
+==============
+
+Changes:
+* The first default plot from plot.greybox() now is the "Actuals vs Fitted" instead of "Fitted over time", which is arguably more useful.
+
+
 greybox v0.5.9 (Release data: 2020-03-29)
 ==============
 
