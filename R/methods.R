@@ -1991,7 +1991,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
 
-    if(any(which==2)){
+    if(any(which==1)){
         plot1(x, ...);
     }
 
@@ -2410,7 +2410,7 @@ print.rollingOrigin <- function(x, ...){
     cat(paste0("Number of origins is ",roh,"\n"));
 }
 
-#' @importFrom stats rstandard
+#' @importFrom stats rstandard hat
 #' @export
 rstandard.greybox <- function(model, ...){
     obs <- nobs(model);
@@ -2423,17 +2423,27 @@ rstandard.greybox <- function(model, ...){
     else{
         residsToGo <- c(1:obs);
     }
+    # The proper residuals with leverage are currently done only for normal-based distributions
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
-        return((errors - mean(errors[residsToGo])) / sqrt(sum(residuals(model)^2) / df));
+        # Prepare the hat values
+        if(any(names(coef(model))=="(Intercept)")){
+            xreg <- model$data;
+            xreg[,1] <- 1;
+        }
+        else{
+            xreg <- model$data[,-1];
+        }
+        hatValues <- hat(xreg);
+        return((errors - mean(errors[residsToGo])) / sqrt(sum(residuals(model)^2) / df*(1-hatValues)));
     }
     else if(any(model$distribution==c("ds","dls"))){
-            return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
+        return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
     }
     else if(model$distribution=="dinvgauss"){
-            return(errors / mean(errors[residsToGo]));
+        return(errors / mean(errors[residsToGo]));
     }
     else{
-        return(errors / model$scale * obs / df);
+        return((errors-mean(errors[residsToGo])) / (model$scale * obs / df));
     }
 }
 
@@ -2450,16 +2460,29 @@ rstudent.greybox <- function(model, ...){
     else{
         residsToGo <- c(1:obs);
     }
+
+    # The proper residuals with leverage are currently done only for normal-based distributions
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
+        # Prepare the hat values
+        if(any(names(coef(model))=="(Intercept)")){
+            xreg <- model$data;
+            xreg[,1] <- 1;
+        }
+        else{
+            xreg <- model$data[,-1];
+        }
+        hatValues <- hat(xreg);
         errors[] <- errors - mean(errors);
         for(i in residsToGo){
-            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
+            rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df * (1-hatValues[i]));
         }
     }
     else if(any(model$distribution==c("ds","dls"))){
+        # This is an approximation from the vcov matrix
+        # hatValues <- diag(xreg %*% vcov(model) %*% t(xreg))/sigma(model)^2;
         errors[] <- errors - mean(errors);
         for(i in residsToGo){
-            rstudentised[i] <- errors[i] / (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
+            rstudentised[i] <- errors[i] /  (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
         }
     }
     else if(any(model$distribution==c("dlaplace","dllaplace"))){
@@ -2489,6 +2512,7 @@ rstudent.greybox <- function(model, ...){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
         }
     }
+
     return(rstudentised);
 }
 
