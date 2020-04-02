@@ -635,8 +635,8 @@ nparam.varest <- function(object, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, ...){
-    return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
-    # return(sqrt(sum(residuals(object)^2)/(nobs(object, ...)-nparam(object))));
+    # return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
+    return(sqrt(sum(residuals(object)^2)/(nobs(object, ...)-nparam(object))));
 }
 
 #' @export
@@ -1784,9 +1784,36 @@ print.rollingOrigin <- function(x, ...){
 
 #### Regression diagnostics ####
 
-# cooks.distance.greybox <- function(model, ...){}
+#' @importFrom stats hatvalues hat
+#' @export
+hatvalues.greybox <- function(model, ...){
+    # Prepare the hat values
+    if(any(names(coef(model))=="(Intercept)")){
+        xreg <- model$data;
+        xreg[,1] <- 1;
+    }
+    else{
+        xreg <- model$data[,-1,drop=FALSE];
+    }
+    # Hatvalues for different distributions
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
+        hatValue <- hat(xreg);
+    }
+    else{
+        hatValue <- diag(xreg %*% vcov(model) %*% t(xreg))/sigma(model)^2;
+    }
+    names(hatValue) <- names(actuals(model));
+    return(hatValue);
+}
 
-#' @importFrom stats rstandard hat
+#' @export
+residuals.greybox <- function(object, ...){
+    errors <- object$residuals;
+    names(errors) <- names(actuals(object));
+    return(errors)
+}
+
+#' @importFrom stats rstandard
 #' @export
 rstandard.greybox <- function(model, ...){
     obs <- nobs(model);
@@ -1801,16 +1828,7 @@ rstandard.greybox <- function(model, ...){
     }
     # The proper residuals with leverage are currently done only for normal-based distributions
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
-        # Prepare the hat values
-        if(any(names(coef(model))=="(Intercept)")){
-            xreg <- model$data;
-            xreg[,1] <- 1;
-        }
-        else{
-            xreg <- model$data[,-1];
-        }
-        hatValues <- hat(xreg);
-        return((errors - mean(errors[residsToGo])) / sqrt(sum(residuals(model)^2) / df*(1-hatValues)));
+        return(errors / (sigma(model)*sqrt(1-hatvalues(model))));
     }
     else if(any(model$distribution==c("ds","dls"))){
         return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
@@ -1890,6 +1908,19 @@ rstudent.greybox <- function(model, ...){
     }
 
     return(rstudentised);
+}
+
+#' @importFrom stats cooks.distance
+#' @export
+cooks.distance.greybox <- function(model, ...){
+    # Number of parameters
+    nParam <- nparam(model);
+    # Hat values
+    hatValues <- hatvalues(model);
+    # Standardised residuals
+    errors <- rstandard(model);
+
+    return(errors^2 / nParam * hatValues/(1-hatValues));
 }
 
 #### Summary ####

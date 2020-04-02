@@ -1105,7 +1105,7 @@ alm <- function(formula, data, subset, na.action,
                 maxeval <- 2;
             }
             else{
-                maxeval <- 100;
+                maxeval <- 200;
             }
         }
         else{
