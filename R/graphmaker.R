@@ -197,7 +197,12 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         legendCall$pch <- legendCall$pch[legendElements];
         legendCall$bty <- "n";
 
-        par(cex=0.75,mar=rep(0.1,4),bty="n",xaxt="n",yaxt="n")
+        if(parReset){
+            par(cex=0.75, mar=rep(0.1,4), bty="n", xaxt="n", yaxt="n")
+        }
+        else{
+            par(mar=rep(0.1,4), bty="n", xaxt="n", yaxt="n")
+        }
         plot(0,0,col="white")
         legendDone <- do.call("legend", legendCall);
         rect(legendDone$rect$left-0.02, legendDone$rect$top-legendDone$rect$h,
@@ -205,11 +210,16 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     }
 
-    par(mar=parMar, cex=1, bty="o", xaxt="s", yaxt="s");
+    if(parReset){
+        par(mar=parMar, cex=1, bty="o", xaxt="s", yaxt="s");
+    }
+    else{
+        par(mar=parMar, bty="o", xaxt="s", yaxt="s");
+    }
     do.call(plot, ellipsis);
 
     if(any(!is.na(fitted))){
-        lines(fitted,col="purple",lwd=2,lty=2);
+        lines(fitted, col="purple", lwd=2, lty=2);
     }
     else{
         legendElements[2] <- FALSE;
