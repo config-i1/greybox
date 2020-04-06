@@ -828,10 +828,16 @@ vcov.lmGreybox <- function(object, ...){
 #' prediction interval (red lines) of width \code{level}, but only in the case, when there
 #' are some values lying outside of it. Can be used in order to make sure that the model
 #' did not miss any important events over time;
+#' \item Standardised residuals vs Time. Useful if you want to see, if there is autocorrelation or
+#' if there is heteroscedasticity in time. This also shows, when the outliers happen;
+#' \item Studentised residuals vs Time. Similar to previous, but with studentised residuals;
 #' \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
 #' details;
 #' \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
 #' for details;
+#' \item Cook's distance over time. Shows influential observations. If a value is above 0.5, then
+#' this means that the observation influences the parameters of the model. This does not work well
+#' for non-normal distributions.
 #' }
 #' Which of the plots to produce, is specified via the \code{which} parameter. The plots 2, 3, 7,
 #' 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
@@ -847,8 +853,11 @@ vcov.lmGreybox <- function(object, ...){
 #' \item Squared residuals vs Fitted;
 #' \item Q-Q plot with the specified distribution;
 #' \item Fitted over time;
+#' \item Standardised residuals vs Time;
+#' \item Studentised residuals vs Time;
 #' \item ACF of the residuals;
-#' \item PACF of the residuals.
+#' \item PACF of the residuals;
+#' \item Cook's distance over time.
 #' }
 #' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
 #' (8) and (9).
@@ -867,10 +876,10 @@ vcov.lmGreybox <- function(object, ...){
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #'
-#' ourModel <- alm(y~x1+x2, xreg, distribution="dlaplace")
+#' ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
 #'
-#' par(mfcol=c(2,3))
-#' plot(ourModel, c(1,2,4,5,7,8))
+#' par(mfcol=c(3,4))
+#' plot(ourModel, c(1:12))
 #'
 #' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess
 #' @importFrom grDevices dev.interactive devAskNewPage
@@ -1273,16 +1282,100 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
-    # 8 and 9. ACF and PACF
-    plot6 <- function(x, type="acf", ...){
+    # 8 and 9. Standardised / Studentised residuals vs time
+    plot6 <- function(x, type="rstandard", ...){
+
+        ellipsis <- list(...);
+        if(type=="rstandard"){
+            ellipsis$x <- rstandard(x);
+            yName <- "Standardised";
+        }
+        else{
+            ellipsis$x <- rstudent(x);
+            yName <- "Studentised";
+        }
+
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x <- ellipsis$x[actuals(x$occurrence)!=0];
+        }
+
+        if(!any(names(ellipsis)=="main")){
+            ellipsis$main <- paste0(yName," Residuals vs Time");
+        }
+
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Time";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            ellipsis$ylab <- paste0(yName," Residuals");
+        }
+
+        # If type and ylab are not provided, set them...
+        if(!any(names(ellipsis)=="type")){
+            ellipsis$type <- "l";
+        }
+
+        zValues <- switch(x$distribution,
+                          "dlaplace"=,
+                          "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
+                          "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
+                          "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
+                          "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
+                          "ds"=,
+                          "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
+                          # In the next one, the scale is debiased, taking n-k into account
+                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
+                                                dispersion=x$scale * nobs(x) / (nobs(x)-nparam(x))),
+                          qnorm(c((1-level)/2, (1+level)/2), 0, 1));
+        # Analyse stuff in logarithms if the error is multiplicative
+        if(x$distribution=="dinvgauss"){
+            ellipsis$x[] <- log(ellipsis$x);
+            zValues[] <- log(zValues);
+        }
+        outliers <- which(ellipsis$x >zValues[2] | ellipsis$x <zValues[1]);
+
+
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- c(-max(abs(ellipsis$x)),max(abs(ellipsis$x)))*1.1;
+        }
+
+        if(legend){
+            legendPosition <- "topright";
+            ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+            ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+        }
+
+        # Start plotting
+        do.call(plot,ellipsis);
+        if(length(outliers)>0){
+            points(outliers, ellipsis$x[outliers], pch=16);
+            text(outliers, ellipsis$x[outliers], labels=outliers, pos=4);
+        }
+        if(lowess){
+            lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
+        }
+        abline(h=0, col="grey", lty=2);
+        abline(h=zValues[1], col="red", lty=2);
+        abline(h=zValues[2], col="red", lty=2);
+        polygon(c(1:nobs(x), c(nobs(x):1)),
+                c(rep(zValues[1],nobs(x)), rep(zValues[2],nobs(x))),
+                col="lightgrey", border=NA, density=10);
+        if(legend){
+            legend(legendPosition,legend=c("Residuals",paste0(level*100,"% prediction interval")),
+                   col=c("black","red"), lwd=rep(1,3), lty=c(1,1,2));
+        }
+    }
+
+    # 10 and 11. ACF and PACF
+    plot7 <- function(x, type="acf", ...){
         ellipsis <- list(...);
 
         if(!any(names(ellipsis)=="main")){
             if(type=="acf"){
-                ellipsis$main <- "Autocorrelation Function";
+                ellipsis$main <- "Autocorrelation Function of Residuals";
             }
             else{
-                ellipsis$main <- "Partial Autocorrelation Function";
+                ellipsis$main <- "Partial Autocorrelation Function of Residuals";
             }
         }
 
@@ -1317,6 +1410,36 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         abline(h=qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x))), col="red", lty=2);
     }
 
+    # 12. Cook's distance over time
+    plot8 <- function(x, ...){
+        ellipsis <- list(...);
+        if(!any(names(ellipsis)=="main")){
+            ellipsis$main <- "Cook's ditance over Time";
+        }
+
+        # If type and ylab are not provided, set them...
+        if(!any(names(ellipsis)=="type")){
+            ellipsis$type <- "h";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            ellipsis$ylab <- "Cook's distance";
+        }
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Time";
+        }
+
+        # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
+        ellipsis$x <- abs(cooks.distance(x));
+        outliers <- which(ellipsis$x>=0.5);
+
+        # Start plotting
+        do.call(plot,ellipsis);
+        abline(h=0.5, col="red", lty=2, lwd=1);
+        if(length(outliers)>0){
+            text(outliers, ellipsis$x[outliers], labels=outliers, pos=2);
+            abline(h=1, col="red", lty=1, lwd=2);
+        }
+    }
 
     if(any(which==1)){
         plot1(x, ...);
@@ -1327,7 +1450,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     if(any(which==3)){
-        plot2(x, "rstudent", ...);
+        plot2(x, type="rstudent", ...);
     }
 
     if(any(which==4)){
@@ -1347,11 +1470,23 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     if(any(which==8)){
-        plot6(x, type="acf", ...);
+        plot6(x, ...);
     }
 
     if(any(which==9)){
-        plot6(x, type="pacf", ...);
+        plot6(x, type="rstudent", ...);
+    }
+
+    if(any(which==10)){
+        plot7(x, type="acf", ...);
+    }
+
+    if(any(which==11)){
+        plot7(x, type="pacf", ...);
+    }
+
+    if(any(which==12)){
+        plot8(x, ...);
     }
 
 }

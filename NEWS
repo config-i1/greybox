@@ -1,9 +1,10 @@
-greybox v0.6.0 (Release data: 2020-04-02)
+greybox v0.6.0 (Release data: 2020-04-06)
 ==============
 
 Changes:
 * The first default plot from plot.greybox() now is the "Actuals vs Fitted" instead of "Fitted over time", which is arguably more useful.
 * Residuals diagnostics instruments, including hatvalues() and cooks.distance(). These don't work perfectly for non-normal distributions, but at least they give an idea. Nota that the values differ from lm() due to the different number of degrees of freedom.
+* Residuals over time and cook's distance are now produced in plot.greybox() under numbers 8, 9 and 12.
 
 
 greybox v0.5.9 (Release data: 2020-03-29)

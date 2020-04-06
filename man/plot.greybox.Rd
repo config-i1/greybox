@@ -21,8 +21,11 @@
 \item Squared residuals vs Fitted;
 \item Q-Q plot with the specified distribution;
 \item Fitted over time;
+\item Standardised residuals vs Time;
+\item Studentised residuals vs Time;
 \item ACF of the residuals;
-\item PACF of the residuals.
+\item PACF of the residuals;
+\item Cook's distance over time.
 }}
 
 \item{level}{Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
@@ -62,10 +65,16 @@ in the estimation (see \code{distribution} parameter in \link[greybox]{alm});
 prediction interval (red lines) of width \code{level}, but only in the case, when there
 are some values lying outside of it. Can be used in order to make sure that the model
 did not miss any important events over time;
+\item Standardised residuals vs Time. Useful if you want to see, if there is autocorrelation or
+if there is heteroscedasticity in time. This also shows, when the outliers happen;
+\item Studentised residuals vs Time. Similar to previous, but with studentised residuals;
 \item ACF of the residuals. Are the residuals autocorrelated? See \link[stats]{acf} for
 details;
 \item PACF of the residuals. No, really, are they autocorrelated? See \link[stats]{pacf}
 for details;
+\item Cook's distance over time. Shows influential observations. If a value is above 0.5, then
+this means that the observation influences the parameters of the model. This does not work well
+for non-normal distributions.
 }
 Which of the plots to produce, is specified via the \code{which} parameter. The plots 2, 3, 7,
 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
@@ -77,10 +86,10 @@ xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
 xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
 
-ourModel <- alm(y~x1+x2, xreg, distribution="dlaplace")
+ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
 
-par(mfcol=c(2,3))
-plot(ourModel, c(1,2,4,5,7,8))
+par(mfcol=c(3,4))
+plot(ourModel, c(1:12))
 
 }
 \seealso{
