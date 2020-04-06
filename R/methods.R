@@ -940,10 +940,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         # xlim and ylim
         if(!any(names(ellipsis)=="xlim")){
-            ellipsis$xlim <- range(c(ellipsis$x,ellipsis$y));
+            ellipsis$xlim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
         }
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$x,ellipsis$y));
+            ellipsis$ylim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
         }
 
         # Start plotting
@@ -1014,7 +1014,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$y,zValues));
+            ellipsis$ylim <- range(c(ellipsis$y,zValues),na.rm=TRUE);
             if(legend){
                 if(legendPosition=="bottomright"){
                     ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
@@ -1235,7 +1235,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 legendPosition <- "topright";
             }
             if(!any(names(ellipsis)=="ylim")){
-                ellipsis$ylim <- range(c(actuals(x),yFitted));
+                ellipsis$ylim <- range(c(actuals(x),yFitted),na.rm=TRUE);
                 if(legendPosition=="bottomright"){
                     ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
                 }
@@ -1336,7 +1336,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- c(-max(abs(ellipsis$x)),max(abs(ellipsis$x)))*1.1;
+            ellipsis$ylim <- c(-max(abs(ellipsis$x),na.rm=TRUE),max(abs(ellipsis$x),na.rm=TRUE))*1.1;
         }
 
         if(legend){
@@ -1641,7 +1641,8 @@ plot.rollingOrigin <- function(x, ...){
 
     # Start plotting
     plot(y, ylab="Actuals", ylim=range(min(unlist(lapply(x,min,na.rm=T)),na.rm=T),
-                                       max(unlist(lapply(x,max,na.rm=T)),na.rm=T)),
+                                       max(unlist(lapply(x,max,na.rm=T)),na.rm=T),
+                                       na.rm=TRUE),
          type="l", ...);
     abline(v=roStart, col="red", lwd=2);
     for(j in 1:thingsToPlot){
