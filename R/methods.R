@@ -379,9 +379,9 @@ pBICc.default <- function(object, ...){
 #' @template author
 #'
 #' @param object Model estimated using one of the functions of smooth package.
-#' @param ... A parameter all can also be provided here. If it is \code{FALSE}, then
-#' in the case of occurrence model, only demand sizes will be returned. Works only with
-#' 'alm' class.
+#' @param all If \code{FALSE}, then in the case of the occurrence model, only demand
+#' sizes will be returned.
+#' @param ... Other parameters to pass to the method. Currenly nothin is supported here.
 #' @return The vector of the response variable.
 #' @examples
 #'
@@ -395,26 +395,24 @@ pBICc.default <- function(object, ...){
 #'
 #' @rdname actuals
 #' @export
-actuals <- function(object, ...) UseMethod("actuals")
+actuals <- function(object, all=TRUE, ...) UseMethod("actuals")
 
 #' @rdname actuals
 #' @export
-actuals.default <- function(object, ...){
+actuals.default <- function(object, all=TRUE, ...){
     return(object$y);
 }
 
 #' @rdname actuals
 #' @export
-actuals.alm <- function(object, ...){
-    ellipsis <- list(...);
-    returnValues <- rep(TRUE,nobs(object,all=TRUE));
-    if(!is.null(ellipsis$all) && !ellipsis$all){
-        returnValues[] <- object$data[,1]!=0;
+actuals.alm <- function(object, all=TRUE, ...){
+    if(all){
+        return(object$data[,1])
     }
-
-    return(object$data[returnValues,1]);
+    else{
+        return(object$data[object$data[,1]!=0,1]);
+    }
 }
-
 
 #' @importFrom stats coef
 #' @export
@@ -545,16 +543,7 @@ confint.lmGreybox <- function(object, parm, level=0.95, ...){
 #' @importFrom stats nobs fitted
 #' @export
 nobs.alm <- function(object, ...){
-    ellipsis <- list(...);
-    # if all==FALSE is provided, return non-zeroes only
-    # otherwise return all
-    if(!is.null(ellipsis$all) && !ellipsis$all){
-        returnValue <- sum(object$data[,1]!=0);
-    }
-    else{
-        returnValue <- nobs.greybox(object);
-    }
-    return(returnValue);
+    return(length(actuals(object, ...)));
 }
 
 #' @export
@@ -634,9 +623,8 @@ nparam.varest <- function(object, ...){
 
 #' @importFrom stats sigma
 #' @export
-sigma.greybox <- function(object, ...){
-    # return(sqrt(sum(residuals(object)^2)/nobs(object, ...)));
-    return(sqrt(sum(residuals(object)^2)/(nobs(object, ...)-nparam(object))));
+sigma.greybox <- function(object, all=FALSE, ...){
+    return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
 }
 
 #' @export

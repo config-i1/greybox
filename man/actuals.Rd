@@ -6,18 +6,19 @@
 \alias{actuals.alm}
 \title{Function extracts the actual values from the function}
 \usage{
-actuals(object, ...)
+actuals(object, all = TRUE, ...)
 
-\method{actuals}{default}(object, ...)
+\method{actuals}{default}(object, all = TRUE, ...)
 
-\method{actuals}{alm}(object, ...)
+\method{actuals}{alm}(object, all = TRUE, ...)
 }
 \arguments{
 \item{object}{Model estimated using one of the functions of smooth package.}
 
-\item{...}{A parameter all can also be provided here. If it is \code{FALSE}, then
-in the case of occurrence model, only demand sizes will be returned. Works only with
-'alm' class.}
+\item{all}{If \code{FALSE}, then in the case of the occurrence model, only demand
+sizes will be returned.}
+
+\item{...}{Other parameters to pass to the method. Currenly nothin is supported here.}
 }
 \value{
 The vector of the response variable.
