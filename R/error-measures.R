@@ -134,7 +134,7 @@ ME <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(actual-forecast,na.rm=TRUE));
+        return(mean(as.vector(actual)-as.vector(forecast),na.rm=TRUE));
     }
 }
 
@@ -152,7 +152,7 @@ MAE <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(actual-forecast),na.rm=TRUE));
+        return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE));
     }
 }
 
@@ -170,7 +170,7 @@ MSE <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((actual-forecast)^2,na.rm=TRUE));
+        return(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE));
     }
 }
 
@@ -188,7 +188,7 @@ MRE <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(sqrt(as.complex(actual-forecast)),na.rm=TRUE));
+        return(mean(sqrt(as.complex(as.vector(actual)-as.vector(forecast))),na.rm=TRUE));
     }
 }
 
@@ -214,7 +214,9 @@ MIS <- function(actual,lower,upper,level=0.95){
     }
     else{
         h <- length(actual);
-        MISValue <- sum(upper-lower) + 2/alpha*(sum((lower-actual)*(actual<lower)) + sum((actual-upper)*(actual>upper)));
+        MISValue <- sum(as.vector(upper)-as.vector(lower)) +
+            2/alpha*(sum((as.vector(lower)-as.vector(actual))*(as.vector(actual)<as.vector(lower))) +
+                         sum((as.vector(actual)-as.vector(upper))*(as.vector(actual)>as.vector(upper))));
         MISValue[] <- MISValue / h;
         return(MISValue);
     }
@@ -234,7 +236,7 @@ MPE <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((actual-forecast)/actual,na.rm=TRUE));
+        return(mean((as.vector(actual)-as.vector(forecast))/as.vector(actual),na.rm=TRUE));
     }
 }
 
@@ -252,7 +254,7 @@ MAPE <- function(actual,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs((actual-forecast)/actual),na.rm=TRUE));
+        return(mean(abs((as.vector(actual)-as.vector(forecast))/as.vector(actual)),na.rm=TRUE));
     }
 }
 
@@ -271,7 +273,7 @@ MASE <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(actual-forecast),na.rm=TRUE)/scale);
+        return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE)/scale);
     }
 }
 
@@ -290,7 +292,7 @@ RMSSE <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean((actual-forecast)^2,na.rm=TRUE)/scale));
+        return(sqrt(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/scale));
     }
 }
 
@@ -315,8 +317,8 @@ rMAE <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(mean(abs(actual-forecast),na.rm=TRUE)/
-                             mean(abs(actual-benchmark),na.rm=TRUE));
+            return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE)/
+                             mean(abs(as.vector(actual)-as.vector(benchmark)),na.rm=TRUE));
         }
     }
 }
@@ -341,8 +343,8 @@ rRMSE <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(sqrt(mean((actual-forecast)^2,na.rm=TRUE)/
-                             mean((actual-benchmark)^2,na.rm=TRUE)));
+            return(sqrt(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/
+                             mean((as.vector(actual)-as.vector(benchmark))^2,na.rm=TRUE)));
         }
     }
 }
@@ -367,8 +369,8 @@ rAME <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(abs(mean((actual-forecast),na.rm=TRUE))/
-                             abs(mean((actual-benchmark),na.rm=TRUE)));
+            return(abs(mean((as.vector(actual)-as.vector(forecast)),na.rm=TRUE))/
+                             abs(mean((as.vector(actual)-as.vector(benchmark)),na.rm=TRUE)));
         }
     }
 }
@@ -445,7 +447,7 @@ sMSE <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((actual-forecast)^2,na.rm=TRUE)/scale);
+        return(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/scale);
     }
 }
 
@@ -464,7 +466,7 @@ sPIS <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(cumsum(forecast-actual))/scale);
+        return(sum(cumsum(as.vector(forecast)-as.vector(actual)))/scale);
     }
 }
 
@@ -483,7 +485,7 @@ sCE <- function(actual,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(forecast-actual)/scale);
+        return(sum(as.vector(actual)-as.vector(forecast))/scale);
     }
 }
 
@@ -695,8 +697,8 @@ pinball <- function(holdout, forecast, level, loss=1){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        result <- ((1-level)*sum(abs((holdout-forecast))^loss * (holdout<=forecast)) +
-                            level*sum(abs((holdout-forecast))^loss * (holdout>forecast)));
+        result <- ((1-level)*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss * (as.vector(holdout)<=as.vector(forecast))) +
+                            level*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss * (as.vector(holdout)>as.vector(forecast))));
         return(result);
     }
 }

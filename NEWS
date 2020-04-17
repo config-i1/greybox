@@ -1,4 +1,4 @@
-greybox v0.6.0 (Release data: 2020-04-16)
+greybox v0.6.0 (Release data: 2020-04-17)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * Residuals over time and cook's distance are now produced in plot.greybox() under numbers 8, 9 and 12.
 * actuals() now has an explicit parameter all.
 * sigma() now returns the value based on the non-zero data only.
+* Make error measures a bit more robust towards what they process.
 
 
 greybox v0.5.9 (Release data: 2020-03-29)
