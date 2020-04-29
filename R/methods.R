@@ -888,13 +888,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         ellipsis <- list(...);
 
         # Get the actuals and the fitted values
-        ellipsis$y <- c(actuals(x));
+        ellipsis$y <- as.vector(actuals(x));
         if(is.occurrence(x)){
             if(any(x$distribution==c("plogis","pnorm"))){
                 ellipsis$y <- (ellipsis$y!=0)*1;
             }
         }
-        ellipsis$x <- c(fitted(x));
+        ellipsis$x <- as.vector(fitted(x));
 
         # If this is a mixture model, remove zeroes
         if(is.occurrence(x$occurrence)){
@@ -946,13 +946,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot2 <- function(x, type="rstandard", ...){
         ellipsis <- list(...);
 
-        ellipsis$x <- fitted(x);
+        ellipsis$x <- as.vector(fitted(x));
         if(type=="rstandard"){
-            ellipsis$y <- rstandard(x);
+            ellipsis$y <- as.vector(rstandard(x));
             yName <- "Standardised";
         }
         else{
-            ellipsis$y <- rstudent(x);
+            ellipsis$y <- as.vector(rstudent(x));
             yName <- "Studentised";
         }
 
@@ -1048,7 +1048,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot3 <- function(x, type="abs", ...){
         ellipsis <- list(...);
 
-        ellipsis$x <- fitted(x);
+        ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(residuals(x));
         if(x$distribution=="dinvgauss"){
             ellipsis$y[] <- log(ellipsis$y);
@@ -1057,7 +1057,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$y[] <- abs(ellipsis$y);
         }
         else{
-            ellipsis$y[] <- as.vector(ellipsis$y)^2;
+            ellipsis$y[] <- ellipsis$y^2;
         }
 
         if(is.occurrence(x$occurrence)){
@@ -1096,7 +1096,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot4 <- function(x, ...){
         ellipsis <- list(...);
 
-        ellipsis$y <- residuals(x);
+        ellipsis$y <- as.vector(residuals(x));
         if(is.occurrence(x$occurrence)){
             ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
         }
@@ -1337,7 +1337,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         if(length(outliers)>0){
             points(outliers, ellipsis$x[outliers], pch=16);
-            text(outliers, ellipsis$x[outliers], labels=outliers, pos=4);
+            text(outliers, ellipsis$x[outliers], labels=outliers, pos=(ellipsis$x[outliers]>0)*2+1);
         }
         if(lowess){
             lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
@@ -1384,18 +1384,24 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(type=="acf"){
-            theValues <- acf(residuals(x), plot=FALSE)
+            theValues <- acf(as.vector(residuals(x)), plot=FALSE)
         }
         else{
-            theValues <- pacf(residuals(x), plot=FALSE);
+            theValues <- pacf(as.vector(residuals(x)), plot=FALSE);
         }
         ellipsis$x <- theValues$acf[-1];
+        zValues <- qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x)));
 
         ellipsis$type <- "h"
 
         do.call(plot,ellipsis);
         abline(h=0, col="black", lty=1);
-        abline(h=qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x))), col="red", lty=2);
+        abline(h=zValues, col="red", lty=2);
+        if(any(ellipsis$x>zValues[2] | ellipsis$x<zValues[1])){
+            outliers <- which(ellipsis$x >zValues[2] | ellipsis$x <zValues[1]);
+            points(outliers, ellipsis$x[outliers], pch=16);
+            text(outliers, ellipsis$x[outliers], labels=outliers, pos=(ellipsis$x[outliers]>0)*2+1);
+        }
     }
 
     # 12. Cook's distance over time
