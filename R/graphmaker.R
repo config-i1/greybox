@@ -141,22 +141,40 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     # Estimate plot range
     if(is.null(ellipsis$ylim)){
-        ellipsis$ylim <- range(c(actuals[is.finite(actuals)],fitted[is.finite(fitted)],
-                                   forecast[is.finite(forecast)],lower[is.finite(lower)],upper[is.finite(upper)]),
+        ellipsis$ylim <- range(c(as.vector(actuals[is.finite(actuals)]),as.vector(fitted[is.finite(fitted)]),
+                                 as.vector(forecast[is.finite(forecast)]),
+                                 as.vector(lower[is.finite(lower)]),as.vector(upper[is.finite(upper)])),
                                na.rm=TRUE);
     }
 
     # If the start time of forecast is the same as the start time of the actuals, change ts of forecast
     if(time(forecast)[1]==time(actuals)[1]){
-        forecast <- ts(forecast, start=time(actuals)[length(actuals)]+deltat(actuals), frequency=frequency(actuals));
+        if(is.ts(actuals)){
+            forecast <- ts(forecast, start=time(actuals)[length(actuals)]+deltat(actuals), frequency=frequency(actuals));
+        }
+        else{
+            forecast <- zoo(forecast, order.by=time(actuals)[length(actuals)]+round(mean(diff(time(actuals))),0)*c(1:h));
+        }
         if(intervals){
-            if(length(upper)!=length(fitted) && length(lower)!=length(fitted)){
-                upper <- ts(upper, start=start(forecast), frequency=frequency(actuals));
-                lower <- ts(lower, start=start(forecast), frequency=frequency(actuals));
+            if(is.ts(actuals)){
+                if(length(upper)!=length(fitted) && length(lower)!=length(fitted)){
+                    upper <- ts(upper, start=start(forecast), frequency=frequency(actuals));
+                    lower <- ts(lower, start=start(forecast), frequency=frequency(actuals));
+                }
+                else{
+                    upper <- ts(upper, start=start(actuals), frequency=frequency(actuals));
+                    lower <- ts(lower, start=start(actuals), frequency=frequency(actuals));
+                }
             }
             else{
-                upper <- ts(upper, start=start(actuals), frequency=frequency(actuals));
-                lower <- ts(lower, start=start(actuals), frequency=frequency(actuals));
+                if(length(upper)!=length(fitted) && length(lower)!=length(fitted)){
+                    upper <- zoo(upper, order.by=time(forecast));
+                    lower <- zoo(lower, order.by=time(forecast));
+                }
+                else{
+                    upper <- zoo(upper, order.by=time(forecast));
+                    lower <- zoo(lower, order.by=time(forecast));
+                }
             }
         }
     }
