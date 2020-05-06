@@ -266,7 +266,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             }
             # Otherwise use both as vectors
             else{
-                if(is.finite(upper) && is.finite(lower)){
+                if(all(is.finite(upper)) && all(is.finite(lower))){
                     polygon(c(time(upper),rev(time(lower))),
                             c(as.vector(upper), rev(as.vector(lower))),
                             col="lightgrey", border=NA, density=10);

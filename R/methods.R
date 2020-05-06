@@ -870,7 +870,7 @@ vcov.lmGreybox <- function(object, ...){
 #' plot(ourModel, c(1:12))
 #'
 #' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess
-#' @importFrom grDevices dev.interactive devAskNewPage
+#' @importFrom grDevices dev.interactive devAskNewPage grey
 #' @aliases plot.alm
 #' @export
 plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
@@ -1523,13 +1523,13 @@ plot.predict.greybox <- function(x, ...){
         vline <- FALSE;
     }
 
-    graphmakerCall <- list(...);
-    graphmakerCall$actuals <- yActuals;
-    graphmakerCall$forecast <- yForecast;
-    graphmakerCall$fitted <- yFitted;
-    graphmakerCall$vline <- vline;
+    ellipsis <- list(...);
+    ellipsis$actuals <- yActuals;
+    ellipsis$forecast <- yForecast;
+    ellipsis$fitted <- yFitted;
+    ellipsis$vline <- vline;
 
-    if(!is.null(x$lower)){
+    if(!is.null(x$lower) || !is.null(x$upper)){
         if(x$newdataProvided){
             yLower <- ts(x$lower, start=yForecastStart, frequency=yFrequency);
             yUpper <- ts(x$upper, start=yForecastStart, frequency=yFrequency);
@@ -1545,23 +1545,37 @@ plot.predict.greybox <- function(x, ...){
         else{
             level <- x$level;
         }
-        graphmakerCall$level <- level;
-        graphmakerCall$lower <- yLower;
-        graphmakerCall$upper <- yUpper;
+        ellipsis$level <- level;
+        ellipsis$lower <- yLower;
+        ellipsis$upper <- yUpper;
 
         if((any(is.infinite(yLower)) & any(is.infinite(yUpper))) | (any(is.na(yLower)) & any(is.na(yUpper)))){
-            graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
-            graphmakerCall$upper[is.infinite(yUpper) | is.na(yUpper)] <- 0;
+            ellipsis$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
+            ellipsis$upper[is.infinite(yUpper) | is.na(yUpper)] <- 0;
         }
         else if(any(is.infinite(yLower)) | any(is.na(yLower))){
-            graphmakerCall$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
+            ellipsis$lower[is.infinite(yLower) | is.na(yLower)] <- 0;
         }
         else if(any(is.infinite(yUpper)) | any(is.na(yUpper))){
-            graphmakerCall$upper <- NA;
+            ellipsis$upper <- NA;
         }
     }
 
-    do.call(graphmaker,graphmakerCall);
+    if(is.null(ellipsis$legend)){
+        ellipsis$legend <- FALSE;
+        ellipsis$parReset <- FALSE;
+    }
+
+    if(is.null(ellipsis$main)){
+        if(x$newdataProvided){
+            ellipsis$main <- paste0("Forecast for the variable ",colnames(x$model$data)[1]);
+        }
+        else{
+            ellipsis$main <- paste0("Fitted values for the variable ",colnames(x$model$data)[1]);
+        }
+    }
+
+    do.call(graphmaker,ellipsis);
 }
 
 #' @export
