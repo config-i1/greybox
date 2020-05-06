@@ -141,10 +141,9 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     # Estimate plot range
     if(is.null(ellipsis$ylim)){
-        ellipsis$ylim <- range(min(actuals[!is.na(actuals)],fitted[!is.na(fitted)],
-                                   forecast[!is.na(forecast)],lower[!is.na(lower)],upper[!is.na(upper)]),
-                               max(actuals[!is.na(actuals)],fitted[!is.na(fitted)],
-                                   forecast[!is.na(forecast)],lower[!is.na(lower)],upper[!is.na(upper)]));
+        ellipsis$ylim <- range(c(actuals[is.finite(actuals)],fitted[is.finite(fitted)],
+                                   forecast[is.finite(forecast)],lower[is.finite(lower)],upper[is.finite(upper)]),
+                               na.rm=TRUE);
     }
 
     # If the start time of forecast is the same as the start time of the actuals, change ts of forecast
@@ -240,9 +239,11 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             # Draw the nice areas between the borders
             if(is.matrix(lower) && is.matrix(upper) && ncol(lower)==ncol(upper)){
                 for(i in 1:ncol(lower)){
-                    polygon(c(time(upper[,i]),rev(time(lower[,i]))),
-                            c(as.vector(upper[,i]), rev(as.vector(lower[,i]))),
-                            col="lightgrey", border=NA, density=(ncol(lower)-i+1)*10);
+                    if(all(is.finite(upper[,i])) && all(is.finite(lower[,i]))){
+                        polygon(c(time(upper[,i]),rev(time(lower[,i]))),
+                                c(as.vector(upper[,i]), rev(as.vector(lower[,i]))),
+                                col="lightgrey", border=NA, density=(ncol(lower)-i+1)*10);
+                    }
                 }
             }
             # If the number of columns is different, then do polygon for the last ones only
@@ -265,15 +266,18 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             }
             # Otherwise use both as vectors
             else{
-                polygon(c(time(upper),rev(time(lower))),
-                        c(as.vector(upper), rev(as.vector(lower))),
-                        col="lightgrey", border=NA, density=10);
+                if(is.finite(upper) && is.finite(lower)){
+                    polygon(c(time(upper),rev(time(lower))),
+                            c(as.vector(upper), rev(as.vector(lower))),
+                            col="lightgrey", border=NA, density=10);
+                }
             }
 
             # Draw the lines
             if(is.matrix(lower)){
+                col <- grey(1-c(1:ncol(lower))/(ncol(lower)+1));
                 for(i in 1:ncol(lower)){
-                    lines(lower[,i],col="darkgrey",lwd=1+i,lty=2);
+                    lines(lower[,i],col=col[i],lwd=2,lty=2);
                 }
             }
             else{
@@ -281,8 +285,9 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             }
 
             if(is.matrix(upper)){
+                col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
                 for(i in 1:ncol(upper)){
-                    lines(upper[,i],col="darkgrey",lwd=1+i,lty=2);
+                    lines(upper[,i],col=col[i],lwd=2,lty=2);
                 }
             }
             else{
@@ -291,9 +296,30 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
             lines(forecast,col="blue",lwd=2);
         }
+        # Code for the h=1
         else{
-            points(lower,col="darkgrey",lwd=3,pch=4);
-            points(upper,col="darkgrey",lwd=3,pch=4);
+            if(length(lower)>1){
+                col <- grey(1-c(1:ncol(lower))/(ncol(lower)+1));
+                for(i in 1:length(lower)){
+                    if(is.finite(lower[i])){
+                        points(lower[i],col=col[i],lwd=1+i,pch=4);
+                    }
+                }
+            }
+            else{
+                points(lower,col="darkgrey",lwd=3,pch=4);
+            }
+            if(length(upper)>1){
+                col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
+                for(i in 1:length(upper)){
+                    if(is.finite(upper[i])){
+                        points(upper[i],col=col[i],lwd=1+i,pch=4);
+                    }
+                }
+            }
+            else{
+                points(upper,col="darkgrey",lwd=3,pch=4);
+            }
             points(forecast,col="blue",lwd=2,pch=4);
         }
     }
