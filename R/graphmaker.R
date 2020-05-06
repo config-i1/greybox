@@ -105,7 +105,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             parMar <- c(3,3,2,1);
         }
         else{
-            parMar <- c(3,3,3,1);
+            parMar <- c(3,3,4,1);
         }
     }
 
@@ -218,9 +218,9 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     if(parReset){
         par(mar=parMar, cex=1, bty="o", xaxt="s", yaxt="s");
     }
-    else{
-        par(mar=parMar, bty="o", xaxt="s", yaxt="s");
-    }
+    # else{
+    #     par(mar=parMar, bty="o", xaxt="s", yaxt="s");
+    # }
     do.call(plot, ellipsis);
 
     if(any(!is.na(fitted))){
