@@ -29,7 +29,8 @@ Imports:
     lamW,
     pracma,
     nloptr,
-    statmod
+    statmod,
+    zoo
 LinkingTo: Rcpp
 Suggests:
     smooth (>= 2.5.1),

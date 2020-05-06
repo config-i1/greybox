@@ -54,6 +54,7 @@
 #'
 #' @export graphmaker
 #' @importFrom graphics rect
+#' @importFrom zoo zoo
 graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                        level=NULL, legend=TRUE, cumulative=FALSE, vline=TRUE,
                        parReset=TRUE, ...){
