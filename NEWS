@@ -1,4 +1,4 @@
-greybox v0.6.0 (Release data: 2020-04-29)
+greybox v0.6.0 (Release data: 2020-05-06)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 * sigma() now returns the value based on the non-zero data only.
 * Make error measures a bit more robust towards what they process.
 * Make ACF / PACF plots in plot.greybox() easier to read.
+* graphmaker() now accepts matrices in lower and upper.
 
 
 greybox v0.5.9 (Release data: 2020-03-29)

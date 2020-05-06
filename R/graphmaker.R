@@ -110,8 +110,14 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
 
     legendCall <- list(x="bottom");
-    legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
-                           paste0(level*100,"% prediction interval"),"Forecast origin");
+    if(length(level>1)){
+        legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
+                               paste0(paste0(level*100,collapse=", "),"% prediction intervals"),"Forecast origin");
+    }
+    else{
+        legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
+                               paste0(level*100,"% prediction interval"),"Forecast origin");
+    }
     legendCall$col <- c("black","purple","blue","darkgrey","red");
     legendCall$lwd <- c(1,2,2,3,2);
     legendCall$lty <- c(1,2,1,2,1);
@@ -231,12 +237,57 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     if(intervals){
         if(h!=1){
-            lines(lower,col="darkgrey",lwd=3,lty=2);
-            lines(upper,col="darkgrey",lwd=3,lty=2);
             # Draw the nice areas between the borders
-            polygon(c(time(upper),rev(time(lower))),
-                    c(as.vector(upper), rev(as.vector(lower))),
-                    col="lightgrey", border=NA, density=10);
+            if(is.matrix(lower) && is.matrix(upper) && ncol(lower)==ncol(upper)){
+                for(i in 1:ncol(lower)){
+                    polygon(c(time(upper[,i]),rev(time(lower[,i]))),
+                            c(as.vector(upper[,i]), rev(as.vector(lower[,i]))),
+                            col="lightgrey", border=NA, density=(ncol(lower)-i+1)*10);
+                }
+            }
+            # If the number of columns is different, then do polygon for the last ones only
+            else if(is.matrix(lower) && is.matrix(upper) && ncol(lower)!=ncol(upper)){
+                polygon(c(time(upper[,ncol(upper)]),rev(time(lower[,ncol(lower)]))),
+                        c(as.vector(upper[,ncol(upper)]), rev(as.vector(lower[,ncol(lower)]))),
+                        col="lightgrey", border=NA, density=10);
+            }
+            # If upper is not a matrix, use it as a vector
+            else if(is.matrix(lower) && !is.matrix(upper)){
+                polygon(c(time(upper),rev(time(lower[,ncol(lower)]))),
+                        c(as.vector(upper), rev(as.vector(lower[,ncol(lower)]))),
+                        col="lightgrey", border=NA, density=10);
+            }
+            # If lower is not a matrix, use it as a vector
+            else if(!is.matrix(lower) && is.matrix(upper)){
+                polygon(c(time(upper[,ncol(upper)]),rev(time(lower))),
+                        c(as.vector(upper[,ncol(upper)]), rev(as.vector(lower))),
+                        col="lightgrey", border=NA, density=10);
+            }
+            # Otherwise use both as vectors
+            else{
+                polygon(c(time(upper),rev(time(lower))),
+                        c(as.vector(upper), rev(as.vector(lower))),
+                        col="lightgrey", border=NA, density=10);
+            }
+
+            # Draw the lines
+            if(is.matrix(lower)){
+                for(i in 1:ncol(lower)){
+                    lines(lower[,i],col="darkgrey",lwd=1+i,lty=2);
+                }
+            }
+            else{
+                lines(lower,col="darkgrey",lwd=3,lty=2);
+            }
+
+            if(is.matrix(upper)){
+                for(i in 1:ncol(upper)){
+                    lines(upper[,i],col="darkgrey",lwd=1+i,lty=2);
+                }
+            }
+            else{
+                lines(upper,col="darkgrey",lwd=3,lty=2);
+            }
 
             lines(forecast,col="blue",lwd=2);
         }
