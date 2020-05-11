@@ -326,6 +326,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         # Extract names of the used variables
         bestExoNamesOriginal <- names(coef(ourModel))[-1];
         bestExoNames <- exoNames[match(bestExoNamesOriginal,exoNamesOriginal)];
+        variablesNames <- c("(Intercept)",exoNamesOriginal[exoNamesOriginal %in% bestExoNamesOriginal]);
+
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<16){
             listToCall$data <- listToCall$data[,c(responseName,bestExoNames),drop=FALSE];

@@ -141,6 +141,9 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         }
     }
 
+    # The gsub is needed in order to remove accidental special characters
+    colnames(data) <- gsub("\`","",colnames(data),ignore.case=TRUE);
+
     # Define cases, when to use ALM
     distribution <- distribution[1];
     if(distribution=="dnorm"){
@@ -338,6 +341,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         # Extract names of the used variables
         bestExoNamesOriginal <- names(coef(ourModel))[-1];
         bestExoNames <- exoNames[match(bestExoNamesOriginal,exoNamesOriginal)];
+        variablesNames <- c("(Intercept)",exoNamesOriginal[exoNamesOriginal %in% bestExoNamesOriginal]);
 
         # If the number of variables is small, do bruteforce
         if(nparam(ourModel)<14){
