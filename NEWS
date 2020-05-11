@@ -15,6 +15,8 @@ Changes:
 Bugfixes:
 * stepwise() would fail if one of the variables contain a name with "`".
 * lmCombine() and lmDynamic() would not work in cases with fat regression and stepwise giving more than 14 variables.
+* Fix in alm() with "`" symbol.
+* A fix in alm() for formula provided as alm(formula(ourModel), ...).
 
 
 greybox v0.5.9 (Release data: 2020-03-29)

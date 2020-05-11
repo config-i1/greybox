@@ -210,6 +210,10 @@ alm <- function(formula, data, subset, na.action,
 
     B <- parameters;
     cl <- match.call();
+    # This is needed in order to have a reasonable formula saved, so that there are no issues with it
+    if(is.call(cl$formula)){
+        cl$formula <- eval(cl$formula);
+    }
     distribution <- match.arg(distribution);
 
     #### Functions used in the estimation ####
@@ -613,6 +617,7 @@ alm <- function(formula, data, subset, na.action,
             }
         }
         mf$data <- data;
+        rm(data);
 
         # If there are NaN values, remove the respective observations
         if(any(sapply(mf$data,is.nan))){
@@ -630,6 +635,9 @@ alm <- function(formula, data, subset, na.action,
         else{
             dataContainsNaNs <- FALSE;
         }
+
+        # The gsub is needed in order to remove accidental special characters
+        colnames(mf$data) <- gsub("\`","",colnames(mf$data),ignore.case=TRUE);
     }
     else{
         dataContainsNaNs <- FALSE;
