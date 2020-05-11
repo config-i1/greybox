@@ -1,4 +1,4 @@
-greybox v0.6.0 (Release data: 2020-05-06)
+greybox v0.6.0 (Release data: 2020-05-11)
 ==============
 
 Changes:
@@ -11,6 +11,9 @@ Changes:
 * Make ACF / PACF plots in plot.greybox() easier to read.
 * graphmaker() now accepts matrices in lower and upper.
 * parReset in graphmaker() now does not set its own par(), unless a legend is used.
+
+Bugfixes:
+* stepwise() would fail if one of the variables contain a name with "`".
 
 
 greybox v0.5.9 (Release data: 2020-03-29)
