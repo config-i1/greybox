@@ -6,16 +6,16 @@
 #' The function extracts dates from the provided object and returns a matrix with
 #' dummy variables for the specified frequency type, with the number of rows equal
 #' to the length of the object + the specified horizon. If a numeric vector is provided
-#' then it will produce temporaldummy based on typical values (e.g. 30 days in month). So it
+#' then it will produce dummies based on typical values (e.g. 30 days in month). So it
 #' is recommended to use proper classes with this method.
 #'
-#' Several notes on how the temporaldummy are calculated in some special cases:
+#' Several notes on how the dummies are calculated in some special cases:
 #' \itemize{
 #' \item In case of weeks of years, the first week is defined according to ISO 8601.
 #' }
 #'
 #' Note that not all the combinations of \code{type} and \code{of} are supported. For
-#' example, there is no such thing as temporaldummy for months of week. Also note that some
+#' example, there is no such thing as dummies for months of week. Also note that some
 #' combinations are not very useful and would take a lot of memory (e.g. minutes of year).
 #'
 #' The function will return all the dummy variables. If you want to avoid the dummy
@@ -27,12 +27,12 @@
 #' @param object Either a ts / msts / zoo / xts / tsibble object or a vector
 #' of dates.
 #' @param type Specifies what type of frequency to produce. For example, if
-#' \code{type="months"}, then the matrix with temporaldummy for months of the year will
+#' \code{type="months"}, then the matrix with dummies for months of the year will
 #' be created.
 #' @param of Specifies the frequency of what is needed. Used together with \code{type}
-#' e.g. \code{type="days"} and \code{of="month"} will produce a matrix with temporaldummy
-#' for days of month (31 temporaldummy).
-#' @param h If not \code{NULL}, then the function will produce temporaldummy for this
+#' e.g. \code{type="days"} and \code{of="month"} will produce a matrix with dummies
+#' for days of month (31 dummies).
+#' @param h If not \code{NULL}, then the function will produce dummies for this
 #' set of observations ahead as well, binding them to the original matrix.
 #'
 #' @return Class "dgCMatrix" with all the dummy variables is returned in case of numeric
@@ -47,13 +47,13 @@
 #' \link[greybox]{xregTransformer}}
 #'
 #' @examples
-#' # Generate matrix with temporaldummy for a ts object
+#' # Generate matrix with dummies for a ts object
 #' x <- ts(rnorm(100,100,1),frequency=12)
 #' temporaldummy(x)
 #'
-#' # Generate matrix with monthly temporaldummy for a zoo object
+#' # Generate matrix with monthly dummies for a zoo object
 #' x <- as.Date("2003-01-01")+0:99
-#' temporaldummy(x, type="month", h=10)
+#' temporaldummy(x, type="month", of="year", h=10)
 #'
 #' @rdname temporaldummy
 #' @importFrom Matrix sparse.model.matrix
@@ -98,7 +98,8 @@ temporaldummy.default <- function(object, type=c("month","quarter","week","day",
 
 #' @rdname temporaldummy
 #' @export
-temporaldummy.ts <- function(object, h=0, ...){
+temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
+                             of=c("year","quarter","month","week","day","hour","minute"), h=0){
 
     # Define frequency (we don't know it in case of default class)
     dataFrequency <- frequency(object);
@@ -343,7 +344,13 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
         }
         # Else... this is seconds
         else{
-            stop("Sorry, but the seconds option is not available yet", call.=FALSE);
+            if(of=="minute"){
+                    dateFinal <- as.numeric(strftime(object, format="%S"));
+            }
+            else{
+                stop(paste0("Sorry, but the seconds option is not available yet for the ",of),
+                     call.=FALSE);
+            }
         }
     }
 

@@ -80,6 +80,7 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 1. `xregExpander()` - expand the provided data by including leads and lags of the variables.
 2. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
 3. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interaction effects of dummy variables.
+4. `temporaldummy()` - the method that generates a matrix with dymmy variables based on the provided object and selected `type` and `of`. Can be handy, when you want to construct a regression with dummies for a time series object (e.g. zoo).
 
 See details on (1) below.
 

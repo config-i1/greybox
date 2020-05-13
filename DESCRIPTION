@@ -42,8 +42,7 @@ Suggests:
     rmarkdown,
     knitr
 Enhances:
-    vars,
-    zoo
+    vars
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 Encoding: UTF-8
