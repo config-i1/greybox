@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 0.6.0.41010
-Date: 2020-05-11
+Version: 0.6.0.41011
+Date: 2020-05-13
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -30,7 +30,8 @@ Imports:
     pracma,
     nloptr,
     statmod,
-    zoo
+    zoo,
+    Matrix
 LinkingTo: Rcpp
 Suggests:
     smooth (>= 2.5.1),
@@ -41,7 +42,8 @@ Suggests:
     rmarkdown,
     knitr
 Enhances:
-    vars
+    vars,
+    zoo
 RoxygenNote: 7.1.0
 VignetteBuilder: knitr
 Encoding: UTF-8

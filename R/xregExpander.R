@@ -40,8 +40,7 @@
 #' x <- ts(x,frequency=12)
 #' xregExpander(x)
 #'
-#' @export xregExpander
-
+#' @export
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                          silent=TRUE, gaps=c("auto","NAs","zero","naive","extrapolate"), ...){
 

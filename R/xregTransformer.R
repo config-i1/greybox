@@ -33,8 +33,7 @@
 #' x <- cbind(rnorm(100,100,1),rnorm(100,50,3))
 #' xregTransformer(x)
 #'
-#' @export xregTransformer
-
+#' @export
 xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), silent=TRUE, ...){
 
     # Check and prepare functions

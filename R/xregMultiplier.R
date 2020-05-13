@@ -27,7 +27,7 @@
 #' x <- cbind(rnorm(100,100,1),rnorm(100,50,3))
 #' xregMultiplier(x)
 #'
-#' @export xregMultiplier
+#' @export
 xregMultiplier <- function(xreg, silent=TRUE, ...){
 
     # Check and prepare the data
