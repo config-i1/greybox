@@ -96,7 +96,6 @@ temporaldummy.default <- function(object, type=c("month","quarter","week","day",
     return(temporaldummy);
 }
 
-#' @rdname temporaldummy
 #' @export
 temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                              of=c("year","quarter","month","week","day","hour","minute"), h=0){
@@ -112,7 +111,6 @@ temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour
     return(ts(as.matrix(temporaldummy.default(object, type=type, of=of, h=h)), start=start(object), frequency=dataFrequency));
 }
 
-#' @rdname temporaldummy
 #' @export
 temporaldummy.Date <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                          of=c("year","quarter","month","week","day","hour","minute"), h=0){
@@ -218,7 +216,6 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
     return(temporaldummy);
 }
 
-#' @rdname temporaldummy
 #' @export
 temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                          of=c("year","quarter","month","week","day","hour","minute"), h=0){
@@ -364,7 +361,6 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
     return(temporaldummy);
 }
 
-#' @rdname temporaldummy
 #' @export
 temporaldummy.zoo <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                          of=c("year","quarter","month","week","day","hour","minute"), h=0){

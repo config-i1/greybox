@@ -3,10 +3,6 @@
 \name{temporaldummy}
 \alias{temporaldummy}
 \alias{temporaldummy.default}
-\alias{temporaldummy.ts}
-\alias{temporaldummy.Date}
-\alias{temporaldummy.POSIXct}
-\alias{temporaldummy.zoo}
 \title{Dummy variables for provided seasonality type}
 \usage{
 temporaldummy(object, type = c("month", "quarter", "week", "day", "hour",
@@ -14,22 +10,6 @@ temporaldummy(object, type = c("month", "quarter", "week", "day", "hour",
   "day", "hour", "minute"), h = 0)
 
 \method{temporaldummy}{default}(object, type = c("month", "quarter", "week",
-  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), h = 0)
-
-\method{temporaldummy}{ts}(object, type = c("month", "quarter", "week",
-  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), h = 0)
-
-\method{temporaldummy}{Date}(object, type = c("month", "quarter", "week",
-  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), h = 0)
-
-\method{temporaldummy}{POSIXct}(object, type = c("month", "quarter", "week",
-  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), h = 0)
-
-\method{temporaldummy}{zoo}(object, type = c("month", "quarter", "week",
   "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
   "month", "week", "day", "hour", "minute"), h = 0)
 }
