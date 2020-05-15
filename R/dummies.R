@@ -262,8 +262,10 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
                 }
             }
             else{
-                #### This stuff assumes that the data is in hours!!! Fix this!!! ####
                 if(of=="week"){
+                    #### This stuff assumes that the data is in hours!!! Fix this!!! ####
+                    warning("Please, note that the function currently only handles hour of week if the data is in hours.",
+                            call.=FALSE);
                     # Days of week in years
                     dateDaysOfWeekFirst <- as.numeric(strftime(object, format="%u"))[1];
                     # Hours in a day
@@ -309,8 +311,10 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
                 }
             }
             else{
-                #### This stuff assumes that the data is in minutes!!! Fix this!!! ####
                 if(of=="week"){
+                    #### This stuff assumes that the data is in hours!!! Fix this!!! ####
+                    warning("Please, note that the function currently only handles minutes of week if the data is in minutes.",
+                            call.=FALSE);
                     # Days of week in years
                     dateDaysOfWeekFirst <- as.numeric(strftime(object, format="%u"))[1];
                     # Hours in a day
@@ -321,8 +325,10 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
                     # +1 is needed just in case, not to create a smaller object than needed
                     dateFinal <- rep(c(1:(7*24*60)),ceiling(obsAll/(7*24*60))+1)[dateStart+1:obsAll];
                 }
-                #### This stuff assumes that the data is in minutes!!! Fix this!!! ####
                 else if(of=="day"){
+                    #### This stuff assumes that the data is in hours!!! Fix this!!! ####
+                    warning("Please, note that the function currently only handles minutes of day if the data is in minutes.",
+                            call.=FALSE);
                     # Hours in a day
                     dateHoursOfDayFirst <- as.numeric(strftime(object, format="%H"))[1];
                     # The starting index of the day of week / hour

@@ -16,8 +16,6 @@
 #' @param functions Vector of names for functions used.
 #' @param silent If \code{silent=FALSE}, then the progress is printed out.
 #' Otherwise the function won't print anything in the console.
-#' @param ... This is temporary and is needed in order to capture "silent"
-#' parameter if it is provided.
 #'
 #' @return \code{ts} matrix with the transformed and the original variables
 #' is returned.
@@ -34,7 +32,7 @@
 #' xregTransformer(x)
 #'
 #' @export
-xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), silent=TRUE, ...){
+xregTransformer <- function(xreg, functions=c("log", "exp", "inv", "sqrt", "square"), silent=TRUE){
 
     # Check and prepare functions
     if(any(!(functions %in% c("log", "exp", "inv", "sqrt", "square")))){

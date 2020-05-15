@@ -10,8 +10,6 @@
 #' to be expanded. This matrix needs to contain at least two columns.
 #' @param silent If \code{silent=FALSE}, then the progress is printed out.
 #' Otherwise the function won't print anything in the console.
-#' @param ... This is temporary and is needed in order to capture "silent"
-#' parameter if it is provided.
 #'
 #' @return \code{ts} matrix with the transformed and the original variables
 #' is returned.
@@ -28,7 +26,7 @@
 #' xregMultiplier(x)
 #'
 #' @export
-xregMultiplier <- function(xreg, silent=TRUE, ...){
+xregMultiplier <- function(xreg, silent=TRUE){
 
     # Check and prepare the data
     if(is.data.frame(xreg)){

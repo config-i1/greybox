@@ -24,8 +24,6 @@
 #' (if present, otherwise - naive) in order to fill in values. Finally,
 #' \code{"auto"} will let the function select between \code{"extrapolate"} and
 #' \code{"NAs"} depending on the length of series.
-#' @param ... This is temporary and is needed in order to capture "silent"
-#' parameter if it is provided.
 #'
 #' @return \code{ts} matrix with the expanded variables is returned.
 #'
@@ -42,7 +40,7 @@
 #'
 #' @export
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
-                         silent=TRUE, gaps=c("auto","NAs","zero","naive","extrapolate"), ...){
+                         silent=TRUE, gaps=c("auto","NAs","zero","naive","extrapolate")){
 
     gaps <- substr(gaps[1],1,1);
 
