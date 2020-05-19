@@ -848,7 +848,7 @@ vcov.lmGreybox <- function(object, ...){
 #' \item Cook's distance over time.
 #' }
 #' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
-#' (8) and (9).
+#' (8), (9), (10) and (11).
 #' @param legend If \code{TRUE}, then the legend is produced on plots (2), (3) and (7).
 #' @param ask Logical; if \code{TRUE}, the user is asked to press Enter before each plot.
 #' @param lowess Logical; if \code{TRUE}, LOWESS lines are drawn on scatterplots, see \link[stats]{lowess}.
