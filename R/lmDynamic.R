@@ -180,19 +180,9 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     #     }
     # }
 
-    ic <- ic[1];
-    if(ic=="AIC"){
-        IC <- pAIC;
-    }
-    else if(ic=="AICc"){
-        IC <- pAICc;
-    }
-    else if(ic=="BIC"){
-        IC <- pBIC;
-    }
-    else if(ic=="BICc"){
-        IC <- pBICc;
-    }
+    # Define the function of IC
+    ic <- match.arg(ic);
+    IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
 
     # Define what function to use in the estimation
     if(useALM){

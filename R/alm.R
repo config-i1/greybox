@@ -69,8 +69,8 @@
 #' (excluding zeroes from the data).
 #' @param ar the order of AR to include in the model. Only non-seasonal
 #' orders are accepted.
-#' @param i the order of I to include in the model. Only non-seasonal
-#' orders are accepted.
+# @param i the order of I to include in the model. Only non-seasonal
+# orders are accepted.
 #' @param parameters vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
 #' @param vcovProduce whether to produce variance-covariance matrix of
@@ -204,9 +204,12 @@ alm <- function(formula, data, subset, na.action,
                                "dbeta",
                                "plogis","pnorm"),
                 occurrence=c("none","plogis","pnorm"),
-                ar=0, i=0,
+                ar=0,# i=0,
                 parameters=NULL, vcovProduce=FALSE, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
+
+    # This is a temporary switch off of I(d)
+    i <- 0;
 
     B <- parameters;
     cl <- match.call();

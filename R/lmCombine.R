@@ -195,19 +195,8 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # }
 
     # Define the function of IC
-    ic <- ic[1];
-    if(ic=="AIC"){
-        IC <- AIC;
-    }
-    else if(ic=="AICc"){
-        IC <- AICc;
-    }
-    else if(ic=="BIC"){
-        IC <- BIC;
-    }
-    else if(ic=="BICc"){
-        IC <- BICc;
-    }
+    ic <- match.arg(ic);
+    IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
 
     # Define what function to use in the estimation
     if(useALM){
