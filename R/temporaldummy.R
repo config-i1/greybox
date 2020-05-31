@@ -27,10 +27,10 @@
 #' @param object Either a ts / msts / zoo / xts / tsibble object or a vector
 #' of dates.
 #' @param type Specifies what type of frequency to produce. For example, if
-#' \code{type="months"}, then the matrix with dummies for months of the year will
+#' \code{type="month"}, then the matrix with dummies for months of the year will
 #' be created.
 #' @param of Specifies the frequency of what is needed. Used together with \code{type}
-#' e.g. \code{type="days"} and \code{of="month"} will produce a matrix with dummies
+#' e.g. \code{type="day"} and \code{of="month"} will produce a matrix with dummies
 #' for days of month (31 dummies).
 #' @param h If not \code{NULL}, then the function will produce dummies for this
 #' set of observations ahead as well, binding them to the original matrix.
