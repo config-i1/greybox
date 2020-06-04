@@ -5,6 +5,9 @@ Changes:
 * stepwise() now passes arguments to alm(), if they are provided (e.g. "ar" parameter).
 * Switched off i parameter in alm() - it seems to be broken and the whole arima part needs to be redone anyway.
 
+Bugfixes:
+* A fix for the evaluation of the formula in alm().
+
 
 greybox v0.6.0 (Release data: 2020-05-19)
 ==============

@@ -214,9 +214,7 @@ alm <- function(formula, data, subset, na.action,
     B <- parameters;
     cl <- match.call();
     # This is needed in order to have a reasonable formula saved, so that there are no issues with it
-    if(is.call(cl$formula)){
-        cl$formula <- eval(cl$formula);
-    }
+    cl$formula <- eval(cl$formula);
     distribution <- match.arg(distribution);
 
     #### Functions used in the estimation ####
