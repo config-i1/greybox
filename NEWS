@@ -4,6 +4,7 @@ greybox v0.6.1 (Release data: 2020-05-31)
 Changes:
 * stepwise() now passes arguments to alm(), if they are provided (e.g. "ar" parameter).
 * Switched off i parameter in alm() - it seems to be broken and the whole arima part needs to be redone anyway.
+* Remove prediction intervals from plot.greybox(object, which=7).
 
 Bugfixes:
 * A fix for the evaluation of the formula in alm().

@@ -1234,40 +1234,40 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         # If the mixture distribution, then do the upper bound
-        if(is.occurrence(x$occurrence)){
-            zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
-            if(any(is.infinite(zValues$lower))){
-                zValues$lower[is.infinite(zValues$lower)] <- 0;
-            }
-            if(any(is.infinite(zValues$upper))){
-                zValues$upper[is.infinite(zValues$upper)] <- 0;
-            }
-        }
-        else{
-            zValues <- suppressWarnings(predict(x, interval="p", level=level));
-        }
+        # if(is.occurrence(x$occurrence)){
+        #     zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
+        #     if(any(is.infinite(zValues$lower))){
+        #         zValues$lower[is.infinite(zValues$lower)] <- 0;
+        #     }
+        #     if(any(is.infinite(zValues$upper))){
+        #         zValues$upper[is.infinite(zValues$upper)] <- 0;
+        #     }
+        # }
+        # else{
+        #     zValues <- suppressWarnings(predict(x, interval="p", level=level));
+        # }
 
         # Start plotting
         do.call(plot,ellipsis);
         lines(yFitted, col="purple");
-        if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
-            lines(zValues$lower, col="red", lty=2);
-            lines(zValues$upper, col="red", lty=2);
-            polygon(c(1:length(yFitted), c(length(yFitted):1)),
-                    c(zValues$lower, rev(zValues$upper)),
-                    col="lightgrey", border=NA, density=10);
-
-            if(legend){
-                legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
-                       col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
-            }
-        }
-        else{
+        # if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
+        #     lines(zValues$lower, col="red", lty=2);
+        #     lines(zValues$upper, col="red", lty=2);
+        #     polygon(c(1:length(yFitted), c(length(yFitted):1)),
+        #             c(zValues$lower, rev(zValues$upper)),
+        #             col="lightgrey", border=NA, density=10);
+        #
+        #     if(legend){
+        #         legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
+        #                col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
+        #     }
+        # }
+        # else{
             if(legend){
                 legend(legendPosition,legend=c("Actuals","Fitted"),
                        col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
             }
-        }
+        # }
     }
 
     # 8 and 9. Standardised / Studentised residuals vs time
