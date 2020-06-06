@@ -79,8 +79,18 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
     # tableDataColours <- 1 - 0.75 * tableData / max(tableData);
     tableDataColours <- 1 - tableData;
 
-    xUnique <- sort(unique(x));
-    yUnique <- sort(unique(y));
+    if(is.factor(x)){
+        xUnique <- levels(x);
+    }
+    else{
+        xUnique <- sort(unique(x));
+    }
+    if(is.factor(y)){
+        yUnique <- levels(y)
+    }
+    else{
+        yUnique <- sort(unique(y));
+    }
     xCoord <- seq(0.5,length(xUnique)+0.5,length.out=length(xUnique)+1);
     yCoord <- seq(0.5,length(yUnique)+0.5,length.out=length(yUnique)+1);
     xMid <- xCoord[-1]-0.5;
