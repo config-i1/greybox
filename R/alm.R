@@ -210,6 +210,8 @@ alm <- function(formula, data, subset, na.action,
 
     # This is a temporary switch off of I(d)
     i <- 0;
+    # Create substitute and remove the original data
+    dataSubstitute <- substitute(data);
 
     B <- parameters;
     cl <- match.call();
@@ -1465,6 +1467,7 @@ alm <- function(formula, data, subset, na.action,
 
         if(!occurrenceProvided){
             occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
+            occurrence$call$data <- as.name(dataSubstitute);
         }
 
         # Corrected fitted (with probabilities)

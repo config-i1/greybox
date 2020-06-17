@@ -1,4 +1,4 @@
-greybox v0.6.1 (Release data: 2020-06-06)
+greybox v0.6.1 (Release data: 2020-06-17)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 
 Bugfixes:
 * A fix for the evaluation of the formula in alm().
+* A correct name for the used data in the occurrence.
 
 
 greybox v0.6.0 (Release data: 2020-05-19)
