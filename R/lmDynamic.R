@@ -83,10 +83,12 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     cl <- match.call();
     cl$formula <- as.formula(paste0("`",colnames(data)[1],"`~ ."));
 
-    #### This is temporary and needs to be removed at some point! ####
-    bruteforce[] <- depricator(bruteforce, list(...));
-
     ellipsis <- list(...);
+    # Only likelihood is supported by the function
+    loss <- "likelihood";
+    if(is.null(ellipsis$loss)){
+       ellipsis$loss <- loss;
+    }
 
     # If they asked for parallel, make checks and try to do that
     if(parallel){

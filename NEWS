@@ -1,4 +1,4 @@
-greybox v0.6.1 (Release data: 2020-06-17)
+greybox v0.6.1 (Release data: 2020-06-23)
 ==============
 
 Changes:
@@ -6,6 +6,10 @@ Changes:
 * Switched off i parameter in alm() - it seems to be broken and the whole arima part needs to be redone anyway.
 * Remove prediction intervals from plot.greybox(object, which=7).
 * Let tableplot() get levels from the data if it is a factor.
+* alm() now accepts parameter FI instead of vcovProduce, similar to how it is done in smooth functions. The calculation of vcov is then done in the respective method.
+* alm() now also allows specifying more parameters for the optimiser.
+* loss parameter in alm(). You can now specify your own.
+* Updated alm vignette in order to reflect changes to loss.
 
 Bugfixes:
 * A fix for the evaluation of the formula in alm().

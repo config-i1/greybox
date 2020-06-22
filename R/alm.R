@@ -56,6 +56,32 @@
 #' beginning of the name refer to the density function, while "p" stands for
 #' "probability" (cumulative distribution function). The names align with the
 #' names of distribution functions in R. For example, see \link[stats]{dnorm}.
+#' @param loss The type of Loss Function used in optimization. \code{loss} can
+#' be:
+#' \itemize{
+#' \item \code{likelihood} - the model is estimated via the maximisation of the
+#' likelihood of the function specified in \code{distribution};
+#' \item \code{MSE} (Mean Squared Error),
+#' \item \code{MAE} (Mean Absolute Error),
+#' \item \code{HAM} (Half Absolute Moment),
+#' \item \code{LASSO} - use LASSO to shrink the parameters of the model;
+#' \item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
+#' }
+#' In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
+#' but the parameters are divided by the mean values of explanatory variables.
+#' Note that you are expected to provide the parameter lambda.
+#'
+#' A user can also provide their own function here as well, making sure
+#' that it accepts parameters \code{actual}, \code{fitted} and \code{B}. Here is an
+#' example:
+#' \code{lossFunction <- function(actual, fitted, B, xreg) return(mean(abs(actual-fitted)))}
+#' \code{loss=lossFunction}
+#'
+#' See \code{vignette("alm","greybox")} for some details on losses and distributions.
+#' @param h The forecast horizon. Mainly needed in order to split the data to
+#' train and test sets.
+#' @param holdout Logical. If \code{TRUE}, then the holdout of the size \code{h}
+#' is taken from the data (can be used for the model testing purposes).
 #' @param occurrence what distribution to use for occurrence variable. Can be
 #' \code{"none"}, then nothing happens; \code{"plogis"} - then the logistic
 #' regression using \code{alm()} is estimated for the occurrence part;
@@ -73,41 +99,68 @@
 # orders are accepted.
 #' @param parameters vector of parameters of the linear model. When \code{NULL}, it
 #' is estimated.
-#' @param vcovProduce whether to produce variance-covariance matrix of
-#' coefficients or not. This is done via hessian calculation, so might be
-#' computationally costly.
 #' @param fast if \code{TRUE}, then the function won't check whether
 #' the data has variability and whether the regressors are correlated. Might
 #' cause trouble, especially in cases of multicollinearity.
 #' @param ... additional parameters to pass to distribution functions. This
-#' includes: \code{alpha} value for Asymmetric Laplace distribution,
-#' \code{size} for the Negative Binomial or \code{df} for the Chi-Squared and
-#' Student's t. You can also pass parameters to the optimiser: 1.
-#' \code{maxeval} - maximum number of evaluations to carry out (default is
-#' 100); 2. \code{xtol_rel} - the precision of the optimiser (the default is
-#' 1E-6); 3. \code{algorithm} - the algorithm to use in optimisation
-#' (\code{"NLOPT_LN_SBPLX"} by default). 4. \code{print_level} - the level of
-#' output for the optimiser (0 by default). You can read more about these
-#' parameters in the documentation of \link[nloptr]{nloptr} function.
+#' includes:
+#' \itemize{
+#' \item \code{alpha} - value for Asymmetric Laplace distribution;
+#' \item \code{size} - the size for the Negative Binomial distribution;
+#' \item \code{df} - the number of degrees of freedom for Chi-Squared and Student's t;
+#' \item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
+#' regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
+#' and 1 means shrink everything (ignore MSE);
+#' \item \code{lambdaBC} - lambda for Box-Cox transform parameter in case of Box-Cox
+#' Normal Distribution.
+#' \item \code{FI=TRUE} will make the function also produce Fisher Information
+#' matrix, which then can be used to calculated variances of smoothing parameters
+#' and initial states of the model. This is used in the \link[stats]{vcov} method;
+#' }
+#'
+#' You can also pass parameters to the optimiser:
+#' \enumerate{
+#' \item \code{B} - the vector of starting values of parameters for the optimiser,
+#' should correspond to the ordering of the explanatory variables;
+#' \item \code{algorithm} - the algorithm to use in optimisation
+#' (\code{"NLOPT_LN_SBPLX"} by default).
+#' \item \code{maxeval} - maximum number of evaluations to carry out (default is 100);
+#' \item \code{maxtime} - stop, when the optimisation time (in seconds) exceeds this;
+#' \item \code{xtol_rel} - the precision of the optimiser (the default is 1E-6);
+#' \item \code{xtol_abs} - the absolute precision of the optimiser (the default is 1E-8);
+#' \item \code{ftol_rel} - the stopping criterion in case of the relative change in the loss
+#' function (the default is 1E-4);
+#' \item \code{ftol_abs} - the stopping criterion in case of the absolute change in the loss
+#' function (the default is 0 - not used);
+#' \item \code{print_level} - the level of output for the optimiser (0 by default).
+#' If equal to 41, then the detailed results of the optimisation are returned.
+#' }
+#' You can read more about these parameters by running the function
+#' \link[nloptr]{nloptr.print.options}.
 #'
 #' @return Function returns \code{model} - the final model of the class
 #' "alm", which contains:
 #' \itemize{
 #' \item coefficients - estimated parameters of the model,
-#' \item vcov - covariance matrix of parameters of the model (based on Fisher
-#' Information). Returned only when \code{vcovProduce=TRUE},
+#' \item FI - Fisher Information of parameters of the model. Returned only when \code{FI=TRUE},
 #' \item fitted - fitted values,
 #' \item residuals - residuals of the model,
 #' \item mu - the estimated location parameter of the distribution,
 #' \item scale - the estimated scale parameter of the distribution,
 #' \item distribution - distribution used in the estimation,
-#' \item logLik - log-likelihood of the model,
+#' \item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
+#' and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
+#' distribution="dnorm"),
+#' \item loss - the type of the loss function used in the estimation,
+#' \item lossFunction - the loss function, if the custom is provided by the user,
+#' \item lossValue - the value of the loss function,
 #' \item df.residual - number of degrees of freedom of the residuals of the model,
 #' \item df - number of degrees of freedom of the model,
 #' \item call - how the model was called,
 #' \item rank - rank of the model,
 #' \item data - data used for the model construction,
 #' \item occurrence - the occurrence model used in the estimation,
+#' \item B - the value of the optimised parameters. Typically, this is a duplicate of coefficients,
 #' \item other - the list of all the other parameters either passed to the
 #' function or estimated in the process, but not included in the standard output
 #' (e.g. \code{alpha} for Asymmetric Laplace).
@@ -203,9 +256,10 @@ alm <- function(formula, data, subset, na.action,
                                "dpois","dnbinom",
                                "dbeta",
                                "plogis","pnorm"),
+                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"), h=0, holdout=FALSE,
                 occurrence=c("none","plogis","pnorm"),
                 ar=0,# i=0,
-                parameters=NULL, vcovProduce=FALSE, fast=FALSE, ...){
+                parameters=NULL, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
 
     # This is a temporary switch off of I(d)
@@ -218,6 +272,14 @@ alm <- function(formula, data, subset, na.action,
     # This is needed in order to have a reasonable formula saved, so that there are no issues with it
     cl$formula <- eval(cl$formula);
     distribution <- match.arg(distribution);
+    if(is.function(loss)){
+        lossFunction <- loss;
+        loss <- "custom";
+    }
+    else{
+        lossFunction <- NULL;
+        loss <- match.arg(loss);
+    }
 
     #### Functions used in the estimation ####
     ifelseFast <- function(condition, yes, no){
@@ -234,22 +296,22 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Function for the Box-Cox transform
-    bcTransform <- function(y, lambda){
-        if(lambda==0){
+    bcTransform <- function(y, lambdaBC){
+        if(lambdaBC==0){
             return(log(y));
         }
         else{
-            return((y^lambda-1)/lambda);
+            return((y^lambdaBC-1)/lambdaBC);
         }
     }
 
     # Function for the inverse Box-Cox transform
-    bcTransformInv <- function(y, lambda){
-        if(lambda==0){
+    bcTransformInv <- function(y, lambdaBC){
+        if(lambdaBC==0){
             return(exp(y));
         }
         else{
-            return((y*lambda+1)^{1/lambda});
+            return((y*lambdaBC+1)^{1/lambdaBC});
         }
     }
 
@@ -300,7 +362,7 @@ alm <- function(formula, data, subset, na.action,
                 B <- B[-1];
             }
             else{
-                other <- lambda;
+                other <- lambdaBC;
             }
         }
         else if(distribution=="dt"){
@@ -400,7 +462,7 @@ alm <- function(formula, data, subset, na.action,
         return(fitterReturn);
     }
 
-    CF <- function(B, distribution, y, matrixXreg, recursiveModel){
+    CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel){
         if(recursiveModel){
             fitterReturn <- fitterRecursive(B, distribution, y, matrixXreg);
         }
@@ -408,70 +470,125 @@ alm <- function(formula, data, subset, na.action,
             fitterReturn <- fitter(B, distribution, y, matrixXreg);
         }
 
-        # The original log-likelilhood
-        CFValue <- -sum(switch(distribution,
-                                "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
-                                "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
-                                "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                    lambda=fitterReturn$other, log=TRUE),
-                                "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
-                                                        dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
-                                "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                        alpha=fitterReturn$other, log=TRUE),
-                                "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
-                                "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
-                                "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
-                                "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
-                                "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
-                                "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
-                                            pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                                "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
-                                             plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
-        ));
+        if(loss=="likelihood"){
+            # The original log-likelilhood
+            CFValue <- -sum(switch(distribution,
+                                   "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
+                                   "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                   "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+                                   "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                       lambda=fitterReturn$other, log=TRUE),
+                                   "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+                                                           dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+                                   "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                   "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                                   "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                           alpha=fitterReturn$other, log=TRUE),
+                                   "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                   "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
+                                   "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                   "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                                   "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+                                   "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
+                                   "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                                   "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
+                                   "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+                                               pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                                   "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+                                                plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+            ));
 
-        # The differential entropy for the models with the missing data
-        if(occurrenceModel){
-            CFValue[] <- CFValue + switch(distribution,
-                                          "dnorm" =,
-                                          "dfnorm" =,
-                                          "dbcnorm" =,
-                                          "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                          # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
-                                          #                                 sum(log(fitterReturn$mu[!otU]))),
-                                          "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
-                                          "dlaplace" =,
-                                          "dllaplace" =,
-                                          "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
-                                          "dlogis" = obsZero*2,
-                                          "dt" = obsZero*((fitterReturn$scale+1)/2 *
-                                                              (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
-                                                              log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
-                                          "ds" =,
-                                          "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
-                                          "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
-                                                                  (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
-                                                                  fitterReturn$scale/2),
-                                          "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
-                                                            (fitterReturn$mu[otU]-1)*
-                                                            (digamma(fitterReturn$mu[otU])-
-                                                                 digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
-                                                            (fitterReturn$scale[otU]-1)*
-                                                            (digamma(fitterReturn$scale[otU])-
-                                                                 digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
-                                          # This is a normal approximation of the real entropy
-                                          # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
-                                          # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                          0
+            # The differential entropy for the models with the missing data
+            if(occurrenceModel){
+                CFValue[] <- CFValue + switch(distribution,
+                                              "dnorm" =,
+                                              "dfnorm" =,
+                                              "dbcnorm" =,
+                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                                              #                                 sum(log(fitterReturn$mu[!otU]))),
+                                              "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                                              "dlaplace" =,
+                                              "dllaplace" =,
+                                              "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+                                              "dlogis" = obsZero*2,
+                                              "dt" = obsZero*((fitterReturn$scale+1)/2 *
+                                                                  (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
+                                                                  log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
+                                              "ds" =,
+                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
+                                              "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
+                                                                      (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
+                                                                      fitterReturn$scale/2),
+                                              "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
+                                                                (fitterReturn$mu[otU]-1)*
+                                                                (digamma(fitterReturn$mu[otU])-
+                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
+                                                                (fitterReturn$scale[otU]-1)*
+                                                                (digamma(fitterReturn$scale[otU])-
+                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
+                                              # This is a normal approximation of the real entropy
+                                              # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                                              # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              0
+                );
+            }
+        }
+        else{
+            ### Fitted values in the scale of the original variable
+            yFitted[] <- switch(distribution,
+                                "dfnorm" = sqrt(2/pi)*scale*exp(-fitterReturn$mu^2/(2*scale^2))+
+                                    fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/scale)),
+                                "dnorm" =,
+                                "dinvgauss" =,
+                                "dlaplace" =,
+                                "dalaplace" =,
+                                "dlogis" =,
+                                "dt" =,
+                                "ds" =,
+                                "dpois" =,
+                                "dnbinom" = fitterReturn$mu,
+                                "dchisq" = fitterReturn$mu + df,
+                                "dlnorm" =,
+                                "dllaplace" =,
+                                "dls" = exp(fitterReturn$mu),
+                                "dbcnorm" = bcTransformInv(fitterReturn$mu,lambdaBC),
+                                "dbeta" = fitterReturn$mu / (fitterReturn$mu + scale),
+                                "pnorm" = pnorm(fitterReturn$mu, mean=0, sd=1),
+                                "plogis" = plogis(fitterReturn$mu, location=0, scale=1)
             );
+
+            if(loss=="MSE"){
+                CFValue <- meanFast((y-yFitted)^2);
+            }
+            else if(loss=="MAE"){
+                CFValue <- meanFast(abs(y-yFitted));
+            }
+            else if(loss=="HAM"){
+                CFValue <- meanFast(sqrt(abs(y-yFitted)));
+            }
+            else if(loss=="LASSO"){
+                denominator <- colMeans(matrixXreg);
+                # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
+                denominator[abs(denominator)<1] <- 1;
+                B[] <- B / denominator;
+
+                CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B))
+            }
+            else if(loss=="RIDGE"){
+                denominator <- colMeans(matrixXreg);
+                # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
+                denominator[abs(denominator)<1] <- 1;
+                B[] <- B / denominator;
+
+                CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B^2))
+            }
+            else if(loss=="custom"){
+                CFValue <- lossFunction(actual=y,fitted=yFitted,B=B,xreg=matrixXreg);
+            }
         }
 
-        if(is.nan(CFValue) | is.na(CFValue) | is.infinite(CFValue)){
+        if(is.nan(CFValue) || is.na(CFValue) || is.infinite(CFValue)){
             CFValue[] <- 1E+300;
         }
 
@@ -525,11 +642,11 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else if(distribution=="dbcnorm"){
-        if(is.null(ellipsis$lambda)){
+        if(is.null(ellipsis$lambdaBC)){
             aParameterProvided <- FALSE;
         }
         else{
-            lambda <- ellipsis$lambda;
+            lambdaBC <- ellipsis$lambdaBC;
             aParameterProvided <- TRUE;
         }
     }
@@ -542,6 +659,81 @@ alm <- function(formula, data, subset, na.action,
             aParameterProvided <- TRUE;
         }
     }
+    if(any(loss==c("LASSO","RIDGE"))){
+        warning(paste0("Please, keep in mind that loss='",loss,
+                       "' is an experimental option. It might not work correctly."), call.=FALSE);
+        if(is.null(ellipsis$lambda)){
+            lambda <- 0;
+        }
+        else{
+            lambda <- ellipsis$lambda;
+        }
+    }
+
+    # Fisher Information
+    if(is.null(ellipsis$FI)){
+        FI <- FALSE;
+    }
+    else{
+        FI <- ellipsis$FI;
+    }
+
+    # Starting values for the optimiser
+    if(is.null(ellipsis$B)){
+        B <- NULL;
+    }
+    else{
+        B <- ellipsis$B;
+    }
+    # Parameters for the nloptr from the ellipsis
+    if(is.null(ellipsis$xtol_rel)){
+        xtol_rel <- 1E-6;
+    }
+    else{
+        xtol_rel <- ellipsis$xtol_rel;
+    }
+    if(is.null(ellipsis$algorithm)){
+        # if(recursiveModel){
+        # algorithm <- "NLOPT_LN_BOBYQA";
+        # }
+        # else{
+        algorithm <- "NLOPT_LN_SBPLX";
+        # }
+    }
+    else{
+        algorithm <- ellipsis$algorithm;
+    }
+    if(is.null(ellipsis$maxtime)){
+        maxtime <- -1;
+    }
+    else{
+        maxtime <- ellipsis$maxtime;
+    }
+    if(is.null(ellipsis$xtol_abs)){
+        xtol_abs <- 1E-8;
+    }
+    else{
+        xtol_abs <- ellipsis$xtol_abs;
+    }
+    if(is.null(ellipsis$ftol_rel)){
+        ftol_rel <- 1E-4;
+    }
+    else{
+        ftol_rel <- ellipsis$ftol_rel;
+    }
+    if(is.null(ellipsis$ftol_abs)){
+        ftol_abs <- 0;
+    }
+    else{
+        ftol_abs <- ellipsis$ftol_abs;
+    }
+    if(is.null(ellipsis$print_level)){
+        print_level <- 0;
+    }
+    else{
+        print_level <- ellipsis$print_level;
+    }
+
 
     # If occurrence is not provideded, then set it to "none"
     if(is.null(occurrence)){
@@ -653,6 +845,23 @@ alm <- function(formula, data, subset, na.action,
     # In case of plogis and pnorm, all the ARI values need to be refitted
     if(any(distribution==c("plogis","pnorm")) && ariModel){
         recursiveModel <- TRUE;
+    }
+
+    #### Define what to do with the maxeval ####
+    if(is.null(ellipsis$maxeval)){
+        if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
+            maxeval <- 500;
+        }
+        # The following ones don't really need the estimation. This is for consistency only
+        else if(any(distribution==c("dnorm","dlnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
+            maxeval <- 2;
+        }
+        else{
+            maxeval <- 200;
+        }
+    }
+    else{
+        maxeval <- ellipsis$maxeval;
     }
 
     dataWork <- eval(mf, parent.frame());
@@ -935,215 +1144,177 @@ alm <- function(formula, data, subset, na.action,
             # dataWork <- cbind(dataWork, ariElements);
         }
 
-        #### I(0) initialisation ####
-        if(iOrder==0){
-            if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
-                if(any(y[otU]==0)){
-                    # Use Box-Cox if there are zeroes
-                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
+        if(is.null(B)){
+            #### I(0) initialisation ####
+            if(iOrder==0){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
+                    if(any(y[otU]==0)){
+                        # Use Box-Cox if there are zeroes
+                        B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
+                    }
+                    else{
+                        B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
+                    }
+                }
+                else if(any(distribution==c("plogis","pnorm"))){
+                    # Box-Cox transform in order to get meaningful initials
+                    B <- .lm.fit(matrixXreg,bcTransform(y[otU],0.01))$coefficients;
+                }
+                else if(distribution=="dbcnorm"){
+                    if(!aParameterProvided){
+                        B <- c(0.1,.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.1))$coefficients);
+                    }
+                    else{
+                        B <- c(.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],lambdaBC))$coefficients);
+                    }
+                }
+                else if(distribution=="dbeta"){
+                    # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
+                    # Transform y, just in case, to make sure that it does not hit boundary values
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]/(1-y[otU])))$coefficients;
+                    B <- c(B, -B);
+                }
+                else if(distribution=="dchisq"){
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],sqrt(y[otU]))$coefficients;
+                    if(aParameterProvided){
+                        BLower <- rep(-Inf,length(B));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                    else{
+                        B <- c(1, B);
+                        BLower <- c(0,rep(-Inf,length(B)-1));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                }
+                else if(distribution=="dt"){
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
+                    if(aParameterProvided){
+                        BLower <- rep(-Inf,length(B));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                    else{
+                        B <- c(2, B);
+                        BLower <- c(0,rep(-Inf,length(B)-1));
+                        BUpper <- rep(Inf,length(B));
+                    }
                 }
                 else{
-                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
+                    BLower <- -Inf;
+                    BUpper <- Inf;
                 }
             }
-            else if(any(distribution==c("plogis","pnorm"))){
-                # Box-Cox transform in order to get meaningful initials
-                B <- .lm.fit(matrixXreg,bcTransform(y[otU],0.01))$coefficients;
+            #### I(d) initialisation ####
+            # If this is an I(d) model, do the primary estimation in differences
+            else{
+                # Matrix without the first D rows and without the last D columns
+                # matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
+
+                # Use only AR elements of the matrix, take differences for the initialisation purposes
+                matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE];
+                if(arOrder>0){
+                    matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <- diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
+                                                                                        differences=iOrder);
+                    matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
+                    matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <- colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
+                }
+                else{
+                    matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
+                }
+
+                if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
+                    B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
+                }
+                else if(any(distribution==c("plogis","pnorm"))){
+                    # Box-Cox transform in order to get meaningful initials
+                    B <- .lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.01),differences=iOrder))$coefficients;
+                }
+                else if(distribution=="dbcnorm"){
+                    if(!aParameterProvided){
+                        B <- c(0.1,.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
+                    }
+                    else{
+                        B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
+                    }
+                }
+                else if(distribution=="dbeta"){
+                    # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
+                    # Transform y, just in case, to make sure that it does not hit boundary values
+                    B <- .lm.fit(matrixXregForDiffs,diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
+                    B <- c(B, -B);
+                }
+                else if(distribution=="dchisq"){
+                    B <- .lm.fit(matrixXregForDiffs,diff(sqrt(y[otU]),differences=iOrder))$coefficients;
+                    if(aParameterProvided){
+                        BLower <- rep(-Inf,length(B));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                    else{
+                        B <- c(1, B);
+                        BLower <- c(0,rep(-Inf,length(B)-1));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                }
+                else if(distribution=="dt"){
+                    B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
+                    if(aParameterProvided){
+                        BLower <- rep(-Inf,length(B));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                    else{
+                        B <- c(2, B);
+                        BLower <- c(0,rep(-Inf,length(B)-1));
+                        BUpper <- rep(Inf,length(B));
+                    }
+                }
+                else{
+                    B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
+                    BLower <- -Inf;
+                    BUpper <- Inf;
+                }
+            }
+
+            if(distribution=="dnbinom"){
+                if(!aParameterProvided){
+                    B <- c(var(y[otU]), B);
+                    BLower <- c(0,rep(-Inf,length(B)-1));
+                    BUpper <- rep(Inf,length(B));
+                }
+                else{
+                    BLower <- rep(-Inf,length(B));
+                    BUpper <- rep(Inf,length(B));
+                }
+            }
+            else if(distribution=="dalaplace"){
+                if(!aParameterProvided){
+                    B <- c(0.5, B);
+                    BLower <- c(0,rep(-Inf,length(B)-1));
+                    BUpper <- c(1,rep(Inf,length(B)-1));
+                }
+                else{
+                    BLower <- rep(-Inf,length(B));
+                    BUpper <- rep(Inf,length(B));
+                }
+            }
+            else if(distribution=="dfnorm"){
+                B <- c(sd(y),B);
+                BLower <- c(0,rep(-Inf,length(B)-1));
+                BUpper <- rep(Inf,length(B));
             }
             else if(distribution=="dbcnorm"){
-                if(!aParameterProvided){
-                    B <- c(0.1,.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.1))$coefficients);
-                }
-                else{
-                    B <- c(.lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],lambda))$coefficients);
-                }
-            }
-            else if(distribution=="dbeta"){
-                # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
-                # Transform y, just in case, to make sure that it does not hit boundary values
-                B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]/(1-y[otU])))$coefficients;
-                B <- c(B, -B);
-            }
-            else if(distribution=="dchisq"){
-                B <- .lm.fit(matrixXreg[otU,,drop=FALSE],sqrt(y[otU]))$coefficients;
                 if(aParameterProvided){
                     BLower <- rep(-Inf,length(B));
                     BUpper <- rep(Inf,length(B));
                 }
                 else{
-                    B <- c(1, B);
                     BLower <- c(0,rep(-Inf,length(B)-1));
-                    BUpper <- rep(Inf,length(B));
+                    BUpper <- c(1,rep(Inf,length(B)-1));
                 }
-            }
-            else if(distribution=="dt"){
-                B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
-                if(aParameterProvided){
-                    BLower <- rep(-Inf,length(B));
-                    BUpper <- rep(Inf,length(B));
-                }
-                else{
-                    B <- c(2, B);
-                    BLower <- c(0,rep(-Inf,length(B)-1));
-                    BUpper <- rep(Inf,length(B));
-                }
-            }
-            else{
-                B <- .lm.fit(matrixXreg[otU,,drop=FALSE],y[otU])$coefficients;
-                BLower <- -Inf;
-                BUpper <- Inf;
-            }
-        }
-        #### I(d) initialisation ####
-        # If this is an I(d) model, do the primary estimation in differences
-        else{
-            # Matrix without the first D rows and without the last D columns
-            # matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
-
-            # Use only AR elements of the matrix, take differences for the initialisation purposes
-            matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE];
-            if(arOrder>0){
-                matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <- diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
-                                                                                    differences=iOrder);
-                matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
-                matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <- colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
-            }
-            else{
-                matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
-            }
-
-            if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
-                B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
-            }
-            else if(any(distribution==c("plogis","pnorm"))){
-                # Box-Cox transform in order to get meaningful initials
-                B <- .lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.01),differences=iOrder))$coefficients;
-            }
-            else if(distribution=="dbcnorm"){
-                if(!aParameterProvided){
-                    B <- c(0.1,.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
-                }
-                else{
-                    B <- c(.lm.fit(matrixXregForDiffs,diff(bcTransform(y[otU],0.1),differences=iOrder))$coefficients);
-                }
-            }
-            else if(distribution=="dbeta"){
-                # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
-                # Transform y, just in case, to make sure that it does not hit boundary values
-                B <- .lm.fit(matrixXregForDiffs,diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
-                B <- c(B, -B);
-            }
-            else if(distribution=="dchisq"){
-                B <- .lm.fit(matrixXregForDiffs,diff(sqrt(y[otU]),differences=iOrder))$coefficients;
-                if(aParameterProvided){
-                    BLower <- rep(-Inf,length(B));
-                    BUpper <- rep(Inf,length(B));
-                }
-                else{
-                    B <- c(1, B);
-                    BLower <- c(0,rep(-Inf,length(B)-1));
-                    BUpper <- rep(Inf,length(B));
-                }
-            }
-            else if(distribution=="dt"){
-                B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
-                if(aParameterProvided){
-                    BLower <- rep(-Inf,length(B));
-                    BUpper <- rep(Inf,length(B));
-                }
-                else{
-                    B <- c(2, B);
-                    BLower <- c(0,rep(-Inf,length(B)-1));
-                    BUpper <- rep(Inf,length(B));
-                }
-            }
-            else{
-                B <- .lm.fit(matrixXregForDiffs,diff(y[otU],differences=iOrder))$coefficients;
-                BLower <- -Inf;
-                BUpper <- Inf;
-            }
-        }
-
-        if(distribution=="dnbinom"){
-            if(!aParameterProvided){
-                B <- c(var(y[otU]), B);
-                BLower <- c(0,rep(-Inf,length(B)-1));
-                BUpper <- rep(Inf,length(B));
             }
             else{
                 BLower <- rep(-Inf,length(B));
                 BUpper <- rep(Inf,length(B));
             }
-        }
-        else if(distribution=="dalaplace"){
-            if(!aParameterProvided){
-                B <- c(0.5, B);
-                BLower <- c(0,rep(-Inf,length(B)-1));
-                BUpper <- c(1,rep(Inf,length(B)-1));
-            }
-            else{
-                BLower <- rep(-Inf,length(B));
-                BUpper <- rep(Inf,length(B));
-            }
-        }
-        else if(distribution=="dfnorm"){
-            B <- c(sd(y),B);
-            BLower <- c(0,rep(-Inf,length(B)-1));
-            BUpper <- rep(Inf,length(B));
-        }
-        else if(distribution=="dbcnorm"){
-            if(aParameterProvided){
-                BLower <- rep(-Inf,length(B));
-                BUpper <- rep(Inf,length(B));
-            }
-            else{
-                BLower <- c(0,rep(-Inf,length(B)-1));
-                BUpper <- c(1,rep(Inf,length(B)-1));
-            }
-        }
-        else{
-            BLower <- rep(-Inf,length(B));
-            BUpper <- rep(Inf,length(B));
-        }
-
-        # Parameters for the nloptr from the ellipsis
-        if(is.null(ellipsis$maxeval)){
-            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
-                maxeval <- 500;
-            }
-            # The following ones don't really need the estimation. This is for consistency only
-            else if(any(distribution==c("dnorm","dlnorm")) & !recursiveModel){
-                maxeval <- 2;
-            }
-            else{
-                maxeval <- 200;
-            }
-        }
-        else{
-            maxeval <- ellipsis$maxeval;
-        }
-        if(is.null(ellipsis$xtol_rel)){
-            xtol_rel <- 1E-6;
-        }
-        else{
-            xtol_rel <- ellipsis$xtol_rel;
-        }
-        if(is.null(ellipsis$algorithm)){
-            # if(recursiveModel){
-                # algorithm <- "NLOPT_LN_BOBYQA";
-            # }
-            # else{
-                algorithm <- "NLOPT_LN_SBPLX";
-            # }
-        }
-        else{
-            algorithm <- ellipsis$algorithm;
-        }
-        if(is.null(ellipsis$print_level)){
-            print_level <- 0;
-        }
-        else{
-            print_level <- ellipsis$print_level;
         }
 
         # Change otU to FALSE everywhere, so that the lags are refitted for the occurrence models
@@ -1151,25 +1322,35 @@ alm <- function(formula, data, subset, na.action,
             otU <- rep(FALSE,obsInsample);
         }
 
+        print_level_hidden <- print_level;
+        if(print_level==41){
+            print_level[] <- 0;
+        }
+
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
-                      opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
+                      opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
+                                maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                       lb=BLower, ub=BUpper,
-                      distribution=distribution, y=y, matrixXreg=matrixXreg,
+                      distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel);
         if(recursiveModel){
             res2 <- nloptr(res$solution, CF,
-                           opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level),
+                           opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
+                                maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                            lb=BLower, ub=BUpper,
-                           distribution=distribution, y=y, matrixXreg=matrixXreg,
+                           distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                            recursiveModel=recursiveModel);
             if(res2$objective<res$objective){
                 res[] <- res2;
             }
         }
         B[] <- res$solution;
-
         CFValue <- res$objective;
+
+        if(print_level_hidden>0){
+            print(res);
+        }
 
         # If there were ARI, write down the polynomial
         if(ariModel){
@@ -1200,9 +1381,10 @@ alm <- function(formula, data, subset, na.action,
         # if(ariModel){
         #     nVariablesExo <- nVariablesExo - ariOrder;
         # }
+        B <- parameters;
         nVariables <- length(B);
         variablesNames <- names(B);
-        CFValue <- CF(B, distribution, y, matrixXreg, recursiveModel);
+        CFValue <- CF(B, distribution, loss, y, matrixXreg, recursiveModel);
     }
 
     #### Form the fitted values, location and scale ####
@@ -1216,59 +1398,87 @@ alm <- function(formula, data, subset, na.action,
     mu[] <- fitterReturn$mu;
     scale <- fitterReturn$scale;
 
-    if(distribution=="dnbinom"){
-        if(!aParameterProvided){
-            ellipsis$size <- B[1];
-            B <- B[-1];
+    if(is.null(parameters)){
+        parameters <- B;
+        if(distribution=="dnbinom"){
+            if(!aParameterProvided){
+                ellipsis$size <- parameters[1];
+                parameters <- parameters[-1];
+                names(B) <- c("size",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- variablesNames;
         }
-        names(B) <- c(variablesNames);
-    }
-    else if(distribution==c("dchisq")){
-        if(!aParameterProvided){
-            ellipsis$df <- df <- abs(B[1]);
-            B <- B[-1];
+        else if(distribution=="dchisq"){
+            if(!aParameterProvided){
+                ellipsis$df <- df <- abs(parameters[1]);
+                parameters <- parameters[-1];
+                names(B) <- c("df",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- c(variablesNames);
         }
-        names(B) <- c(variablesNames);
-    }
-    else if(distribution==c("dt")){
-        if(!aParameterProvided){
-            ellipsis$df <- df <- abs(B[1]);
-            B <- B[-1];
+        else if(distribution=="dt"){
+            if(!aParameterProvided){
+                ellipsis$df <- df <- abs(parameters[1]);
+                parameters <- parameters[-1];
+                names(B) <- c("df",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- c(variablesNames);
         }
-        names(B) <- c(variablesNames);
-    }
-    else if(distribution==c("dfnorm")){
-        if(!aParameterProvided){
-            ellipsis$sigma <- sigma <- abs(B[1]);
-            B <- B[-1];
+        else if(distribution=="dfnorm"){
+            if(!aParameterProvided){
+                ellipsis$sigma <- sigma <- abs(parameters[1]);
+                parameters <- parameters[-1];
+                names(B) <- c("sigma",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- c(variablesNames);
         }
-        names(B) <- c(variablesNames);
-    }
-    else if(distribution=="dalaplace"){
-        if(!aParameterProvided){
-            ellipsis$alpha <- alpha <- B[1];
-            B <- B[-1];
+        else if(distribution=="dalaplace"){
+            if(!aParameterProvided){
+                ellipsis$alpha <- alpha <- parameters[1];
+                parameters <- parameters[-1];
+                names(B) <- c("alpha",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- variablesNames;
         }
-        names(B) <- variablesNames;
-    }
-    else if(distribution=="dbeta"){
-        if(!vcovProduce){
-            names(B) <- c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames));
+        else if(distribution=="dbeta"){
+            if(!FI){
+                names(B) <- names(parameters) <- c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames));
+            }
+        }
+        else if(distribution=="dbcnorm"){
+            if(!aParameterProvided){
+                ellipsis$lambdaBC <- lambdaBC <- parameters[1];
+                parameters <- parameters[-1];
+                names(B) <- c("lambda",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- variablesNames;
+        }
+        else{
+            names(parameters) <- variablesNames;
+            names(B) <- variablesNames;
         }
     }
-    else if(distribution=="dbcnorm"){
-        if(!aParameterProvided){
-            ellipsis$lambda <- lambda <- B[1];
-            B <- B[-1];
-        }
-        names(B) <- variablesNames;
-    }
-    else if(distribution=="dt"){
-        ellipsis$df <- scale;
-        names(B) <- variablesNames;
-    }
-    else{
-        names(B) <- variablesNames;
+
+    if(any(loss==c("LASSO","RIDGE"))){
+        ellipsis$lambda <- lambda;
     }
 
     ### Fitted values in the scale of the original variable
@@ -1287,7 +1497,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlnorm" =,
                        "dllaplace" =,
                        "dls" = exp(mu),
-                       "dbcnorm" = bcTransformInv(mu,lambda),
+                       "dbcnorm" = bcTransformInv(mu,lambdaBC),
                        "dbeta" = mu / (mu + scale),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
                        "plogis" = plogis(mu, location=0, scale=1)
@@ -1310,7 +1520,7 @@ alm <- function(formula, data, subset, na.action,
                        "dlnorm" =,
                        "dllaplace" =,
                        "dls" = log(y) - mu,
-                       "dbcnorm" = bcTransform(y,lambda) - mu,
+                       "dbcnorm" = bcTransform(y,lambdaBC) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))
                        # Here we use the proxy from Svetunkov & Boylan (2019)
@@ -1327,7 +1537,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Parameters of the model + scale
-    nParam <- nVariables + 1;
+    nParam <- nVariables + (loss=="likelihood")*1;
 
     if(distribution=="dalaplace"){
         if(!aParameterProvided){
@@ -1341,7 +1551,7 @@ alm <- function(formula, data, subset, na.action,
     }
     else if(distribution=="dbeta"){
         nParam <- nVariables*2;
-        if(!vcovProduce){
+        if(!FI){
             nVariables <- nVariables*2;
         }
     }
@@ -1363,90 +1573,20 @@ alm <- function(formula, data, subset, na.action,
         scale <- sqrt(meanFast(errors^2));
     }
 
-    #### Produce covariance matrix using hessian ####
-    if(vcovProduce){
+    #### Produce Fisher Information ####
+    if(FI){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        # method.args <- list(eps=1e-4, d=0.1, r=4);
-        # if(CDF){
-        #     method.args <- list(d=1e-6, r=6);
-        # }
-        # else{
-        #     if(any(distribution==c("dnbinom","dlaplace","dalaplace","dbcnorm"))){
-        # if(distribution==c("dinvgauss")){
-        #     method.args <- list(d=1e-6, r=4);
-        # }
-        #     else{
-        #         method.args <- list(d=1e-4, r=4);
-        #     }
-        # }
+        FI <- hessian(CF, B,
+                      distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
+                      recursiveModel=recursiveModel);
 
-        if(distribution=="dpois"){
-            # Produce analytical hessian for Poisson distribution
-            vcovMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * mu[1];
-            for(j in 2:obsInsample){
-                vcovMatrix[] <- vcovMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * mu[j];
-            }
-            if(iOrder>0){
-                vcovMatrix <- vcovMatrix[1:nVariablesExo,1:nVariablesExo];
-            }
-        }
-        else{
-            vcovMatrix <- hessian(CF, B, #method.args=method.args,
-                                  distribution=distribution, y=y, matrixXreg=matrixXreg,
-                                  recursiveModel=recursiveModel);
-        }
-
-        # if(any(distribution==c("dchisq","dnbinom"))){
-        #     vcovMatrix <- vcovMatrix[-1,-1];
-        # }
-
-        if(any(is.nan(vcovMatrix))){
+        if(any(is.nan(FI))){
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
                            "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
                            "Try a different distribution maybe?"), call.=FALSE);
-            vcovMatrix <- diag(1e+100,nVariables);
+            FI <- diag(1e+100,nVariables);
         }
-        else{
-            # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
-            vcovMatrixTry <- try(chol2inv(chol(vcovMatrix)), silent=TRUE);
-            if(any(class(vcovMatrixTry)=="try-error")){
-                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                               "The estimate of the covariance matrix of parameters might be inaccurate."),
-                        call.=FALSE);
-                vcovMatrix <- try(solve(vcovMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
-                if(any(class(vcovMatrix)=="try-error")){
-                    warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                                   "We failed to produce the covariance matrix of parameters."),
-                            call.=FALSE);
-                    vcovMatrix <- diag(1e+100,nVariables);
-                }
-            }
-            else{
-                vcovMatrix <- vcovMatrixTry;
-            }
-
-            # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
-            if(any(diag(vcovMatrix)<0)){
-                diag(vcovMatrix) <- abs(diag(vcovMatrix));
-            }
-        }
-
-        if(nVariables>1){
-            if(distribution=="dbeta"){
-                dimnames(vcovMatrix) <- list(c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)),
-                                             c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)));
-            }
-            else{
-                dimnames(vcovMatrix) <- list(variablesNames,variablesNames);
-            }
-        }
-        else{
-            names(vcovMatrix) <- variablesNames;
-        }
-    }
-    else{
-        vcovMatrix <- NULL;
     }
 
     #### Deal with the occurrence part of the model ####
@@ -1519,11 +1659,22 @@ alm <- function(formula, data, subset, na.action,
         mu <- yFitted;
     }
 
-    finalModel <- structure(list(coefficients=B, vcov=vcovMatrix, fitted=yFitted, residuals=as.vector(errors),
-                                 mu=mu, scale=scale, distribution=distribution, logLik=-CFValue,
+    if(loss=="likelihood" ||
+       (loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm"))) ||
+       (loss=="MAE" && any(distribution==c("dlaplace","dllaplace"))) ||
+       (loss=="HAM" && any(distribution==c("ds","dls")))){
+        logLik <- -CFValue;
+    }
+    else{
+        logLik <- NA;
+    }
+
+    finalModel <- structure(list(coefficients=parameters, FI=FI, fitted=yFitted, residuals=as.vector(errors),
+                                 mu=mu, scale=scale, distribution=distribution, logLik=logLik,
+                                 loss=loss, lossFunction=lossFunction, lossValue=-CFValue,
                                  df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
                                  data=dataWork,
-                                 occurrence=occurrence, subset=subset, other=ellipsis),
+                                 occurrence=occurrence, subset=subset, other=ellipsis, B=B),
                             class=c("alm","greybox"));
 
     # If this is an occurrence model, flag it as one

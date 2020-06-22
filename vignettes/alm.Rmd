@@ -4,7 +4,7 @@ author: "Ivan Svetunkov"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Greybox - Advanced Linear Model}
+  %\VignetteIndexEntry{Advanced Linear Model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: library.bib
@@ -22,9 +22,11 @@ knitr::opts_chunk$set(
 library(greybox)
 ```
 
-ALM stands for "Advanced Linear Model". It's not so much advanced as it sounds, but it has some advantages over the basic LM, retaining some basic features. In some sense `alm()` resembles the `glm()` function from stats package, but with a higher focus on forecasting rather than on hypothesis testing. You will not get p-values anywhere from the `alm()` function and won't see $R^2$ in the outputs. The maximum what you can count on is having confidence intervals for the parameters or for the regression line. The other important difference from `glm()` is the availability of distributions that are not supported by `glm()` (for example, Folded Normal or Chi Squared distributions).
+ALM stands for "Advanced Linear Model". It's not so much advanced as it sounds, but it has some advantages over the basic LM, retaining some basic features. In some sense `alm()` resembles the `glm()` function from stats package, but with a higher focus on forecasting rather than on hypothesis testing. You will not get p-values anywhere from the `alm()` function and won't see $R^2$ in the outputs. The maximum what you can count on is having confidence intervals for the parameters or for the regression line. The other important difference from `glm()` is the availability of distributions that are not supported by `glm()` (for example, Folded Normal or Chi Squared distributions). Finally, `alm()` supports different loss functions via the `loss` parameter, so you can estimate parameters of your model via, for example, likelihood maximisation or via minimisation of MSE / MAE, using LASSO / RIDGE or by minimising a loss provided by user.
 
-The core of the function is the likelihood approach. The estimation of parameters in the model is done via the maximisation of likelihood function of a selected distribution. The calculation of the standard errors is done based on the calculation of hessian of the distribution. And in the centre of all of that are information criteria that can be used for the models comparison.
+Although `alm()` supports various loss functions, the core of the function is the likelihood approach. By default the estimation of parameters in the model is done via the maximisation of likelihood function of a selected distribution. The calculation of the standard errors is done based on the calculation of hessian of the distribution. And in the centre of all of that are information criteria that can be used for the models comparison.
+
+# Distributions
 
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
@@ -59,6 +61,8 @@ Given that the parameters of any model in `alm()` are estimated via likelihood, 
 The covariance matrix of parameters almost in all the cases is calculated as an inverse of the hessian of respective distribution function. The exclusions are Normal, Log-Normal, Poisson, Cumulative Logistic and Cumulative Normal distributions, that use analytical solutions.
 
 `alm()` function also supports factors in the explanatory variables, creating the set of dummies from them. In case of ordered variables (ordinal scale, `is.ordered()`), the ordering is removed and the set of dummies is produced. This is done in order to avoid the built in behaviour of R, which creates linear, squared, cubic etc levels for ordered variables, which makes the interpretation of the parameters difficult.
+
+When the number of estimated parameters is calculated, in case of `loss=="likelihood"` the scale is considered as one of the parameters as well, which aligns with the idea of the maximum likelihood estimation. For all the other losses, the scale does not count (this aligns, for example, with how the number of parameters is calculated in OLS, which corresponds to `loss="MSE"`).
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
@@ -287,7 +291,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
     y_t = \left((\mu_t + \epsilon_t) \lambda +1 \right)^{\frac{1}{\lambda}}.
 \end{equation}
 
-`alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$.
+`alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$. The $lambda$ parameter can be provided by the user via the `lambdaBC` in ellipsis.
 
 
 ### Inverse Gaussian distribution {#invgauss}
@@ -453,7 +457,7 @@ Negative Binomial distribution implemented in `alm()` is parameterised in terms 
 \end{equation}
 where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optimisation process. These values are then used in the `dnbinom()` function in order to calculate the log-likelihood based on the distribution function.
 
-`alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$.
+`alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$. The user can also provide `size` parameter in ellipsis if it is reasonable to assume that it is known.
 
 ### An example of application
 Round up the response variable for the next example:
@@ -578,4 +582,44 @@ plot(forecast(modelMixtureAR, h=10, interval="p",side="u"))
 ```
 It will produce forecasts for each of the explanatory variables based on the available data using `es()` function from `smooth` package (if it is available; otherwise, it will use Naive) and use those values as the new data.
 
-### References
+
+# Different loss functions
+There are several loss functions implemented in the function and there is an option for a user to provide their own. If the `loss` is not `"likelihood"`, then the distribution is only needed for inference. Keep in mind that this typically means that the likelihood is not maximised, so the inference might be wrong and the results can be misleading. However, there are several cases, when this is not the case:
+
+1. `loss="MSE"`, `distribution=c("dnorm","dlnorm","dbcnorm")`;
+2. `loss="MAE"`, `distribution=c("dlaplace","dalaplace")`;
+3. `loss="HAM"`, `distribution=c("ds","dls")`;
+
+The likelihoods of the distributions above are maximised, when the respective losses are minimised, so all the inference discussed above hold in these three situations. In all the other cases, the `alm()` function will not return `logLik` and might complain that the derivations can be misleading.
+
+Also, when `loss="likelihood"` the number of estimated parameters includes the scale of distribution (e.g. standard deviation in case of Normal distribution), but it is not counted in the number of parameters of all the other losses.
+
+Finally, we can provide custom loss functions. Here is an example:
+```{r}
+lossFunction <- function(actual, fitted, B, xreg){
+  return(mean((actual-fitted)^3));
+}
+modelLossCustom <- alm(y~x1+x2+Noise, inSample, distribution="dnorm", loss=lossFunction)
+summary(modelLossCustom)
+```
+
+Keep in mind that it is important to have parameters `actual`, `fitted`, `B` and `xreg` in the custom loss function, even if they are not used. `xreg` is the matrix of the expanded explanatory variables (including the intercept in the first column if it is needed).
+
+You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variabls are not normalised, but the parameters are divided by the mean values of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, you need to provide the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
+
+# Estimation process
+There are several parameters in the optimiser that can be regulated by the user. Here is the list:
+
+1. `B` - the vector of starting values of parameters for the optimiser, which should correspond to the ordering of the explanatory variables. In order to see the order of parameters, you can fit a model to the data and extract `B` from it via `ourModel$B`;
+2. `algorithm` the algorithm to use in optimisation (`"NLOPT_LN_SBPLX"` by default).
+3. `maxeval` - maximum number of iterations to carry out (default is 100);
+4. `maxtime` - stop, when the optimisation time (in seconds) exceeds this;
+5. `xtol_rel` -  the relative precision of the optimiser (the default is 1E-6);
+6. `xtol_abs` - the absolute precision of the optimiser (the default is 1E-8);
+7. `ftol_rel` - the stopping criterion in case of the relative change in the loss function (the default is 1E-4);
+8. `ftol_abs` - the stopping criterion in case of the absolute change in the loss function (the default is 0 - not used);
+9. `print_level` - the level of output for the optimiser (0 by default). If equal to 41, then the detailed results of the optimisation are returned.
+
+You can read more about these parameters by running the function {nloptr.print.options()} form the `nloptr` package. Typically, if your model does not work as expected, you might need to tune some of these parameters in order to make sure that the optimum of the loss is reached to the satisfactory extent.
+
+# References

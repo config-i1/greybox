@@ -97,6 +97,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
             data[,1] <- (data[,1]!=0)*1;
         }
     }
+    # Only likelihood is supported by the function
+    loss <- "likelihood";
 
     # Check the data for NAs
     if(any(is.na(data))){
@@ -133,6 +135,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     if(useALM){
         lmCall <- alm;
         listToCall$distribution <- distribution;
+        listToCall$loss <- loss;
         listToCall$fast <- TRUE;
     }
     else{
@@ -327,7 +330,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         rm(listToCall);
 
         bestModel$distribution <- distribution;
-        bestModel$logLik <- logLik(bestModel);
+        bestModel$logLik <- bestModel$lossValue <- logLik(bestModel);
         bestModel$mu <- bestModel$fitted <- bestModel$data[,1] - c(bestModel$residuals);
         # This is number of variables + constant + variance
         bestModel$df <- length(bestModel$coefficients) + 1;
@@ -344,12 +347,14 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         bestModel$call$formula <- bestFormula;
         bestModel$subset <- rep(TRUE, obsInsample);
         bestModel$scale <- sqrt(sum(bestModel$residuals^2) / obsInsample);
+        bestModel$loss <- loss;
         class(bestModel) <- c("alm","greybox");
     }
     else{
         listToCall$formula <- bestFormula;
         listToCall$data <- dataSubstitute;
         listToCall$distribution <- distribution;
+        listToCall$loss <- loss;
         listToCall$occurrence <- occurrence;
         listToCall$fast <- TRUE;
         bestModel <- do.call("alm", listToCall,

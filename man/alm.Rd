@@ -7,8 +7,9 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dllaplace", "dls",
   "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
-  occurrence = c("none", "plogis", "pnorm"), ar = 0, parameters = NULL,
-  vcovProduce = FALSE, fast = FALSE, ...)
+  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"), h = 0,
+  holdout = FALSE, occurrence = c("none", "plogis", "pnorm"), ar = 0,
+  parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -31,6 +32,35 @@ beginning of the name refer to the density function, while "p" stands for
 "probability" (cumulative distribution function). The names align with the
 names of distribution functions in R. For example, see \link[stats]{dnorm}.}
 
+\item{loss}{The type of Loss Function used in optimization. \code{loss} can
+be:
+\itemize{
+\item \code{likelihood} - the model is estimated via the maximisation of the
+likelihood of the function specified in \code{distribution};
+\item \code{MSE} (Mean Squared Error),
+\item \code{MAE} (Mean Absolute Error),
+\item \code{HAM} (Half Absolute Moment),
+\item \code{LASSO} - use LASSO to shrink the parameters of the model;
+\item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
+}
+In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
+but the parameters are divided by the mean values of explanatory variables.
+Note that you are expected to provide the parameter lambda.
+
+A user can also provide their own function here as well, making sure
+that it accepts parameters \code{actual}, \code{fitted} and \code{B}. Here is an
+example:
+\code{lossFunction <- function(actual, fitted, B, xreg) return(mean(abs(actual-fitted)))}
+\code{loss=lossFunction}
+
+See \code{vignette("alm","greybox")} for some details on losses and distributions.}
+
+\item{h}{The forecast horizon. Mainly needed in order to split the data to
+train and test sets.}
+
+\item{holdout}{Logical. If \code{TRUE}, then the holdout of the size \code{h}
+is taken from the data (can be used for the model testing purposes).}
+
 \item{occurrence}{what distribution to use for occurrence variable. Can be
 \code{"none"}, then nothing happens; \code{"plogis"} - then the logistic
 regression using \code{alm()} is estimated for the occurrence part;
@@ -49,44 +79,70 @@ orders are accepted.}
 \item{parameters}{vector of parameters of the linear model. When \code{NULL}, it
 is estimated.}
 
-\item{vcovProduce}{whether to produce variance-covariance matrix of
-coefficients or not. This is done via hessian calculation, so might be
-computationally costly.}
-
 \item{fast}{if \code{TRUE}, then the function won't check whether
 the data has variability and whether the regressors are correlated. Might
 cause trouble, especially in cases of multicollinearity.}
 
 \item{...}{additional parameters to pass to distribution functions. This
-includes: \code{alpha} value for Asymmetric Laplace distribution,
-\code{size} for the Negative Binomial or \code{df} for the Chi-Squared and
-Student's t. You can also pass parameters to the optimiser: 1.
-\code{maxeval} - maximum number of evaluations to carry out (default is
-100); 2. \code{xtol_rel} - the precision of the optimiser (the default is
-1E-6); 3. \code{algorithm} - the algorithm to use in optimisation
-(\code{"NLOPT_LN_SBPLX"} by default). 4. \code{print_level} - the level of
-output for the optimiser (0 by default). You can read more about these
-parameters in the documentation of \link[nloptr]{nloptr} function.}
+includes:
+\itemize{
+\item \code{alpha} - value for Asymmetric Laplace distribution;
+\item \code{size} - the size for the Negative Binomial distribution;
+\item \code{df} - the number of degrees of freedom for Chi-Squared and Student's t;
+\item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
+regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
+and 1 means shrink everything (ignore MSE);
+\item \code{lambdaBC} - lambda for Box-Cox transform parameter in case of Box-Cox
+Normal Distribution.
+\item \code{FI=TRUE} will make the function also produce Fisher Information
+matrix, which then can be used to calculated variances of smoothing parameters
+and initial states of the model. This is used in the \link[stats]{vcov} method;
+}
+
+You can also pass parameters to the optimiser:
+\enumerate{
+\item \code{B} - the vector of starting values of parameters for the optimiser,
+should correspond to the ordering of the explanatory variables;
+\item \code{algorithm} - the algorithm to use in optimisation
+(\code{"NLOPT_LN_SBPLX"} by default).
+\item \code{maxeval} - maximum number of evaluations to carry out (default is 100);
+\item \code{maxtime} - stop, when the optimisation time (in seconds) exceeds this;
+\item \code{xtol_rel} - the precision of the optimiser (the default is 1E-6);
+\item \code{xtol_abs} - the absolute precision of the optimiser (the default is 1E-8);
+\item \code{ftol_rel} - the stopping criterion in case of the relative change in the loss
+function (the default is 1E-4);
+\item \code{ftol_abs} - the stopping criterion in case of the absolute change in the loss
+function (the default is 0 - not used);
+\item \code{print_level} - the level of output for the optimiser (0 by default).
+If equal to 41, then the detailed results of the optimisation are returned.
+}
+You can read more about these parameters by running the function
+\link[nloptr]{nloptr.print.options}.}
 }
 \value{
 Function returns \code{model} - the final model of the class
 "alm", which contains:
 \itemize{
 \item coefficients - estimated parameters of the model,
-\item vcov - covariance matrix of parameters of the model (based on Fisher
-Information). Returned only when \code{vcovProduce=TRUE},
+\item FI - Fisher Information of parameters of the model. Returned only when \code{FI=TRUE},
 \item fitted - fitted values,
 \item residuals - residuals of the model,
 \item mu - the estimated location parameter of the distribution,
 \item scale - the estimated scale parameter of the distribution,
 \item distribution - distribution used in the estimation,
-\item logLik - log-likelihood of the model,
+\item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
+and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
+distribution="dnorm"),
+\item loss - the type of the loss function used in the estimation,
+\item lossFunction - the loss function, if the custom is provided by the user,
+\item lossValue - the value of the loss function,
 \item df.residual - number of degrees of freedom of the residuals of the model,
 \item df - number of degrees of freedom of the model,
 \item call - how the model was called,
 \item rank - rank of the model,
 \item data - data used for the model construction,
 \item occurrence - the occurrence model used in the estimation,
+\item B - the value of the optimised parameters. Typically, this is a duplicate of coefficients,
 \item other - the list of all the other parameters either passed to the
 function or estimated in the process, but not included in the standard output
 (e.g. \code{alpha} for Asymmetric Laplace).

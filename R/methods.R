@@ -226,7 +226,7 @@ pointLik.alm <- function(object, ...){
                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambda, log=TRUE),
+                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
@@ -651,19 +651,24 @@ sigma.varest <- function(object, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, ...){
-    # Are i orders provided? If not, use simpler methods for calculation, when possible
-    iOrderNone <- is.null(object$call$i) || (object$call$i==0);
+    nVariables <- length(coef(object));
+    variablesNames <- names(coef(object));
+    interceptIsNeeded <- any(variablesNames=="(Intercept)");
 
-    interceptIsNeeded <- any(names(coef(object))=="(Intercept)");
+    # If the likelihood is not available, then this is a non-conventional loss
+    if(is.na(logLik(object))){
+        warning(paste0("You used loss='",object$loss,
+                       "'. The covariance matrix of parameters might be incorrect."),
+                call.=FALSE);
+    }
 
-    if(iOrderNone & any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
+    if(any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
         matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
         if(interceptIsNeeded){
             matrixXreg <- cbind(1,matrixXreg);
             colnames(matrixXreg)[1] <- "(Intercept)";
         }
         # colnames(matrixXreg) <- names(coef(object));
-        nVariables <- ncol(matrixXreg);
         matrixXreg <- crossprod(matrixXreg);
         vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
         if(any(class(vcovMatrixTry)=="try-error")){
@@ -683,7 +688,7 @@ vcov.alm <- function(object, ...){
         }
         # vcov <- object$scale^2 * vcovMatrix;
         vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
-        rownames(vcov) <- colnames(vcov) <- names(coef(object));
+        rownames(vcov) <- colnames(vcov) <- variablesNames;
     }
     # else if(iOrderNone & (object$distribution=="dnorm")){
     #     # matrixXreg <- model.matrix(formula(object),data=object$data);
@@ -715,6 +720,39 @@ vcov.alm <- function(object, ...){
     #     vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
     #     rownames(vcov) <- colnames(vcov) <- names(coef(object));
     # }
+    else if(object$distribution=="dpois"){
+        matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
+        obsInsample <- nobs(object);
+        if(interceptIsNeeded){
+            matrixXreg <- cbind(1,matrixXreg);
+            colnames(matrixXreg)[1] <- "(Intercept)";
+        }
+        # colnames(matrixXreg) <- names(coef(object));
+        FIMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * object$mu[1];
+        for(j in 2:obsInsample){
+            FIMatrix[] <- FIMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * object$mu[j];
+        }
+
+        # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+        vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+        if(any(class(vcovMatrixTry)=="try-error")){
+            warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                           "The estimate of the covariance matrix of parameters might be inaccurate."),
+                    call.=FALSE);
+            vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+            if(any(class(FIMatrix)=="try-error")){
+                warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
+                               "We failed to produce the covariance matrix of parameters."),
+                        call.=FALSE);
+                vcov <- diag(1e+100,nVariables);
+            }
+        }
+        else{
+            vcov <- vcovMatrixTry;
+        }
+
+        rownames(vcov) <- colnames(vcov) <- variablesNames;
+    }
     else{
         # Form the call for alm
         newCall <- object$call;
@@ -727,6 +765,12 @@ vcov.alm <- function(object, ...){
         newCall$data <- object$data;
         newCall$subset <- object$subset;
         newCall$distribution <- object$distribution;
+        if(object$loss=="custom"){
+            newCall$loss <- object$lossFunction;
+        }
+        else{
+            newCall$loss <- object$loss;
+        }
         newCall$ar <- object$call$ar;
         newCall$i <- object$call$i;
         newCall$parameters <- coef(object);
@@ -744,17 +788,51 @@ vcov.alm <- function(object, ...){
             newCall$sigma <- object$other$sigma;
         }
         else if(object$distribution=="dbcnorm"){
-            newCall$lambda <- object$other$lambda;
+            newCall$lambdaBC <- object$other$lambdaBC;
         }
-        newCall$vcovProduce <- TRUE;
+        newCall$FI <- TRUE;
         # newCall$occurrence <- NULL;
         newCall$occurrence <- object$occurrence;
         # Recall alm to get hessian
-        vcov <- eval(newCall)$vcov;
+        FIMatrix <- eval(newCall)$FI;
 
-        if(!is.matrix(vcov)){
-            vcov <- as.matrix(vcov);
-            colnames(vcov) <- rownames(vcov);
+        # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+        vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+        if(any(class(vcovMatrixTry)=="try-error")){
+            warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                           "The estimate of the covariance matrix of parameters might be inaccurate."),
+                    call.=FALSE);
+            FIMatrix <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+            if(any(class(FIMatrix)=="try-error")){
+                warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
+                               "We failed to produce the covariance matrix of parameters."),
+                        call.=FALSE);
+                vcov <- diag(1e+100,nVariables);
+            }
+            else{
+                vcov <- FIMatrix;
+            }
+        }
+        else{
+            vcov <- vcovMatrixTry;
+        }
+
+        if(nVariables>1){
+            if(object$distribution=="dbeta"){
+                dimnames(vcov) <- list(c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)),
+                                             c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)));
+            }
+            else{
+                dimnames(vcov) <- list(variablesNames,variablesNames);
+            }
+        }
+        else{
+            names(vcov) <- variablesNames;
+        }
+
+        # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
+        if(any(diag(vcov)<0)){
+            diag(vcov) <- abs(diag(vcov));
         }
     }
     return(vcov);
@@ -1759,17 +1837,17 @@ print.summary.alm <- function(x, ...){
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
-                      "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,2)),
+                      "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,digits)),
                       "dt" = paste0("Student t with df=",round(x$other$df, digits)),
                       "ds" = "S",
                       "dls" = "Log S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
-                      "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambda,2)),
+                      "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
                       "dinvgauss" = "Inverse Gaussian",
-                      "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,2)),
+                      "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,digits)),
                       "dpois" = "Poisson",
-                      "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,2)),
+                      "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -1782,8 +1860,12 @@ print.summary.alm <- function(x, ...){
         distrib <- paste0("Mixture of ", distrib," and ", distribOccurrence);
     }
 
-    cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
-    cat(paste0("Distribution used in the estimation: ", distrib));
+    cat(paste0("Response variable: ", paste0(x$responseName,collapse="")));
+    cat(paste0("\nDistribution used in the estimation: ", distrib));
+    cat(paste0("\nLoss function used in estimation: ",x$loss));
+    if(any(x$loss==c("LASSO","RIDGE"))){
+        cat(paste0(" with lambda=",round(x$other$lambda,digits)));
+    }
     if(!is.null(x$arima)){
         cat(paste0("\n",x$arima," components were included in the model"));
     }
@@ -1793,8 +1875,11 @@ print.summary.alm <- function(x, ...){
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
     cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
-    cat("\nInformation criteria:\n");
-    print(round(x$ICs,digits));
+    if(!is.null(x$ICs)){
+        cat("\nInformation criteria:\n");
+        print(round(x$ICs,digits));
+    }
+    cat("\n");
 }
 
 #' @export
@@ -2083,10 +2168,14 @@ summary.alm <- function(object, level=0.95, ...){
                                    paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn <- list(coefficients=parametersTable);
 
-    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
-    names(ICs) <- c("AIC","AICc","BIC","BICc");
-    ourReturn$ICs <- ICs;
+    # If there is a likelihood, then produce ICs
+    if(!is.na(logLik(object))){
+        ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+        names(ICs) <- c("AIC","AICc","BIC","BICc");
+        ourReturn$ICs <- ICs;
+    }
     ourReturn$distribution <- object$distribution;
+    ourReturn$loss <- object$loss;
     ourReturn$occurrence <- object$occurrence;
     ourReturn$other <- object$other;
     ourReturn$responseName <- formula(object)[[2]];
@@ -2396,14 +2485,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$mean[greyboxForecast$mean<0] <- 0;
         }
         if(interval!="n"){
-            greyboxForecast$lower[] <- qbcnorm(levelLow,greyboxForecast$mean,sigma,object$other$lambda);
-            greyboxForecast$upper[] <- qbcnorm(levelUp,greyboxForecast$mean,sigma,object$other$lambda);
+            greyboxForecast$lower[] <- qbcnorm(levelLow,greyboxForecast$mean,sigma,object$other$lambdaBC);
+            greyboxForecast$upper[] <- qbcnorm(levelUp,greyboxForecast$mean,sigma,object$other$lambdaBC);
         }
-        if(object$other$lambda==0){
+        if(object$other$lambdaBC==0){
             greyboxForecast$mean[] <- exp(greyboxForecast$mean)
         }
         else{
-            greyboxForecast$mean[] <- (greyboxForecast$mean*object$other$lambda+1)^{1/object$other$lambda};
+            greyboxForecast$mean[] <- (greyboxForecast$mean*object$other$lambdaBC+1)^{1/object$other$lambdaBC};
         }
         greyboxForecast$scale <- sigma;
     }
@@ -2877,7 +2966,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         else if(object$distribution=="dbcnorm"){
             # Use Box-Cox if there are zeroes
             matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^
-                                                                            object$other$lambda-1)/object$other$lambda;
+                                                                            object$other$lambdaBC-1)/object$other$lambdaBC;
             colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
         }
         else if(object$distribution=="dchisq"){
