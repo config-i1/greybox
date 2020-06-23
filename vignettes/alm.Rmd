@@ -129,7 +129,7 @@ Laplace distribution has some similarities with the Normal one:
 \end{equation}
 where $s$ is the scale parameter, which, when estimated using likelihood, is equal to the mean absolute error:
 \begin{equation} \label{eq:bLaplace}
-    s = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
+    \hat{s} = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
 \end{equation}
 So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathcal{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails.
 
@@ -149,7 +149,7 @@ Asymmetric Laplace distribution can be considered as a two Laplace distributions
 \end{equation}
 where $s$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $s$ estimated using likelihood is equal to the quantile loss:
 \begin{equation} \label{eq:bALaplace}
-    s = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
+    \hat{s} = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
 \end{equation}
 Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \mathcal{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
 
@@ -169,7 +169,7 @@ The density function of Logistic distribution is:
 \end{equation}
 where $s$ is the scale parameter, which is estimated in `alm()` based on the connection between the parameter and the variance in the logistic distribution:
 \begin{equation} \label{eq:sLogisticAndSigma}
-    s = \sigma \sqrt{\frac{3}{\pi^2}}.
+    \hat{s} = \sigma \sqrt{\frac{3}{\pi^2}}.
 \end{equation}
 Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathcal{Logistic}(0, s)$.
 
@@ -185,7 +185,7 @@ The S distribution has the following density function:
 \end{equation}
 where $s$ is the scale parameter. If estimated via maximum likelihood, the scale parameter is equal to:
 \begin{equation} \label{eq:bS}
-    s = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
+    \hat{s} = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| y_t - \mu_t \right|} ,
 \end{equation}
 which corresponds to the minimisation of a half of "Mean Root Absolute Error" or "Half Absolute Moment".
 
@@ -337,7 +337,7 @@ This is based on the exponent of [S distribution](#svetunkov), giving the PDF:
 \end{equation}
 The model implemented in the package has similarity with [Log Normal](#lnormal) and [Log Laplace](#llaplace) distributions. The MLE scale is:
 \begin{equation} \label{eq:bLogS}
-    s = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| \log(y_t) - \mu_t \right|} ,
+    \hat{s} = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| \log(y_t) - \mu_t \right|} ,
 \end{equation}
 Estimating the model with Log Laplace distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
