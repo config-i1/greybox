@@ -1668,7 +1668,7 @@ alm <- function(formula, data, subset, na.action,
 
     finalModel <- structure(list(coefficients=parameters, FI=FI, fitted=yFitted, residuals=as.vector(errors),
                                  mu=mu, scale=scale, distribution=distribution, logLik=logLik,
-                                 loss=loss, lossFunction=lossFunction, lossValue=-CFValue,
+                                 loss=loss, lossFunction=lossFunction, lossValue=CFValue,
                                  df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
                                  data=dataWork,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B),
