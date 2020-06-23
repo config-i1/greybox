@@ -1583,6 +1583,7 @@ alm <- function(formula, data, subset, na.action,
                            "Try a different distribution maybe?"), call.=FALSE);
             FI <- diag(1e+100,nVariables);
         }
+        dimnames(FI) <- list(variablesNames,variablesNames);
     }
 
     #### Deal with the occurrence part of the model ####
