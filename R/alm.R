@@ -78,10 +78,6 @@
 #' \code{loss=lossFunction}
 #'
 #' See \code{vignette("alm","greybox")} for some details on losses and distributions.
-#' @param h The forecast horizon. Mainly needed in order to split the data to
-#' train and test sets.
-#' @param holdout Logical. If \code{TRUE}, then the holdout of the size \code{h}
-#' is taken from the data (can be used for the model testing purposes).
 #' @param occurrence what distribution to use for occurrence variable. Can be
 #' \code{"none"}, then nothing happens; \code{"plogis"} - then the logistic
 #' regression using \code{alm()} is estimated for the occurrence part;
@@ -256,7 +252,7 @@ alm <- function(formula, data, subset, na.action,
                                "dpois","dnbinom",
                                "dbeta",
                                "plogis","pnorm"),
-                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"), h=0, holdout=FALSE,
+                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
                 occurrence=c("none","plogis","pnorm"),
                 ar=0,# i=0,
                 parameters=NULL, fast=FALSE, ...){

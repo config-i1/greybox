@@ -7,9 +7,9 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
   "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dllaplace", "dls",
   "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
-  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"), h = 0,
-  holdout = FALSE, occurrence = c("none", "plogis", "pnorm"), ar = 0,
-  parameters = NULL, fast = FALSE, ...)
+  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
+  occurrence = c("none", "plogis", "pnorm"), ar = 0, parameters = NULL,
+  fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -54,12 +54,6 @@ example:
 \code{loss=lossFunction}
 
 See \code{vignette("alm","greybox")} for some details on losses and distributions.}
-
-\item{h}{The forecast horizon. Mainly needed in order to split the data to
-train and test sets.}
-
-\item{holdout}{Logical. If \code{TRUE}, then the holdout of the size \code{h}
-is taken from the data (can be used for the model testing purposes).}
 
 \item{occurrence}{what distribution to use for occurrence variable. Can be
 \code{"none"}, then nothing happens; \code{"plogis"} - then the logistic
