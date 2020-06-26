@@ -49,7 +49,8 @@ or a matrix or an array.
 \description{
 Density, cumulative distribution, quantile functions and random number
 generation for the Laplace distribution with the location parameter mu
-and Mean Absolute Error (or Mean Absolute Deviation) equal to scale.
+and the scale parameter (which is equal to Mean Absolute Error, aka
+Mean Absolute Deviation).
 }
 \details{
 When mu=0 and scale=1, the Laplace distribution becomes standardized.

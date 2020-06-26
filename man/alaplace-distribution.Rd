@@ -51,8 +51,7 @@ or a matrix or an array.
 \description{
 Density, cumulative distribution, quantile functions and random number
 generation for the Asymmetric Laplace distribution with the
-location parameter mu, Mean Absolute Error (or Mean Absolute
-Deviation) equal to 2 scale and asymmetry parameter alpha.
+location parameter mu, scale and the asymmetry parameter alpha.
 }
 \details{
 When mu=0 and scale=1, the Laplace distribution becomes standardized.
