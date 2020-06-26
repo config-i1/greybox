@@ -249,7 +249,7 @@
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                               "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
+                               "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm","dinvgauss",
                                "dpois","dnbinom",
                                "dbeta",
                                "plogis","pnorm"),
@@ -353,6 +353,15 @@ alm <- function(formula, data, subset, na.action,
                 other <- sigma;
             }
         }
+        else if(any(distribution==c("dgnorm","dlgnorm"))){
+            if(!aParameterProvided){
+                other <- B[1];
+                B <- B[-1];
+            }
+            else{
+                other <- beta;
+            }
+        }
         else if(distribution=="dbcnorm"){
             if(!aParameterProvided){
                 other <- B[1];
@@ -400,16 +409,18 @@ alm <- function(formula, data, subset, na.action,
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dnorm" =,
-                       "dfnorm" =,
-                       "dlnorm" =,
-                       "dbcnorm"=,
                        "dlaplace" =,
-                       "dllaplace" =,
-                       "dalaplace" =,
+                       "ds" =,
+                       "dgnorm" =,
                        "dlogis" =,
                        "dt" =,
-                       "ds" =,
+                       "dalaplace" =,
+                       "dlnorm" =,
+                       "dllaplace" =,
                        "dls" =,
+                       "dlgnorm" =,
+                       "dbcnorm"=,
+                       "dfnorm" =,
                        "pnorm" =,
                        "plogis" = matrixXreg %*% B
         );
@@ -417,16 +428,18 @@ alm <- function(formula, data, subset, na.action,
         scale <- switch(distribution,
                         "dbeta" = exp(matrixXreg %*% B[-c(1:(length(B)/2))]),
                         "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample),
-                        "dfnorm" = abs(other),
+                        "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
+                        "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (obsInsample*2),
+                        "dgnorm" = (other*sum(abs(y[otU]-mu[otU])^other)/obsInsample)^{1/other},
+                        "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
+                        "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
                         "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
+                        "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/obsInsample,
+                        "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (obsInsample*2),
+                        "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/obsInsample)^{1/other},
                         "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
                         "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
-                        "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
-                        "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/obsInsample,
-                        "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
-                        "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
-                        "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (obsInsample*2),
-                        "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (obsInsample*2),
+                        "dfnorm" = abs(other),
                         "dt" = ,
                         "dchisq" =,
                         "dnbinom" = abs(other),
@@ -471,20 +484,25 @@ alm <- function(formula, data, subset, na.action,
             # The original log-likelilhood
             CFValue <- -sum(switch(distribution,
                                    "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
-                                   "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                   "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
-                                   "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                       lambda=fitterReturn$other, log=TRUE),
-                                   "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
-                                                           dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
                                    "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                   "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                   "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                           alpha=fitterReturn$other, log=TRUE),
+                                   "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                   "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], alpha=fitterReturn$scale,
+                                                     beta=fitterReturn$other, log=TRUE),
                                    "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                    "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
-                                   "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                   "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                           alpha=fitterReturn$other, log=TRUE),
+                                   "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+                                   "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
+                                                          scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
                                    "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                                   "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], alpha=fitterReturn$scale,
+                                                     beta=fitterReturn$other, log=TRUE)-log(y[otU]),
+                                   "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                       lambda=fitterReturn$other, log=TRUE),
+                                   "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                   "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+                                                           dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
                                    "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
@@ -502,6 +520,9 @@ alm <- function(formula, data, subset, na.action,
                                               "dfnorm" =,
                                               "dbcnorm" =,
                                               "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              "dgnorm" =,
+                                              "dlgnorm" =1/fitterReturn$other-
+                                                  log(fitterReturn$other / (2*fitterReturn$scale*gamma(1/fitterReturn$other))),
                                               # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
                                               #                                 sum(log(fitterReturn$mu[!otU]))),
                                               "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
@@ -537,6 +558,7 @@ alm <- function(formula, data, subset, na.action,
                                 "dfnorm" = sqrt(2/pi)*scale*exp(-fitterReturn$mu^2/(2*scale^2))+
                                     fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/scale)),
                                 "dnorm" =,
+                                "dgnorm" =,
                                 "dinvgauss" =,
                                 "dlaplace" =,
                                 "dalaplace" =,
@@ -548,7 +570,8 @@ alm <- function(formula, data, subset, na.action,
                                 "dchisq" = fitterReturn$mu + df,
                                 "dlnorm" =,
                                 "dllaplace" =,
-                                "dls" = exp(fitterReturn$mu),
+                                "dls" =,
+                                "dlgnorm" = exp(fitterReturn$mu),
                                 "dbcnorm" = bcTransformInv(fitterReturn$mu,lambdaBC),
                                 "dbeta" = fitterReturn$mu / (fitterReturn$mu + scale),
                                 "pnorm" = pnorm(fitterReturn$mu, mean=0, sd=1),
@@ -635,6 +658,15 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             sigma <- ellipsis$sigma;
+            aParameterProvided <- TRUE;
+        }
+    }
+    else if(any(distribution==c("dgnorm","dlgnorm"))){
+        if(is.null(ellipsis$beta)){
+            aParameterProvided <- FALSE;
+        }
+        else{
+            beta <- ellipsis$beta;
             aParameterProvided <- TRUE;
         }
     }
@@ -1144,7 +1176,7 @@ alm <- function(formula, data, subset, na.action,
         if(is.null(B)){
             #### I(0) initialisation ####
             if(iOrder==0){
-                if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom","dinvgauss"))){
                     if(any(y[otU]==0)){
                         # Use Box-Cox if there are zeroes
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
@@ -1219,7 +1251,7 @@ alm <- function(formula, data, subset, na.action,
                     matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
                 }
 
-                if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dinvgauss"))){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom","dinvgauss"))){
                     B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
                 }
                 else if(any(distribution==c("plogis","pnorm"))){
@@ -1297,6 +1329,17 @@ alm <- function(formula, data, subset, na.action,
                 B <- c(sd(y),B);
                 BLower <- c(0,rep(-Inf,length(B)-1));
                 BUpper <- rep(Inf,length(B));
+            }
+            else if(any(distribution==c("dgnorm","dlgnorm"))){
+                if(!aParameterProvided){
+                    B <- c(2,B);
+                    BLower <- c(0,rep(-Inf,length(B)-1));
+                    BUpper <- rep(Inf,length(B));
+                }
+                else{
+                    BLower <- rep(-Inf,length(B));
+                    BUpper <- rep(Inf,length(B));
+                }
             }
             else if(distribution=="dbcnorm"){
                 if(aParameterProvided){
@@ -1441,6 +1484,17 @@ alm <- function(formula, data, subset, na.action,
             }
             names(parameters) <- c(variablesNames);
         }
+        else if(any(distribution==c("dgnorm","dlgnorm"))){
+            if(!aParameterProvided){
+                ellipsis$beta <- beta <- abs(parameters[1]);
+                parameters <- parameters[-1];
+                names(B) <- c("beta",variablesNames);
+            }
+            else{
+                names(B) <- variablesNames;
+            }
+            names(parameters) <- c(variablesNames);
+        }
         else if(distribution=="dalaplace"){
             if(!aParameterProvided){
                 ellipsis$alpha <- alpha <- parameters[1];
@@ -1482,6 +1536,7 @@ alm <- function(formula, data, subset, na.action,
     yFitted[] <- switch(distribution,
                        "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
                        "dnorm" =,
+                       "dgnorm" =,
                        "dinvgauss" =,
                        "dlaplace" =,
                        "dalaplace" =,
@@ -1493,7 +1548,8 @@ alm <- function(formula, data, subset, na.action,
                        "dchisq" = mu + df,
                        "dlnorm" =,
                        "dllaplace" =,
-                       "dls" = exp(mu),
+                       "dls" =,
+                       "dlgnorm" = exp(mu),
                        "dbcnorm" = bcTransformInv(mu,lambdaBC),
                        "dbeta" = mu / (mu + scale),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
@@ -1510,13 +1566,15 @@ alm <- function(formula, data, subset, na.action,
                        "dt" =,
                        "ds" =,
                        "dnorm" =,
+                       "dgnorm" =,
                        "dnbinom" =,
                        "dpois" = y - mu,
                        "dinvgauss" = y / mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm" =,
                        "dllaplace" =,
-                       "dls" = log(y) - mu,
+                       "dls" =,
+                       "dlgnorm" = log(y) - mu,
                        "dbcnorm" = bcTransform(y,lambdaBC) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))
@@ -1536,14 +1594,9 @@ alm <- function(formula, data, subset, na.action,
     # Parameters of the model + scale
     nParam <- nVariables + (loss=="likelihood")*1;
 
-    if(distribution=="dalaplace"){
+    if(any(distribution==c("dnbinom","dchisq","dt","dfnorm","dbcnorm","dgnorm","dlgnorm","dalaplace"))){
         if(!aParameterProvided){
             nParam <- nParam + 1;
-        }
-    }
-    else if(any(distribution==c("dnbinom","dchisq","dt","dfnorm","dbcnorm"))){
-        if(aParameterProvided){
-            nParam <- nParam - 1;
         }
     }
     else if(distribution=="dbeta"){

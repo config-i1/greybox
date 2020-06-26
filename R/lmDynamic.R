@@ -74,7 +74,7 @@
 #'
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
-                      distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
+                      distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                      "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
                                      "dpois","dnbinom",
                                      "plogis","pnorm"),

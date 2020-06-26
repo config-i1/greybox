@@ -5,11 +5,11 @@
 \title{Advanced Linear Model}
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
-  "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dfnorm", "dlnorm", "dllaplace",
-  "dls", "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis",
-  "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
-  occurrence = c("none", "plogis", "pnorm"), ar = 0, parameters = NULL,
-  fast = FALSE, ...)
+  "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
+  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dpois", "dnbinom", "dbeta",
+  "plogis", "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO",
+  "RIDGE"), occurrence = c("none", "plogis", "pnorm"), ar = 0,
+  parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to

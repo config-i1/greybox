@@ -65,7 +65,7 @@
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
-                     distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
+                     distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                     "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
                                     "dpois","dnbinom",
                                     "plogis","pnorm"),

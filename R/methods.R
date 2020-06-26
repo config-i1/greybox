@@ -224,8 +224,10 @@ pointLik.alm <- function(object, ...){
     likValues <- vector("numeric",nobs(object));
     likValues[otU] <- switch(distribution,
                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                            "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                            "dgnorm" = dgnorm(y, mu=mu, alpha=scale, beta=object$other$beta, log=TRUE),
+                            "dlgnorm" = dgnorm(log(y), mu=mu, alpha=scale, beta=object$other$beta, log=TRUE),
+                            "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
@@ -244,6 +246,9 @@ pointLik.alm <- function(object, ...){
                             "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
     );
+    if(any(distribution==c("dllaplace","dls","dlgnorm"))){
+        likValues[otU] <- likValues[otU] - log(y);
+    }
 
     # If this is a mixture model, take the respective probabilities into account (differential entropy)
     if(is.occurrence(object$occurrence)){
@@ -252,6 +257,9 @@ pointLik.alm <- function(object, ...){
                                    "dfnorm" =,
                                    "dbcnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                   "dgnorm" =,
+                                   "dlgnorm" = 1/object$other$beta -
+                                       log(object$other$beta / (2*scale*gamma(1/object$other$beta))),
                                    "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
                                    "dlaplace" =,
                                    "dllaplace" =,
@@ -790,6 +798,9 @@ vcov.alm <- function(object, ...){
         else if(object$distribution=="dbcnorm"){
             newCall$lambdaBC <- object$other$lambdaBC;
         }
+        else if(any(object$distribution==c("dgnorm","dlgnorm"))){
+            newCall$beta <- object$other$beta;
+        }
         newCall$FI <- TRUE;
         # newCall$occurrence <- NULL;
         newCall$occurrence <- object$occurrence;
@@ -1065,6 +1076,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
                           "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
                           "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
+                          "dgnorm"=,
+                          "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, x$other$beta),
                           "ds"=,
                           "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                           # In the next one, the scale is debiased, taking n-k into account
@@ -1193,6 +1206,17 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
             do.call(qqnorm, ellipsis);
             qqline(ellipsis$y);
+        }
+        else if(any(x$distribution==c("dgnorm","dlgnorm"))){
+            # Standardise residuals
+            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Generalised Normal distribution";
+            }
+            ellipsis$x <- qgnorm(ppoints(500), mu=0, alpha=x$scale, beta=x$other$beta);
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, alpha=x$scale, beta=x$other$beta));
         }
         else if(any(x$distribution==c("dlaplace","dllaplace"))){
             if(!any(names(ellipsis)=="main")){
@@ -1387,6 +1411,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                           "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
                           "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
                           "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
+                          "dgnorm"=,
+                          "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, x$other$beta),
                           "ds"=,
                           "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                           # In the next one, the scale is debiased, taking n-k into account
@@ -1834,6 +1860,8 @@ print.summary.alm <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dgnorm" = paste0("Generalised Normal Distribution with shape=",round(x$other$beta,digits)),
+                      "dlgnorm" = paste0("Log Generalised Normal Distribution with shape=",round(x$other$beta,digits)),
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
@@ -1894,6 +1922,8 @@ print.summary.greybox <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dgnorm" = "Generalised Normal Distribution",
+                      "dlgnorm" = "Log Generalised Normal Distribution",
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
@@ -1940,6 +1970,8 @@ print.summary.greyboxC <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
+                      "dgnorm" = "Generalised Normal Distribution",
+                      "dlgnorm" = "Log Generalised Normal Distribution",
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
@@ -2062,6 +2094,9 @@ rstandard.greybox <- function(model, ...){
     else if(any(model$distribution==c("ds","dls"))){
         return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
     }
+    else if(any(model$distribution==c("dgnorm","dlgnorm"))){
+        return((errors - mean(errors[residsToGo])) / (model$scale^model$other$beta * obs / df)^{1/model$other$beta});
+    }
     else if(model$distribution=="dinvgauss"){
         return(errors / mean(errors[residsToGo]));
     }
@@ -2117,6 +2152,11 @@ rstudent.greybox <- function(model, ...){
     else if(model$distribution=="dalaplace"){
         for(i in residsToGo){
             rstudentised[i] <- errors[i] / (sum(errors[-i] * (model$other$alpha - (errors[-i]<=0)*1)) / df);
+        }
+    }
+    else if(any(model$distribution==c("dgnorm","dlgnorm"))){
+        for(i in residsToGo){
+            rstudentised[i] <- errors[i] /  (sum(abs(errors[-i])^model$other$beta) * (model$other$beta/df))^{1/model$other$beta};
         }
     }
     else if(model$distribution=="dlogis"){
@@ -2326,6 +2366,7 @@ summary.lmGreybox <- function(object, level=0.95, ...){
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
 #' @importFrom statmod qinvgauss
+#' @importFrom gnorm qgnorm
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
@@ -2414,14 +2455,6 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         greyboxForecast$scale <- scaleValues;
     }
-    else if(object$distribution=="dt"){
-        # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
-        df <- nobs(object) - nparam(object);
-        if(interval!="n"){
-            greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
-            greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
-        }
-    }
     else if(object$distribution=="ds"){
         # Use the connection between the variance and scale in S distribution
         scaleValues <- (greyboxForecast$variances/120)^0.25;
@@ -2440,6 +2473,33 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- scaleValues;
+    }
+    else if(object$distribution=="dgnorm"){
+        # Use the connection between the variance and scale in Generalised Normal distribution
+        scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$beta)/gamma(3/object$other$beta)));
+        if(interval!="n"){
+            greyboxForecast$lower[] <- qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$beta);
+            greyboxForecast$upper[] <- qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$beta);
+        }
+        greyboxForecast$scale <- scaleValues;
+    }
+    else if(object$distribution=="dlgnorm"){
+        # Use the connection between the variance and scale in Generalised Normal distribution
+        scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$beta)/gamma(3/object$other$beta)));
+        if(interval!="n"){
+            greyboxForecast$lower[] <- exp(qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$beta));
+            greyboxForecast$upper[] <- exp(qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$beta));
+        }
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
+        greyboxForecast$scale <- scaleValues;
+    }
+    else if(object$distribution=="dt"){
+        # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
+        df <- nobs(object) - nparam(object);
+        if(interval!="n"){
+            greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
+            greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
+        }
     }
     else if(object$distribution=="dfnorm"){
         if(interval!="n"){
