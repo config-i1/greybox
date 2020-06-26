@@ -4,10 +4,10 @@
 \alias{alm}
 \title{Advanced Linear Model}
 \usage{
-alm(formula, data, subset, na.action, distribution = c("dnorm", "dlogis",
-  "dlaplace", "dalaplace", "ds", "dt", "dfnorm", "dlnorm", "dllaplace", "dls",
-  "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis", "pnorm"),
-  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
+alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
+  "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dfnorm", "dlnorm", "dllaplace",
+  "dls", "dbcnorm", "dinvgauss", "dpois", "dnbinom", "dbeta", "plogis",
+  "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
   occurrence = c("none", "plogis", "pnorm"), ar = 0, parameters = NULL,
   fast = FALSE, ...)
 }

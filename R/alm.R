@@ -243,11 +243,12 @@
 #' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
+#' @importFrom gnorm dgnorm
 #' @importFrom statmod dinvgauss
 #' @importFrom forecast Arima
 #' @export alm
 alm <- function(formula, data, subset, na.action,
-                distribution=c("dnorm","dlogis","dlaplace","dalaplace","ds","dt",
+                distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
                                "dpois","dnbinom",
                                "dbeta",

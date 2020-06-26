@@ -28,6 +28,7 @@ Imports:
     utils,
     lamW,
     pracma,
+    gnorm,
     nloptr,
     statmod,
     zoo,
