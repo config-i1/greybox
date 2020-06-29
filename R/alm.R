@@ -521,20 +521,21 @@ alm <- function(formula, data, subset, na.action,
                                               "dbcnorm" =,
                                               "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
                                               "dgnorm" =,
-                                              "dlgnorm" =1/fitterReturn$other-
-                                                  log(fitterReturn$other / (2*fitterReturn$scale*gamma(1/fitterReturn$other))),
+                                              "dlgnorm" =obsZero*(1/fitterReturn$other-
+                                                                      log(fitterReturn$other /
+                                                                              (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
                                               # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
                                               #                                 sum(log(fitterReturn$mu[!otU]))),
                                               "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
                                               "dlaplace" =,
                                               "dllaplace" =,
+                                              "ds" =,
+                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
                                               "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
                                               "dlogis" = obsZero*2,
                                               "dt" = obsZero*((fitterReturn$scale+1)/2 *
                                                                   (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
                                                                   log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
-                                              "ds" =,
-                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
                                               "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
                                                                       (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
                                                                       fitterReturn$scale/2),
