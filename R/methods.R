@@ -1070,30 +1070,18 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             }
         }
 
-        zValues <- switch(x$distribution,
-                          "dlaplace"=,
-                          "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
-                          "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
-                          "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
-                          "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
-                          "dgnorm"=,
-                          "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, x$other$beta),
-                          "ds"=,
-                          "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                          # In the next one, the scale is debiased, taking n-k into account
-                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
-                                                dispersion=x$scale * nobs(x) / (nobs(x)-nparam(x))),
-                          qnorm(c((1-level)/2, (1+level)/2), 0, 1));
-        # Analyse stuff in logarithms if the error is multiplicative
+        # Get the IDs of outliers and statistic
+        outliers <- outlierdummy(x, level=level, type=type);
+        outliersID <- outliers$id;
+        statistic <- outliers$statistic;
+        # Analyse stuff in logarithms if the distribution is dinvgauss
         if(x$distribution=="dinvgauss"){
             ellipsis$y[] <- log(ellipsis$y);
-            zValues[] <- log(zValues);
+            statistic[] <- log(statistic);
         }
-        outliers <- which(ellipsis$y >zValues[2] | ellipsis$y <zValues[1]);
-        # cat(paste0(round(length(outliers)/length(ellipsis$y),3)*100,"% of values are outside the bounds\n"));
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$y,zValues), na.rm=TRUE)*1.2;
+            ellipsis$ylim <- range(c(ellipsis$y,statistic), na.rm=TRUE)*1.2;
             if(legend){
                 if(legendPosition=="bottomright"){
                     ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
@@ -1110,12 +1098,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
-        polygon(c(xRange,rev(xRange)),c(zValues[1],zValues[1],zValues[2],zValues[2]),
+        polygon(c(xRange,rev(xRange)),c(statistic[1],statistic[1],statistic[2],statistic[2]),
                 col="lightgrey", border=NA, density=10);
-        abline(h=zValues, col="red", lty=2);
-        if(length(outliers)>0){
-            points(ellipsis$x[outliers], ellipsis$y[outliers], pch=16);
-            text(ellipsis$x[outliers], ellipsis$y[outliers], labels=outliers, pos=(ellipsis$x[outliers]>0)*2+1);
+        abline(h=statistic, col="red", lty=2);
+        if(length(outliersID)>0){
+            points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
+            text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
         }
         if(lowess){
             lines(lowess(ellipsis$x, ellipsis$y), col="red");
@@ -1335,41 +1323,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             }
         }
 
-        # If the mixture distribution, then do the upper bound
-        # if(is.occurrence(x$occurrence)){
-        #     zValues <- suppressWarnings(predict(x, interval="p", side="u", level=level));
-        #     if(any(is.infinite(zValues$lower))){
-        #         zValues$lower[is.infinite(zValues$lower)] <- 0;
-        #     }
-        #     if(any(is.infinite(zValues$upper))){
-        #         zValues$upper[is.infinite(zValues$upper)] <- 0;
-        #     }
-        # }
-        # else{
-        #     zValues <- suppressWarnings(predict(x, interval="p", level=level));
-        # }
-
         # Start plotting
         do.call(plot,ellipsis);
         lines(yFitted, col="purple");
-        # if(!all(ellipsis$x<zValues$upper & ellipsis$x>zValues$lower)){
-        #     lines(zValues$lower, col="red", lty=2);
-        #     lines(zValues$upper, col="red", lty=2);
-        #     polygon(c(1:length(yFitted), c(length(yFitted):1)),
-        #             c(zValues$lower, rev(zValues$upper)),
-        #             col="lightgrey", border=NA, density=10);
-        #
-        #     if(legend){
-        #         legend(legendPosition,legend=c("Actuals","Fitted",paste0(level*100,"% prediction interval")),
-        #                col=c("black","purple","red"), lwd=rep(1,3), lty=c(1,1,2));
-        #     }
-        # }
-        # else{
-            if(legend){
-                legend(legendPosition,legend=c("Actuals","Fitted"),
-                       col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
-            }
-        # }
+        if(legend){
+            legend(legendPosition,legend=c("Actuals","Fitted"),
+                   col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+        }
     }
 
     # 8 and 9. Standardised / Studentised residuals vs time
@@ -1405,27 +1365,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$type <- "l";
         }
 
-        zValues <- switch(x$distribution,
-                          "dlaplace"=,
-                          "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
-                          "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, x$other$alpha),
-                          "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
-                          "dt"=qt(c((1-level)/2, (1+level)/2), nobs(x)-nparam(x)),
-                          "dgnorm"=,
-                          "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, x$other$beta),
-                          "ds"=,
-                          "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                          # In the next one, the scale is debiased, taking n-k into account
-                          "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
-                                                dispersion=x$scale * nobs(x) / (nobs(x)-nparam(x))),
-                          qnorm(c((1-level)/2, (1+level)/2), 0, 1));
-        # Analyse stuff in logarithms if the error is multiplicative
+        # Get the IDs of outliers and statistic
+        outliers <- outlierdummy(x, level=level, type=type);
+        outliersID <- outliers$id;
+        statistic <- outliers$statistic;
+        # Analyse stuff in logarithms if the distribution is dinvgauss
         if(x$distribution=="dinvgauss"){
             ellipsis$x[] <- log(ellipsis$x);
-            zValues[] <- log(zValues);
+            statistic[] <- log(statistic);
         }
-        outliers <- which(ellipsis$x >zValues[2] | ellipsis$x <zValues[1]);
-
 
         if(!any(names(ellipsis)=="ylim")){
             ellipsis$ylim <- c(-max(abs(ellipsis$x),na.rm=TRUE),max(abs(ellipsis$x),na.rm=TRUE))*1.2;
@@ -1439,18 +1387,18 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Start plotting
         do.call(plot,ellipsis);
-        if(length(outliers)>0){
-            points(outliers, ellipsis$x[outliers], pch=16);
-            text(outliers, ellipsis$x[outliers], labels=outliers, pos=(ellipsis$x[outliers]>0)*2+1);
+        if(length(outliersID)>0){
+            points(outliersID, ellipsis$x[outliersID], pch=16);
+            text(outliersID, ellipsis$x[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
         }
         if(lowess){
             lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
         }
         abline(h=0, col="grey", lty=2);
-        abline(h=zValues[1], col="red", lty=2);
-        abline(h=zValues[2], col="red", lty=2);
+        abline(h=statistic[1], col="red", lty=2);
+        abline(h=statistic[2], col="red", lty=2);
         polygon(c(1:nobs(x), c(nobs(x):1)),
-                c(rep(zValues[1],nobs(x)), rep(zValues[2],nobs(x))),
+                c(rep(statistic[1],nobs(x)), rep(statistic[2],nobs(x))),
                 col="lightgrey", border=NA, density=10);
         if(legend){
             legend(legendPosition,legend=c("Residuals",paste0(level*100,"% prediction interval")),
@@ -1494,15 +1442,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             theValues <- pacf(as.vector(residuals(x)), plot=FALSE);
         }
         ellipsis$x <- theValues$acf[-1];
-        zValues <- qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x)));
+        statistic <- qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x)));
 
         ellipsis$type <- "h"
 
         do.call(plot,ellipsis);
         abline(h=0, col="black", lty=1);
-        abline(h=zValues, col="red", lty=2);
-        if(any(ellipsis$x>zValues[2] | ellipsis$x<zValues[1])){
-            outliers <- which(ellipsis$x >zValues[2] | ellipsis$x <zValues[1]);
+        abline(h=statistic, col="red", lty=2);
+        if(any(ellipsis$x>statistic[2] | ellipsis$x<statistic[1])){
+            outliers <- which(ellipsis$x >statistic[2] | ellipsis$x <statistic[1]);
             points(outliers, ellipsis$x[outliers], pch=16);
             text(outliers, ellipsis$x[outliers], labels=outliers, pos=(ellipsis$x[outliers]>0)*2+1);
         }
@@ -2192,8 +2140,106 @@ cooks.distance.greybox <- function(model, ...){
     return(errors^2 / nParam * hatValues/(1-hatValues));
 }
 
-#### Summary ####
+#' Outlier detection and matrix creation
+#'
+#' Function detects outliers and creates a matrix with dummy variables. Only point
+#' outliers are considered (no level shifts).
+#'
+#' The detection is done based on the type of distribution used and confidence level
+#' specified by user.
+#'
+#' @template author
+#'
+#' @param object Model estimated using one of the functions of smooth package.
+#' @param level Confidence level to use. Everything that is outside the constructed
+#' bounds based on that is flagged as outliers.
+#' @param type Type of residuals to use: either standardised or studentised.
+#' @param ... Other parameters. Not used yet.
+#' @return The class "outlierdummy", which contains the list:
+#' \itemize{
+#' \item outliers - the matrix with the dummy variables, flagging outliers;
+#' \item statistic - the value of the statistic for the normalised variable;
+#' \item id - the ids of the outliers (which observatins have them);
+#' \item level - the confidence level used in the process;
+#' \item type - the type of the residuals used.
+#' }
+#'
+#' @seealso \link[stats]{influence.measures}
+#' @examples
+#'
+#' # Generate the data with S distribution
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rs(100,0,3),xreg)
+#' colnames(xreg) <- c("y","x1","x2")
+#'
+#' # Fit the normal distribution model
+#' ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
+#'
+#' # Detect outliers
+#' xregOutlierDummy <- outlierdummy(ourModel)
+#'
+#' @export outlierdummy
+outlierdummy <-  function(object, level=0.999, type=c("rstandard","rstudent"),
+                          ...) UseMethod("outlierdummy")
 
+#' @export
+outlierdummy.default <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
+    # Function returns the matrix of dummies with outliers
+    type <- match.arg(type);
+    errors <- switch(type,"rstandard"=rstandard(object),"rstudent"=rstudent(object));
+    statistic <- qnorm(c((1-level)/2, (1+level)/2), 0, 1);
+    outliersID <- which(errors>statistic[2] | errors <statistic[1]);
+    outliersNumber <- length(outliersID);
+    outliers <- matrix(0, nobs(object), outliersNumber,
+                       dimnames=list(rownames(object$data),
+                                     paste0("outlier",c(1:outliersNumber))));
+    outliers[cbind(outliersID,c(1:outliersNumber))] <- 1;
+
+    return(structure(list(outliers=outliers, statistic=statistic, id=outliersID,
+                          level=level, type=type),
+                     class="outlierdummy"));
+}
+
+#' @export
+outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
+    # Function returns the matrix of dummies with outliers
+    type <- match.arg(type);
+    errors <- switch(type,"rstandard"=rstandard(object),"rstudent"=rstudent(object));
+    statistic <- switch(object$distribution,
+                      "dlaplace"=,
+                      "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
+                      "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, object$other$alpha),
+                      "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
+                      "dt"=qt(c((1-level)/2, (1+level)/2), nobs(object)-nparam(object)),
+                      "dgnorm"=,
+                      "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$beta),
+                      "ds"=,
+                      "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
+                      # In the next one, the scale is debiased, taking n-k into account
+                      "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
+                                            dispersion=object$scale * nobs(object) /
+                                                (nobs(object)-nparam(object))),
+                      qnorm(c((1-level)/2, (1+level)/2), 0, 1));
+    outliersID <- which(errors>statistic[2] | errors<statistic[1]);
+    outliersNumber <- length(outliersID);
+    outliers <- matrix(0, nobs(object), outliersNumber,
+                       dimnames=list(rownames(object$data),
+                                     paste0("outlier",c(1:outliersNumber))));
+    outliers[cbind(outliersID,c(1:outliersNumber))] <- 1;
+
+    return(structure(list(outliers=outliers, statistic=statistic, id=outliersID,
+                          level=level, type=type),
+                     class="outlierdummy"));
+}
+
+#' @export
+print.outlierdummy <- function(x, ...){
+    cat(paste0("Number of identified outliers: ", length(x$id),
+               "\nConfidence level: ",x$level,
+               "\nType of residuals: ",x$type, "\n"));
+}
+
+#### Summary ####
 #' @export
 summary.alm <- function(object, level=0.95, ...){
     errors <- residuals(object);

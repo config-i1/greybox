@@ -19,6 +19,8 @@ sample size.
 \link[greybox]{pBICc} - point versions of respective information criteria.
 \item \link[greybox]{determination} - Coefficients of determination between different
 exogenous variables.
+\item \link[greybox]{temporaldummy} - Matrix with seasonal dummy variables.
+\item \link[greybox]{outlierdummy} - Matrix with dummies for outliers.
 \item \link[greybox]{alm} - Advanced Linear Model - regression, estimated using
 likelihood with specified distribution (e.g. Laplace or Chi-Squared).
 \item \link[greybox]{stepwise} - Stepwise based on information criteria and partial

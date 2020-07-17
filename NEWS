@@ -1,4 +1,4 @@
-greybox v0.6.1 (Release data: 2020-06-26)
+greybox v0.6.1 (Release data: 2020-07-17)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Changes:
 * loss parameter in alm(). You can now specify your own.
 * Updated alm vignette in order to reflect changes to loss.
 * Generalised Normal distribution in alm.
+* New method outlierdummy() - create dummy variables based on outliers in the residuals.
 
 Bugfixes:
 * A fix for the evaluation of the formula in alm().
