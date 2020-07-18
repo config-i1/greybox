@@ -1106,9 +1106,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         if(lowess){
             # Remove NAs
-            if(is.occurrence(x$occurrence)){
+            if(any(is.na(ellipsis$x))){
+                ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
                 ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
-                ellipsis$y <- ellipsis$y[!is.na(ellipsis$y)];
             }
             lines(lowess(ellipsis$x, ellipsis$y), col="red");
         }
@@ -1396,7 +1396,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         if(lowess){
             # Substitute NAs with the mean
-            if(is.occurrence(x$occurrence)){
+            if(any(is.na(ellipsis$x))){
                 ellipsis$x[is.na(ellipsis$x)] <- mean(ellipsis$x, na.rm=TRUE);
             }
             lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
