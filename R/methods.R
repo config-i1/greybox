@@ -1045,11 +1045,6 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             yName <- "Studentised";
         }
 
-        if(is.occurrence(x$occurrence)){
-            ellipsis$x <- ellipsis$x[actuals(x$occurrence)!=0];
-            ellipsis$y <- ellipsis$y[actuals(x$occurrence)!=0];
-        }
-
         if(!any(names(ellipsis)=="main")){
             ellipsis$main <- paste0(yName," Residuals vs Fitted");
         }
@@ -1079,6 +1074,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$y[] <- log(ellipsis$y);
             statistic[] <- log(statistic);
         }
+        # Substitute zeroes with NAs if there was an occurrence
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x[actuals(x$occurrence)==0] <- NA;
+        }
 
         if(!any(names(ellipsis)=="ylim")){
             ellipsis$ylim <- range(c(ellipsis$y,statistic), na.rm=TRUE)*1.2;
@@ -1092,9 +1091,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             }
         }
 
-        xRange <- range(ellipsis$x);
-        xRange[1] <- xRange[1] - sd(ellipsis$x);
-        xRange[2] <- xRange[2] + sd(ellipsis$x);
+        xRange <- range(ellipsis$x, na.rm=TRUE);
+        xRange[1] <- xRange[1] - sd(ellipsis$x, na.rm=TRUE);
+        xRange[2] <- xRange[2] + sd(ellipsis$x, na.rm=TRUE);
 
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
@@ -1106,6 +1105,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
         }
         if(lowess){
+            # Remove NAs
+            if(is.occurrence(x$occurrence)){
+                ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
+                ellipsis$y <- ellipsis$y[!is.na(ellipsis$y)];
+            }
             lines(lowess(ellipsis$x, ellipsis$y), col="red");
         }
 
@@ -1345,10 +1349,6 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             yName <- "Studentised";
         }
 
-        if(is.occurrence(x$occurrence)){
-            ellipsis$x <- ellipsis$x[actuals(x$occurrence)!=0];
-        }
-
         if(!any(names(ellipsis)=="main")){
             ellipsis$main <- paste0(yName," Residuals vs Time");
         }
@@ -1376,7 +1376,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- c(-max(abs(ellipsis$x),na.rm=TRUE),max(abs(ellipsis$x),na.rm=TRUE))*1.2;
+            ellipsis$ylim <- range(c(ellipsis$x,statistic),na.rm=TRUE)*1.2;
         }
 
         if(legend){
@@ -1387,11 +1387,18 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Start plotting
         do.call(plot,ellipsis);
+        if(is.occurrence(x$occurrence)){
+            points(ellipsis$x);
+        }
         if(length(outliersID)>0){
             points(outliersID, ellipsis$x[outliersID], pch=16);
             text(outliersID, ellipsis$x[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
         }
         if(lowess){
+            # Substitute NAs with the mean
+            if(is.occurrence(x$occurrence)){
+                ellipsis$x[is.na(ellipsis$x)] <- mean(ellipsis$x, na.rm=TRUE);
+            }
             lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
         }
         abline(h=0, col="grey", lty=2);
@@ -2019,6 +2026,13 @@ hatvalues.greybox <- function(model, ...){
 residuals.greybox <- function(object, ...){
     errors <- object$residuals;
     names(errors) <- names(actuals(object));
+    ellipsis <- list(...);
+    # Remove zeroes if they are not needed
+    if(!is.null(ellipsis$all) && (!ellipsis$all)){
+        if(is.occurrence(object$occurrence)){
+            errors <- errors[actuals(object)!=0];
+        }
+    }
     return(errors)
 }
 
@@ -2027,30 +2041,38 @@ residuals.greybox <- function(object, ...){
 rstandard.greybox <- function(model, ...){
     obs <- nobs(model);
     df <- obs - nparam(model);
-    errors <- residuals(model);
+    errors <- residuals(model, ...);
     # If this is an occurrence model, then only modify the non-zero obs
     if(is.occurrence(model$occurrence)){
-        residsToGo <- which(actuals(model$occurrence)!=0);
+        residsToGo <- (actuals(model$occurrence)!=0);
     }
     else{
-        residsToGo <- c(1:obs);
+        residsToGo <- rep(TRUE,obs);
     }
     # The proper residuals with leverage are currently done only for normal-based distributions
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
-        return(errors / (sigma(model)*sqrt(1-hatvalues(model))));
+        errors[] <- errors / (sigma(model)*sqrt(1-hatvalues(model)));
     }
     else if(any(model$distribution==c("ds","dls"))){
-        return((errors - mean(errors[residsToGo])) / (model$scale * obs / df)^2);
+        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (model$scale * obs / df)^2;
     }
     else if(any(model$distribution==c("dgnorm","dlgnorm"))){
-        return((errors - mean(errors[residsToGo])) / (model$scale^model$other$beta * obs / df)^{1/model$other$beta});
+        errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
+                         (model$scale^model$other$beta * obs / df)^{1/model$other$beta});
     }
     else if(model$distribution=="dinvgauss"){
-        return(errors / mean(errors[residsToGo]));
+        errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
     }
     else{
-        return((errors-mean(errors[residsToGo])) / (model$scale * obs / df));
+        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (model$scale * obs / df);
     }
+
+    # Fill in values with NAs if there is occurrence model
+    if(is.occurrence(model$occurrence)){
+        errors[!residsToGo] <- NA;
+    }
+
+    return(errors);
 }
 
 #' @importFrom stats rstudent
@@ -2058,13 +2080,13 @@ rstandard.greybox <- function(model, ...){
 rstudent.greybox <- function(model, ...){
     obs <- nobs(model);
     df <- obs - nparam(model) - 1;
-    rstudentised <- errors <- residuals(model);
+    rstudentised <- errors <- residuals(model, ...);
     # If this is an occurrence model, then only modify the non-zero obs
     if(is.occurrence(model$occurrence)){
-        residsToGo <- which(actuals(model$occurrence)!=0);
+        residsToGo <- (actuals(model$occurrence)!=0);
     }
     else{
-        residsToGo <- c(1:obs);
+        residsToGo <- rep(TRUE,obs);
     }
 
     # The proper residuals with leverage are currently done only for normal-based distributions
@@ -2075,11 +2097,11 @@ rstudent.greybox <- function(model, ...){
             xreg[,1] <- 1;
         }
         else{
-            xreg <- model$data[,-1];
+            xreg <- model$data[,-1,drop=FALSE];
         }
         hatValues <- hat(xreg);
         errors[] <- errors - mean(errors);
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df * (1-hatValues[i]));
         }
     }
@@ -2087,41 +2109,46 @@ rstudent.greybox <- function(model, ...){
         # This is an approximation from the vcov matrix
         # hatValues <- diag(xreg %*% vcov(model) %*% t(xreg))/sigma(model)^2;
         errors[] <- errors - mean(errors);
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] /  (sum(sqrt(abs(errors[-i]))) / (2*df))^2;
         }
     }
     else if(any(model$distribution==c("dlaplace","dllaplace"))){
         errors[] <- errors - mean(errors);
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / (sum(abs(errors[-i])) / df);
         }
     }
     else if(model$distribution=="dalaplace"){
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / (sum(errors[-i] * (model$other$alpha - (errors[-i]<=0)*1)) / df);
         }
     }
     else if(any(model$distribution==c("dgnorm","dlgnorm"))){
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] /  (sum(abs(errors[-i])^model$other$beta) * (model$other$beta/df))^{1/model$other$beta};
         }
     }
     else if(model$distribution=="dlogis"){
         errors[] <- errors - mean(errors);
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
         }
     }
     else if(model$distribution=="dinvgauss"){
-        for(i in residsToGo){
-            rstudentised[i] <- errors[i] / mean(errors[residsToGo][-i]);
+        for(i in which(residsToGo)){
+            rstudentised[i] <- errors[i] / mean(errors[-i]);
         }
     }
     else{
-        for(i in residsToGo){
+        for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
         }
+    }
+
+    # Fill in values with NAs if there is occurrence model
+    if(is.occurrence(model$occurrence)){
+        rstudentised[!residsToGo] <- NA;
     }
 
     return(rstudentised);
