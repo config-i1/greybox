@@ -183,12 +183,17 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     #### Extract the parameters ####
     # Construct intervals
     lmCoefs <- coef(lmModel);
-    # Force confint to be estimated inside the function
-    lmIntervals <- confint(lmModel, level=level)[,-1];
     names(lmCoefs) <- namesMethods;
-    rownames(lmIntervals)[1] <- namesMethods[1];
+    # Extract the standard error of the intercept. The others should have the same variability
+    lmSE <- sqrt(vcov(lmModel)[1,1]);
+    # Force confint to be estimated inside the function
+    lmIntervals <- matrix(0, nMethods, 2,
+                          dimnames=list(namesMethods,
+                                        c(paste0((1-level)/2*100,"%"),paste0((1+level)/2*100,"%"))));
     lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-    lmIntervals[-1,] <- lmCoefs[1] + lmIntervals[-1,];
+    # Construct prediction intervals
+    lmIntervals[,1] <- lmCoefs +qt((1-level)/2,df=lmModel$df.residual)*lmSE;
+    lmIntervals[,2] <- lmCoefs +qt((1+level)/2,df=lmModel$df.residual)*lmSE;
 
     #### Relative importance of the model and the test ####
     if(distribution=="dnorm"){
