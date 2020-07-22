@@ -471,7 +471,7 @@ where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optim
 ### An example of application
 Round up the response variable for the next example:
 ```{r dataRound}
-xreg[,1] <- round(xreg[,1])
+xreg[,1] <- round(abs(xreg[,1]))
 inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 ```
