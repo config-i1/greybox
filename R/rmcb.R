@@ -422,7 +422,7 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
 #' @export
 print.rmcb <- function(x, ...){
     cat("Regression for Multiple Comparison with the Best\n");
-    cat(paste0("The siginificance level is ",(1-x$level)*100,"%\n"));
+    cat(paste0("The significance level is ",(1-x$level)*100,"%\n"));
     cat(paste0("The number of observations is ",nobs(x$model),", the number of methods is ",length(x$mean),"\n"));
     cat(paste0("Significance test p-value: ",round(x$p.value,5),"\n"));
 }
