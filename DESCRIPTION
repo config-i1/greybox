@@ -30,6 +30,7 @@ Imports:
     pracma,
     nloptr,
     statmod,
+    gnorm,
     zoo,
     Matrix
 LinkingTo: Rcpp

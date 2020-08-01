@@ -1,28 +1,25 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "19 May 2020"
+date: "01 August 2020"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.0
+This is the release of the package ``greybox``, v0.6.1
 
-# Test environments
-* local ubuntu 19.10, R 3.6.1
-* ubuntu 14.04.5 (on travis-ci), R 4.0.0
+## Notes
+This release should also address the ATLAS issue on CRAN.
+
+## Test environments
+* local ubuntu 19.10, R 4.0.2
+* ubuntu 16.04.6 (on travis-ci), R 4.0.0
 * win-builder (devel and release)
 * rhub
 
 ## R CMD check results
 R CMD check results
 0 errors | 0 warnings | 0 note
-
-## Travis-ci check results
->* checking package dependencies ... NOTE
->Package which this enhances but not available for checking: ‘vars’
-
-The package is available on CRAN, so it's not clear, what the problem is.
 
 ## win-builder
 >* checking package dependencies ... NOTE
@@ -33,11 +30,10 @@ This is expected, because doMC is not available for Windows.
 ## R-hub
 **Rhub, Windows Server 2008 R2 SP1, R-devel, 32/64 bit gives an error:**
 >* checking package dependencies ... ERROR
->Packages suggested but not available: 'smooth', 'doMC'
->
 >Package which this enhances but not available for checking: 'vars'
+>Packages suggested but not available: 'smooth', 'doMC'
 
-However, the packages are available on CRAN, so it's not clear, what the problem is.
+However, the former package is available on CRAN, so it's not clear, what the problem is. The latter is just not available for Windows.
 
 **Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
