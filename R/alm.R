@@ -245,7 +245,6 @@
 #' @importFrom stats model.frame sd terms model.matrix
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
 #' @importFrom stats plogis
-#' @importFrom gnorm dgnorm
 #' @importFrom statmod dinvgauss
 #' @importFrom forecast Arima
 #' @export alm

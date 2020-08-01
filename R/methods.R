@@ -2449,7 +2449,6 @@ summary.lmGreybox <- function(object, level=0.95, ...){
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta
 #' @importFrom statmod qinvgauss
-#' @importFrom gnorm qgnorm
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
