@@ -42,8 +42,7 @@ However, the former package is available on CRAN, so it's not clear, what the pr
 Similar to the previous comments. Not clear, why.
 
 **Debian Linux, R-devel, GCC ASAN/UBSAN:**
-Finds an error in a function, not related to the greybox package. Also gives a lot of warnings about the methods and functins, which are not used by the package (e.g. "Warning: S3 methods ‘ggplot2::autoplot.zoo’, ‘ggplot2::fortify.zoo’, ‘ggplot2::scale_type.yearmon’, ‘ggplot2::scale_type.yearqtr’ were declared in NAMESPACE but not found").
-
+Finds an error in a function, not related to the greybox package, but to some unrelated files backref.cpp and scheduler.cpp.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
