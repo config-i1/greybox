@@ -12,6 +12,10 @@
         startUpMessage <- paste0(startUpMessage,"\nAny thought or suggestions about the package? ",
                                  "Have you found a bug? File an issue on github: https://github.com/config-i1/greybox/issues");
     }
+    else if(randomNumber==4){
+        startUpMessage <- paste0(startUpMessage,"\nDid you know that you can use your own loss function in alm()? ",
+                                 "This is regulated with 'loss' parameter. See documentation for examples.");
+    }
     packageStartupMessage(startUpMessage);
 }
 
