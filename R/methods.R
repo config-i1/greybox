@@ -2781,7 +2781,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #'
 #' @aliases forecast forecast.greybox
 #' @param object Time series model for which forecasts are required.
-#' @param newdata Forecast horizon
+#' @param newdata The new data needed in order to produce forecasts.
 #' @param interval Type of intervals to construct: either "confidence" or
 #' "prediction". Can be abbreviated
 #' @param level Confidence level. Defines width of prediction interval.

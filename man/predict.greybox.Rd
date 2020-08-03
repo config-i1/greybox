@@ -23,7 +23,7 @@
 \arguments{
 \item{object}{Time series model for which forecasts are required.}
 
-\item{newdata}{Forecast horizon}
+\item{newdata}{The new data needed in order to produce forecasts.}
 
 \item{interval}{Type of intervals to construct: either "confidence" or
 "prediction". Can be abbreviated}

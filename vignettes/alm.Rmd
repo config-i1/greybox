@@ -148,7 +148,7 @@ Asymmetric Laplace distribution can be considered as a two Laplace distributions
 \begin{equation} \label{eq:ALaplace}
     f(y_t) = \frac{\alpha (1- \alpha)}{s} \exp \left( -\frac{y_t - \mu_t}{s} (\alpha - I(y_t \leq \mu_t)) \right) ,
 \end{equation}
-where $s$ is the scale parameter, $\alpha$ is skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $s$ estimated using likelihood is equal to the quantile loss:
+where $s$ is the scale parameter, $\alpha$ is the skewness parameter and $I(y_t \leq \mu_t)$ is the indicator function, which is equal to one, when the condition is satisfied and to zero otherwise. The scale parameter $s$ estimated using likelihood is equal to the quantile loss:
 \begin{equation} \label{eq:bALaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
 \end{equation}
