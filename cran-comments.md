@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "01 August 2020"
+date: "04 August 2020"
 output: html_document
 ---
 
@@ -9,7 +9,7 @@ output: html_document
 This is the release of the package ``greybox``, v0.6.1
 
 ## Notes
-This release should also address the ATLAS issue on CRAN.
+ATLAS should not complain about the issue with ylim in plot.window() anymore. To be fair, I don't know how this appears anyway - I don't use C++ code in the plot method for my functions and it is not used in the example, where ATLAS fails.
 
 ## Test environments
 * local ubuntu 19.10, R 4.0.2
