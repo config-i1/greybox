@@ -1660,7 +1660,7 @@ alm <- function(formula, data, subset, na.action,
 
         if(!occurrenceProvided){
             occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
-            occurrence$call$data <- as.name(dataSubstitute);
+            occurrence$call$data <- as.name(paste0(deparse(dataSubstitute),collapse=""));
         }
 
         # Corrected fitted (with probabilities)
