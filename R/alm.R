@@ -1646,29 +1646,6 @@ alm <- function(formula, data, subset, na.action,
     if(occurrenceModel){
         mf$subset <- NULL;
 
-        # If there are NaN values, remove the respective observations
-        if(any(sapply(mf$data,is.nan))){
-            mf$subset <- !apply(sapply(mf$data,is.nan),1,any);
-        }
-        else{
-            mf$subset <- rep(TRUE,nrow(mf$data));
-        }
-
-        # New data and new response variable
-        dataNew <- mf$data[mf$subset,,drop=FALSE];
-        dataNew[,all.vars(formula)[1]] <- (ot)*1;
-
-        if(!occurrenceProvided){
-            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
-            occurrence$call$data <- as.name(paste0(deparse(dataSubstitute),collapse=""));
-        }
-
-        # Corrected fitted (with probabilities)
-        yFitted[] <- yFitted * fitted(occurrence);
-
-        # Correction of the likelihood
-        CFValue <- CFValue - occurrence$logLik;
-
         if(interceptIsNeeded){
             # This shit is needed, because R has habit of converting everything into vectors...
             dataWork <- cbind(y,matrixXreg[,-1,drop=FALSE]);
@@ -1678,6 +1655,35 @@ alm <- function(formula, data, subset, na.action,
             dataWork <- cbind(y,matrixXreg);
             variablesUsed <- variablesNames;
         }
+
+        # If there are NaN values, remove the respective observations
+        if(any(sapply(mf$data,is.nan))){
+            mf$subset <- !apply(sapply(mf$data,is.nan),1,any);
+        }
+        else{
+            mf$subset <- rep(TRUE,obsInsample);
+        }
+
+        # New data and new response variable
+        dataNew <- dataWork
+        # dataNew <- mf$data[mf$subset,,drop=FALSE];
+        dataNew[,all.vars(formula)[1]] <- (ot)*1;
+
+        if(!occurrenceProvided){
+            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
+            if(exists("dataSubstitute",inherits=FALSE,mode="call")){
+                occurrence$call$data <- as.name(paste0(deparse(dataSubstitute),collapse=""));
+            }
+            else{
+                occurrence$call$data <- NULL;
+            }
+        }
+
+        # Corrected fitted (with probabilities)
+        yFitted[] <- yFitted * fitted(occurrence);
+
+        # Correction of the likelihood
+        CFValue <- CFValue - occurrence$logLik;
 
         # Change the names of variables used, if ARI was constructed.
         if(ariModel){
