@@ -3092,7 +3092,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         else{
             matrixOfxregFull <- cbind(matrixOfxreg, matrix(NA,nRows,ariOrder,dimnames=list(NULL,ariNames)));
             for(i in 1:ariOrder){
-                matrixOfxregFull[1:i,nonariParametersNumber+i] <- tail(y,i);
+                matrixOfxregFull[1:min(nRows,i),nonariParametersNumber+i] <- tail(y,i)[1:min(nRows,i)];
             }
         }
 
