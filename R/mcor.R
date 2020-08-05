@@ -155,7 +155,8 @@ mcor <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.o
 
     lmFit <- .lm.fit(x,y);
 
-    value <- sqrt(1 - sum(residuals(lmFit)^2) / sum((y-mean(y))^2));
+    # Use abs() in order to avoid the rounding issues in R
+    value <- sqrt(abs(1 - sum(residuals(lmFit)^2) / sum((y-mean(y))^2)));
     dfResid <- length(residuals(lmFit))-lmFit$rank;
     dfReg <- lmFit$rank-1;
     statistic <- (value^2/dfReg)/((1-value^2)/dfResid);
