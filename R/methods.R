@@ -2892,6 +2892,9 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
             }
         }
 
+        # The gsub is needed in order to remove accidental special characters
+        colnames(newdata) <- make.names(colnames(newdata), unique=TRUE);
+
         # Extract the formula and get rid of the response variable
         testFormula <- formula(object);
         testFormula[[2]] <- NULL;
