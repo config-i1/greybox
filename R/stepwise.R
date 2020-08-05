@@ -158,7 +158,8 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     # The gsub is needed in order to remove accidental special characters
-    colnames(data) <- gsub("\`","",colnames(data),ignore.case=TRUE);
+    # colnames(data) <- gsub("\`","",colnames(data),ignore.case=TRUE);
+    colnames(data) <- make.names(colnames(data), unique=TRUE);
     # Names of the variables
     variablesNames <- colnames(data);
 
