@@ -8,6 +8,7 @@ Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.
 * predict() and forecast() would not work if h=1 with ar>1 for alm().
 * BLower & BUpper were needed in case of ARX model and provided B.
+* Fixed bug in ro(), due to which it wouldn't work with data frames.
 
 
 greybox v0.6.1 (Release data: 2020-08-04)
