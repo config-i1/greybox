@@ -1176,6 +1176,9 @@ alm <- function(formula, data, subset, na.action,
             # dataWork <- cbind(dataWork, ariElements);
         }
 
+        # Set bounds for B as NULL. Then amend if needed
+        BLower <- NULL;
+        BUpper <- NULL;
         if(is.null(B)){
             #### I(0) initialisation ####
             if(iOrder==0){
