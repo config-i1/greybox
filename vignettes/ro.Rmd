@@ -176,9 +176,18 @@ ourCall <- "predict(lm(y~x1+x2+x3,xreg[counti,]),newdata=xreg[counto,],interval=
 ```
 In this case we just need to make sure that the Global Environment contains the xreg data frame. `counti` variable in the call is needed for the internal loop - it determines the length of the in-sample. Similarly `counto` specifies the length of the holdout. Both of them are defined inside the `ro()` function.
 
-In addition, we don't need to specify `ourValue`, because the function `predict.lm()` returns a matrix with values (or a vector if we don't ask for intervals), not a list. The final call to `ro()` is as usual pretty simple:
+In addition, we don't need to specify `ourValue`, because the function `predict.lm()` returns a matrix with values (or a vector if we don't ask for intervals), not a list. **NOTE**: if you use a different function (not `lm()`), then you might need to specify the `value`. The final call to `ro()` is as usual pretty simple:
 ```{r}
-ourROReturn <- ro(y, h=3, origins=8, call=ourCall, ci=TRUE, co=TRUE)
+ourROReturn <- ro(xreg$y, h=3, origins=8, call=ourCall, ci=TRUE, co=TRUE)
+```
+In this case, we need to provide the response variable in the `data` parameter of the call, because the function needs to extract values for the holdout.
+
+Similar thing can be done using `alm()` function but with a proper `value` (the function might fail otherwise):
+```{r}
+ourCall <- "predict(alm(y~x1+x2+x3,xreg[counti,]),newdata=xreg[counto,],interval='p')"
+ourValue <- c("mean","lower","upper")
+ourROReturn <- ro(xreg$y, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=TRUE)
+plot(ourROReturn)
 ```
 
 As a final example, we consider ARIMAX model for the following data:
