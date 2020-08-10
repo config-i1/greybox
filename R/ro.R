@@ -9,14 +9,17 @@
 #' to do the latter.
 #'
 #' This is a dangerous function, so be careful with the call that you pass to
-#' it, and make sure that it is well formulated before the execution.
+#' it, and make sure that it is well formulated before the execution. Also, do not
+#' orget to provide the value that needs to be returned or you might end up with
+#' very messy results.
 #'
 #' For more details and more examples of usage, please see vignette for the function.
 #' In order to do that, just run the command: \code{vignette("ro","greybox")}
 #'
 #' @keywords ts
 #'
-#' @param data Data vector or ts object passed to the function.
+#' @param data Data vector or ts object with the response variable passed to the
+#' function.
 #' @param h The forecasting horizon.
 #' @param origins The number of rolling origins.
 #' @param call The call that is passed to the function. The call must be in quotes.

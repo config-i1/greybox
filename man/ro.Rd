@@ -8,7 +8,8 @@ ro(data, h = 10, origins = 10, call, value = NULL, ci = FALSE,
   co = FALSE, silent = TRUE, parallel = FALSE, ...)
 }
 \arguments{
-\item{data}{Data vector or ts object passed to the function.}
+\item{data}{Data vector or ts object with the response variable passed to the
+function.}
 
 \item{h}{The forecasting horizon.}
 
@@ -70,7 +71,9 @@ serial or in parallel, but it needs \code{foreach} and either \code{doMC}
 to do the latter.
 
 This is a dangerous function, so be careful with the call that you pass to
-it, and make sure that it is well formulated before the execution.
+it, and make sure that it is well formulated before the execution. Also, do not
+orget to provide the value that needs to be returned or you might end up with
+very messy results.
 
 For more details and more examples of usage, please see vignette for the function.
 In order to do that, just run the command: \code{vignette("ro","greybox")}
