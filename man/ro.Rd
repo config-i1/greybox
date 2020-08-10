@@ -67,8 +67,7 @@ The function does rolling origin for any forecasting function
 This function produces rolling origin forecasts using the \code{data} and a
 \code{call} passed as parameters. The function can do all of that either in
 serial or in parallel, but it needs \code{foreach} and either \code{doMC}
-(Linux only), \code{doParallel} or \code{doSNOW} packages installed in order
-to do the latter.
+(Linux only) or \code{doParallel} packages installed in order to do the latter.
 
 This is a dangerous function, so be careful with the call that you pass to
 it, and make sure that it is well formulated before the execution. Also, do not

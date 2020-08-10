@@ -216,7 +216,7 @@ As a side note, if you use `smooth` package for R and want to do rolling origin 
 ```{r}
 ourCall <- "es(x=data, xreg=xreg[countf,]), h=h)"
 ```
-Here we use `countf` variable, which specifies that we need to use both in-sample and the holdout (the full sample), as the function `es()` does not rely on `forecast()` or `predict()` and produces forecasts internally.
+Here we use `countf` variable, which specifies that we need to use both in-sample and the holdout (the full sample), as the function `es()` does not rely on `forecast()` or `predict()` and can produce forecasts internally.
 
 Finally, all of the examples mentioned above can be done in parallel, which is triggered by `parallel` parameter. Note that this might be useful for cases, when number of origins is very high and the sample size is large. Otherwise this might be less efficient than the serial calculation. If you want to do anything in parallel, then you either need either `doMC` (Linux and Mac OS) or `doParallel` (for Windows) package in R. The number of cores used in this case is equal to the number of cores of your CPU minus one.
 
