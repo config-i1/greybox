@@ -151,7 +151,7 @@
 #' ourCall <- "predict(alm(x~., data=xreg[counti,,drop=FALSE], distribution='dpois'),
 #'                     newdata=xreg[counto,,drop=FALSE])"
 #' ourValue <- "mean"
-#' testRO <- ro(xreg$x,h=5,origins=5,ourCall,ourValue,co=TRUE)
+#' testRO <- ro(xreg[,1],h=5,origins=5,ourCall,ourValue,co=TRUE)
 #' plot(testRO)
 #'
 #' ## 'countf' is used to take xreg of the size corresponding to the whole
