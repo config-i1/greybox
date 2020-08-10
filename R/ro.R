@@ -143,6 +143,14 @@
 #' ourValue <- "pred"
 #' ro(x,h=5,origins=5,ourCall,ourValue)
 #'
+#' ##### Poisson regression with alm
+#' x <- rpois(100,2)
+#' xreg <- cbind(x,matrix(rnorm(200,0,1),100,2,dimnames=list(NULL,c("x1","x2"))))
+#' ourCall <- "predict(alm(x~., data=xreg[counti,,drop=FALSE], distribution='dpois'),
+#'                     newdata=xreg[counto,,drop=FALSE])"
+#' ourValue <- "mean"
+#' testRO <- ro(xreg$x,h=5,origins=5,ourCall,ourValue,co=TRUE)
+#' plot(testRO)
 #'
 #' ## 'countf' is used to take xreg of the size corresponding to the whole
 #' ## sample on each iteration
