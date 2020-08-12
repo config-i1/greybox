@@ -625,7 +625,7 @@ summary(modelLossCustom)
 
 Keep in mind that it is important to have parameters `actual`, `fitted`, `B` and `xreg` in the custom loss function, even if they are not used. `xreg` is the matrix of the expanded explanatory variables (including the intercept in the first column if it is needed).
 
-You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variables are not normalised, but the parameters are divided by the mean values of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, you need to provide the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
+You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variables are not normalised, but the parameters (all but intercept) are divided by the standard deviations of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, *you need to provide* the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
 
 # Estimation process {#estimator}
 There are several parameters in the optimiser that can be regulated by the user. Here is the list:

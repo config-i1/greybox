@@ -473,7 +473,7 @@ alm <- function(formula, data, subset, na.action,
         return(fitterReturn);
     }
 
-    CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel){
+    CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel, denominator){
         if(recursiveModel){
             fitterReturn <- fitterRecursive(B, distribution, y, matrixXreg);
         }
@@ -590,20 +590,24 @@ alm <- function(formula, data, subset, na.action,
                 CFValue <- meanFast(sqrt(abs(y-yFitted)));
             }
             else if(loss=="LASSO"){
-                denominator <- colMeans(matrixXreg);
-                # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
-                denominator[abs(denominator)<1] <- 1;
                 B[] <- B / denominator;
 
-                CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B))
+                if(interceptIsNeeded){
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B[-1]))
+                }
+                else{
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B))
+                }
             }
             else if(loss=="RIDGE"){
-                denominator <- colMeans(matrixXreg);
-                # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
-                denominator[abs(denominator)<1] <- 1;
                 B[] <- B / denominator;
 
-                CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B^2))
+                if(interceptIsNeeded){
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B[-1]^2))
+                }
+                else{
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B^2))
+                }
             }
             else if(loss=="custom"){
                 CFValue <- lossFunction(actual=y,fitted=yFitted,B=B,xreg=matrixXreg);
@@ -748,6 +752,10 @@ alm <- function(formula, data, subset, na.action,
     }
     if(is.null(ellipsis$ftol_rel)){
         ftol_rel <- 1E-4;
+        # LASSO / RIDGE need more accurate estimation
+        if(any(loss==c("LASSO","RIDGE"))){
+            ftol_rel <- 1e-8;
+        }
     }
     else{
         ftol_rel <- ellipsis$ftol_rel;
@@ -890,6 +898,10 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             maxeval <- 200;
+        }
+        # LASSO / RIDGE need more iterations to converge
+        if(any(loss==c("LASSO","RIDGE"))){
+            maxeval <- 1000;
         }
     }
     else{
@@ -1048,7 +1060,7 @@ alm <- function(formula, data, subset, na.action,
         # Do these checks only when intercept is needed. Otherwise in case of dummies this might cause chaos
         if(nVariables>1 & interceptIsNeeded){
             # Check dummy variables trap
-            detHigh <- determination(matrixXreg[otU,,drop=FALSE])>=corThreshold;
+            detHigh <- suppressWarnings(determination(matrixXreg[otU,,drop=FALSE]))>=corThreshold;
             if(any(detHigh)){
                 while(any(detHigh)){
                     removexreg <- which(detHigh>=corThreshold)[1];
@@ -1056,7 +1068,7 @@ alm <- function(formula, data, subset, na.action,
                     nVariables <- ncol(matrixXreg);
                     variablesNames <- colnames(matrixXreg);
 
-                    detHigh <- determination(matrixXreg)>=corThreshold;
+                    detHigh <- suppressWarnings(determination(matrixXreg))>=corThreshold;
                 }
                 if(!occurrenceModel){
                     warning("Some combinations of exogenous variables were perfectly correlated. We've dropped them out.",
@@ -1080,7 +1092,7 @@ alm <- function(formula, data, subset, na.action,
 
         if(is.null(parameters) && !fast){
             # Check, if redundant dummies are left. Remove the first if this is the case
-            determValues <- determination(matrixXreg[otU, -1, drop=FALSE]);
+            determValues <- suppressWarnings(determination(matrixXreg[otU, -1, drop=FALSE]));
             determValues[is.nan(determValues)] <- 0;
             if(any(determValues==1)){
                 matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
@@ -1373,20 +1385,31 @@ alm <- function(formula, data, subset, na.action,
             print_level[] <- 0;
         }
 
+        if(any(loss==c("LASSO","RIDGE"))){
+            denominator <- apply(matrixXreg, 2, sd);
+            # No variability, substitute by 1
+            denominator[is.infinite(denominator)] <- 1;
+            # # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
+            # denominator[abs(denominator)<1] <- 1;
+        }
+        else{
+            denominator <- NULL;
+        }
+
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
         res <- nloptr(B, CF,
                       opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
                                 maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                       lb=BLower, ub=BUpper,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                      recursiveModel=recursiveModel);
+                      recursiveModel=recursiveModel, denominator=denominator);
         if(recursiveModel){
             res2 <- nloptr(res$solution, CF,
                            opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
                                 maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                            lb=BLower, ub=BUpper,
                            distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                           recursiveModel=recursiveModel);
+                           recursiveModel=recursiveModel, denominator=denominator);
             if(res2$objective<res$objective){
                 res[] <- res2;
             }
