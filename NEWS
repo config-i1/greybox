@@ -1,8 +1,9 @@
-greybox v0.6.2 (Release data: 2020-08-10)
+greybox v0.6.2 (Release data: 2020-08-12)
 ==============
 
 Changes:
 * Use make.names() instead of gsub() for names of variables.
+* ro() now has co=TRUE by default
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.

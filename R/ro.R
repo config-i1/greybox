@@ -164,7 +164,7 @@
 #'
 #' @export ro
 ro <- function(data,h=10,origins=10,call,value=NULL,
-               ci=FALSE,co=FALSE,silent=TRUE,parallel=FALSE, ...){
+               ci=FALSE,co=TRUE,silent=TRUE,parallel=FALSE, ...){
     # Function makes Rolling Origin for the data using the call
     #    Copyright (C) 2016  Yves Sagaert & Ivan Svetunkov
 
