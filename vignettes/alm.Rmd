@@ -26,7 +26,13 @@ ALM stands for "Advanced Linear Model". It's not so much advanced as it sounds, 
 
 Although `alm()` supports various loss functions, the core of the function is the likelihood approach. By default the estimation of parameters in the model is done via the maximisation of likelihood function of a selected distribution. The calculation of the standard errors is done based on the calculation of hessian of the distribution. And in the centre of all of that are information criteria that can be used for the models comparison.
 
-# Distributions
+This vignette contains the following sections:
+
+- [Supported distributions](#distributions);
+- [Using different loss functions](#losses);
+- [Estimation process](#estimator).
+
+# Supported distributions {#distributions}
 
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
@@ -597,11 +603,11 @@ plot(forecast(modelMixtureAR, h=10, interval="p",side="u"))
 It will produce forecasts for each of the explanatory variables based on the available data using `es()` function from `smooth` package (if it is available; otherwise, it will use Naive) and use those values as the new data.
 
 
-# Different loss functions
+# Using different loss functions {#losses}
 There are several loss functions implemented in the function and there is an option for a user to provide their own. If the `loss` is not `"likelihood"`, then the distribution is only needed for inference. Keep in mind that this typically means that the likelihood is not maximised, so the inference might be wrong and the results can be misleading. However, there are several cases, when this is not the case:
 
 1. `loss="MSE"`, `distribution=c("dnorm","dlnorm","dbcnorm")`;
-2. `loss="MAE"`, `distribution=c("dlaplace","dalaplace")`;
+2. `loss="MAE"`, `distribution=c("dlaplace","dllaplace")`;
 3. `loss="HAM"`, `distribution=c("ds","dls")`;
 
 The likelihoods of the distributions above are maximised, when the respective losses are minimised, so all the inference discussed above hold in these three situations. In all the other cases, the `alm()` function will not return `logLik` and might complain that the derivations can be misleading.
@@ -611,7 +617,7 @@ Also, when `loss="likelihood"` the number of estimated parameters includes the s
 Finally, we can provide custom loss functions. Here is an example:
 ```{r}
 lossFunction <- function(actual, fitted, B, xreg){
-  return(mean((actual-fitted)^3));
+  return(mean(abs(actual-fitted)^3));
 }
 modelLossCustom <- alm(y~x1+x2+Noise, inSample, distribution="dnorm", loss=lossFunction)
 summary(modelLossCustom)
@@ -619,9 +625,9 @@ summary(modelLossCustom)
 
 Keep in mind that it is important to have parameters `actual`, `fitted`, `B` and `xreg` in the custom loss function, even if they are not used. `xreg` is the matrix of the expanded explanatory variables (including the intercept in the first column if it is needed).
 
-You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variabls are not normalised, but the parameters are divided by the mean values of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, you need to provide the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
+You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variables are not normalised, but the parameters are divided by the mean values of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, you need to provide the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
 
-# Estimation process
+# Estimation process {#estimator}
 There are several parameters in the optimiser that can be regulated by the user. Here is the list:
 
 1. `B` - the vector of starting values of parameters for the optimiser, which should correspond to the ordering of the explanatory variables. In order to see the order of parameters, you can fit a model to the data and extract `B` from it via `ourModel$B`;
