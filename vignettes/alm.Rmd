@@ -627,12 +627,16 @@ Keep in mind that it is important to have parameters `actual`, `fitted`, `B` and
 
 You might also notice that there are LASSO and RIDGE available as options for `loss` parameter. These are experimental. When they are used, the explanatory variables are not normalised, but the parameters (all but intercept) are divided by the standard deviations of explanatory variables, which has a similar (but not the same) effect. Also, in order for this to work appropriately, *you need to provide* the parameter `lambda`, which should lie between 0 and 1, where `lambda=0` means that there is no shrinkage and `lambda=1` implies that there is only shrinkage, and the MSE is not used at all.
 
+Note that due to the formulation of `alm()`, you can use LASSO for [Logistic](#logit) (`distribution="plogis"`), [Poisson](#poisson) (`distribution="dpois"`) and [Negative Binomial](#nbinom) (`distribution="dnbinom"`) regressions as well. Keep in mind that in order to get better results, you might need to tune [the parameters of the optimiser](#estimator) (e.g. set `maxeval` to a higher value or increase `ftol_rel`).
+
+When working with non-conventional loss functions do not rely on standard errors of parameters too much, because they are not what they seem: they only work in case of `loss="likelihood"`. A correct method for calculating the standard errors would be a bootstrap, but this is not yet supported in `greybox`.
+
 # Estimation process {#estimator}
 There are several parameters in the optimiser that can be regulated by the user. Here is the list:
 
 1. `B` - the vector of starting values of parameters for the optimiser, which should correspond to the ordering of the explanatory variables. In order to see the order of parameters, you can fit a model to the data and extract `B` from it via `ourModel$B`;
 2. `algorithm` the algorithm to use in optimisation (`"NLOPT_LN_SBPLX"` by default).
-3. `maxeval` - maximum number of iterations to carry out (default is 100);
+3. `maxeval` - maximum number of iterations to carry out (default is 200 for simpler models, 500 for [Logistic](#logit), [Probit](#probit), [Poisson](#poisson) and [Negative Binomial](#nbinom) and 1000 in case of `loss=c("LASSO","RIDGE)`);
 4. `maxtime` - stop, when the optimisation time (in seconds) exceeds this;
 5. `xtol_rel` -  the relative precision of the optimiser (the default is 1E-6);
 6. `xtol_abs` - the absolute precision of the optimiser (the default is 1E-8);
