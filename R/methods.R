@@ -239,7 +239,7 @@ pointLik.alm <- function(object, ...){
                             "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
                             "dpois" = dpois(y, lambda=mu, log=TRUE),
                             "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                            "dchisq" = dchisq(y, df=object$other$df, ncp=mu, log=TRUE),
+                            "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
                             "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
                             "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                          plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
@@ -784,7 +784,7 @@ vcov.alm <- function(object, ...){
         newCall$parameters <- coef(object);
         newCall$fast <- TRUE;
         if(any(object$distribution==c("dchisq","dt"))){
-            newCall$df <- object$other$df;
+            newCall$nu <- object$other$nu;
         }
         else if(object$distribution=="dnbinom"){
             newCall$size <- object$other$size;
@@ -1821,14 +1821,14 @@ print.summary.alm <- function(x, ...){
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
                       "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,digits)),
-                      "dt" = paste0("Student t with df=",round(x$other$df, digits)),
+                      "dt" = paste0("Student t with nu=",round(x$other$nu, digits)),
                       "ds" = "S",
                       "dls" = "Log S",
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
                       "dinvgauss" = "Inverse Gaussian",
-                      "dchisq" = paste0("Chi-Squared with df=",round(x$other$df,digits)),
+                      "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
                       "dbeta" = "Beta",
@@ -2596,8 +2596,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dchisq"){
         greyboxForecast$mean <- greyboxForecast$mean^2;
         if(interval=="p"){
-            greyboxForecast$lower[] <- qchisq(levelLow,df=object$other$df,ncp=greyboxForecast$mean);
-            greyboxForecast$upper[] <- qchisq(levelUp,df=object$other$df,ncp=greyboxForecast$mean);
+            greyboxForecast$lower[] <- qchisq(levelLow,df=object$other$nu,ncp=greyboxForecast$mean);
+            greyboxForecast$upper[] <- qchisq(levelUp,df=object$other$nu,ncp=greyboxForecast$mean);
         }
         else if(interval=="c"){
             greyboxForecast$lower[] <- (greyboxForecast$lower)^2;

@@ -227,16 +227,16 @@ Logistic is considered a fat tailed distribution, but its tails are not as fat a
 ### Student t distribution {#student}
 The Student t distribution has a difficult density function:
 \begin{equation} \label{eq:T}
-    f(y_t) = \frac{\Gamma\left(\frac{d+1}{2}\right)}{\sqrt{d \pi} \Gamma\left(\frac{d}{2}\right)} \left( 1 + \frac{x^2}{d} \right)^{-\frac{d+1}{2}} ,
+    f(y_t) = \frac{\Gamma\left(\frac{\nu+1}{2}\right)}{\sqrt{\nu \pi} \Gamma\left(\frac{\nu}{2}\right)} \left( 1 + \frac{x^2}{\nu} \right)^{-\frac{\nu+1}{2}} ,
 \end{equation}
-where $d$ is the number of degrees of freedom, which can also be considered as the scale parameter of the distribution. It has the following connection with the in-sample variance of the error (but only for the case, when $d>2$):
+where $\nu$ is the number of degrees of freedom, which can also be considered as the scale parameter of the distribution. It has the following connection with the in-sample variance of the error (but only for the case, when $\nu>2$):
 \begin{equation} \label{eq:scaleOfT}
-    d = \frac{2}{1-\sigma^{-2}}.
+    \nu = \frac{2}{1-\sigma^{-2}}.
 \end{equation}
 
-Kurtosis of Student t distribution depends on the value of $d$, and for the cases of $d>4$ is equal to $\frac{6}{d-4}$.
+Kurtosis of Student t distribution depends on the value of $\nu$, and for the cases of $\nu>4$ is equal to $\frac{6}{\nu-4}$.
 
-`alm()` function with `distribution="dt"` estimates the parameters of the model along with the $d$ (if it is not provided by the user as a `df` parameter) and returns $\mu_t$ in the variables `mu` and `fitted.values`, and $d$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the conventional number of degrees of freedom $T-k$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
+`alm()` function with `distribution="dt"` estimates the parameters of the model along with the $\nu$ (if it is not provided by the user as a `nu` parameter) and returns $\mu_t$ in the variables `mu` and `fitted.values`, and $\nu$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the conventional number of degrees of freedom $T-k$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
 
 ### An example of application
 

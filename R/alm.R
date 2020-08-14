@@ -105,7 +105,7 @@
 #' \itemize{
 #' \item \code{alpha} - value for Asymmetric Laplace distribution;
 #' \item \code{size} - the size for the Negative Binomial distribution;
-#' \item \code{df} - the number of degrees of freedom for Chi-Squared and Student's t;
+#' \item \code{nu} - the number of degrees of freedom for Chi-Squared and Student's t;
 #' \item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
 #' regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
 #' and 1 means shrink everything (ignore MSE);
@@ -342,7 +342,7 @@ alm <- function(formula, data, subset, na.action,
                 B <- B[-1];
             }
             else{
-                other <- df;
+                other <- nu;
             }
         }
         else if(distribution=="dfnorm"){
@@ -378,7 +378,7 @@ alm <- function(formula, data, subset, na.action,
                 B <- B[-1];
             }
             else{
-                other <- df;
+                other <- nu;
             }
         }
         else{
@@ -574,7 +574,7 @@ alm <- function(formula, data, subset, na.action,
                                 "ds" =,
                                 "dpois" =,
                                 "dnbinom" = fitterReturn$mu,
-                                "dchisq" = fitterReturn$mu + df,
+                                "dchisq" = fitterReturn$mu + nu,
                                 "dlnorm" =,
                                 "dllaplace" =,
                                 "dls" =,
@@ -642,7 +642,7 @@ alm <- function(formula, data, subset, na.action,
     #### Define the rest of parameters ####
     ellipsis <- list(...);
 
-    # If this is ALD, then see if alpha was provided. Otherwise estimate it.
+    # Parameters for distributions
     if(distribution=="dalaplace"){
         if(is.null(ellipsis$alpha)){
             ellipsis$alpha <- 0.5
@@ -654,11 +654,11 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else if(distribution=="dchisq"){
-        if(is.null(ellipsis$df)){
+        if(is.null(ellipsis$nu)){
             aParameterProvided <- FALSE;
         }
         else{
-            df <- ellipsis$df;
+            nu <- ellipsis$nu;
             aParameterProvided <- TRUE;
         }
     }
@@ -699,14 +699,15 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else if(distribution=="dt"){
-        if(is.null(ellipsis$df)){
+        if(is.null(ellipsis$nu)){
             aParameterProvided <- FALSE;
         }
         else{
-            df <- ellipsis$df;
+            nu <- ellipsis$nu;
             aParameterProvided <- TRUE;
         }
     }
+    # LASSO / RIDGE loss
     if(any(loss==c("LASSO","RIDGE"))){
         warning(paste0("Please, keep in mind that loss='",loss,
                        "' is an experimental option. It might not work correctly."), call.=FALSE);
@@ -1515,9 +1516,9 @@ alm <- function(formula, data, subset, na.action,
         }
         else if(distribution=="dchisq"){
             if(!aParameterProvided){
-                ellipsis$df <- df <- abs(parameters[1]);
+                ellipsis$nu <- nu <- abs(parameters[1]);
                 parameters <- parameters[-1];
-                names(B) <- c("df",variablesNames);
+                names(B) <- c("nu",variablesNames);
             }
             else{
                 names(B) <- variablesNames;
@@ -1526,9 +1527,9 @@ alm <- function(formula, data, subset, na.action,
         }
         else if(distribution=="dt"){
             if(!aParameterProvided){
-                ellipsis$df <- df <- abs(parameters[1]);
+                ellipsis$nu <- nu <- abs(parameters[1]);
                 parameters <- parameters[-1];
-                names(B) <- c("df",variablesNames);
+                names(B) <- c("nu",variablesNames);
             }
             else{
                 names(B) <- variablesNames;
@@ -1607,7 +1608,7 @@ alm <- function(formula, data, subset, na.action,
                        "ds" =,
                        "dpois" =,
                        "dnbinom" = mu,
-                       "dchisq" = mu + df,
+                       "dchisq" = mu + nu,
                        "dlnorm" =,
                        "dllaplace" =,
                        "dls" =,

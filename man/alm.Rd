@@ -82,7 +82,7 @@ includes:
 \itemize{
 \item \code{alpha} - value for Asymmetric Laplace distribution;
 \item \code{size} - the size for the Negative Binomial distribution;
-\item \code{df} - the number of degrees of freedom for Chi-Squared and Student's t;
+\item \code{nu} - the number of degrees of freedom for Chi-Squared and Student's t;
 \item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
 regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
 and 1 means shrink everything (ignore MSE);
