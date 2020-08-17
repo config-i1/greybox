@@ -40,10 +40,10 @@ Suggests:
     foreach,
     testthat,
     rmarkdown,
-    knitr,
-    gnorm (>= 1.0.2)
+    knitr
 Enhances:
-    vars
+    vars,
+    gnorm (>= 1.0.2)
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
