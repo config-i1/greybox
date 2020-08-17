@@ -202,7 +202,7 @@ In the special cases, this becomes either $\sqrt{2}\times$RMSE ($\beta=2$), or M
 
 The kurtosis of Generalised Normal distribution is determined by $\beta$ and is equal to $\frac{\Gamma(5/\beta)\Gamma(1/\beta)}{\Gamma(3/\beta)^2}$.
 
-`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $\alpha$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the `qgnorm()` function from `gnorm` package and use the connection between the scale and the variance:
+`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $\alpha$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the internal `qgnorm()` function based on `gnorm` v1.0.2 package (not available on CRAN) and use the connection between the scale and the variance:
 \begin{equation} \label{eq:gnormalAlphaAndSigma}
     \alpha = \left( \frac{\sigma^2 \Gamma(1/\beta)}{\Gamma(3/\beta)} \right) ^{\frac{1}{2}},
 \end{equation}
@@ -389,7 +389,7 @@ Estimating the model with Log Generalised Normal distribution is equivalent to e
 \end{equation*}
 where $\epsilon_t \sim \mathcal{GN}(0, \alpha, \beta)$.
 
-`alm()` with `distribution="dlgnorm"` uses `dgnorm()` function from `gnorm` package with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $\alpha$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
+`alm()` with `distribution="dlgnorm"` uses the internal implementation of `dgnorm()` function from `gnorm` package v1.0.2 (not available on CRAN) with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $\alpha$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
 ### Folded Normal distribution {#fnormal}

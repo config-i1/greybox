@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 0.6.2.41009
-Date: 2020-08-14
+Version: 0.6.2.41010
+Date: 2020-08-17
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -43,7 +43,6 @@ Suggests:
     knitr
 Enhances:
     vars,
-    gnorm (>= 1.0.2)
 RoxygenNote: 7.1.1
 VignetteBuilder: knitr
 Encoding: UTF-8
