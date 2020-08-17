@@ -1,4 +1,3 @@
-#' @importFrom gnorm rgnorm
 #' @importFrom stats pgamma qgamma rbinom
 dgnorm <- function(x, mu = 0, alpha = 1, beta = 1,
                    log = FALSE) {
@@ -93,5 +92,28 @@ qgnorm <- function(p, mu = 0, alpha = 1, beta = 1,
   lambda <- (1/alpha)^beta
   gnormValues <- (sign(p-0.5)*qgamma(abs(p - 0.5)*2, shape = 1/beta, scale = 1/lambda)^(1/beta) + mu)
 
+  return(gnormValues)
+}
+
+rgnorm <- function(n, mu = 0, alpha = 1, beta = 1) {
+  # A failsafe for NaN / NAs of alpha / beta
+  if(any(is.nan(alpha))){
+    alpha[is.nan(alpha)] <- 0
+  }
+  if(any(is.na(alpha))){
+    alpha[is.na(alpha)] <- 0
+  }
+  if(any(alpha<0)){
+    alpha[alpha<0] <- 0
+  }
+  if(any(is.nan(beta))){
+    beta[is.nan(beta)] <- 0
+  }
+  if(any(is.na(beta))){
+    beta[is.na(beta)] <- 0
+  }
+
+  lambda <- (1/alpha)^beta
+  gnormValues <- qgamma(runif(n), shape = 1/beta, scale = alpha^beta)^(1/beta)*((-1)^rbinom(n, 1, 0.5)) + mu
   return(gnormValues)
 }

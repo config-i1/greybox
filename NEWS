@@ -7,6 +7,7 @@ Changes:
 * More appropriate normalisation in LASSO / RIDGE for alm() + a fix for the case with lambda=1 (i.e. return mean).
 * alm() will not check multicollinearity for LASSO / RIDGE.
 * Renamed df into nu for dt and dchisq.
+* Don't import gnorm, but suggest it.
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.

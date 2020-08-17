@@ -30,7 +30,6 @@ Imports:
     pracma,
     nloptr,
     statmod,
-    gnorm,
     zoo,
     Matrix
 LinkingTo: Rcpp
@@ -41,7 +40,8 @@ Suggests:
     foreach,
     testthat,
     rmarkdown,
-    knitr
+    knitr,
+    gnorm (>= 1.0.2)
 Enhances:
     vars
 RoxygenNote: 7.1.1
