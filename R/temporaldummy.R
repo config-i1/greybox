@@ -338,7 +338,6 @@ temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day",
                     # There's 168 hours in a week, so repeat that stuff
                     # +1 is needed just in case, not to create a smaller object than needed
                     dateFinal <- rep(c(1:(24*60)),ceiling(obsAll/(24*60))+1)[dateStart+1:obsAll];
-                    print(head(dateFinal))
                 }
                 else if(of=="hour"){
                     dateFinal <- as.numeric(strftime(object, format="%M"));
