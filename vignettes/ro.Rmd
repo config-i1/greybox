@@ -74,6 +74,8 @@ In order not to overcomplicate things, let's start with collecting the condition
 ourValue <- "pred"
 ```
 
+**NOTE**: If you do not specify the value to return, the function will try to return everything, but it might fail, especially if a lot of values are returned. So, in order to be on the safe side, **always provide the `value`, when possible**.
+
 Now that we have specified `ourCall` and `ourValue`, we can produce forecasts from the model using rolling origin. Let's say that we want three-steps-ahead forecasts and 8 origins with the default values of all the other parameters:
 ```{r}
 returnedValues1 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue)
