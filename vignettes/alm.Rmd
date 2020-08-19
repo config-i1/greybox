@@ -629,7 +629,13 @@ You might also notice that there are LASSO and RIDGE available as options for `l
 
 Note that due to the formulation of `alm()`, you can use LASSO for [Logistic](#logit) (`distribution="plogis"`), [Poisson](#poisson) (`distribution="dpois"`) and [Negative Binomial](#nbinom) (`distribution="dnbinom"`) regressions as well. Keep in mind that in order to get better results, you might need to tune [the parameters of the optimiser](#estimator) (e.g. set `maxeval` to a higher value or increase `ftol_rel`).
 
-When working with non-conventional loss functions do not rely on standard errors of parameters too much, because they are not what they seem: they only work in case of `loss="likelihood"`. A correct method for calculating the standard errors would be a bootstrap, but this is not yet supported in `greybox`.
+When working with non-conventional loss functions do not rely on the default standard errors of parameters, because they are not what they seem: they only work in case of `loss="likelihood"`. A correct method for calculating the standard errors is the bootstrap, which is now available via the `bootstrap=TRUE` parameter. Here is an example:
+
+```{r}
+summary(modelLossCustom, bootstrap=TRUE, nsim=100)
+```
+Where `nsim` is the parameter passed to the method `coefbootstrap()`, which is used in order to generate coefficients of models and then extract the necessary statistics. See `?coefbootstrap` to see what parameters are accepted by the function.
+
 
 # Estimation process {#estimator}
 There are several parameters in the optimiser that can be regulated by the user. Here is the list:

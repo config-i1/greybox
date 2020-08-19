@@ -10,6 +10,7 @@ Changes:
 * Don't import gnorm, use internal functions instead.
 * temporaldummy() now has the method for POSIXt, not just for POSIXct.
 * stepwise now treats all dummy variables as factors. This is needed for purposes of the calculation of measures of association.
+* New method: coefbootstrap() - do the bootstrap for coefficients of the model in order to get covariance matrix and other cool thingies.
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.

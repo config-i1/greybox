@@ -422,10 +422,60 @@ actuals.alm <- function(object, all=TRUE, ...){
     }
 }
 
+#' Coefficients of the model and their statistics
+#'
+#' These are the basic methods for the alm and greybox models that extract coefficients,
+#' their covariance matrix, confidence intervals or generating the summary of the model.
+#' If the non-likelihood related loss was used in the process, then it is recommended to
+#' use bootstrap (which is slow, but more reliable).
+#'
+#' The \code{coef()} method returns the vector of parameters of the model. If
+#' \code{bootstrap=TRUE}, then the coefficients are calculated as the mean values of the
+#' bootstrapped ones.
+#'
+#' The \code{vcov()} method returns the covariance matrix of parameters. If
+#' \code{bootstrap=TRUE}, then the bootstrap is done using \link[greybox]{coefbootstrap}
+#' function
+#'
+#' The \code{confint()} constructs the confidence intervals for parameters. Once again,
+#' this can be done using \code{bootstrap=TRUE}.
+#'
+#' Finaly, the \code{summary()} returns the table with parameters, their standard errors,
+#' confidence intervals and general information about the model.
+#'
+#' @param object The model estimated using alm or other greybox function.
+#' @param bootstrap The logical, which determines, whether to use bootstrap in the
+#' process or not.
+#' @param level The confidence level for the construction of the interval.
+#' @param parm The parameters that need to be extracted.
+#' @param ... Parameters passed to \link[greybox]{coefbootstrap} function.
+#'
+#' @return Depending on the used method, different values are returned.
+#'
+#' @template author
+#' @template keywords
+#'
+#' @seealso \code{\link[greybox]{alm}, \link[greybox]{coefbootstrap}}
+#'
+#' @examples
+#' # An example with ALM
+#' ourModel <- alm(mpg~., mtcars, distribution="dlnorm")
+#' coef(ourModel)
+#' vcov(ourModel)
+#' confint(ourModel)
+#' summary(ourModel)
+#'
+#' @rdname coef.alm
+#' @aliases coef.greybox coef.alm
 #' @importFrom stats coef
 #' @export
-coef.greybox <- function(object, ...){
-    return(object$coefficients);
+coef.greybox <- function(object, bootstrap=FALSE, ...){
+    if(bootstrap){
+        return(colMeans(coefbootstrap(object, ...)$coefficients));
+    }
+    else{
+        return(object$coefficients);
+    }
 }
 
 #' @export
@@ -435,37 +485,46 @@ coef.greyboxD <- function(object, ...){
     return(structure(coefReturned,class="coef.greyboxD"));
 }
 
-#' @importFrom stats confint qt
+#' @aliases confint.alm
+#' @rdname coef.alm
+#' @importFrom stats confint qt quantile
 #' @export
-confint.alm <- function(object, parm, level=0.95, ...){
+confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
+
+    confintNames <- c(paste0((1-level)/2*100,"%"),
+                      paste0((1+level)/2*100,"%"));
     # Extract parameters
     parameters <- coef(object);
-    parametersSE <- sqrt(diag(vcov(object)));
-    # Define quantiles using Student distribution
-    paramQuantiles <- qt((1+level)/2,df=object$df.residual);
+    if(!bootstrap){
+        parametersSE <- sqrt(diag(vcov(object)));
+        # Define quantiles using Student distribution
+        paramQuantiles <- qt((1+level)/2,df=object$df.residual);
 
-    # We can use normal distribution, because of the asymptotics of MLE
-    confintValues <- cbind(parameters-paramQuantiles*parametersSE,
-                           parameters+paramQuantiles*parametersSE);
-    confintNames <- c(paste0((1-level)/2*100,"%"),
-                                 paste0((1+level)/2*100,"%"));
-    colnames(confintValues) <- confintNames;
-    rownames(confintValues) <- names(parameters);
+        # We can use normal distribution, because of the asymptotics of MLE
+        confintValues <- cbind(parameters-paramQuantiles*parametersSE,
+                               parameters+paramQuantiles*parametersSE);
+        colnames(confintValues) <- confintNames;
+        rownames(confintValues) <- names(parameters);
+
+        # Return S.E. as well, so not to repeat the thing twice...
+        confintValues <- cbind(parametersSE, confintValues);
+        # Give the name to the first column
+        colnames(confintValues)[1] <- "S.E.";
+    }
+    else{
+        coefValues <- coefbootstrap(object, ...);
+        confintValues <- cbind(sqrt(diag(coefValues$vcov)),
+                               apply(coefValues$coefficients,2,quantile,probs=(1-level)/2),
+                               apply(coefValues$coefficients,2,quantile,probs=(1+level)/2));
+        colnames(confintValues) <- c("S.E.",confintNames);
+    }
+
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
         parm <- names(parameters);
     }
-    confintValues <- confintValues[parm,];
-    if(!is.matrix(confintValues)){
-        confintValues <- matrix(confintValues,1,2);
-        colnames(confintValues) <- confintNames;
-        rownames(confintValues) <- names(parameters);
-    }
 
-    # Return S.E. as well, so not to repeat the thing twice...
-    confintValues <- cbind(parametersSE, confintValues);
-    colnames(confintValues)[1] <- "S.E.";
-    return(confintValues);
+    return(confintValues[parm,,drop=FALSE]);
 }
 
 #' @export
@@ -656,195 +715,179 @@ sigma.varest <- function(object, ...){
     return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nparam(object)+object$K));
 }
 
+#' @aliases vcov.alm
+#' @rdname coef.alm
 #' @importFrom stats vcov
 #' @export
-vcov.alm <- function(object, ...){
-    nVariables <- length(coef(object));
-    variablesNames <- names(coef(object));
-    interceptIsNeeded <- any(variablesNames=="(Intercept)");
+vcov.alm <- function(object, bootstrap=FALSE, ...){
 
-    # If the likelihood is not available, then this is a non-conventional loss
-    if(is.na(logLik(object))){
-        warning(paste0("You used loss='",object$loss,
-                       "'. The covariance matrix of parameters might be incorrect."),
-                call.=FALSE);
-    }
+    # Try the basic method, if not a bootstrap
+    if(!bootstrap){
+        nVariables <- length(coef(object));
+        variablesNames <- names(coef(object));
+        interceptIsNeeded <- any(variablesNames=="(Intercept)");
 
-    if(any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
-        matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
-        if(interceptIsNeeded){
-            matrixXreg <- cbind(1,matrixXreg);
-            colnames(matrixXreg)[1] <- "(Intercept)";
-        }
-        # colnames(matrixXreg) <- names(coef(object));
-        matrixXreg <- crossprod(matrixXreg);
-        vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
-        if(any(class(vcovMatrixTry)=="try-error")){
-            warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inaccurate."),
+        # If the likelihood is not available, then this is a non-conventional loss
+        if(is.na(logLik(object))){
+            warning(paste0("You used the non-likelihood compatible loss, so the covariance matrix might be incorrect. ",
+                           "It is advised to use bootstrap='TRUE' option in this case."),
                     call.=FALSE);
-            vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-            if(any(class(vcovMatrix)=="try-error")){
-                warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
-                               "We failed to produce the covariance matrix of parameters."),
-                        call.=FALSE);
-                vcovMatrix <- diag(1e+100,nVariables);
+        }
+
+        if(any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
+            matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
+            if(interceptIsNeeded){
+                matrixXreg <- cbind(1,matrixXreg);
+                colnames(matrixXreg)[1] <- "(Intercept)";
             }
+            # colnames(matrixXreg) <- names(coef(object));
+            matrixXreg <- crossprod(matrixXreg);
+            vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
+            if(any(class(vcovMatrixTry)=="try-error")){
+                warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
+                               "The estimate of the covariance matrix of parameters might be inaccurate."),
+                        call.=FALSE);
+                vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
+                if(any(class(vcovMatrix)=="try-error")){
+                    warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
+                                   "We failed to produce the covariance matrix of parameters."),
+                            call.=FALSE);
+                    vcovMatrix <- diag(1e+100,nVariables);
+                }
+            }
+            else{
+                vcovMatrix <- vcovMatrixTry;
+            }
+            # vcov <- object$scale^2 * vcovMatrix;
+            vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
+            rownames(vcov) <- colnames(vcov) <- variablesNames;
+        }
+        else if(object$distribution=="dpois"){
+            matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
+            obsInsample <- nobs(object);
+            if(interceptIsNeeded){
+                matrixXreg <- cbind(1,matrixXreg);
+                colnames(matrixXreg)[1] <- "(Intercept)";
+            }
+            # colnames(matrixXreg) <- names(coef(object));
+            FIMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * object$mu[1];
+            for(j in 2:obsInsample){
+                FIMatrix[] <- FIMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * object$mu[j];
+            }
+
+            # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+            vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+            if(any(class(vcovMatrixTry)=="try-error")){
+                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                               "The estimate of the covariance matrix of parameters might be inaccurate."),
+                        call.=FALSE);
+                vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+                if(any(class(FIMatrix)=="try-error")){
+                    warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
+                                   "We failed to produce the covariance matrix of parameters."),
+                            call.=FALSE);
+                    vcov <- diag(1e+100,nVariables);
+                }
+            }
+            else{
+                vcov <- vcovMatrixTry;
+            }
+
+            rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
         else{
-            vcovMatrix <- vcovMatrixTry;
-        }
-        # vcov <- object$scale^2 * vcovMatrix;
-        vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
-        rownames(vcov) <- colnames(vcov) <- variablesNames;
-    }
-    # else if(iOrderNone & (object$distribution=="dnorm")){
-    #     # matrixXreg <- model.matrix(formula(object),data=object$data);
-    #     # rownames(vcov) <- colnames(vcov) <- names(coef(object));
-    #     matrixXreg <- object$data[object$subset,-1,drop=FALSE];
-    #     if(interceptIsNeeded){
-    #         matrixXreg <- cbind(1,matrixXreg);
-    #         colnames(matrixXreg)[1] <- "(Intercept)";
-    #     }
-    #     # colnames(matrixXreg) <- names(coef(object));
-    #     nVariables <- ncol(matrixXreg);
-    #     matrixXreg <- crossprod(matrixXreg);
-    #     vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
-    #     if(any(class(vcovMatrixTry)=="try-error")){
-    #         warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-    #                        "The estimate of the covariance matrix of parameters might be inaccurate."),
-    #                 call.=FALSE);
-    #         vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-    #         if(any(class(vcovMatrix)=="try-error")){
-    #             warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
-    #                            "We failed to produce the covariance matrix of parameters."),
-    #                     call.=FALSE);
-    #             vcovMatrix <- diag(1e+100,nVariables);
-    #         }
-    #     }
-    #     else{
-    #         vcovMatrix <- vcovMatrixTry;
-    #     }
-    #     vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
-    #     rownames(vcov) <- colnames(vcov) <- names(coef(object));
-    # }
-    else if(object$distribution=="dpois"){
-        matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
-        obsInsample <- nobs(object);
-        if(interceptIsNeeded){
-            matrixXreg <- cbind(1,matrixXreg);
-            colnames(matrixXreg)[1] <- "(Intercept)";
-        }
-        # colnames(matrixXreg) <- names(coef(object));
-        FIMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * object$mu[1];
-        for(j in 2:obsInsample){
-            FIMatrix[] <- FIMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * object$mu[j];
-        }
+            # Form the call for alm
+            newCall <- object$call;
+            if(interceptIsNeeded){
+                newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~."));
+            }
+            else{
+                newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~.-1"));
+            }
+            newCall$data <- object$data;
+            newCall$subset <- object$subset;
+            newCall$distribution <- object$distribution;
+            if(object$loss=="custom"){
+                newCall$loss <- object$lossFunction;
+            }
+            else{
+                newCall$loss <- object$loss;
+            }
+            newCall$ar <- object$call$ar;
+            newCall$i <- object$call$i;
+            newCall$parameters <- coef(object);
+            newCall$fast <- TRUE;
+            if(any(object$distribution==c("dchisq","dt"))){
+                newCall$nu <- object$other$nu;
+            }
+            else if(object$distribution=="dnbinom"){
+                newCall$size <- object$other$size;
+            }
+            else if(object$distribution=="dalaplace"){
+                newCall$alpha <- object$other$alpha;
+            }
+            else if(object$distribution=="dfnorm"){
+                newCall$sigma <- object$other$sigma;
+            }
+            else if(object$distribution=="dbcnorm"){
+                newCall$lambdaBC <- object$other$lambdaBC;
+            }
+            else if(any(object$distribution==c("dgnorm","dlgnorm"))){
+                newCall$beta <- object$other$beta;
+            }
+            newCall$FI <- TRUE;
+            # newCall$occurrence <- NULL;
+            newCall$occurrence <- object$occurrence;
+            # Recall alm to get hessian
+            FIMatrix <- eval(newCall)$FI;
 
-        # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
-        vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
-        if(any(class(vcovMatrixTry)=="try-error")){
-            warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inaccurate."),
-                    call.=FALSE);
-            vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+            # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+            vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+            if(any(class(vcovMatrixTry)=="try-error")){
+                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                               "The estimate of the covariance matrix of parameters might be inaccurate."),
+                        call.=FALSE);
+                FIMatrix <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+                if(any(class(FIMatrix)=="try-error")){
+                    vcov <- diag(1e+100,nVariables);
+                }
+                else{
+                    vcov <- FIMatrix;
+                }
+            }
+            else{
+                vcov <- vcovMatrixTry;
+            }
+
+            # If the conventional approach failed, do bootstrap
             if(any(class(FIMatrix)=="try-error")){
                 warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                               "We failed to produce the covariance matrix of parameters."),
+                               "Switching to bootstrap of covariance matrix of parameters."),
                         call.=FALSE);
-                vcov <- diag(1e+100,nVariables);
+                vcov <- coefbootstrap(object, ...)$vcov;
             }
         }
-        else{
-            vcov <- vcovMatrixTry;
-        }
-
-        rownames(vcov) <- colnames(vcov) <- variablesNames;
     }
     else{
-        # Form the call for alm
-        newCall <- object$call;
-        if(interceptIsNeeded){
-            newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~."));
-        }
-        else{
-            newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~.-1"));
-        }
-        newCall$data <- object$data;
-        newCall$subset <- object$subset;
-        newCall$distribution <- object$distribution;
-        if(object$loss=="custom"){
-            newCall$loss <- object$lossFunction;
-        }
-        else{
-            newCall$loss <- object$loss;
-        }
-        newCall$ar <- object$call$ar;
-        newCall$i <- object$call$i;
-        newCall$parameters <- coef(object);
-        newCall$fast <- TRUE;
-        if(any(object$distribution==c("dchisq","dt"))){
-            newCall$nu <- object$other$nu;
-        }
-        else if(object$distribution=="dnbinom"){
-            newCall$size <- object$other$size;
-        }
-        else if(object$distribution=="dalaplace"){
-            newCall$alpha <- object$other$alpha;
-        }
-        else if(object$distribution=="dfnorm"){
-            newCall$sigma <- object$other$sigma;
-        }
-        else if(object$distribution=="dbcnorm"){
-            newCall$lambdaBC <- object$other$lambdaBC;
-        }
-        else if(any(object$distribution==c("dgnorm","dlgnorm"))){
-            newCall$beta <- object$other$beta;
-        }
-        newCall$FI <- TRUE;
-        # newCall$occurrence <- NULL;
-        newCall$occurrence <- object$occurrence;
-        # Recall alm to get hessian
-        FIMatrix <- eval(newCall)$FI;
+        vcov <- coefbootstrap(object, ...)$vcov;
+    }
 
-        # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
-        vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
-        if(any(class(vcovMatrixTry)=="try-error")){
-            warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                           "The estimate of the covariance matrix of parameters might be inaccurate."),
-                    call.=FALSE);
-            FIMatrix <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
-            if(any(class(FIMatrix)=="try-error")){
-                warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                               "We failed to produce the covariance matrix of parameters."),
-                        call.=FALSE);
-                vcov <- diag(1e+100,nVariables);
-            }
-            else{
-                vcov <- FIMatrix;
-            }
+    if(nVariables>1){
+        if(object$distribution=="dbeta"){
+            dimnames(vcov) <- list(c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)),
+                                   c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)));
         }
         else{
-            vcov <- vcovMatrixTry;
+            dimnames(vcov) <- list(variablesNames,variablesNames);
         }
+    }
+    else{
+        names(vcov) <- variablesNames;
+    }
 
-        if(nVariables>1){
-            if(object$distribution=="dbeta"){
-                dimnames(vcov) <- list(c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)),
-                                             c(paste0("shape1_",variablesNames),paste0("shape2_",variablesNames)));
-            }
-            else{
-                dimnames(vcov) <- list(variablesNames,variablesNames);
-            }
-        }
-        else{
-            names(vcov) <- variablesNames;
-        }
-
-        # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
-        if(any(diag(vcov)<0)){
-            diag(vcov) <- abs(diag(vcov));
-        }
+    # Sometimes the diagonal elements in the covariance matrix are negative because likelihood is not fully maximised...
+    if(any(diag(vcov)<0)){
+        diag(vcov) <- abs(diag(vcov));
     }
     return(vcov);
 }
@@ -1852,8 +1895,12 @@ print.summary.alm <- function(x, ...){
     if(!is.null(x$arima)){
         cat(paste0("\n",x$arima," components were included in the model"));
     }
+    if(x$bootstrap){
+        cat("\nBootstrap was used for the estimation of uncertainty of parameters");
+    }
     cat("\nCoefficients:\n");
     print(round(x$coefficients,digits));
+
     cat("\nError standard deviation: "); cat(round(sqrt(x$s2),digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
@@ -2277,13 +2324,15 @@ print.outlierdummy <- function(x, ...){
 }
 
 #### Summary ####
+#' @aliases summary.alm
+#' @rdname coef.alm
 #' @export
-summary.alm <- function(object, level=0.95, ...){
+summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
     errors <- residuals(object);
     obs <- nobs(object, all=TRUE);
 
     # Collect parameters and their standard errors
-    parametersConfint <- confint(object, level=level);
+    parametersConfint <- confint(object, level=level, bootstrap=bootstrap, ...);
     parametersTable <- cbind(coef(object),parametersConfint);
     rownames(parametersTable) <- names(coef(object));
     colnames(parametersTable) <- c("Estimate","Std. Error",
@@ -2313,6 +2362,8 @@ summary.alm <- function(object, level=0.95, ...){
     ourReturn$dfTable <- dfTable;
     ourReturn$arima <- object$other$arima;
     ourReturn$s2 <- sigma(object)^2;
+
+    ourReturn$bootstrap <- bootstrap;
 
     ourReturn <- structure(ourReturn,class="summary.alm");
     return(ourReturn);
@@ -2349,6 +2400,8 @@ summary.greybox <- function(object, level=0.95, ...){
 
     ourReturn$dfTable <- dfTable;
     ourReturn$arima <- object$other$arima;
+
+    ourReturn$bootstrap <- FALSE;
 
     ourReturn <- structure(ourReturn,class="summary.greybox");
     return(ourReturn);
@@ -2387,7 +2440,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
     ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
-                                dfTable=dfTable),
+                                dfTable=dfTable, bootstrap=FALSE),
                            class="summary.greyboxC");
     return(ourReturn);
 }
@@ -2428,7 +2481,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
                                 dynamic=coef(object)$dynamic,
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
-                                nobs=nobs(object), nparam=nparam(object), dfTable=dfTable),
+                                nobs=nobs(object), nparam=nparam(object), dfTable=dfTable, bootstrap=FALSE),
                            class="summary.greyboxC");
     return(ourReturn);
 }
