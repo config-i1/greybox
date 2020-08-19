@@ -43,7 +43,7 @@ The \code{coef()} method returns the vector of parameters of the model. If
 bootstrapped ones.
 
 The \code{vcov()} method returns the covariance matrix of parameters. If
-\code{bootstrap=TRUE}, then the bootstrap is done using \link[greybox]{coefbootsrtap}
+\code{bootstrap=TRUE}, then the bootstrap is done using \link[greybox]{coefbootstrap}
 function
 
 The \code{confint()} constructs the confidence intervals for parameters. Once again,
