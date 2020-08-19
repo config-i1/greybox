@@ -265,7 +265,6 @@ alm <- function(formula, data, subset, na.action,
     # Create substitute and remove the original data
     dataSubstitute <- substitute(data);
 
-    B <- parameters;
     cl <- match.call();
     # This is needed in order to have a reasonable formula saved, so that there are no issues with it
     cl$formula <- eval(cl$formula);
@@ -1486,7 +1485,13 @@ alm <- function(formula, data, subset, na.action,
         # }
         B <- parameters;
         nVariables <- length(B);
-        variablesNames <- names(B);
+        if(!is.null(names(B))){
+            variablesNames <- names(B);
+        }
+        else{
+            names(B) <- variablesNames;
+            names(parameters) <- variablesNames;
+        }
         CFValue <- CF(B, distribution, loss, y, matrixXreg, recursiveModel, denominator);
     }
 
