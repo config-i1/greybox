@@ -212,6 +212,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Define, which of the variables are factors, excluding the response variable
     numericData <- sapply(listToCall$data, is.numeric)[-1]
     # If the value is binary, treat it as a factor # & apply(listToCall$data!=0 & listToCall$data!=1,2,any)[-1];
+    numericData <- numericData & apply(listToCall$data!=0 & listToCall$data!=1,2,any)[-1];
 
     #### The function-analogue of mcor, but without checks ####
     mcorFast <- function(x){

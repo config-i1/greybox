@@ -9,6 +9,7 @@ Changes:
 * Renamed df into nu for dt and dchisq.
 * Don't import gnorm, use internal functions instead.
 * temporaldummy() now has the method for POSIXt, not just for POSIXct.
+* stepwise now treats all dummy variables as factors. This is needed for purposes of the calculation of measures of association.
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.
@@ -16,6 +17,7 @@ Bugfixes:
 * BLower & BUpper were needed in case of ARX model and provided B.
 * Fixed bug in ro(), due to which it wouldn't work with data frames.
 * stepwise() would not work if NA were returned in cor.
+* alm() would not work correctly if parameters without names were provided.
 
 
 greybox v0.6.1 (Release data: 2020-08-04)
