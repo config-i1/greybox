@@ -202,7 +202,7 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
         }
     }
     else if(any(type==c("hour","halfhour","minute","second"))){
-        warning("The Date class does not support hours, minutes and seconds. Use POSIXct instead.", call.=FALSE);
+        warning("The Date class does not support hours, minutes and seconds. Use POSIXt instead.", call.=FALSE);
         return(NULL);
     }
 
@@ -217,7 +217,7 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
 }
 
 #' @export
-temporaldummy.POSIXct <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
+temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                          of=c("year","quarter","month","week","day","hour","minute"), h=0){
     type <- match.arg(type);
     of <- match.arg(of);

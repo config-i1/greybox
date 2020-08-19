@@ -1,4 +1,4 @@
-greybox v0.6.2 (Release data: 2020-08-17)
+greybox v0.6.2 (Release data: 2020-08-19)
 ==============
 
 Changes:
@@ -8,12 +8,14 @@ Changes:
 * alm() will not check multicollinearity for LASSO / RIDGE.
 * Renamed df into nu for dt and dchisq.
 * Don't import gnorm, use internal functions instead.
+* temporaldummy() now has the method for POSIXt, not just for POSIXct.
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.
 * predict() and forecast() would not work if h=1 with ar>1 for alm().
 * BLower & BUpper were needed in case of ARX model and provided B.
 * Fixed bug in ro(), due to which it wouldn't work with data frames.
+* stepwise() would not work if NA were returned in cor.
 
 
 greybox v0.6.1 (Release data: 2020-08-04)

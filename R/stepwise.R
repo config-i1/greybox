@@ -273,7 +273,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
 
         newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation),na.rm=TRUE))[1]];
         # If the newElement is the same as before, stop
-        if(any(newElement==all.vars(as.formula(bestFormula)))){
+        if(is.na(newElement) || any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
             break;
         }
