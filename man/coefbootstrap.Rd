@@ -51,9 +51,10 @@ The function does the bootstrap for parameters of models and returns covariance 
 together with the original bootstrapped data.
 }
 \details{
-The function applies the same modela as in the provided in the object on a smaller
-sample in order to get the estimates of parameters and capture the uncertainty about
-them.
+The function applies the same model as in the provided object on a smaller sample in
+order to get the estimates of parameters and capture the uncertainty about them. This is
+a simple implementation of the case resampling, which assumes that the observations are
+independent.
 }
 \examples{
 # An example with ALM
