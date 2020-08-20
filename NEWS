@@ -19,6 +19,7 @@ Bugfixes:
 * Fixed bug in ro(), due to which it wouldn't work with data frames.
 * stepwise() would not work if NA were returned in cor.
 * alm() would not work correctly if parameters without names were provided.
+* stepwise() would fail in case of factors selected in the model due to the incorrect naming of their expansion.
 
 
 greybox v0.6.1 (Release data: 2020-08-04)
