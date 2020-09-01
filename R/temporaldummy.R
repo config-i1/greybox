@@ -44,7 +44,7 @@
 #' @template keywords
 #'
 #' @seealso \code{\link[greybox]{xregExpander}, \link[greybox]{xregMultiplier},
-#' \link[greybox]{xregTransformer}}
+#' \link[greybox]{outlierdummy}}
 #'
 #' @examples
 #' # Generate matrix with dummies for a ts object

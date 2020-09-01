@@ -72,7 +72,7 @@ temporaldummy(x, type="month", of="year", h=10)
 }
 \seealso{
 \code{\link[greybox]{xregExpander}, \link[greybox]{xregMultiplier},
-\link[greybox]{xregTransformer}}
+\link[greybox]{outlierdummy}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

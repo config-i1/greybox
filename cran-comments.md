@@ -1,15 +1,12 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "04 August 2020"
+date: "01 September 2020"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.1
-
-## Notes
-ATLAS should not complain about the issue with ylim in plot.window() anymore. To be fair, I don't know how this appears anyway - I don't use C++ code in the plot method for my functions and it is not used in the example, where ATLAS fails.
+This is the release of the package ``greybox``, v0.6.2
 
 ## Test environments
 * local ubuntu 19.10, R 4.0.2
