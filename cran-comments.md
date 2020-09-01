@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "01 September 2020"
+date: "02 September 2020"
 output: html_document
 ---
 
@@ -28,7 +28,7 @@ This is expected, because doMC is not available for Windows.
 **Rhub, Windows Server 2008 R2 SP1, R-devel, 32/64 bit gives an error:**
 >* checking package dependencies ... ERROR
 >Package which this enhances but not available for checking: 'vars'
->Packages suggested but not available: 'smooth', 'doMC'
+>Packages suggested but not available: 'doMC'
 
 However, the former package is available on CRAN, so it's not clear, what the problem is. The latter is just not available for Windows.
 
