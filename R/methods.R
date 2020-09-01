@@ -720,13 +720,12 @@ sigma.varest <- function(object, ...){
 #' @importFrom stats vcov
 #' @export
 vcov.alm <- function(object, bootstrap=FALSE, ...){
+    nVariables <- length(coef(object));
+    variablesNames <- names(coef(object));
+    interceptIsNeeded <- any(variablesNames=="(Intercept)");
 
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
-        nVariables <- length(coef(object));
-        variablesNames <- names(coef(object));
-        interceptIsNeeded <- any(variablesNames=="(Intercept)");
-
         # If the likelihood is not available, then this is a non-conventional loss
         if(is.na(logLik(object))){
             warning(paste0("You used the non-likelihood compatible loss, so the covariance matrix might be incorrect. ",
@@ -2845,7 +2844,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
 #' for (1-level, 1) is returned.
 #' @param h The forecast horizon.
-#' @param ...  Other arguments.
+#' @param ...  Other arguments passed to \code{vcov} function (see \link[greybox]{coef.alm}
+#' for details).
 #' @return \code{predict.greybox()} returns object of class "predict.greybox",
 #' which contains:
 #' \itemize{
@@ -2900,7 +2900,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
-    ourVcov <- vcov(object);
+    ourVcov <- vcov(object, ...);
 
     if(side=="u"){
         levelLow <- 0;

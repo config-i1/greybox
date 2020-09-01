@@ -10,7 +10,7 @@ Changes:
 * Don't import gnorm, use internal functions instead.
 * temporaldummy() now has the method for POSIXt, not just for POSIXct.
 * stepwise now treats all dummy variables as factors. This is needed for purposes of the calculation of measures of association.
-* New method: coefbootstrap() - do the bootstrap for coefficients of the model in order to get covariance matrix and other cool thingies.
+* New method: coefbootstrap() - do the bootstrap for coefficients of the model in order to get covariance matrix and other cool thingies (e.g. vcov(), coefint(), summary() and predict() functions).
 * Two new methods detectdst() and detectleap(), which return start and end dates for dst change and leap year based on the provided object (POSIXt / Date / zoo / xts).
 
 Bugfixes:

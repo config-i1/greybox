@@ -37,7 +37,8 @@ two parts: ((1-level)/2, (1+level)/2). When \code{"upper"} is specified, then
 the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
 for (1-level, 1) is returned.}
 
-\item{...}{Other arguments.}
+\item{...}{Other arguments passed to \code{vcov} function (see \link[greybox]{coef.alm}
+for details).}
 
 \item{h}{The forecast horizon.}
 }
