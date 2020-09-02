@@ -108,7 +108,7 @@ where $T$ is the sample size. Its square root (standard deviation) is used in th
 
 $\mu_t$ is returned as is in `mu` variable, and the fitted values are set equivalent to `mu`.
 
-In order to produce confidence intervals for the mean (`predict(model, newdata, interval="c")`) the conditional variance of the model is calculated using:
+In order to produce confidence intervals for the mean (`predict(model, newdata, interval="confidence")`) the conditional variance of the model is calculated using:
 \begin{equation} \label{eq:varianceNormalForCI}
     V({\mu_t}) = x_t V(B) x_t',
 \end{equation}
@@ -118,7 +118,7 @@ where $V(B)$ is the covariance matrix of the parameters returned by the function
 \end{equation}
 where $\tau_{df,\frac{1+\alpha}{2}}$ is the upper ${\frac{1+\alpha}{2}}$-th quantile of the Student's distribution with $df$ degrees of freedom (e.g. with $\alpha=0.95$ it will be 0.975-th quantile, which, for example, for 100 degrees of freedom will be $\approx 1.984$).
 
-Similarly for the prediction intervals (`predict(model, newdata, interval="p")`) the conditional variance of the $y_t$ is calculated:
+Similarly for the prediction intervals (`predict(model, newdata, interval="prediction")`) the conditional variance of the $y_t$ is calculated:
 \begin{equation} \label{eq:varianceNormalForPI}
     V(y_t) = V(\mu_t) + s^2 ,
 \end{equation}
@@ -250,11 +250,11 @@ inSample <- xreg[1:80,]
 outSample <- xreg[-c(1:80),]
 ```
 
-ALM can be run either with data frame or with matrix. Here's an example with normal distribution:
+ALM can be run either with data frame or with matrix. Here's an example with normal distribution and several levels for the construction of prediction interval:
 ```{r normalRegression}
 ourModel <- alm(y~x1+x2, data=inSample, distribution="dnorm")
 summary(ourModel)
-plot(predict(ourModel,outSample,interval="p"))
+plot(predict(ourModel,outSample,interval="p",level=c(0.9,0.95)))
 ```
 
 And here's an example with Asymmetric Laplace and predefined $\alpha=0.95$:
@@ -584,9 +584,9 @@ par(mfcol=c(3,3))
 plot(modelMixture, c(1:9))
 ```
 
-After that we can produce forecasts using the data from the holdout sample:
+After that we can produce forecasts using the data from the holdout sample (in this example we also ask for several confidence levels):
 ```{r mixturePredict}
-predict(modelMixture,outSample,interval="p")
+predict(modelMixture,outSample,interval="p",level=c(0.8,0.9,0.95))
 ```
 
 If you expect autoregressive elements in the data, then you can specify the order of AR via the respective parameter
@@ -634,7 +634,7 @@ When working with non-conventional loss functions do not rely on the default sta
 ```{r}
 summary(modelLossCustom, bootstrap=TRUE, nsim=100)
 ```
-Where `nsim` is the parameter passed to the method `coefbootstrap()`, which is used in order to generate coefficients of models and then extract the necessary statistics. See `?coefbootstrap` to see what parameters are accepted by the function.
+Where `nsim` is the parameter passed to the method `coefbootstrap()`, which is used in order to generate coefficients of models and then extract the necessary statistics. See `?coefbootstrap` to see what parameters are accepted by the function. There are several methods that can use `coefbootstrap()` and will use bootstrapped covariance matrix: `vcov()`, `coefint()`, `summary()`, `predict()` and `forecast()`.
 
 
 # Estimation process {#estimator}

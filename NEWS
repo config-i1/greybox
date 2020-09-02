@@ -12,6 +12,7 @@ Changes:
 * stepwise now treats all dummy variables as factors. This is needed for purposes of the calculation of measures of association.
 * New method: coefbootstrap() - do the bootstrap for coefficients of the model in order to get covariance matrix and other cool thingies (e.g. vcov(), coefint(), summary() and predict() functions).
 * Two new methods detectdst() and detectleap(), which return start and end dates for dst change and leap year based on the provided object (POSIXt / Date / zoo / xts).
+* predict() and forecast() methods now accept vector of levels, producing several bounds.
 
 Bugfixes:
 * Added abs() in mcor() in order to avoid rounding issues in R, which caused sqrt(-1e-16) to produce NaN.
