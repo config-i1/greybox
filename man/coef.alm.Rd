@@ -49,7 +49,7 @@ function
 The \code{confint()} constructs the confidence intervals for parameters. Once again,
 this can be done using \code{bootstrap=TRUE}.
 
-Finaly, the \code{summary()} returns the table with parameters, their standard errors,
+Finally, the \code{summary()} returns the table with parameters, their standard errors,
 confidence intervals and general information about the model.
 }
 \examples{

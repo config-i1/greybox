@@ -24,7 +24,7 @@
 #' @param n number of observations. Should be a single number.
 #' @param mu vector of location parameters (means).
 #' @param sigma vector of scale parameters.
-#' @param lambda tha value of the Box-Cox transform parameter.
+#' @param lambda the value of the Box-Cox transform parameter.
 #' @param log if \code{TRUE}, then probabilities are returned in
 #' logarithms.
 #'

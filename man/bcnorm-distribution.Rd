@@ -22,7 +22,7 @@ rbcnorm(n = 1, mu = 0, sigma = 1, lambda = 0)
 
 \item{sigma}{vector of scale parameters.}
 
-\item{lambda}{tha value of the Box-Cox transform parameter.}
+\item{lambda}{the value of the Box-Cox transform parameter.}
 
 \item{log}{if \code{TRUE}, then probabilities are returned in
 logarithms.}

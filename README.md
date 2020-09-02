@@ -45,7 +45,7 @@ There are several groups of functions in the package.
 2. outlierdummy - the method that creates a matrix of dummy variables based on the residuals of an object, selected confidence level and type of residuals.
 3. pointLik - point likelihood method for the time series models.
 4. pAIC, pAICc, pBIC, pBICc - respective point values for the information criteria, based on pointLik.
-5. coefbootstrap - the method that returnes bootstrapped coefficients of the model. Useful for the calculation of covariance matrix and confidence intervals for parameters.
+5. coefbootstrap - the method that returns bootstrapped coefficients of the model. Useful for the calculation of covariance matrix and confidence intervals for parameters.
 6. summary - returns summary of the regression (either selected or combined).
 7. vcov - covariance matrix for combined models. This is an approximate thing. The real one is quite messy and not yet available.
 8. confint - confidence intervals for combined models.

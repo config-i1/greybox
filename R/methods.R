@@ -389,7 +389,7 @@ pBICc.default <- function(object, ...){
 #' @param object Model estimated using one of the functions of smooth package.
 #' @param all If \code{FALSE}, then in the case of the occurrence model, only demand
 #' sizes will be returned.
-#' @param ... Other parameters to pass to the method. Currenly nothin is supported here.
+#' @param ... Other parameters to pass to the method. Currently nothing is supported here.
 #' @return The vector of the response variable.
 #' @examples
 #'
@@ -440,7 +440,7 @@ actuals.alm <- function(object, all=TRUE, ...){
 #' The \code{confint()} constructs the confidence intervals for parameters. Once again,
 #' this can be done using \code{bootstrap=TRUE}.
 #'
-#' Finaly, the \code{summary()} returns the table with parameters, their standard errors,
+#' Finally, the \code{summary()} returns the table with parameters, their standard errors,
 #' confidence intervals and general information about the model.
 #'
 #' @param object The model estimated using alm or other greybox function.
@@ -2231,7 +2231,7 @@ cooks.distance.greybox <- function(model, ...){
 #' \itemize{
 #' \item outliers - the matrix with the dummy variables, flagging outliers;
 #' \item statistic - the value of the statistic for the normalised variable;
-#' \item id - the ids of the outliers (which observatins have them);
+#' \item id - the ids of the outliers (which observations have them);
 #' \item level - the confidence level used in the process;
 #' \item type - the type of the residuals used.
 #' }

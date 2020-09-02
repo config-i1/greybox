@@ -18,7 +18,7 @@ actuals(object, all = TRUE, ...)
 \item{all}{If \code{FALSE}, then in the case of the occurrence model, only demand
 sizes will be returned.}
 
-\item{...}{Other parameters to pass to the method. Currenly nothin is supported here.}
+\item{...}{Other parameters to pass to the method. Currently nothing is supported here.}
 }
 \value{
 The vector of the response variable.

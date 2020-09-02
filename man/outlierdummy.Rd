@@ -21,7 +21,7 @@ The class "outlierdummy", which contains the list:
 \itemize{
 \item outliers - the matrix with the dummy variables, flagging outliers;
 \item statistic - the value of the statistic for the normalised variable;
-\item id - the ids of the outliers (which observatins have them);
+\item id - the ids of the outliers (which observations have them);
 \item level - the confidence level used in the process;
 \item type - the type of the residuals used.
 }
