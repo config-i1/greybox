@@ -59,7 +59,8 @@ independent.
 \examples{
 # An example with ALM
 ourModel <- alm(mpg~., mtcars, distribution="dlnorm", loss="HAM")
-coefbootstrap(ourModel)
+# A fast example with 10 iterations. Use at least 1000 to get better results
+coefbootstrap(ourModel, nsim=10)
 
 }
 \seealso{
