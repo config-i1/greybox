@@ -56,7 +56,7 @@
 #' @references \itemize{
 #' \item  Demsar, J. (2006). Statistical Comparisons of Classifiers over
 #' Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
-#' \url{http://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
+#' \url{https://www.jmlr.org/papers/volume7/demsar06a/demsar06a.pdf}
 #' }
 #
 #' @examples
