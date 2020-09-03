@@ -33,9 +33,9 @@ At the moment the package contains advanced linear model function and several ba
 The package includes the following functions for models construction:
 
 1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data.
-2. `stepwise()` - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
-3. `lmCombine()` - combine the linear models into one using IC weights;
-4. `lmDynamic()` - produce model with dynamic weights and time varying parameters based on IC weight.
+2. [stepwise()](#stepwise) - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
+3. [lmCombine()](#lmCombine) - combine the linear models into one using IC weights;
+4. [lmDynamic()](#lmDynamic) - produce model with dynamic weights and time varying parameters based on point IC weight.
 
 See discussion of some of these functions in this vignette below.
 
@@ -59,6 +59,7 @@ All these functions are discussed in a separate vignette on [marketing analytics
 
 ## Methods
 The following methods can be applied to the models, produced by `alm()`, `stepwise()`, `lmCombine()` and `lmDynamic()`:
+
 1. `logLik()` - extracts log-likelihood.
 2. `AIC()`, `AICc()`, `BIC()`, `BICc()` - calculates the respective information criteria.
 3. `pointLik()` - extracts the point likelihood.
@@ -75,10 +76,11 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 14. `predict()` - produces the predictions based on the model and the provided `newdata`. If the `newdata` is not provided, then it uses the already available data in the model. Can also produce `confidence` and `prediction` intervals.
 15. `forecast()` - acts similarly to `predict()` with few differences. It has a parameter `h` - forecast horizon - which is `NULL` by default and is set to be equal to the number of rows in `newdata`. However, if the `newdata` is not provided, then it will produce forecasts of the explanatory variables to the horizon `h` and use them as `newdata`. Finally, if `h` and `newdata` are provided, then the number of rows to use will be regulated by `h`.
 16. `plot()` - produces several plots for the analysis of the residuals. This includes: Fitted over time, Standardised residuals vs Fitted, Absolute residuals vs Fitted, Q-Q plot with the specified distribution, Squared residuals vs Fitted, ACF of the residuals and PACF of the residuals, which is regulated by `which` parameter. See documentation for more info: `?plot.greybox`.
+17. `detectdst()` and `detectleap()` - methods that return the ids of the hour / date for the DST / Leap year change.
 
 
 ## Exogenous variables transformation tools
-1. `xregExpander()` - expand the provided data by including leads and lags of the variables. See details below.
+1. [xregExpander()](#xregExpander) - expand the provided data by including leads and lags of the variables. See details below.
 2. `xregTransformer()` - produce non-linear transformations of the provided data (logs, inverse etc).
 3. `xregMultiplier()` - produce cross-products of the variables in the provided matrix. Could be useful when exploring interaction effects of dummy variables.
 4. `temporaldummy()` - the method that generates a matrix with dummy variables based on the provided object and selected `type` and `of`. Can be handy, when you want to construct a regression with dummies for a time series object (e.g. zoo).
@@ -98,13 +100,12 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 1. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
-The first two construct a model of a class `lm`, that could be used for the purposes of analysis or forecasting. The last one expands the exogenous variables to the matrix with lags and leads. Let's see how all of them work. Let's start from the end.
 
 ```{r, echo=FALSE, message=FALSE}
 library(greybox)
 ```
 
-## xregExpander
+## xregExpander {#xregExpander}
 
 The function `xregExpander()` is useful in cases when the exogenous variable may influence the response variable either via some lags or leads. As an example, consider `BJsales.lead` series from the `datasets` package. Let's assume that the `BJsales` variable is driven by the today's value of the indicator, the value five and 10 days ago. This means that we need to produce lags of `BJsales.lead`. This can be done using `xregExpander()`:
 ```{r BJxreg1}
@@ -123,7 +124,7 @@ Once again, the values are shifted, and now the first 7 values are backcasted. I
 BJxreg <- xregExpander(BJsales.lead,lags=c(-10:10))
 ```
 
-## stepwise
+## stepwise {#stepwise}
 
 The function stepwise() does the selection based on an information criterion (specified by user) and partial correlations. In order to run this function the response variable needs to be in the first column of the provided matrix. The idea of the function is simple, it works iteratively the following way:
 
@@ -156,7 +157,7 @@ The values in the function are listed in the order of most correlated with the r
 
 All the basic methods can be used together with the final model (e.g. `predict()`, `forecast()`, `summary()` etc).
 
-## lmCombine
+## lmCombine {#lmCombine}
 
 `lmCombine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteforce` parameter.
 
@@ -202,7 +203,7 @@ plot(ourForecast)
 
 These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend [@Burnham1998] textbook.
 
-## lmDynamic
+## lmDynamic {#lmDynamic}
 
 This function is based on the principles of `lmCombine()` and point ICs. It allows not only combining the models but also to capture the dynamics of it parameters. So in a way this corresponds to a time varying parameters model, but based on information criteria.
 
