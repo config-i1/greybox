@@ -206,55 +206,49 @@ predict(ourModel, mtcars2[-c(1:30),], interval="p", side="u")
 xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
 xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
 
 # An example with Laplace distribution
-ourModel <- alm(y~x1+x2, inSample, distribution="dlaplace")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dlaplace")
 summary(ourModel)
-plot(predict(ourModel,outSample))
+plot(predict(ourModel,xreg[-c(1:80),]))
 
 # And another one with Asymmetric Laplace distribution (quantile regression)
 # with optimised alpha
-ourModel <- alm(y~x1+x2, inSample, distribution="dalaplace")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")
 summary(ourModel)
-plot(predict(ourModel,outSample))
+plot(predict(ourModel,xreg[-c(1:80),]))
 
 # An example with AR(1) order
-ourModel <- alm(y~x1+x2, inSample, distribution="dnorm", ar=1)
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", ar=1)
 summary(ourModel)
-plot(predict(ourModel,outSample))
+plot(predict(ourModel,xreg[-c(1:80),]))
 
 ### Examples with the count data
 xreg[,1] <- round(exp(xreg[,1]-70),0)
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
 
 # Negative Binomial distribution
-ourModel <- alm(y~x1+x2, inSample, distribution="dnbinom")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnbinom")
 summary(ourModel)
-predict(ourModel,outSample,interval="p",side="u")
+predict(ourModel,xreg[-c(1:80),],interval="p",side="u")
 
 # Poisson distribution
-ourModel <- alm(y~x1+x2, inSample, distribution="dpois")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dpois")
 summary(ourModel)
-predict(ourModel,outSample,interval="p",side="u")
+predict(ourModel,xreg[-c(1:80),],interval="p",side="u")
 
 
 ### Examples with binary response variable
 xreg[,1] <- round(xreg[,1] / (1 + xreg[,1]),0)
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
 
 # Logistic distribution (logit regression)
-ourModel <- alm(y~x1+x2, inSample, distribution="plogis")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="plogis")
 summary(ourModel)
-plot(predict(ourModel,outSample,interval="c"))
+plot(predict(ourModel,xreg[-c(1:80),],interval="c"))
 
 # Normal distribution (probit regression)
-ourModel <- alm(y~x1+x2, inSample, distribution="pnorm")
+ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="pnorm")
 summary(ourModel)
-plot(predict(ourModel,outSample,interval="p"))
+plot(predict(ourModel,xreg[-c(1:80),],interval="p"))
 
 }
 \seealso{
