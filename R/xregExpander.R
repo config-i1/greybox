@@ -23,7 +23,7 @@
 #' \code{"extrapolate"} will use \link[smooth]{es} function from smooth package
 #' (if present, otherwise - naive) in order to fill in values. Finally,
 #' \code{"auto"} will let the function select between \code{"extrapolate"} and
-#' \code{"NAs"} depending on the length of series.
+#' \code{"naive"} depending on the length of series.
 #'
 #' @return \code{ts} matrix with the expanded variables is returned.
 #'
@@ -42,7 +42,7 @@
 xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                          silent=TRUE, gaps=c("auto","NAs","zero","naive","extrapolate")){
 
-    gaps <- substr(gaps[1],1,1);
+    gaps <- match.arg(gaps);
 
     lagsOriginal <- lags;
     # Remove zero from lags
@@ -103,15 +103,13 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
         obs <- nrow(xreg);
 
         # If the auto for filling the gaps is selected
-        if(gaps=="a"){
+        if(gaps=="auto"){
             if(obs > 10000){
-                extrapolate <- FALSE;
+                gaps[] <- "naive";
             }
-            else{
-                extrapolate <- TRUE;
-            }
+            extrapolate <- TRUE;
         }
-        else if(gaps=="N"){
+        else if(gaps=="NAs"){
             extrapolate <- FALSE;
         }
         else{
@@ -139,10 +137,10 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                 if(extrapolate){
                     # Produce forecasts for leads
                     # If this is a binary variable, use iss function.
-                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="n"){
+                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="naive"){
                         xregDataNew <- c(xregData,rep(xregData[obs],maxLead));
                     }
-                    else if(gaps=="z"){
+                    else if(gaps=="zero"){
                         xregDataNew <- c(xregData,rep(0,maxLead));
                     }
                     else{
@@ -162,10 +160,10 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
             if(lagsLength!=0){
                 if(extrapolate){
                     # Produce reversed forecasts for lags
-                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="n"){
+                    if(!requireNamespace("smooth", quietly = TRUE) | gaps=="naive"){
                         xregDataNew <- c(rep(xregData[1],maxLag),xregDataNew);
                     }
-                    else if(gaps=="z"){
+                    else if(gaps=="zero"){
                         xregDataNew <- c(rep(0,maxLag),xregDataNew);
                     }
                     else{
