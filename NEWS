@@ -1,9 +1,12 @@
-greybox v0.6.3 (Release data: 2020-09-10)
+greybox v0.6.3 (Release data: 2020-09-14)
 ==============
 
 Changes:
 * Corrections in the main greybox vignette - just fixed some typos and formatting issues.
 * Examples in alm() now rely on subset parameter.
+
+Bugfixes:
+* alm() occurence!="none" would not work if the response variable was not called "y".
 
 
 greybox v0.6.2 (Release data: 2020-09-02)

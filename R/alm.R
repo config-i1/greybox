@@ -1720,6 +1720,7 @@ alm <- function(formula, data, subset, na.action,
             dataWork <- cbind(y,matrixXreg);
             variablesUsed <- variablesNames;
         }
+        colnames(dataWork)[1] <- responseName;
 
         # If there are NaN values, remove the respective observations
         if(any(sapply(mf$data,is.nan))){
