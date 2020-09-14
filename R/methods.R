@@ -2820,9 +2820,14 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
     }
 
-    greyboxForecast$level <- cbind(levelOriginal, levelLow, levelUp);
-    colnames(greyboxForecast$level) <- c("Original",paste0("Lower",c(1:nLevels)),paste0("Upper",c(1:nLevels)));
-    rownames(greyboxForecast$level) <- paste0("h",c(1:h));
+    greyboxForecast$level <- cbind(levelLow, levelUp);
+    colnames(greyboxForecast$level) <- c(paste0("Lower",c(1:nLevels)),paste0("Upper",c(1:nLevels)));
+    greyboxForecast$level <- rbind(switch(side,
+                                          "both"=c((1-levelOriginal)/2,(1+levelOriginal)/2),
+                                          "lower"=c(levelOriginal,rep(0,nLevels)),
+                                          "upper"=c(rep(0,nLevels),levelOriginal)),
+                                   greyboxForecast$level);
+    rownames(greyboxForecast$level) <- c("Original",paste0("h",c(1:h)));
     greyboxForecast$newdataProvided <- newdataProvided;
     return(structure(greyboxForecast,class="predict.greybox"));
 }

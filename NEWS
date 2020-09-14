@@ -7,6 +7,7 @@ Changes:
 
 Bugfixes:
 * alm() occurence!="none" would not work if the response variable was not called "y".
+* Corrected the table with levels for the predict function.
 
 
 greybox v0.6.2 (Release data: 2020-09-02)
