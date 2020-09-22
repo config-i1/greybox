@@ -24,7 +24,7 @@ leave missing values, \code{"zero"} will substitute them by zeroes,
 \code{"extrapolate"} will use \link[smooth]{es} function from smooth package
 (if present, otherwise - naive) in order to fill in values. Finally,
 \code{"auto"} will let the function select between \code{"extrapolate"} and
-\code{"NAs"} depending on the length of series.}
+\code{"naive"} depending on the length of series.}
 }
 \value{
 \code{ts} matrix with the expanded variables is returned.

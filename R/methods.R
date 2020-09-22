@@ -2322,6 +2322,49 @@ print.outlierdummy <- function(x, ...){
 }
 
 #### Summary ####
+#' @importFrom stats summary.lm
+#' @export
+summary.greybox <- function(object, level=0.95, ...){
+    ourReturn <- summary.lm(object, ...);
+    errors <- residuals(object);
+    obs <- nobs(object, all=TRUE);
+
+    # Collect parameters and their standard errors
+    parametersTable <- ourReturn$coefficients[,1:2];
+    parametersTable <- cbind(parametersTable,confint(object, level=level));
+    rownames(parametersTable) <- names(coef(object));
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+    ourReturn$coefficients <- parametersTable;
+
+    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+    names(ICs) <- c("AIC","AICc","BIC","BICc");
+    ourReturn$ICs <- ICs;
+    ourReturn$distribution <- object$distribution;
+    ourReturn$responseName <- formula(object)[[2]];
+
+    # Table with degrees of freedom
+    dfTable <- c(obs,nparam(object),obs-nparam(object));
+    names(dfTable) <- c("n","k","df");
+
+    ourReturn$r.squared <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
+    ourReturn$adj.r.squared <- 1 - (1 - ourReturn$r.squared) * (obs - 1) / (dfTable[3]);
+
+    ourReturn$dfTable <- dfTable;
+    ourReturn$arima <- object$other$arima;
+
+    ourReturn$bootstrap <- FALSE;
+
+    ourReturn <- structure(ourReturn,class="summary.greybox");
+    return(ourReturn);
+}
+
+#' @export
+as.data.frame.summary.greybox <- function(x, ...){
+    return(as.data.frame(x$coefficients, ...))
+}
+
 #' @aliases summary.alm
 #' @rdname coef.alm
 #' @export
@@ -2363,45 +2406,7 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
 
     ourReturn$bootstrap <- bootstrap;
 
-    ourReturn <- structure(ourReturn,class="summary.alm");
-    return(ourReturn);
-}
-
-#' @importFrom stats summary.lm
-#' @export
-summary.greybox <- function(object, level=0.95, ...){
-    ourReturn <- summary.lm(object, ...);
-    errors <- residuals(object);
-    obs <- nobs(object, all=TRUE);
-
-    # Collect parameters and their standard errors
-    parametersTable <- ourReturn$coefficients[,1:2];
-    parametersTable <- cbind(parametersTable,confint(object, level=level));
-    rownames(parametersTable) <- names(coef(object));
-    colnames(parametersTable) <- c("Estimate","Std. Error",
-                                   paste0("Lower ",(1-level)/2*100,"%"),
-                                   paste0("Upper ",(1+level)/2*100,"%"));
-    ourReturn$coefficients <- parametersTable;
-
-    ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
-    names(ICs) <- c("AIC","AICc","BIC","BICc");
-    ourReturn$ICs <- ICs;
-    ourReturn$distribution <- object$distribution;
-    ourReturn$responseName <- formula(object)[[2]];
-
-    # Table with degrees of freedom
-    dfTable <- c(obs,nparam(object),obs-nparam(object));
-    names(dfTable) <- c("n","k","df");
-
-    ourReturn$r.squared <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
-    ourReturn$adj.r.squared <- 1 - (1 - ourReturn$r.squared) * (obs - 1) / (dfTable[3]);
-
-    ourReturn$dfTable <- dfTable;
-    ourReturn$arima <- object$other$arima;
-
-    ourReturn$bootstrap <- FALSE;
-
-    ourReturn <- structure(ourReturn,class="summary.greybox");
+    ourReturn <- structure(ourReturn,class=c("summary.alm","summary.greybox"));
     return(ourReturn);
 }
 
@@ -2439,7 +2444,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 dfTable=dfTable, bootstrap=FALSE),
-                           class="summary.greyboxC");
+                           class=c("summary.greyboxC","summary.greybox"));
     return(ourReturn);
 }
 
@@ -2480,7 +2485,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 nobs=nobs(object), nparam=nparam(object), dfTable=dfTable, bootstrap=FALSE),
-                           class="summary.greyboxC");
+                           class=c("summary.greyboxC","summary.greybox"));
     return(ourReturn);
 }
 

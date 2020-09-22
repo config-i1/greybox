@@ -1,10 +1,11 @@
-greybox v0.6.3 (Release data: 2020-09-14)
+greybox v0.6.3 (Release data: 2020-09-22)
 ==============
 
 Changes:
 * Corrections in the main greybox vignette - just fixed some typos and formatting issues.
 * Examples in alm() now rely on subset parameter.
 * xregExpander() now selects between "extrapolate" and "naive" in case of gaps="auto".
+* The as.data.frame.summary.greybox() method, which produces the matrix of coefficients. This should be handy when printing the outputs.
 
 Bugfixes:
 * alm() occurence!="none" would not work if the response variable was not called "y".
