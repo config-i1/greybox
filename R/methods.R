@@ -2362,7 +2362,7 @@ summary.greybox <- function(object, level=0.95, ...){
 
 #' @export
 as.data.frame.summary.greybox <- function(x, ...){
-    return(as.data.frame(x$coefficients, ...))
+    return(as.data.frame(x$coefficients, ...));
 }
 
 #' @aliases summary.alm
