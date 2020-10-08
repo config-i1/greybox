@@ -734,7 +734,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         }
 
         if(any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
-            matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
+            matrixXreg <- object$data[,-1,drop=FALSE];
             if(interceptIsNeeded){
                 matrixXreg <- cbind(1,matrixXreg);
                 colnames(matrixXreg)[1] <- "(Intercept)";
@@ -762,7 +762,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
         else if(object$distribution=="dpois"){
-            matrixXreg <- object$data[eval(object$subset),-1,drop=FALSE];
+            matrixXreg <- object$data[,-1,drop=FALSE];
             obsInsample <- nobs(object);
             if(interceptIsNeeded){
                 matrixXreg <- cbind(1,matrixXreg);

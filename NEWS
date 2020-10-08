@@ -1,4 +1,4 @@
-greybox v0.6.3 (Release data: 2020-09-22)
+greybox v0.6.3 (Release data: 2020-10-08)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Bugfixes:
 * alm() occurence!="none" would not work if the response variable was not called "y".
 * Corrected the table with levels for the predict function.
 * A fix in alm() with ar and complicated names of variables.
+* A fix in subset parameter for normal distribution.
 
 
 greybox v0.6.2 (Release data: 2020-09-02)
