@@ -77,7 +77,7 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 15. `forecast()` - acts similarly to `predict()` with few differences. It has a parameter `h` - forecast horizon - which is `NULL` by default and is set to be equal to the number of rows in `newdata`. However, if the `newdata` is not provided, then it will produce forecasts of the explanatory variables to the horizon `h` and use them as `newdata`. Finally, if `h` and `newdata` are provided, then the number of rows to use will be regulated by `h`.
 16. `plot()` - produces several plots for the analysis of the residuals. This includes: Fitted over time, Standardised residuals vs Fitted, Absolute residuals vs Fitted, Q-Q plot with the specified distribution, Squared residuals vs Fitted, ACF of the residuals and PACF of the residuals, which is regulated by `which` parameter. See documentation for more info: `?plot.greybox`.
 17. `detectdst()` and `detectleap()` - methods that return the ids of the hour / date for the DST / Leap year change.
-
+18. `extract()` method, needed in order to produce printable regression outputs using `texreg()` function from the `texreg` package.
 
 ## Exogenous variables transformation tools
 1. [xregExpander()](#xregExpander) - expand the provided data by including leads and lags of the variables. See details below.
@@ -157,6 +157,11 @@ The values in the function are listed in the order of most correlated with the r
 
 All the basic methods can be used together with the final model (e.g. `predict()`, `forecast()`, `summary()` etc).
 
+Furthremore, the `greybox` package implements `extract()` method from `texreg` package for the production of printable outputs from the regression, here is an example:
+```{r texregExample, results = 'asis'}
+texreg::htmlreg(ourModel)
+```
+
 ## lmCombine {#lmCombine}
 
 `lmCombine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteforce` parameter.
@@ -203,48 +208,6 @@ plot(ourForecast)
 
 These are the main functions implemented in the package for now. If you want to read more about IC model selection and combinations, I would recommend [@Burnham1998] textbook.
 
-## lmDynamic {#lmDynamic}
-
-This function is based on the principles of `lmCombine()` and point ICs. It allows not only combining the models but also to capture the dynamics of it parameters. So in a way this corresponds to a time varying parameters model, but based on information criteria.
-
-Continuing the example from `lmCombine()`, let's construct the dynamic model:
-```{r BJDynamicModel}
-ourModel <- lmDynamic(BJInsample,bruteforce=FALSE)
-```
-
-We can plot the model and ask for the summary in the similar way as with `lmCombine()`:
-```{r BJDynamicPlot}
-ourSummary <- summary(ourModel)
-ourSummary
-plot(ourModel)
-```
-
-The coefficients in the summary are the averaged out over the whole sample. The more interesting elements are the time varying parameters, their standard errors (and respective confidence intervals) and time varying importance of the parameters. 
-```{r BJDynamicCoefficients}
-# Coefficients in dynamics
-head(ourModel$coefficientsDynamic)
-# Standard errors of the coefficients in dynamics
-head(ourModel$se)
-# Importance of parameters in dynamics
-head(ourModel$importance)
-```
-The importance can also be plotted using `plot()` and `coef()` functions, which might produce a lot of images:
-```{r BJDynamicCoefficientsPlots, eval=FALSE, include=FALSE}
-plot(coef(ourModel))
-```
-The plots show how the importance of each parameter changes over time. The values do not look as smooth as we would like them to, but nothing can be done with this at this point. If you want something smooth, then smooth these values out using, for example, `cma()` function from `smooth` package.
-
-In fact, even degrees of freedom are now also time varying:
-```{r BJDynamicdf}
-ourModel$dfDynamic
-ourModel$df.residualDynamic
-```
-And as usual we can produce forecast from this function, the mean parameters are used in this case:
-```{r BJDynamicForecast}
-ourForecast <- predict(ourModel,BJHoldout)
-plot(ourForecast)
-```
-This function is currently under development, so stay tuned.
 
 ## References
 

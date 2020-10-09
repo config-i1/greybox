@@ -2360,11 +2360,6 @@ summary.greybox <- function(object, level=0.95, ...){
     return(ourReturn);
 }
 
-#' @export
-as.data.frame.summary.greybox <- function(x, ...){
-    return(as.data.frame(x$coefficients, ...));
-}
-
 #' @aliases summary.alm
 #' @rdname coef.alm
 #' @export
@@ -2499,6 +2494,44 @@ summary.lmGreybox <- function(object, level=0.95, ...){
                                    paste0("Upper ",(1+level)/2*100,"%"));
     return(parametersTable)
 }
+
+
+#' @export
+as.data.frame.summary.greybox <- function(x, ...){
+    return(as.data.frame(x$coefficients, ...));
+}
+
+#' @importFrom texreg extract createTexreg
+extract.greybox <- function(model, ...){
+    summaryALM <- summary(model, ...);
+    tr <- extract(summaryALM);
+    return(tr)
+}
+
+extract.summary.greybox <- function(model, ...){
+    gof <- c(model$dfTable, model$ICs)
+    gof.names <- c("Num.\\ obs.", "Num.\\ param.", "Num.\\ df", names(model$ICs))
+
+    tr <- createTexreg(
+        coef.names=rownames(model$coefficients),
+        coef=model$coef[, 1],
+        se=model$coef[, 2],
+        ci.low=model$coef[, 3],
+        ci.up=model$coef[, 4],
+        gof.names=gof.names,
+        gof=gof
+    )
+    return(tr)
+}
+
+#' @importFrom methods setMethod
+setMethod("extract", signature=className("alm","greybox"), definition=extract.greybox)
+setMethod("extract", signature=className("greybox","greybox"), definition=extract.greybox)
+setMethod("extract", signature=className("greyboxC","greybox"), definition=extract.greybox)
+setMethod("extract", signature=className("greyboxD","greybox"), definition=extract.greybox)
+setMethod("extract", signature=className("summary.alm","greybox"), definition=extract.summary.greybox)
+setMethod("extract", signature=className("summary.greybox","greybox"), definition=extract.summary.greybox)
+setMethod("extract", signature=className("summary.greyboxC","greybox"), definition=extract.summary.greybox)
 
 #### Predictions and forecasts ####
 

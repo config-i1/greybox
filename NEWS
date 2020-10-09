@@ -1,4 +1,4 @@
-greybox v0.6.3 (Release data: 2020-10-08)
+greybox v0.6.3 (Release data: 2020-10-09)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * Examples in alm() now rely on subset parameter.
 * xregExpander() now selects between "extrapolate" and "naive" in case of gaps="auto".
 * The as.data.frame.summary.greybox() method, which produces the matrix of coefficients. This should be handy when printing the outputs.
+* We now support texreg package, so that the ALM regression outputs can be printed in a fine quality.
 
 Bugfixes:
 * alm() occurence!="none" would not work if the response variable was not called "y".
