@@ -162,6 +162,8 @@ Furthremore, the `greybox` package implements `extract()` method from `texreg` p
 texreg::htmlreg(ourModel)
 ```
 
+Similarly, you can produce pdf tables via `texreg()` function from that package.
+
 ## lmCombine {#lmCombine}
 
 `lmCombine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteforce` parameter.
