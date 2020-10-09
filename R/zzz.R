@@ -16,6 +16,7 @@
         startUpMessage <- paste0(startUpMessage,"\nDid you know that you can use your own loss function in alm()? ",
                                  "This is regulated with 'loss' parameter. See documentation for examples.");
     }
+    startUpMessage <- paste0(startUpMessage,"\n");
     packageStartupMessage(startUpMessage);
 }
 
