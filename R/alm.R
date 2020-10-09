@@ -250,6 +250,7 @@ alm <- function(formula, data, subset, na.action,
                                "plogis","pnorm"),
                 loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
                 occurrence=c("none","plogis","pnorm"),
+                # scaleFormula=NULL,
                 ar=0,# i=0,
                 parameters=NULL, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
@@ -999,7 +1000,7 @@ alm <- function(formula, data, subset, na.action,
         CDF <- FALSE;
     }
 
-    if(CDF & any(y!=0 & y!=1)){
+    if(CDF && any(y!=0 & y!=1)){
         y[] <- (y!=0)*1;
     }
 
@@ -1115,6 +1116,10 @@ alm <- function(formula, data, subset, na.action,
     }
     # The number of exogenous variables (no ARI elements)
     nVariablesExo <- nVariables;
+
+    #### The model for the scale ####
+    # if(!is.null(scaleFormula)){
+    # }
 
     #### Estimate parameters of the model ####
     if(is.null(parameters)){
