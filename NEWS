@@ -1,4 +1,4 @@
-greybox v0.6.3 (Release data: 2020-10-09)
+greybox v0.6.3 (Release data: 2020-10-15)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Bugfixes:
 * Corrected the table with levels for the predict function.
 * A fix in alm() with ar and complicated names of variables.
 * A fix in subset parameter for normal distribution.
+* The parameters are now standardised for the hessian calculation in order to get more accurate vcov.
 
 
 greybox v0.6.2 (Release data: 2020-09-02)
