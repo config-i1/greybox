@@ -11,7 +11,9 @@ detectleap(object)
 }
 \arguments{
 \item{object}{Either a zoo / xts object or a vector of dates / times in POSIXt / Date
-class.}
+class. Note that in order for \code{detectdst()} to work correctly, your data should
+not have missing observations. Otherwise it might not be possible to locate, when DST
+happens.}
 }
 \value{
 List containing:
@@ -25,7 +27,8 @@ when the DST / leap year start;
 Functions to detect, when Daylight Saving Time and leap year start and finish
 }
 \details{
-The \code{detectdst} function detects, when the change for the DST starts and ends.
+The \code{detectdst} function detects, when the change for the DST starts and ends. It
+assumes that the frequency of data is not lower than hourly.
 The \code{detectleap} function does similar for the leap year, but flagging the 29th
 of February as a starting and to the 28th of February next year as the ending dates.
 

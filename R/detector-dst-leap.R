@@ -2,7 +2,8 @@
 #'
 #' Functions to detect, when Daylight Saving Time and leap year start and finish
 #'
-#' The \code{detectdst} function detects, when the change for the DST starts and ends.
+#' The \code{detectdst} function detects, when the change for the DST starts and ends. It
+#' assumes that the frequency of data is not lower than hourly.
 #' The \code{detectleap} function does similar for the leap year, but flagging the 29th
 #' of February as a starting and to the 28th of February next year as the ending dates.
 #'
@@ -10,7 +11,9 @@
 #' class and should contain valid dates.
 #'
 #' @param object Either a zoo / xts object or a vector of dates / times in POSIXt / Date
-#' class.
+#' class. Note that in order for \code{detectdst()} to work correctly, your data should
+#' not have missing observations. Otherwise it might not be possible to locate, when DST
+#' happens.
 #'
 #' @return List containing:
 #' \itemize{
@@ -45,12 +48,28 @@ detectdst.default <- function(object){
 detectdst.POSIXt <- function(object){
     # Function detects the dst days and flags them.
     # It returns a matrix with coordinates of the days that contain the change
+    DSTIssues <- FALSE;
 
     # The Spring day
     DSTTime1 <- which(diff(as.numeric(strftime(object,"%H")))==2)+1;
+    # If there are non-spring times, this might be an issue with the data
+    if(any(!(strftime(object[DSTTime1],"%m") %in% c("03","04")))){
+        DSTTime1 <- DSTTime1[strftime(object[DSTTime1],"%m") %in% c("03","04")];
+        DSTIssues[] <- TRUE;
+    }
 
     # The Autumn day
     DSTTime2 <- which(diff(as.numeric(strftime(object,"%H")))==0)+1;
+    # If there are non-spring times, this might be an issue with the data
+    if(any(!(strftime(object[DSTTime2],"%m") %in% c("10","11")))){
+        DSTTime2 <- DSTTime2[strftime(object[DSTTime2],"%m") %in% c("10","11")];
+        DSTIssues[] <- TRUE;
+    }
+
+    if(DSTIssues){
+        warning("It seems that you have missing observations. The function might return wrong dates.",
+                call.=FALSE);
+    }
 
     return(list(start=data.frame(id=DSTTime1,date=object[DSTTime1]),
                 end=data.frame(id=DSTTime2,date=object[DSTTime2])))
