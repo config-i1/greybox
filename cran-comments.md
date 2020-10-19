@@ -1,15 +1,15 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "02 September 2020"
+date: "20 October 2020"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.2
+This is the release of the package ``greybox``, v0.6.3
 
 ## Test environments
-* local ubuntu 19.10, R 4.0.2
+* local ubuntu 19.10, R 4.0.3
 * ubuntu 16.04.6 (on travis-ci), R 4.0.0
 * win-builder (devel and release)
 * rhub
@@ -35,8 +35,11 @@ However, the former package is available on CRAN, so it's not clear, what the pr
 **Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
 >Package which this enhances but not available for checking: ‘vars’
+>
+>* checking Rd cross-references ... NOTE
+>Package unavailable to check Rd xrefs: ‘gnorm’
 
-Similar to the previous comments. Not clear, why.
+Similar to the previous comments. Not clear, why. Both are on CRAN.
 
 **Debian Linux, R-devel, GCC ASAN/UBSAN:**
 Finds an error in a function, not related to the greybox package, but to some unrelated files backref.cpp and scheduler.cpp.
