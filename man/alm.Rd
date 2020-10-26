@@ -146,8 +146,8 @@ function or estimated in the process, but not included in the standard output
 Function estimates model based on the selected distribution
 }
 \details{
-This is a function, similar to \link[stats]{lm}, but for the cases of several
-non-normal distributions. These include:
+This is a function, similar to \link[stats]{lm}, but using likelihood for the cases
+of several non-normal distributions. These include:
 \enumerate{
 \item \link[stats]{dnorm} - Normal distribution,
 \item \link[greybox]{dlaplace} - Laplace distribution,
@@ -178,10 +178,12 @@ This function is slower than \code{lm}, because it relies on likelihood estimati
 of parameters, hessian calculation and matrix multiplication. So think twice when
 using \code{distribution="dnorm"} here.
 
-The estimation is done using likelihood of respective distributions.
+The estimation is done via the maximisation of likelihood of a selected distribution,
+so the number of estimated parameters always includes the scale. Thus the number of degrees
+of freedom of the model in case of \code{alm} will typically be lower than in the case of
+\code{lm}.
 
-See more details and examples in the vignette "ALM":
-\code{vignette("alm","greybox")}
+See more details and examples in the vignette for "ALM": \code{vignette("alm","greybox")}
 }
 \examples{
 
