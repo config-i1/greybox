@@ -52,6 +52,7 @@ user is expected to provide the parameter \code{lambda}.
 A user can also provide their own function here as well, making sure
 that it accepts parameters \code{actual}, \code{fitted} and \code{B}. Here is an
 example:
+
 \code{lossFunction <- function(actual, fitted, B, xreg) return(mean(abs(actual-fitted)))}
 \code{loss=lossFunction}
 
