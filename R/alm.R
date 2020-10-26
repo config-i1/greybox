@@ -72,8 +72,10 @@
 #' \item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
 #' }
 #' In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
-#' but the parameters are divided by the mean values of explanatory variables.
-#' Note that you are expected to provide the parameter lambda.
+#' but the parameters are divided by the standard deviations of explanatory variables
+#' inside the optimisation. As the result the parameters of the final model have the
+#' same interpretation as in the case of classical linear regression. Note that the
+#' user is expected to provide the parameter \code{lambda}.
 #'
 #' A user can also provide their own function here as well, making sure
 #' that it accepts parameters \code{actual}, \code{fitted} and \code{B}. Here is an
