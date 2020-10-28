@@ -1,8 +1,9 @@
-greybox v0.6.4 (Release data: 2020-10-24)
+greybox v0.6.4 (Release data: 2020-10-28)
 ==============
 
 Changes:
 * Updated the description of alm().
+* plot.greybox(x, 1) now does not have the symmetric axes. This helps in reading the data in cases of fat tails.
 
 
 greybox v0.6.3 (Release data: 2020-10-20)

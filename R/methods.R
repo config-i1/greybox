@@ -1058,12 +1058,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$xlab <- "Fitted";
         }
         # xlim and ylim
-        if(!any(names(ellipsis)=="xlim")){
-            ellipsis$xlim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
-        }
-        if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
-        }
+        # if(!any(names(ellipsis)=="xlim")){
+        #     ellipsis$xlim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
+        # }
+        # if(!any(names(ellipsis)=="ylim")){
+        #     ellipsis$ylim <- range(c(ellipsis$x,ellipsis$y),na.rm=TRUE);
+        # }
 
         # Start plotting
         do.call(plot,ellipsis);
