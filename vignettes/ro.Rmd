@@ -95,14 +95,9 @@ plot(returnedValues1)
 
 In this example the forecasts from different origins are close to each other. This is because the data is stationary and the model is quite stable.
 
-If we have a look at the returned matrices, we will notice that they contain NAs:
+If we want to change the default parameters of RO, we can ask for example, for non-constant holdout and the constant in-sample:
 ```{r}
-returnedValues1$holdout
-```
-
-This is because by default the holdout sample is set to be non-constant: `co=FALSE` (constant out-sample = FALSE). The in-sample is also set to non-constant, that is why the model will be re-estimated on each iteration on the increasing sample. If we want to change that we might call `ro()` differently:
-```{r}
-returnedValues2 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=TRUE)
+returnedValues2 <- ro(x, h=3, origins=8, call=ourCall, value=ourValue, ci=TRUE, co=FALSE)
 ```
 Note that the values from the `returnedValues2` are not directly comparable with the ones from `returnedValues1`,  because they are produced from the different origins. This becomes more apparent when we plot things:
 ```{r, fig.height = 4, fig.width = 6}

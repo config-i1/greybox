@@ -1716,7 +1716,7 @@ alm <- function(formula, data, subset, na.action,
         BNew <- B / denominator;
         FI <- hessian(CF, BNew,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                      recursiveModel=recursiveModel, denominator=denominator, hessianCalculation=TRUE);
+                      recursiveModel=recursiveModel, denominator=denominator, hessianCalculation=FALSE);
 
         if(any(is.nan(FI))){
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
