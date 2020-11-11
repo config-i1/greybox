@@ -743,9 +743,6 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             matrixXreg <- crossprod(matrixXreg);
             vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
             if(any(class(vcovMatrixTry)=="try-error")){
-                warning(paste0("Choleski decomposition of covariance matrix failed, so we had to revert to the simple inversion.\n",
-                               "The estimate of the covariance matrix of parameters might be inaccurate."),
-                        call.=FALSE);
                 vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
 
                 # If the conventional approach failed, do bootstrap
@@ -779,9 +776,6 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
             if(any(class(vcovMatrixTry)=="try-error")){
-                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                               "The estimate of the covariance matrix of parameters might be inaccurate."),
-                        call.=FALSE);
                 vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
 
                 # If the conventional approach failed, do bootstrap
@@ -847,9 +841,6 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
             if(any(class(vcovMatrixTry)=="try-error")){
-                warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
-                               "The estimate of the covariance matrix of parameters might be inaccurate."),
-                        call.=FALSE);
                 FIMatrix <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
                 if(any(class(FIMatrix)=="try-error")){
                     vcov <- diag(1e+100,nVariables);
