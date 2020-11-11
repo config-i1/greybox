@@ -753,14 +753,18 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "Switching to bootstrap of covariance matrix of parameters."),
                             call.=FALSE, immediate.=TRUE);
-                    vcovMatrix <- coefbootstrap(object, ...)$vcov;
+                    vcov <- coefbootstrap(object, ...)$vcov;
+                }
+                else{
+                    # vcov <- object$scale^2 * vcovMatrix;
+                    vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
                 }
             }
             else{
                 vcovMatrix <- vcovMatrixTry;
+                # vcov <- object$scale^2 * vcovMatrix;
+                vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
             }
-            # vcov <- object$scale^2 * vcovMatrix;
-            vcov <- sigma(object, all=FALSE)^2 * vcovMatrix;
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
         else if(object$distribution=="dpois"){
