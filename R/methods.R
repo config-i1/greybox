@@ -749,7 +749,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                 vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
 
                 # If the conventional approach failed, do bootstrap
-                if(any(class(FIMatrix)=="try-error")){
+                if(any(class(vcovMatrix)=="try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "Switching to bootstrap of covariance matrix of parameters."),
                             call.=FALSE, immediate.=TRUE);
