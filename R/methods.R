@@ -753,7 +753,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "Switching to bootstrap of covariance matrix of parameters."),
                             call.=FALSE, immediate.=TRUE);
-                    vcov <- coefbootstrap(object, ...)$vcov;
+                    vcovMatrix <- coefbootstrap(object, ...)$vcov;
                 }
             }
             else{
