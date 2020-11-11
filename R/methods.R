@@ -747,11 +747,13 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                                "The estimate of the covariance matrix of parameters might be inaccurate."),
                         call.=FALSE);
                 vcovMatrix <- try(solve(matrixXreg, diag(nVariables), tol=1e-20), silent=TRUE);
-                if(any(class(vcovMatrix)=="try-error")){
-                    warning(paste0("Sorry, but the covariance matrix is singular, so we could not invert it.\n",
-                                   "We failed to produce the covariance matrix of parameters."),
-                            call.=FALSE);
-                    vcovMatrix <- diag(1e+100,nVariables);
+
+                # If the conventional approach failed, do bootstrap
+                if(any(class(FIMatrix)=="try-error")){
+                    warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
+                                   "Switching to bootstrap of covariance matrix of parameters."),
+                            call.=FALSE, immediate.=TRUE);
+                    vcov <- coefbootstrap(object, ...)$vcov;
                 }
             }
             else{
@@ -781,11 +783,13 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                                "The estimate of the covariance matrix of parameters might be inaccurate."),
                         call.=FALSE);
                 vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+
+                # If the conventional approach failed, do bootstrap
                 if(any(class(FIMatrix)=="try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                                   "We failed to produce the covariance matrix of parameters."),
-                            call.=FALSE);
-                    vcov <- diag(1e+100,nVariables);
+                                   "Switching to bootstrap of covariance matrix of parameters."),
+                            call.=FALSE, immediate.=TRUE);
+                    vcov <- coefbootstrap(object, ...)$vcov;
                 }
             }
             else{
