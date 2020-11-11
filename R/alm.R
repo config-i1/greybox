@@ -887,9 +887,8 @@ alm <- function(formula, data, subset, na.action,
             dataContainsNaNs <- FALSE;
         }
 
-        # The gsub is needed in order to remove accidental special characters
+        # Fix names of variables
         colnames(mf$data) <- make.names(colnames(mf$data), unique=TRUE);
-        # colnames(mf$data) <- gsub("\`","",colnames(mf$data),ignore.case=TRUE);
     }
     else{
         dataContainsNaNs <- FALSE;
