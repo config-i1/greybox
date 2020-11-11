@@ -297,7 +297,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.8*nobs(object)),
         })
         # Prepare the matrix with parameters
         for(i in 1:nsim){
-            coefBootstrap[i,names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            coefBootstrap[i,variablesNamesMade %in% names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
         }
     }
 
