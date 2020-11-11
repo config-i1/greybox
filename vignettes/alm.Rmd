@@ -86,11 +86,18 @@ This group of functions includes:
 For all the functions in this category `resid()` method returns $e_t = y_t - \mu_t$.
 
 ### Normal distribution {#normal}
-The density of normal distribution is:
+The density of normal distribution $\mathcal{N}(\mu_t,\sigma)$ is:
 \begin{equation} \label{eq:Normal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
-where $\sigma^2$ is the variance of the error term.
+where $\sigma$ is the standard deviation of the error term. This PDF has a very well-known bell shape:
+```{r pdfNormal, echo=FALSE}
+plot(seq(-5,5,0.1),dnorm(seq(-5,5,0.1)),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Normal distribution")
+lines(seq(-5,5,0.1),dnorm(seq(-5,5,0.1),0,2), col="blue")
+lines(seq(-5,5,0.1),dnorm(seq(-5,5,0.1),1,1), col="red")
+legend("topright",legend=c("N(0,1)","N(0,2)","N(1,1)"), lwd=1, col=c("black","blue","red"))
+```
 
 `alm()` with Normal distribution (`distribution="dnorm"`) is equivalent to `lm()` function from `stats` package and returns roughly the same estimates of parameters, so if you are concerned with the time of calculation, I would recommend reverting to `lm()`.
 
@@ -138,7 +145,14 @@ where $s$ is the scale parameter, which, when estimated using likelihood, is equ
 \begin{equation} \label{eq:bLaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
 \end{equation}
-So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathcal{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails.
+So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathcal{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails, the PDF has the following shape:
+```{r pdfLaplace, echo=FALSE}
+plot(seq(-5,5,0.1),dlaplace(seq(-5,5,0.1)),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Laplace distribution")
+lines(seq(-5,5,0.1),dlaplace(seq(-5,5,0.1),0,2), col="blue")
+lines(seq(-5,5,0.1),dlaplace(seq(-5,5,0.1),1,1), col="red")
+legend("topright",legend=c("Laplace(0,1)","Laplace(0,2)","Laplace(1,1)"), lwd=1, col=c("black","blue","red"))
+```
 
 `alm()` function with `distribution="dlaplace"` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $s$ is returned in the `scale` variable. The prediction intervals are derived from the quantiles of Laplace distribution after transforming the conditional variance into the conditional scale parameter $s$ using the connection between the two in Laplace distribution:
 \begin{equation} \label{eq:bLaplaceAndSigma}
@@ -160,6 +174,15 @@ where $s$ is the scale parameter, $\alpha$ is the skewness parameter and $I(y_t 
 \end{equation}
 Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \mathcal{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
 
+Graphically, the PDF of asymmetric Laplace is:
+```{r pdfALaplace, echo=FALSE}
+plot(seq(-5,5,0.1),dalaplace(seq(-5,5,0.1),0,0.5),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Asymmetric Laplace distribution")
+lines(seq(-5,5,0.1),dalaplace(seq(-5,5,0.1),0,1,0.25), col="blue")
+lines(seq(-5,5,0.1),dalaplace(seq(-5,5,0.1),0,1,0.75), col="red")
+legend("topright",legend=c("ALaplace(0,0.5,0.5)","ALaplace(0,1,0.25)","ALaplace(0,1,0.75)"), lwd=1, col=c("black","blue","red"))
+```
+
 In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\frac{1}{2}\text{MAE}$.
 
 `alm()` function with `distribution="dalaplace"` accepts an additional parameter `alpha` in ellipsis, which defines the quantile $\alpha$. If it is not provided, then the function will estimated it maximising the likelihood and return it as the first coefficient. `alm()` returns `mu` equal to $\mu_t$ and the fitted values equal to `mu`. $s$ is returned in the `scale` variable. The parameter $\alpha$ is returned in the variable `other` of the final model. The prediction intervals are produced using `qalaplace()` function. In order to find the values of $s$ for the holdout the following connection between the variance of the variable and the scale in Asymmetric Laplace distribution is used:
@@ -180,7 +203,14 @@ where $s$ is the scale parameter. If estimated via maximum likelihood, the scale
 \end{equation}
 which corresponds to the minimisation of a half of "Mean Root Absolute Error" or "Half Absolute Moment".
 
-S distribution has a kurtosis of 25.2, which makes it a "severe excess" distribution (thus the name). It might be useful in cases of randomly occurring incidents and extreme values (Black Swans?).
+S distribution has a kurtosis of 25.2, which makes it a "severe excess" distribution (thus the name). It might be useful in cases of randomly occurring incidents and extreme values (Black Swans?). Here how the PDF looks:
+```{r pdfS, echo=FALSE}
+plot(seq(-5,5,0.01),ds(seq(-5,5,0.01),0,1),type="l",
+     xlab="y_t",ylab="Density",main="PDF of S distribution")
+lines(seq(-5,5,0.01),ds(seq(-5,5,0.01),0,2), col="blue")
+lines(seq(-5,5,0.01),ds(seq(-5,5,0.01),1,1), col="red")
+legend("topright",legend=c("S(0,1)","S(0,2)","S(1,1)"), lwd=1, col=c("black","blue","red"))
+```
 
 `alm()` function with `distribution="ds"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, and $s$ in the `scale` variable. Similarly to the previous functions, the prediction intervals are based on the `qs()` function from `greybox` package and use the connection between the scale and the variance:
 \begin{equation} \label{eq:bSAndSigma}
@@ -199,6 +229,41 @@ where $\alpha$ is the scale and $\beta$ is the shape parameters. If estimated vi
     \hat{\alpha} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| y_t - \mu_t \right|^{\beta}} .
 \end{equation}
 In the special cases, this becomes either $\sqrt{2}\times$RMSE ($\beta=2$), or MAE ($\beta=1$) or a half of HAM ($\beta=0.5$). It is important to note that although in case of $\beta=2$, the distribution becomes equivalent to Normal, the scale of it will differ from the $\sigma$ (this follows directly from the formula above). The relations between the two is: $\alpha^2 = 2 \sigma^2$.
+```{r pdfgnorm, echo=FALSE}
+dgnorm <- function(x, mu = 0, alpha = 1, beta = 1,
+                   log = FALSE) {
+    # A failsafe for NaN / NAs of alpha / beta
+    if(any(is.nan(alpha))){
+        alpha[is.nan(alpha)] <- 0
+    }
+    if(any(is.na(alpha))){
+        alpha[is.na(alpha)] <- 0
+    }
+    if(any(alpha<0)){
+        alpha[alpha<0] <- 0
+    }
+    if(any(is.nan(beta))){
+        beta[is.nan(beta)] <- 0
+    }
+    if(any(is.na(beta))){
+        beta[is.na(beta)] <- 0
+    }
+    gnormValues <- (exp(-(abs(x-mu)/ alpha)^beta)* beta/(2*alpha*gamma(1/beta)))
+    if(log){
+        gnormValues[] <- log(gnormValues)
+    }
+
+    return(gnormValues)
+}
+
+plot(seq(-5,5,0.1),dgnorm(seq(-5,5,0.1),0,1,2),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Generalised Normal distribution")
+lines(seq(-5,5,0.1),dgnorm(seq(-5,5,0.1),0,1,1), col="blue")
+lines(seq(-5,5,0.01),dgnorm(seq(-5,5,0.01),0,1,0.5), col="red")
+lines(seq(-5,5,0.1),dgnorm(seq(-5,5,0.1),0,1,100), col="purple")
+legend("topright",legend=c("GN(0,1,2)","GN(0,1,1)","GN(0,1,0.5)","GN(0,1,100)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
 
 The kurtosis of Generalised Normal distribution is determined by $\beta$ and is equal to $\frac{\Gamma(5/\beta)\Gamma(1/\beta)}{\Gamma(3/\beta)^2}$.
 
@@ -219,6 +284,13 @@ where $s$ is the scale parameter, which is estimated in `alm()` based on the con
     \hat{s} = \sigma \sqrt{\frac{3}{\pi^2}}.
 \end{equation}
 Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathcal{Logistic}(0, s)$.
+```{r pdfLogis, echo=FALSE}
+plot(seq(-5,5,0.1),dlogis(seq(-5,5,0.1),0,0.5),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Logistic distribution")
+lines(seq(-5,5,0.1),dlogis(seq(-5,5,0.1),0,2), col="blue")
+lines(seq(-5,5,0.1),dlogis(seq(-5,5,0.1),1,1), col="red")
+legend("topright",legend=c("Logis(0,0.5)","Logis(0,1)","Logis(1,0.5)"), lwd=1, col=c("black","blue","red"))
+```
 
 Logistic is considered a fat tailed distribution, but its tails are not as fat as in Laplace. Kurtosis of standard Logistic is 4.2.
 
@@ -233,8 +305,16 @@ where $\nu$ is the number of degrees of freedom, which can also be considered as
 \begin{equation} \label{eq:scaleOfT}
     \nu = \frac{2}{1-\sigma^{-2}}.
 \end{equation}
+```{r pdfStudent, echo=FALSE}
+plot(seq(-5,5,0.1),dt(seq(-5,5,0.1),100),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Student's t distribution")
+lines(seq(-5,5,0.1),dt(seq(-5,5,0.1),10), col="blue")
+lines(seq(-5,5,0.1),dt(seq(-5,5,0.1),1), col="red")
+legend("topright",legend=c("t(100)","t(10)","t(1)"), lwd=1, col=c("black","blue","red"))
+```
 
-Kurtosis of Student t distribution depends on the value of $\nu$, and for the cases of $\nu>4$ is equal to $\frac{6}{\nu-4}$.
+
+Kurtosis of Student t distribution depends on the value of $\nu$, and for the cases of $\nu>4$ is equal to $\frac{6}{\nu-4}$. When the $\mu \rightarrow \infty$, the distribution converges to the normal.
 
 `alm()` function with `distribution="dt"` estimates the parameters of the model along with the $\nu$ (if it is not provided by the user as a `nu` parameter) and returns $\mu_t$ in the variables `mu` and `fitted.values`, and $\nu$ in the `scale` variable. Both prediction and confidence intervals use `qt()` function from `stats` package and rely on the conventional number of degrees of freedom $T-k$. The intervals are constructed similarly to how it is done in Normal distribution \eqref{eq:intervalsNormal} (based on `qt()` function).
 
@@ -287,6 +367,15 @@ where the variance estimated using likelihood is:
 \begin{equation} \label{eq:sigmaLogNormal}
     \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\log y_t - \mu_t \right)^2 .
 \end{equation}
+The PDF has the following shape:
+```{r pdflognorm, echo=FALSE}
+plot(seq(0,5,0.01),dlnorm(seq(0,5,0.01),0,1),type="l",
+     xlab="y_t",ylab="Density",ylim=c(0,1.5),main="PDF of Log Normal distribution")
+lines(seq(0,5,0.01),dlnorm(seq(0,5,0.01),1,1), col="blue")
+lines(seq(0,5,0.01),dlnorm(seq(0,5,0.01),0,2), col="red")
+legend("topright",legend=c("logN(0,1)","logN(1,1)","logN(0,2)"), lwd=1, col=c("black","blue","red"))
+```
+
 Estimating the model with Log Normal distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation} \label{eq:logLinearModel}
     \log y_t = \mu_t + \epsilon_t,
@@ -308,6 +397,17 @@ where the variance estimated using likelihood is:
 \begin{equation} \label{eq:sigmaBCNormal}
     \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2 .
 \end{equation}
+Depending on the value of $\lambda$, we will get different shapes of the density function:
+```{r pdfBCNorm, echo=FALSE}
+plot(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,1),type="l",ylim=c(0,1),
+     xlab="y_t",ylab="Density",main="PDF of Box-Cox Normal distribution")
+lines(seq(0.01,5,0.01),dbcnorm(seq(0.01,5,0.01),0,1,0.5), col="blue")
+lines(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,2), col="red")
+lines(seq(0,5,0.01),dbcnorm(seq(0,5,0.01),0,1,0.01), col="purple")
+legend("topright",legend=c("BCN(0,1,1)","BCN(0,1,0.5)","BCN(0,1,2)","BCN(0,1,0.01)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
+
 Estimating the model with Box-Cox Normal distribution is equivalent to estimating the parameters of a linear model after the Box-Cox transform:
 \begin{equation} \label{eq:BCLinearModel}
     \frac{y_t^{\lambda}-1}{\lambda} = \mu_t + \epsilon_t,
@@ -333,7 +433,16 @@ where the dispersion parameter is estimated via maximising the likelihood and is
 \begin{equation} \label{eq:InverseGaussianDispersion}
     \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \frac{\left(\epsilon_t - 1 \right)^2}{\epsilon_t} .
 \end{equation}
-Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the means is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution.
+Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the means is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution. The density function has following shapes depending on the values of parameters:
+```{r pdfIG, echo=FALSE}
+library(statmod)
+plot(seq(0,5,0.01),dinvgauss(seq(0,5,0.01),1,1),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Inverse Gaussian distribution")
+lines(seq(0.01,5,0.01),dinvgauss(seq(0.01,5,0.01),1,2), col="blue")
+lines(seq(0,5,0.01),dinvgauss(seq(0,5,0.01),2,1), col="red")
+legend("topright",legend=c("IG(1,1)","IG(1,2)","IG(2,1)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
 
 `alm()` with `distribution="dinvgauss"` estimates the density for $y_t$ using `dinvgauss()` function from `statmod` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the dispersion $\phi$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qinvgauss()` function from the `statmod` package.
 
@@ -347,6 +456,17 @@ The model implemented in the package has similarity with [Log Normal distributio
 \begin{equation} \label{eq:bLogLaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left|\log y_t - \mu_t \right| .
 \end{equation}
+The density function of Log Laplace has the following shapes:
+```{r pdflogLaplace, echo=FALSE}
+plot(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),0,1)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of Log Laplace distribution")
+lines(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),0,2)/seq(0.01,5,0.01), col="blue")
+lines(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),1,1)/seq(0.01,5,0.01), col="red")
+legend("topright",legend=c("logLaplace(0,1)","logLaplace(0,2)","logLaplace(1,1)"),
+       lwd=1, col=c("black","blue","red"))
+```
+
+
 Estimating the model with Log Laplace distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
@@ -365,6 +485,16 @@ The model implemented in the package has similarity with [Log Normal](#lnormal) 
 \begin{equation} \label{eq:bLogS}
     \hat{s} = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| \log(y_t) - \mu_t \right|} ,
 \end{equation}
+The shape of the density function of Log S is similar to Log Laplace but with even more extreme values:
+```{r pdflogS, echo=FALSE}
+plot(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),0,1)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of Log S distribution")
+lines(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),0,2)/seq(0.01,5,0.01), col="blue")
+lines(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),1,1)/seq(0.01,5,0.01), col="red")
+legend("topright",legend=c("logS(0,1)","logS(0,2)","logS(1,1)"),
+       lwd=1, col=c("black","blue","red"))
+```
+
 Estimating the model with Log S distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
@@ -383,6 +513,17 @@ The model implemented in the package has similarity with [Log Normal](#lnormal),
 \begin{equation} \label{eq:LogAlpha}
     \hat{\alpha} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| \log(y_t) - \mu_t \right|^{\beta}} .
 \end{equation}
+The shapes of the distribution depend on the value of parameters, giving it in some cases very long right tail:
+```{r pdflogGN, echo=FALSE}
+plot(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,2)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of Log Generalised Normal distribution")
+lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,1)/seq(0.01,5,0.01), col="blue")
+lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,0.5)/seq(0.01,5,0.01), col="red")
+lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,100)/seq(0.01,5,0.01), col="purple")
+legend("topright",legend=c("logGN(0,1,2)","logGN(0,1,1)","logGN(0,1,0.5)","logGN(0,1,100)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
+
 Estimating the model with Log Generalised Normal distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
@@ -397,6 +538,16 @@ Folded Normal distribution is obtained when the absolute value of normally distr
 \begin{equation} \label{eq:foldedNormal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
 \end{equation}
+which can be graphically represented as:
+```{r pdfFnorm, echo=FALSE}
+plot(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),0,1),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of Folded Normal distribution")
+lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-1,1), col="blue")
+lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-2,1), col="red")
+legend("topright",legend=c("FN(0,1)","FN(-1,1)","FN(-2,1)"),
+       lwd=1, col=c("black","blue","red"))
+```
+
 Conditional mean and variance of Folded Normal are estimated in `alm()` (with `distribution="dfnorm"`) similarly to how this is done for Normal distribution. They are returned in the variables `mu` and `scale` respectively. In order to produce the fitted value (which is returned in `fitted.values`), the following correction is done:
 \begin{equation} \label{eq:foldedNormalFitted}
     \hat{y_t} = \sqrt{\frac{2}{\pi}} \sigma \exp \left( -\frac{\mu_t^2}{2 \sigma^2} \right) + \mu_t \left(1 - 2 \Phi \left(-\frac{\mu_t}{\sigma} \right) \right),
@@ -414,8 +565,49 @@ The conditional variance of the forecasts is calculated based on the elements of
 ## Continuous distributions on a specific interval {#contInterval}
 There is currently only one distribution in this group:
 
-1. Beta distribution.
+1. [Logit-normal distribution](#logitnormal).
+2. [Beta distribution](#beta).
 
+### Logit-normal distribution {#logitnormal}
+A random variable follows Logit-normal distribution if its logistic transform follows normal distribution:
+\begin{equation} \label{eq:logitFunction}
+    z = \mathrm{logit}(y) = \log \left(\frac{y}{1-y}) \right),
+\end{equation}
+where $y\in (0,1)$, $y\sim \mathrm{logit}\mathcal{N}(\mu,\sigma^2)$ and $z\sim \mathcal{N}(\mu,\sigma^2)$. The bounds are not supported, because the variable $z$ becomes infinite. The density function of $y$ is:
+\begin{equation} \label{eq:logitNormal}
+    f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2} y_t (1-y_t)} \exp \left( -\frac{\left(\mathrm{logit}(y_t) - \mu_t \right)^2}{2 \sigma^2} \right) ,
+\end{equation}
+which has the following shapes:
+```{r pdfLogitnorm, echo=FALSE}
+plot(seq(0.01,0.99,0.01),dlogitnorm(seq(0.01,0.99,0.01),0,1),type="l",ylim=c(0,5),
+     xlab="y_t",ylab="Density",main="PDF of Logit-Normal distribution")
+lines(seq(0.01,0.99,0.01),dlogitnorm(seq(0.01,0.99,0.01),-1,1), col="blue")
+lines(seq(0.01,0.99,0.01),dlogitnorm(seq(0.01,0.99,0.01),1,1), col="purple")
+lines(seq(0.01,0.99,0.01),dlogitnorm(seq(0.01,0.99,0.01),0,3), col="red")
+legend("topright",legend=c("logitN(0,1)","logitN(-1,1)","logitN(1,1)","logitN(0,3)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
+Depending on the values of location and scale, the distribution can be either unimodal or bimodal and can be positively or negatively skewed. Because of its connection with normal distribution, the logit-normal has formulae for density, cumultive and quantile functions. However, the moment generation function does not have a closed form. 
+
+The scale of the distribution can be estimated via the maximisation of likelihood and has some similarities with the scale in [Log Normal](#lnormal) distribution:
+\begin{equation} \label{eq:sigmaLogitNormal}
+    \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\mathrm{logit}(y_t) - \mu_t \right)^2 .
+\end{equation}
+
+Estimating the model with Log Normal distribution is equivalent to estimating the parameters of logit-linear model:
+\begin{equation} \label{eq:logLinearModel}
+    \mathrm{logit}(y_t) = \mu_t + \epsilon_t,
+\end{equation}
+where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+\begin{equation} \label{eq:logLinearModelExp}
+    y_t = \mathrm{logit}^{-1}(\mu_t + \epsilon_t),
+\end{equation}
+where $\mathrm{logit}^{-1}(z)=\frac{\exp(z)}{1+\exp(z)}$ is the inverse logistic transform.
+
+`alm()` with `distribution="dlogitnorm"` does not transform the provided data and estimates the density directly using `dlogitnorm()` function from `greybox` package with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogitNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the inverse logistic transform of $\mu_t$, which, given the connection between the Normal and Logit-Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \mathrm{logit}(y_t) - \mu_t$.
+
+
+### Beta distribution {#beta}
 Beta distribution is a distribution for a continuous variable that is defined on the interval of $(0, 1)$. Note that the bounds are not included here, because the probability density function is not well defined on them. If the provided data contains either zeroes or ones, the function will modify the values using:
 \begin{equation} \label{eq:BetaWarning}
     y^\prime_t = y_t (1 - 2 \cdot 10^{-10}),
@@ -442,6 +634,16 @@ while the conditional variance is:
 \begin{equation} \label{eq:BetaVariance}
     \text{V}({y}_t) = \frac{\alpha_t \beta_t}{((\alpha_t + \beta_t)^2 (\alpha_t + \beta_t + 1))} .
 \end{equation}
+Beta distribution has shapes similar to the ones of Logit-Normal one, but with shape parameters regulating respectively the left and right tails of the distribution:
+```{r pdfBeta, echo=FALSE}
+plot(seq(0.01,0.99,0.01),dbeta(seq(0.01,0.99,0.01),1,1),type="l",ylim=c(0,4),
+     xlab="y_t",ylab="Density",main="PDF of Beta distribution")
+lines(seq(0.01,0.99,0.01),dbeta(seq(0.01,0.99,0.01),0.1,1), col="blue")
+lines(seq(0.01,0.99,0.01),dbeta(seq(0.01,0.99,0.01),1,0.1), col="purple")
+lines(seq(0.01,0.99,0.01),dbeta(seq(0.01,0.99,0.01),2,2), col="red")
+legend("topright",legend=c("Beta(1,1)","Beta(0.1,1)","Beta(1,0.1)","Beta(2,2)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
 
 `alm()` function with `distribution="dbeta"` returns $\hat{y}_t$ in the variables `mu` and `fitted.values`, and $\text{V}({y}_t)$ in the `scale` variable. The shape parameters are returned in the respective variables `other$shape1` and `other$shape2`. You will notice that the output of the model contains twice more parameters than the number of variables in the model. This is because of the estimation of two models: $\alpha_t$ \eqref{eq:BetaAt} and $\beta_t$ \eqref{eq:BetaBt} - instead of one.
 
@@ -536,6 +738,15 @@ where $\hat{q}_t = x_t' A$ is the conditional mean of the level, underlying the 
     e_t = \log \left( \frac{u_t}{1 - u_t} \right) = \log \left( \frac{1 + o_t (1 + \exp(\hat{q}_t))}{1 + \exp(\hat{q}_t) (2 - o_t) - o_t} \right).
 \end{equation}
 This way the error varies from $-\infty$ to $\infty$ and is equal to zero, when $u_t=0.5$.
+```{r cdfLogis, echo=FALSE}
+plot(seq(-5,5,0.01),plogis(seq(-5,5,0.01),0,1),type="l",
+     xlab="y_t",ylab="Density",main="CDF of Logistic distribution")
+lines(seq(-5,5,0.01),plogis(seq(-5,5,0.01),-1,1), col="blue")
+lines(seq(-5,5,0.01),plogis(seq(-5,5,0.01),1,1), col="purple")
+lines(seq(-5,5,0.01),plogis(seq(-5,5,0.01),2,2), col="red")
+legend("bottomright",legend=c("Logit(0,1)","Logit(-1,1)","Logit(1,1)","Logit(2,2)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
 
 The `alm()` function with `distribution="plogis"` returns $q_t$ in `mu`, standard deviation, calculated using the respective errors \eqref{eq:LogisticError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:LogisticCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. The intervals use the assumption of normality of the error term, generating respective quantiles (based on the estimated $q_t$ and variance of the error) and then transforming them into the scale of probability using Logistic CDF. *This method for intervals calculation is approximate and should not be considered as a final solution!*
 
@@ -548,7 +759,16 @@ where $q_t = x_t' A$. Similarly to the Logistic CDF, the estimated probability i
 \begin{equation} \label{eq:NormalError}
     e_t = \Phi \left(\frac{o_t - \hat{p}_t + 1}{2}\right)^{-1} .
 \end{equation}
-It acts similar to the error from the [Logistic distribution](#logit), but is based on the different functions.
+It acts similar to the error from the [Logistic distribution](#logit), but is based on the different set of functions. Its CDF has similar shapes to the logit:
+```{r cdfNorm, echo=FALSE}
+plot(seq(-5,5,0.01),pnorm(seq(-5,5,0.01),0,1),type="l",
+     xlab="y_t",ylab="Density",main="CDF of Normal distribution")
+lines(seq(-5,5,0.01),pnorm(seq(-5,5,0.01),-1,1), col="blue")
+lines(seq(-5,5,0.01),pnorm(seq(-5,5,0.01),1,1), col="purple")
+lines(seq(-5,5,0.01),pnorm(seq(-5,5,0.01),2,2), col="red")
+legend("bottomright",legend=c("N(0,1)","N(-1,1)","N(1,1)","N(2,2)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
 
 Similar to the Logistic CDF, the `alm()` function with `distribution="pnorm"` returns $q_t$ in `mu`, standard deviation, calculated based on the errors \eqref{eq:NormalError} in `scale` and the probability $\hat{p}_t$ based on \eqref{eq:NormalCDFALM} in `fitted.values`. `resid()` method returns the errors discussed above. `predict()` method produces point forecasts and the intervals for the probability of occurrence. *The intervals are also approximate and use the same principle as in Logistic CDF.*
 
@@ -606,7 +826,7 @@ It will produce forecasts for each of the explanatory variables based on the ava
 # Using different loss functions {#losses}
 There are several loss functions implemented in the function and there is an option for a user to provide their own. If the `loss` is not `"likelihood"`, then the distribution is only needed for inference. Keep in mind that this typically means that the likelihood is not maximised, so the inference might be wrong and the results can be misleading. However, there are several cases, when this is not the case:
 
-1. `loss="MSE"`, `distribution=c("dnorm","dlnorm","dbcnorm")`;
+1. `loss="MSE"`, `distribution=c("dnorm","dlnorm","dbcnorm","dlogitnorm")`;
 2. `loss="MAE"`, `distribution=c("dlaplace","dllaplace")`;
 3. `loss="HAM"`, `distribution=c("ds","dls")`;
 

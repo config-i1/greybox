@@ -20,6 +20,7 @@
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 # \item \link[stats]{dchisq} - Chi-Squared Distribution,
 #' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
+#' \item \link[greybox]{dlogitnorm} - Logit-normal distribution,
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
 #' \item \link[stats]{dnbinom} - Negative Binomial Distribution,
@@ -251,7 +252,7 @@ alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm","dinvgauss",
                                "dpois","dnbinom",
-                               "dbeta",
+                               "dbeta","dlogitnorm",
                                "plogis","pnorm"),
                 loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
                 occurrence=c("none","plogis","pnorm"),
@@ -413,6 +414,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
+                       "dlogitnorm"=,
                        "dnorm" =,
                        "dlaplace" =,
                        "ds" =,
@@ -444,6 +446,7 @@ alm <- function(formula, data, subset, na.action,
                         "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/obsInsample)^{1/other},
                         "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
                         "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
+                        "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/obsInsample),
                         "dfnorm" = abs(other),
                         "dt" = ,
                         "dchisq" =,
@@ -514,6 +517,7 @@ alm <- function(formula, data, subset, na.action,
                                    "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                                   "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
                                    "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
                                                pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
@@ -527,6 +531,7 @@ alm <- function(formula, data, subset, na.action,
                                               "dnorm" =,
                                               "dfnorm" =,
                                               "dbcnorm" =,
+                                              "dlogitnorm" =,
                                               "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
                                               "dgnorm" =,
                                               "dlgnorm" =obsZero*(1/fitterReturn$other-
@@ -581,6 +586,7 @@ alm <- function(formula, data, subset, na.action,
                                 "dllaplace" =,
                                 "dls" =,
                                 "dlgnorm" = exp(fitterReturn$mu),
+                                "dlogitnorm" = exp(fitterReturn$mu)/(1+exp(fitterReturn$mu)),
                                 "dbcnorm" = bcTransformInv(fitterReturn$mu,lambdaBC),
                                 "dbeta" = fitterReturn$mu / (fitterReturn$mu + scale),
                                 "pnorm" = pnorm(fitterReturn$mu, mean=0, sd=1),
@@ -909,8 +915,8 @@ alm <- function(formula, data, subset, na.action,
             maxeval <- 500;
         }
         # The following ones don't really need the estimation. This is for consistency only
-        else if(any(distribution==c("dnorm","dlnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
-            maxeval <- 2;
+        else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
+            maxeval <- 1;
         }
         else{
             maxeval <- 200;
@@ -988,13 +994,14 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    if(distribution=="dbeta"){
+    if(any(distribution==c("dbeta","dlogitnorm"))){
         if(any((y>1) | (y<0))){
-            stop("The response variable should lie between 0 and 1 in the Beta distribution", call.=FALSE);
+            stop(paste0("The response variable should lie between 0 and 1 in distribution=\"",
+                        distribution,"\""), call.=FALSE);
         }
         else if(any(y==c(0,1))){
             warning(paste0("The response variable contains boundary values (either zero or one). ",
-                           "Beta distribution is not estimable in this case. ",
+                           "distribution=\"",distribution,"\" is not estimable in this case. ",
                            "So we used a minor correction for it, in order to overcome this limitation."), call.=FALSE);
             y <- y*(1-2*1e-10);
         }
@@ -1245,6 +1252,9 @@ alm <- function(formula, data, subset, na.action,
                     B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]/(1-y[otU])))$coefficients;
                     B <- c(B, -B);
                 }
+                else if(distribution=="dlogitnorm"){
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]/(1-y[otU])))$coefficients;
+                }
                 else if(distribution=="dchisq"){
                     B <- .lm.fit(matrixXreg[otU,,drop=FALSE],sqrt(y[otU]))$coefficients;
                     if(aParameterProvided){
@@ -1311,8 +1321,13 @@ alm <- function(formula, data, subset, na.action,
                 else if(distribution=="dbeta"){
                     # In Beta we set B to be twice longer, using first half of parameters for shape1, and the second for shape2
                     # Transform y, just in case, to make sure that it does not hit boundary values
-                    B <- .lm.fit(matrixXregForDiffs,diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
+                    B <- .lm.fit(matrixXregForDiffs,
+                                 diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
                     B <- c(B, -B);
+                }
+                else if(distribution=="dlogitnorm"){
+                    B <- .lm.fit(matrixXregForDiffs,
+                                 diff(log(y/(1-y)),differences=iOrder)[c(1:nrow(matrixXregForDiffs))])$coefficients;
                 }
                 else if(distribution=="dchisq"){
                     B <- .lm.fit(matrixXregForDiffs,diff(sqrt(y[otU]),differences=iOrder))$coefficients;
@@ -1512,6 +1527,7 @@ alm <- function(formula, data, subset, na.action,
     mu[] <- fitterReturn$mu;
     scale <- fitterReturn$scale;
 
+    # Give names to additional parameters
     if(is.null(parameters)){
         parameters <- B;
         if(distribution=="dnbinom"){
@@ -1624,6 +1640,7 @@ alm <- function(formula, data, subset, na.action,
                        "dllaplace" =,
                        "dls" =,
                        "dlgnorm" = exp(mu),
+                       "dlogitnorm" = exp(mu)/(1+exp(mu)),
                        "dbcnorm" = bcTransformInv(mu,lambdaBC),
                        "dbeta" = mu / (mu + scale),
                        "pnorm" = pnorm(mu, mean=0, sd=1),
@@ -1650,6 +1667,7 @@ alm <- function(formula, data, subset, na.action,
                        "dls" =,
                        "dlgnorm" = log(y) - mu,
                        "dbcnorm" = bcTransform(y,lambdaBC) - mu,
+                       "dlogitnorm" = log(y/(1-y)) - mu,
                        "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                        "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))
                        # Here we use the proxy from Svetunkov & Boylan (2019)
@@ -1668,6 +1686,7 @@ alm <- function(formula, data, subset, na.action,
     # Parameters of the model + scale
     nParam <- nVariables + (loss=="likelihood")*1;
 
+    # Amend the number of parameters, depending on the type of distribution
     if(any(distribution==c("dnbinom","dchisq","dt","dfnorm","dbcnorm","dgnorm","dlgnorm","dalaplace"))){
         if(!aParameterProvided){
             nParam <- nParam + 1;
@@ -1804,7 +1823,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     if(loss=="likelihood" ||
-       (loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm"))) ||
+       (loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))) ||
        (loss=="MAE" && any(distribution==c("dlaplace","dllaplace"))) ||
        (loss=="HAM" && any(distribution==c("ds","dls")))){
         logLik <- -CFValue;

@@ -229,6 +229,7 @@ pointLik.alm <- function(object, ...){
                             "dlgnorm" = dgnorm(log(y), mu=mu, alpha=scale, beta=object$other$beta, log=TRUE),
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
+                            "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
@@ -256,6 +257,7 @@ pointLik.alm <- function(object, ...){
                                    "dnorm" =,
                                    "dfnorm" =,
                                    "dbcnorm" =,
+                                   "dlogitnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
                                    "dgnorm" =,
                                    "dlgnorm" = 1/object$other$beta -
@@ -733,7 +735,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                     call.=FALSE);
         }
 
-        if(any(object$distribution==c("dnorm","dlnorm","dbcnorm"))){
+        if(any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             matrixXreg <- object$data[,-1,drop=FALSE];
             if(interceptIsNeeded){
                 matrixXreg <- cbind(1,matrixXreg);
@@ -1241,7 +1243,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Actual Quantile";
         }
 
-        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dfnorm","plogis","pnorm"))){
+        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","plogis","pnorm"))){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ plot of normal distribution";
             }
@@ -1517,7 +1519,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot8 <- function(x, ...){
         ellipsis <- list(...);
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Cook's ditance over Time";
+            ellipsis$main <- "Cook's distance over Time";
         }
 
         # If type and ylab are not provided, set them...
@@ -1877,6 +1879,7 @@ print.summary.alm <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
+                      "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
                       "dpois" = "Poisson",
@@ -1943,6 +1946,7 @@ print.summary.greybox <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = "Box-Cox Normal",
+                      "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
@@ -1991,6 +1995,7 @@ print.summary.greyboxC <- function(x, ...){
                       "dfnorm" = "Folded Normal",
                       "dlnorm" = "Log Normal",
                       "dbcnorm" = "Box-Cox Normal",
+                      "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
@@ -2065,7 +2070,7 @@ hatvalues.greybox <- function(model, ...){
         xreg <- model$data[,-1,drop=FALSE];
     }
     # Hatvalues for different distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
         hatValue <- hat(xreg);
     }
     else{
@@ -2103,7 +2108,7 @@ rstandard.greybox <- function(model, ...){
         residsToGo <- rep(TRUE,obs);
     }
     # The proper residuals with leverage are currently done only for normal-based distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dnbinom","dpois"))){
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
         errors[] <- errors / (sigma(model)*sqrt(1-hatvalues(model)));
     }
     else if(any(model$distribution==c("ds","dls"))){
@@ -2143,7 +2148,7 @@ rstudent.greybox <- function(model, ...){
     }
 
     # The proper residuals with leverage are currently done only for normal-based distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm"))){
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dlogitnorm","dbcnorm"))){
         # Prepare the hat values
         if(any(names(coef(model))=="(Intercept)")){
             xreg <- model$data;
@@ -2757,6 +2762,20 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         }
         greyboxForecast$scale <- sigma;
     }
+    else if(object$distribution=="dlogitnorm"){
+        if(interval=="prediction"){
+            sigma <- sqrt(greyboxForecast$variance - sigma(object)^2 + object$scale^2);
+        }
+        else{
+            sigma <- sqrt(greyboxForecast$variance);
+        }
+        if(interval!="none"){
+            greyboxForecast$lower[] <- qlogitnorm(levelLow,greyboxForecast$mean,sigma);
+            greyboxForecast$upper[] <- qlogitnorm(levelUp,greyboxForecast$mean,sigma);
+        }
+        greyboxForecast$mean <- exp(greyboxForecast$mean)/(1+greyboxForecast$mean);
+        greyboxForecast$scale <- sigma;
+    }
     else if(object$distribution=="dinvgauss"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval=="prediction"){
@@ -3259,6 +3278,12 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
             matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^
                                                                             object$other$lambdaBC-1)/object$other$lambdaBC;
             colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Box-Cox");
+        }
+        else if(object$distribution=="dlogitnorm"){
+            matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <-
+                log(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]/
+                        (1-matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]));
+            colnames(matrixOfxregFull)[nonariParametersNumber+c(1:ariOrder)] <- paste0(ariNames,"Logit");
         }
         else if(object$distribution=="dchisq"){
             matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- sqrt(matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]);

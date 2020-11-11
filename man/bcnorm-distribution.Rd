@@ -56,7 +56,7 @@ transformation. Note that this is based on the original Box-Cox paper.
 \details{
 The distribution has the following density function:
 
-f(x) = x^{lambda-1} 1/sqrt(2 pi) exp(-((y^lambda-1)/lambda -mu)^2 / (2 sigma^2))
+f(y) = y^{lambda-1} 1/sqrt(2 pi) exp(-((y^lambda-1)/lambda -mu)^2 / (2 sigma^2))
 
 Both \code{pbcnorm} and \code{qbcnorm} are returned for the lower
 tail of the distribution.

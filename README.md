@@ -39,6 +39,7 @@ There are several groups of functions in the package.
 4. qfnorm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
 5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
 6. qbcnorm, dbcnorm, rbcnorm, pbcnorm - functions for Box-Cox normal distribution (discussed in Box & Cox, 1964).
+7. qlogitnorm, dlogitnorm, rlogitnorm, plogitnorm - functions for Logit-normal distribution.
 
 ### Methods for the introduced and some existing classes:
 1. temporaldummy - the method that creates a matrix of dummy variables for an object based on the selected frequency. e.g. this can create week of year based on the provided zoo object.
