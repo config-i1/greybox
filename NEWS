@@ -1,4 +1,4 @@
-greybox v0.6.4 (Release data: 2020-11-04)
+greybox v0.6.4 (Release data: 2020-11-10)
 ==============
 
 Changes:
@@ -6,6 +6,9 @@ Changes:
 * plot.greybox(x, 1) now does not have the symmetric axes. This helps in reading the data in cases of fat tails.
 * Updated vignette of ro() to reflect the new defaults.
 * Reverting the hessian calculation without normalisation.
+
+Bugfixes:
+* coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).
 
 
 greybox v0.6.3 (Release data: 2020-10-20)

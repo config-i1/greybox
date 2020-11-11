@@ -217,6 +217,10 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.8*nobs(object)),
     nVariables <- length(coefficientsOriginal);
     variablesNames <- names(coefficientsOriginal);
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
+    variablesNamesMade <- make.names(variablesNames);
+    if(interceptIsNeeded){
+        variablesNamesMade[1] <- variablesNames[1];
+    }
     obsInsample <- nobs(object);
 
     # The matrix with coefficients
@@ -226,15 +230,16 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.8*nobs(object)),
 
     # Form the call for alm
     newCall <- object$call;
-    # if(interceptIsNeeded){
-    #     newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~."));
-    # }
-    # else{
-    #     newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~.-1"));
-    # }
-    newCall$formula <- formula(object);
-    newCall$data <- object$data;
-    newCall$subset <- object$subset;
+    # This is based on the expanded data, so that we don't need to redo everything
+    if(interceptIsNeeded){
+        newCall$formula <- as.formula(paste0("`",colnames(object$data)[1],"`~."));
+    }
+    else{
+        newCall$formula <- as.formula(paste0("`",colnames(object$data)[1],"`~.-1"));
+    }
+    # newCall$formula <- formula(object);
+    newCall$data <- substitute(object$data);
+    # newCall$subset <- object$subset;
     newCall$distribution <- object$distribution;
     if(object$loss=="custom"){
         newCall$loss <- object$lossFunction;
@@ -280,7 +285,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.8*nobs(object)),
         for(i in 1:nsim){
             newCall$subset <- sampler(indices,size,replace,prob,ariOrderNone);
             testModel <- suppressWarnings(eval(newCall));
-            coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
+            coefBootstrap[i,variablesNamesMade %in% names(coef(testModel))] <- coef(testModel);
         }
     }
     else{
@@ -298,6 +303,9 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.8*nobs(object)),
 
     # Get rid of NAs. They mean "zero"
     coefBootstrap[is.na(coefBootstrap)] <- 0;
+
+    # Rename the variables to the originals
+    colnames(coefBootstrap) <- names(coefficientsOriginal);
 
     # Centre the coefficients for the calculation of the vcov
     coefvcov <- coefBootstrap - matrix(coefficientsOriginal, nsim, nVariables, byrow=TRUE);

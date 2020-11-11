@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 0.6.4.41003
-Date: 2020-11-04
+Version: 0.6.4.41004
+Date: 2020-11-10
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -20,7 +20,7 @@ Description: Implements functions and instruments for regression model building 
              that allow producing forecasts from these models and visualising them.
 License: GPL (>=2)
 Depends:
-    R (>= 3.0.2)
+    R (>= 3.5.0)
 Imports:
     forecast,
     stats,
