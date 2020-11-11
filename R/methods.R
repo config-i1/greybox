@@ -751,7 +751,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                 # If the conventional approach failed, do bootstrap
                 if(any(class(vcovMatrix)=="try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                                   "Switching to bootstrap of covariance matrix of parameters."),
+                                   "Switching to bootstrap of covariance matrix of parameters.\n"),
                             call.=FALSE, immediate.=TRUE);
                     vcov <- coefbootstrap(object, ...)$vcov;
                 }
@@ -791,7 +791,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                 # If the conventional approach failed, do bootstrap
                 if(any(class(FIMatrix)=="try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                                   "Switching to bootstrap of covariance matrix of parameters."),
+                                   "Switching to bootstrap of covariance matrix of parameters.\n"),
                             call.=FALSE, immediate.=TRUE);
                     vcov <- coefbootstrap(object, ...)$vcov;
                 }
@@ -869,7 +869,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             # If the conventional approach failed, do bootstrap
             if(any(class(FIMatrix)=="try-error")){
                 warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
-                               "Switching to bootstrap of covariance matrix of parameters."),
+                               "Switching to bootstrap of covariance matrix of parameters.\n"),
                         call.=FALSE, immediate.=TRUE);
                 vcov <- coefbootstrap(object, ...)$vcov;
             }
