@@ -480,10 +480,7 @@ alm <- function(formula, data, subset, na.action,
         return(fitterReturn);
     }
 
-    CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel, denominator, hessianCalculation=FALSE){
-        if(hessianCalculation){
-            B[] <- B * denominator;
-        }
+    CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel, denominator){
         if(recursiveModel){
             fitterReturn <- fitterRecursive(B, distribution, y, matrixXreg);
         }
@@ -1441,14 +1438,14 @@ alm <- function(formula, data, subset, na.action,
                                 maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                       lb=BLower, ub=BUpper,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                      recursiveModel=recursiveModel, denominator=denominator, hessianCalculation=FALSE);
+                      recursiveModel=recursiveModel, denominator=denominator);
         if(recursiveModel){
             res2 <- nloptr(res$solution, CF,
                            opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
                                 maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                            lb=BLower, ub=BUpper,
                            distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                           recursiveModel=recursiveModel, denominator=denominator, hessianCalculation=FALSE);
+                           recursiveModel=recursiveModel, denominator=denominator);
             if(res2$objective<res$objective){
                 res[] <- res2;
             }
@@ -1725,16 +1722,10 @@ alm <- function(formula, data, subset, na.action,
     if(FI){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        # Standartisation is needed in order to get accurate hessian
-        denominator <- apply(matrixXreg, 2, sd);
-        # No variability, substitute by 1
-        denominator[is.infinite(denominator)] <- 1;
-        # Fix the denominator for the intercept
-        denominator[denominator==0] <- B[denominator==0];
-        BNew <- B / denominator;
+        BNew <- B;
         FI <- hessian(CF, BNew,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
-                      recursiveModel=recursiveModel, denominator=denominator, hessianCalculation=FALSE);
+                      recursiveModel=recursiveModel, denominator=denominator);
 
         if(any(is.nan(FI))){
             warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",

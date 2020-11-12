@@ -1,4 +1,4 @@
-greybox v0.6.4 (Release data: 2020-11-11)
+greybox v0.6.4 (Release data: 2020-11-12)
 ==============
 
 Changes:
@@ -6,10 +6,12 @@ Changes:
 * plot.greybox(x, 1) now does not have the symmetric axes. This helps in reading the data in cases of fat tails.
 * Updated vignette of ro() to reflect the new defaults.
 * Reverting the hessian calculation without normalisation.
-* New set of distribution functions: logitnorm
+* New set of distribution functions: logitnorm.
+* Confidence interval for the mean is now calcualted based on the normal distribution (CLT assumption).
 
 Bugfixes:
 * coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).
+* A fix for the issue with hessian calculation.
 
 
 greybox v0.6.3 (Release data: 2020-10-20)

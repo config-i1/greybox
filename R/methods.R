@@ -2623,7 +2623,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dlaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         scaleValues <- sqrt(greyboxForecast$variances/2);
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- qlaplace(levelLow[,i],greyboxForecast$mean,scaleValues);
                 greyboxForecast$upper[,i] <- qlaplace(levelUp[,i],greyboxForecast$mean,scaleValues);
@@ -2634,20 +2634,24 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dllaplace"){
         # Use the connection between the variance and MAE in Laplace distribution
         scaleValues <- sqrt(greyboxForecast$variances/2);
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- exp(qlaplace(levelLow[,i],greyboxForecast$mean,scaleValues));
                 greyboxForecast$upper[,i] <- exp(qlaplace(levelUp[,i],greyboxForecast$mean,scaleValues));
             }
         }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
         greyboxForecast$mean[] <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- scaleValues;
     }
     else if(object$distribution=="dalaplace"){
-        # Use the connection between the variance and MAE in Laplace distribution
+        # Use the connection between the variance and scale in ALaplace distribution
         alpha <- object$other$alpha;
         scaleValues <- sqrt(greyboxForecast$variances * alpha^2 * (1-alpha)^2 / (alpha^2 + (1-alpha)^2));
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- qalaplace(levelLow[,i],greyboxForecast$mean,scaleValues,alpha);
                 greyboxForecast$upper[,i] <- qalaplace(levelUp[,i],greyboxForecast$mean,scaleValues,alpha);
@@ -2658,7 +2662,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="ds"){
         # Use the connection between the variance and scale in S distribution
         scaleValues <- (greyboxForecast$variances/120)^0.25;
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- qs(levelLow[,i],greyboxForecast$mean,scaleValues);
                 greyboxForecast$upper[,i] <- qs(levelUp[,i],greyboxForecast$mean,scaleValues);
@@ -2669,11 +2673,15 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dls"){
         # Use the connection between the variance and scale in S distribution
         scaleValues <- (greyboxForecast$variances/120)^0.25;
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- exp(qs(levelLow[,i],greyboxForecast$mean,scaleValues));
                 greyboxForecast$upper[,i] <- exp(qs(levelUp[,i],greyboxForecast$mean,scaleValues));
             }
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
         }
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- scaleValues;
@@ -2681,7 +2689,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dgnorm"){
         # Use the connection between the variance and scale in Generalised Normal distribution
         scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$beta)/gamma(3/object$other$beta)));
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$beta);
             greyboxForecast$upper[] <- qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$beta);
         }
@@ -2690,9 +2698,13 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dlgnorm"){
         # Use the connection between the variance and scale in Generalised Normal distribution
         scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$beta)/gamma(3/object$other$beta)));
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- exp(qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$beta));
             greyboxForecast$upper[] <- exp(qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$beta));
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
         }
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         greyboxForecast$scale <- scaleValues;
@@ -2700,13 +2712,13 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dt"){
         # Use df estimated by the model and then construct conventional intervals. df=2 is the minimum in this model.
         df <- nobs(object) - nparam(object);
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelLow,df);
             greyboxForecast$upper[] <- greyboxForecast$mean + sqrt(greyboxForecast$variances) * qt(levelUp,df);
         }
     }
     else if(object$distribution=="dfnorm"){
-        if(interval!="none"){
+        if(interval=="prediction"){
             for(i in 1:nLevels){
                 greyboxForecast$lower[,i] <- qfnorm(levelLow[,i],greyboxForecast$mean,sqrt(greyboxForecast$variance));
                 greyboxForecast$upper[,i] <- qfnorm(levelUp[,i],greyboxForecast$mean,sqrt(greyboxForecast$variance));
@@ -2750,9 +2762,13 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         if(any(greyboxForecast$mean<0)){
             greyboxForecast$mean[greyboxForecast$mean<0] <- 0;
         }
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- qbcnorm(levelLow,greyboxForecast$mean,sigma,object$other$lambdaBC);
             greyboxForecast$upper[] <- qbcnorm(levelUp,greyboxForecast$mean,sigma,object$other$lambdaBC);
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- (greyboxForecast$lower*object$other$lambdaBC+1)^{1/object$other$lambdaBC};
+            greyboxForecast$upper[] <- (greyboxForecast$upper*object$other$lambdaBC+1)^{1/object$other$lambdaBC};
         }
         if(object$other$lambdaBC==0){
             greyboxForecast$mean[] <- exp(greyboxForecast$mean)
@@ -2769,32 +2785,35 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         else{
             sigma <- sqrt(greyboxForecast$variance);
         }
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- qlogitnorm(levelLow,greyboxForecast$mean,sigma);
             greyboxForecast$upper[] <- qlogitnorm(levelUp,greyboxForecast$mean,sigma);
         }
-        greyboxForecast$mean <- exp(greyboxForecast$mean)/(1+greyboxForecast$mean);
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower)/(1+exp(greyboxForecast$lower));
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper)/(1+exp(greyboxForecast$upper));
+        }
+        greyboxForecast$mean[] <- exp(greyboxForecast$mean)/(1+exp(greyboxForecast$mean));
         greyboxForecast$scale <- sigma;
     }
     else if(object$distribution=="dinvgauss"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval=="prediction"){
             greyboxForecast$scale <- object$scale;
-        }
-        else if(interval=="confidence"){
-            greyboxForecast$scale <- greyboxForecast$variance / greyboxForecast$mean^3;
-        }
-        if(interval!="none"){
             greyboxForecast$lower[] <- greyboxForecast$mean*qinvgauss(levelLow,mean=1,
                                                                       dispersion=greyboxForecast$scale);
             greyboxForecast$upper[] <- greyboxForecast$mean*qinvgauss(levelUp,mean=1,
                                                                       dispersion=greyboxForecast$scale);
         }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
     }
     else if(object$distribution=="dlogis"){
         # Use the connection between the variance and scale in logistic distribution
         scale <- sqrt(greyboxForecast$variances * 3 / pi^2);
-        if(interval!="none"){
+        if(interval=="prediction"){
             greyboxForecast$lower[] <- qlogis(levelLow,greyboxForecast$mean,scale);
             greyboxForecast$upper[] <- qlogis(levelUp,greyboxForecast$mean,scale);
         }
