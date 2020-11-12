@@ -191,6 +191,8 @@ In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\
 \end{equation}
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
+**NOTE**: in order for the Asymmetric Laplace to work well, you might need to have large samples. This is inheritted from the pinball score of the quantile regression. If you fit the model on 40 observations with $\alpha=0.05$, you will only have 2 observations below the line, which does not help very much with the fit. Similarly, the covariance matrix, produced via the Hessian might not be adequate in this situation (because there is not enough variability in the data due to extreme value of $\alpha$). The latter can be partially addressed by using bootstrap, but do not expect miracles on small samples.
+
 
 ### S distribution {#svetunkov}
 The S distribution has the following density function:
