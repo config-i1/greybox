@@ -1722,8 +1722,7 @@ alm <- function(formula, data, subset, na.action,
     if(FI){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        BNew <- B;
-        FI <- hessian(CF, BNew,
+        FI <- hessian(CF, B,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel, denominator=denominator);
 
