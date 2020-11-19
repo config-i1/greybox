@@ -2562,7 +2562,12 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     interval <- match.arg(interval);
     side <- match.arg(side);
-    h <- nrow(newdata);
+    if(!is.null(newdata)){
+        h <- nrow(newdata);
+    }
+    else{
+        h <- nobs(object);
+    }
     levelOriginal <- level;
     nLevels <- length(level);
 

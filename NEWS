@@ -12,6 +12,7 @@ Changes:
 Bugfixes:
 * coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).
 * A fix for the issue with hessian calculation.
+* A fix of annoying bug with predict() applied without the newdata.
 
 
 greybox v0.6.3 (Release data: 2020-10-20)
