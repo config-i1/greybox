@@ -1,4 +1,4 @@
-greybox v0.6.4 (Release data: 2020-11-12)
+greybox v0.6.4 (Release data: 2020-11-23)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Bugfixes:
 * coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).
 * A fix for the issue with hessian calculation.
 * A fix of annoying bug with predict() applied without the newdata.
+* A fix of the bug with names with special characters in alm(). It works, assuming that the formula has "+" sign only. In general, don't use special characters in names, use make.names() function.
 
 
 greybox v0.6.3 (Release data: 2020-10-20)

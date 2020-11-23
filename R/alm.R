@@ -717,7 +717,7 @@ alm <- function(formula, data, subset, na.action,
         warning(paste0("Please, keep in mind that loss='",loss,
                        "' is an experimental option. It might not work correctly."), call.=FALSE);
         if(is.null(ellipsis$lambda)){
-            warning(paste0("You have not provided lambda parameter. We will set it to zero."), call.=FALSE);
+            warning("You have not provided lambda parameter. We will set it to zero.", call.=FALSE);
             lambda <- 0;
         }
         else{
@@ -890,6 +890,21 @@ alm <- function(formula, data, subset, na.action,
             dataContainsNaNs <- FALSE;
         }
 
+        # If there are spaces in names, give a warning
+        if(any(grepl("[^[:alnum:]]", all.vars(formula)))){
+            warning("The names of your variables contain special characters ",
+                    "(such as spaces, comas, brackets etc). alm() might not work properly. ",
+                    "It is recommended to use `make.names()` function to fix the names of variables.",
+                    call.=FALSE);
+            formula <- as.formula(paste0(gsub(paste0("`",all.vars(formula)[1],"`"),
+                                              make.names(all.vars(formula)[1]),
+                                              all.vars(formula)[1]),"~",
+                                         paste0(mapply(gsub, paste0("`",all.vars(formula)[-1],"`"),
+                                                       make.names(all.vars(formula)[-1]),
+                                                       labels(terms(formula))),
+                                                collapse="+")));
+            mf$formula <- formula;
+        }
         # Fix names of variables
         colnames(mf$data) <- make.names(colnames(mf$data), unique=TRUE);
     }
@@ -946,8 +961,8 @@ alm <- function(formula, data, subset, na.action,
         matrixXreg <- dataWork;
         # Include response to the data
         # dataWork <- cbind(y,dataWork);
-        warning(paste0("You have asked not to include intercept in the model. We will try to fit the model, ",
-                      "but this is a very naughty thing to do, and we cannot guarantee that it will work..."), call.=FALSE);
+        warning("You have asked not to include intercept in the model. We will try to fit the model, ",
+                "but this is a very naughty thing to do, and we cannot guarantee that it will work...", call.=FALSE);
     }
     # colnames(dataWork) <- c(responseName, variablesNames);
     rm(dataWork);
@@ -1727,9 +1742,9 @@ alm <- function(formula, data, subset, na.action,
                       recursiveModel=recursiveModel, denominator=denominator);
 
         if(any(is.nan(FI))){
-            warning(paste0("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
-                           "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
-                           "Try a different distribution maybe?"), call.=FALSE);
+            warning("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",
+                    "Obviously, it's not our fault. Probably Russians have hacked your computer...\n",
+                    "Try a different distribution maybe?", call.=FALSE);
             FI <- diag(1e+100,nVariables);
         }
         dimnames(FI) <- list(variablesNames,variablesNames);
