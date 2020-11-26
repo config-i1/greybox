@@ -9,6 +9,7 @@ Changes:
 * New set of distribution functions: logitnorm.
 * Confidence interval for the mean is now calcualted based on the normal distribution (CLT assumption).
 * Renamed alm() from "Advanced Linear Model" to "Augmented Linear Model".
+* Cook's distance plot now has quantile lines for 0.25, 0.5 and 0.95.
 
 Bugfixes:
 * coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).

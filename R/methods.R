@@ -986,7 +986,7 @@ vcov.lmGreybox <- function(object, ...){
 #' \item Studentised residuals vs Time;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals;
-#' \item Cook's distance over time.
+#' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution.
 #' }
 #' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
 #' (8), (9), (10) and (11).
@@ -1535,14 +1535,24 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
         ellipsis$x <- abs(cooks.distance(x));
-        outliers <- which(ellipsis$x>=0.5);
+        thresholdsF <- qf(c(0.5,0.75,0.95), nparam(x), nobs(x)-nparam(x))
+        thresholdsColours <- c("red","red","red")
+        thresholdsLty <- c(3,2,5)
+        thresholdsLwd <- c(1,1,2)
+        outliers <- which(ellipsis$x>=thresholdsF[2]);
 
         # Start plotting
         do.call(plot,ellipsis);
-        abline(h=0.5, col="red", lty=2, lwd=1);
+        for(i in 1:length(thresholdsF)){
+            abline(h=thresholdsF[i], col=thresholdsColours[i], lty=thresholdsLty[i], lwd=thresholdsLwd[i]);
+        }
         if(length(outliers)>0){
             text(outliers, ellipsis$x[outliers], labels=outliers, pos=2);
-            abline(h=1, col="red", lty=1, lwd=2);
+        }
+        if(legend){
+            legend("topright",
+                   legend=paste0("F(",c(0.5,0.75,0.95),",",nparam(x),",",nobs(x)-nparam(x),")"),
+                   col=thresholdsColours, lwd=thresholdsLwd, lty=thresholdsLty);
         }
     }
 

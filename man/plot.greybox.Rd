@@ -25,7 +25,7 @@
 \item Studentised residuals vs Time;
 \item ACF of the residuals;
 \item PACF of the residuals;
-\item Cook's distance over time.
+\item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution.
 }}
 
 \item{level}{Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
