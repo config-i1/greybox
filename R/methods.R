@@ -1010,7 +1010,7 @@ vcov.lmGreybox <- function(object, ...){
 #' par(mfcol=c(3,4))
 #' plot(ourModel, c(1:12))
 #'
-#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess
+#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess qf
 #' @importFrom grDevices dev.interactive devAskNewPage grey
 #' @aliases plot.alm
 #' @export
