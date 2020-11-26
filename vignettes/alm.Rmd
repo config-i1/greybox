@@ -1,10 +1,10 @@
 ---
-title: "Advanced Linear Model"
+title: "Augmented Linear Model"
 author: "Ivan Svetunkov"
 date: "`r Sys.Date()`"
 output: rmarkdown::html_vignette
 vignette: >
-  %\VignetteIndexEntry{Advanced Linear Model}
+  %\VignetteIndexEntry{Augmented Linear Model}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
 bibliography: library.bib
@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 library(greybox)
 ```
 
-ALM stands for "Advanced Linear Model". It's not so much advanced as it sounds, but it has some advantages over the basic LM, retaining some basic features. In some sense `alm()` resembles the `glm()` function from stats package, but with a higher focus on forecasting rather than on hypothesis testing. You will not get p-values anywhere from the `alm()` function and won't see $R^2$ in the outputs. The maximum what you can count on is having confidence intervals for the parameters or for the regression line. The other important difference from `glm()` is the availability of distributions that are not supported by `glm()` (for example, Folded Normal or Chi Squared distributions). Finally, `alm()` supports different loss functions via the `loss` parameter, so you can estimate parameters of your model via, for example, likelihood maximisation or via minimisation of MSE / MAE, using LASSO / RIDGE or by minimising a loss provided by user.
+ALM stands for "Augmented Linear Model". The word "augmented" is used to reflect that the model introduces aspects that extend beyond the basic linear model. In some special cases `alm()` resembles the `glm()` function from stats package, but with a higher focus on forecasting rather than on hypothesis testing. You will not get p-values anywhere from the `alm()` function and won't see $R^2$ in the outputs. The maximum what you can count on is having confidence intervals for the parameters or for the regression line. The other important difference from `glm()` is the availability of distributions that are not supported by `glm()` (for example, Folded Normal or Box-Cox Normal distributions) and it allows optimising non-standard parameters (e.g. $\lambda$ in Asymmetric Laplace distribution). Finally, `alm()` supports different loss functions via the `loss` parameter, so you can estimate parameters of your model via, for example, likelihood maximisation or via minimisation of MSE / MAE, using LASSO / RIDGE or by minimising a loss provided by user.
 
 Although `alm()` supports various loss functions, the core of the function is the likelihood approach. By default the estimation of parameters in the model is done via the maximisation of likelihood function of a selected distribution. The calculation of the standard errors is done based on the calculation of hessian of the distribution. And in the centre of all of that are information criteria that can be used for the models comparison.
 

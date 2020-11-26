@@ -27,12 +27,12 @@ There are three well-known notions of "boxes" in modelling:
 
 The white boxes are usually used in optimisations (e.g. linear programming), while black boxes are popular in machine learning. As for the grey box models, they are more often used in analysis and forecasting. So the package `greybox` contains models that are used for these purposes.
 
-At the moment the package contains advanced linear model function and several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing. This is the main philosophical point of `greybox`.
+At the moment the package contains augmented linear model function and several basic functions that implement model selection and combinations using information criteria (IC). You won't find statistical tests in this package - there's plenty of them in the other packages. Here we try using the modern techniques and methods that do not rely on hypothesis testing. This is the main philosophical point of `greybox`.
 
 ## Main functions
 The package includes the following functions for models construction:
 
-1. [alm()](alm.html) - Advanced Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data.
+1. [alm()](alm.html) - Augmented Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data.
 2. [stepwise()](#stepwise) - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
 3. [lmCombine()](#lmCombine) - combine the linear models into one using IC weights;
 4. [lmDynamic()](#lmDynamic) - produce model with dynamic weights and time varying parameters based on point IC weight.

@@ -1,4 +1,4 @@
-#' Advanced Linear Model
+#' Augmented Linear Model
 #'
 #' Function estimates model based on the selected distribution
 #'

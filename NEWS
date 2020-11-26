@@ -1,4 +1,4 @@
-greybox v0.6.4 (Release data: 2020-11-23)
+greybox v0.6.4 (Release data: 2020-11-26)
 ==============
 
 Changes:
@@ -8,6 +8,7 @@ Changes:
 * Reverting the hessian calculation without normalisation.
 * New set of distribution functions: logitnorm.
 * Confidence interval for the mean is now calcualted based on the normal distribution (CLT assumption).
+* Renamed alm() from "Advanced Linear Model" to "Augmented Linear Model".
 
 Bugfixes:
 * coefbootstrap() would not work in case of poorly prepared names of variables (e.g. with spaces and quotes).

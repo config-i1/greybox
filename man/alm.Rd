@@ -2,7 +2,7 @@
 % Please edit documentation in R/alm.R
 \name{alm}
 \alias{alm}
-\title{Advanced Linear Model}
+\title{Augmented Linear Model}
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
