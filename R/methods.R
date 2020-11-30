@@ -731,7 +731,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         # If the likelihood is not available, then this is a non-conventional loss
         if(is.na(logLik(object))){
             warning(paste0("You used the non-likelihood compatible loss, so the covariance matrix might be incorrect. ",
-                           "It is advised to use bootstrap='TRUE' option in this case."),
+                           "It is recommended to use bootstrap='TRUE' option in this case."),
                     call.=FALSE);
         }
 
