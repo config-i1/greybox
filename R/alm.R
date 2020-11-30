@@ -256,7 +256,7 @@ alm <- function(formula, data, subset, na.action,
                                "plogis","pnorm"),
                 loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
                 occurrence=c("none","plogis","pnorm"),
-                # scaleFormula=NULL,
+                # scale=NULL,
                 ar=0,# i=0,
                 parameters=NULL, fast=FALSE, ...){
 # Useful stuff for dnbinom: https://scialert.net/fulltext/?doi=ajms.2010.1.15
@@ -1144,7 +1144,7 @@ alm <- function(formula, data, subset, na.action,
     nVariablesExo <- nVariables;
 
     #### The model for the scale ####
-    # if(!is.null(scaleFormula)){
+    # if(!is.null(scale)){
     # }
 
     #### Estimate parameters of the model ####
@@ -1827,11 +1827,15 @@ alm <- function(formula, data, subset, na.action,
         mu <- yFitted;
     }
 
-    if(loss=="likelihood" ||
-       (loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))) ||
+    # Return LogLik, depending on the used loss
+    if(loss=="likelihood"){
+        logLik <- -CFValue;
+    }
+    else if((loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))) ||
        (loss=="MAE" && any(distribution==c("dlaplace","dllaplace"))) ||
        (loss=="HAM" && any(distribution==c("ds","dls")))){
-        logLik <- -CFValue;
+        logLik <- -CF(B, distribution, loss="likelihood", y,
+                      matrixXreg, recursiveModel, denominator);
     }
     else{
         logLik <- NA;
