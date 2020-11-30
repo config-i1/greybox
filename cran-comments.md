@@ -1,12 +1,12 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "20 October 2020"
+date: "30 November 2020"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.3
+This is the release of the package ``greybox``, v0.6.4
 
 ## Test environments
 * local ubuntu 19.10, R 4.0.3
@@ -27,10 +27,16 @@ This is expected, because doMC is not available for Windows.
 ## R-hub
 **Rhub, Windows Server 2008 R2 SP1, R-devel, 32/64 bit gives an error:**
 >* checking package dependencies ... ERROR
+>Packages required but not available:
+>  'Rcpp'
+>Packages suggested but not available:
+>  'smooth', 'doMC', 'doParallel', 'foreach', 'testthat', 'rmarkdown',
+>  'knitr'
 >Package which this enhances but not available for checking: 'vars'
 >Packages suggested but not available: 'doMC'
 
-However, the former package is available on CRAN, so it's not clear, what the problem is. The latter is just not available for Windows.
+However, the former packages are available on CRAN, so it's not clear, what the problem is. What's wrong with this platform?
+`doMC` is just not available for Windows.
 
 **Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
