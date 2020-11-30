@@ -566,8 +566,8 @@ alm <- function(formula, data, subset, na.action,
         else{
             ### Fitted values in the scale of the original variable
             yFitted[] <- switch(distribution,
-                                "dfnorm" = sqrt(2/pi)*scale*exp(-fitterReturn$mu^2/(2*scale^2))+
-                                    fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/scale)),
+                                "dfnorm" = sqrt(2/pi)*fitterReturn$scale*exp(-fitterReturn$mu^2/(2*fitterReturn$scale^2))+
+                                    fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/fitterReturn$scale)),
                                 "dnorm" =,
                                 "dgnorm" =,
                                 "dinvgauss" =,
@@ -584,8 +584,8 @@ alm <- function(formula, data, subset, na.action,
                                 "dls" =,
                                 "dlgnorm" = exp(fitterReturn$mu),
                                 "dlogitnorm" = exp(fitterReturn$mu)/(1+exp(fitterReturn$mu)),
-                                "dbcnorm" = bcTransformInv(fitterReturn$mu,lambdaBC),
-                                "dbeta" = fitterReturn$mu / (fitterReturn$mu + scale),
+                                "dbcnorm" = bcTransformInv(fitterReturn$mu,fitterReturn$other),
+                                "dbeta" = fitterReturn$mu / (fitterReturn$mu + fitterReturn$scale),
                                 "pnorm" = pnorm(fitterReturn$mu, mean=0, sd=1),
                                 "plogis" = plogis(fitterReturn$mu, location=0, scale=1)
             );
@@ -711,6 +711,13 @@ alm <- function(formula, data, subset, na.action,
             nu <- ellipsis$nu;
             aParameterProvided <- TRUE;
         }
+    }
+    if(!aParameterProvided && loss!="likelihood"){
+        warning("The chosen loss function does not allow optimisation of additional parameters ",
+                "for the distribution=\"",distribution,"\". Use likelihood instead. We will use 0.5.",
+                call.=FALSE);
+            alpha <- nu <- size <- sigma <- beta <- lambdaBC <- nu <- 0.5;
+            aParameterProvided <- TRUE;
     }
     # LASSO / RIDGE loss
     if(any(loss==c("LASSO","RIDGE"))){
