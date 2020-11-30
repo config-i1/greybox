@@ -712,6 +712,9 @@ alm <- function(formula, data, subset, na.action,
             aParameterProvided <- TRUE;
         }
     }
+    else{
+        aParameterProvided <- TRUE;
+    }
     if(!aParameterProvided && loss!="likelihood"){
         warning("The chosen loss function does not allow optimisation of additional parameters ",
                 "for the distribution=\"",distribution,"\". Use likelihood instead. We will use 0.5.",
