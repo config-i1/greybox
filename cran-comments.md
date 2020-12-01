@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "30 November 2020"
+date: "01 December 2020"
 output: html_document
 ---
 
@@ -41,14 +41,8 @@ However, the former packages are available on CRAN, so it's not clear, what the 
 **Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
 >Package which this enhances but not available for checking: ‘vars’
->
->* checking Rd cross-references ... NOTE
->Package unavailable to check Rd xrefs: ‘gnorm’
 
 Similar to the previous comments. Not clear, why. Both are on CRAN.
-
-**Debian Linux, R-devel, GCC ASAN/UBSAN:**
-Finds an error in a function, not related to the greybox package, but to some unrelated files backref.cpp and scheduler.cpp.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
