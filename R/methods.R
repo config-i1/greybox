@@ -1865,6 +1865,7 @@ print.mcor <- function(x, ...){
     cat("\n");
 }
 
+#' @importFrom stats setNames
 #' @export
 print.summary.alm <- function(x, ...){
     ellipsis <- list(...);
@@ -1919,7 +1920,11 @@ print.summary.alm <- function(x, ...){
         cat("\nBootstrap was used for the estimation of uncertainty of parameters");
     }
     cat("\nCoefficients:\n");
-    print(round(x$coefficients,digits));
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    print(data.frame(round(x$coefficients,digits),stars,
+                     check.names=FALSE,fix.empty.names=FALSE));
 
     cat("\nError standard deviation: "); cat(round(sqrt(x$s2),digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
@@ -1972,7 +1977,11 @@ print.summary.greybox <- function(x, ...){
         cat(paste0("\n",x$arima," components were included in the model"));
     }
     cat("\nCoefficients:\n");
-    print(round(x$coefficients,digits));
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    print(data.frame(round(x$coefficients,digits),stars,
+                     check.names=FALSE,fix.empty.names=FALSE));
     cat("\nError standard deviation: "); cat(round(x$sigma,digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
     cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
@@ -2025,7 +2034,11 @@ print.summary.greyboxC <- function(x, ...){
     cat(paste0("Response variable: ", paste0(x$responseName,collapse=""),"\n"));
     cat(paste0("Distribution used in the estimation: ", distrib));
     cat("\nCoefficients:\n");
-    print(round(x$coefficients,digits));
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    print(data.frame(round(x$coefficients,digits),stars,
+                     check.names=FALSE,fix.empty.names=FALSE));
     cat("\nError standard deviation: "); cat(round(x$sigma,digits));
     cat("\nSample size: "); cat(round(x$dfTable[1],digits));
     cat("\nNumber of estimated parameters: "); cat(round(x$dfTable[2],digits));
@@ -2360,6 +2373,8 @@ summary.greybox <- function(object, level=0.95, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn$coefficients <- parametersTable;
+    # Mark those that are significant on the selected level
+    ourReturn$significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
 
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
@@ -2398,6 +2413,8 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn <- list(coefficients=parametersTable);
+    # Mark those that are significant on the selected level
+    ourReturn$significance <- !(parametersTable[,3]<0 & parametersTable[,4]>0);
 
     # If there is a likelihood, then produce ICs
     if(!is.na(logLik(object))){
@@ -2442,6 +2459,8 @@ summary.greyboxC <- function(object, level=0.95, ...){
     colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
+    # Mark those that are significant on the selected level
+    significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
@@ -2458,7 +2477,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
     R2 <- 1 - sum(errors^2) / sum((actuals(object)-mean(actuals(object)))^2);
     R2Adj <- 1 - (1 - R2) * (obs - 1) / (dfTable[3]);
 
-    ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
+    ourReturn <- structure(list(coefficients=parametersTable, significance=significance, sigma=residSE,
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 dfTable=dfTable, bootstrap=FALSE),
@@ -2482,6 +2501,8 @@ summary.greyboxD <- function(object, level=0.95, ...){
     colnames(parametersTable) <- c("Estimate","Std. Error","Importance",
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
+    # Mark those that are significant on the selected level
+    significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
@@ -2498,7 +2519,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
     dfTable <- c(nobs(object), nparam(object), object$df.residual);
     names(dfTable) <- c("n","k","df");
 
-    ourReturn <- structure(list(coefficients=parametersTable, sigma=residSE,
+    ourReturn <- structure(list(coefficients=parametersTable, significance=significance, sigma=residSE,
                                 dynamic=coef(object)$dynamic,
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
@@ -2521,7 +2542,12 @@ summary.lmGreybox <- function(object, level=0.95, ...){
 
 #' @export
 as.data.frame.summary.greybox <- function(x, ...){
-    return(as.data.frame(x$coefficients, ...));
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    return(data.frame(x$coefficients,stars,
+                      row.names=rownames(x$coefficients),
+                      check.names=FALSE,fix.empty.names=FALSE));
 }
 
 #' @importFrom texreg extract createTexreg

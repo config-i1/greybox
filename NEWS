@@ -1,3 +1,10 @@
+greybox v0.6.5 (Release data: 2020-12-01)
+==============
+
+Changes:
+* Introduced stars in summary, indicating that we reject H0 on the specified level for some parameters.
+
+
 greybox v0.6.4 (Release data: 2020-12-01)
 ==============
 
