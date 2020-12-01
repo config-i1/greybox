@@ -7,11 +7,11 @@
 \usage{
 temporaldummy(object, type = c("month", "quarter", "week", "day", "hour",
   "halfhour", "minute", "second"), of = c("year", "quarter", "month", "week",
-  "day", "hour", "minute"), h = 0)
+  "day", "hour", "minute"), factors = FALSE, h = 0)
 
 \method{temporaldummy}{default}(object, type = c("month", "quarter", "week",
   "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), h = 0)
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0)
 }
 \arguments{
 \item{object}{Either a ts / msts / zoo / xts / tsibble object or a vector
@@ -25,14 +25,22 @@ be created.}
 e.g. \code{type="day"} and \code{of="month"} will produce a matrix with dummies
 for days of month (31 dummies).}
 
+\item{factors}{If \code{TRUE}, the function will return the categorical variable
+instead of the matrix with dummies.}
+
 \item{h}{If not \code{NULL}, then the function will produce dummies for this
 set of observations ahead as well, binding them to the original matrix.}
 }
 \value{
-Class "dgCMatrix" with all the dummy variables is returned in case of numeric
-variable. Feel free to drop one (making it a reference variable) or convert the object
-into matrix (this will consume more memory than the returned class). In other cases the
-object of the same class as the provided is returned.
+One of the two is returned, depending on the value of \code{factors} variable:
+\itemize{
+\item \code{factors=FALSE}: Class "dgCMatrix" with all the dummy variables is returned
+in case of numeric variable. Feel free to drop one (making it a reference variable) or
+convert the object into matrix (this will consume more memory than the returned class).
+In other cases the object of the same class as the provided is returned.
+\item \code{factors=TRUE}: The categorical variable (factor) containing specific values
+for each observation.
+}
 }
 \description{
 Function generates the matrix of dummy variables for the months / weeks / days /

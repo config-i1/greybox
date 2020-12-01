@@ -34,11 +34,18 @@
 #' for days of month (31 dummies).
 #' @param h If not \code{NULL}, then the function will produce dummies for this
 #' set of observations ahead as well, binding them to the original matrix.
+#' @param factors If \code{TRUE}, the function will return the categorical variable
+#' instead of the matrix with dummies.
 #'
-#' @return Class "dgCMatrix" with all the dummy variables is returned in case of numeric
-#' variable. Feel free to drop one (making it a reference variable) or convert the object
-#' into matrix (this will consume more memory than the returned class). In other cases the
-#' object of the same class as the provided is returned.
+#' @return One of the two is returned, depending on the value of \code{factors} variable:
+#' \itemize{
+#' \item \code{factors=FALSE}: Class "dgCMatrix" with all the dummy variables is returned
+#' in case of numeric variable. Feel free to drop one (making it a reference variable) or
+#' convert the object into matrix (this will consume more memory than the returned class).
+#' In other cases the object of the same class as the provided is returned.
+#' \item \code{factors=TRUE}: The categorical variable (factor) containing specific values
+#' for each observation.
+#' }
 #'
 #' @template author
 #' @template keywords
@@ -59,12 +66,12 @@
 #' @importFrom Matrix sparse.model.matrix
 #' @export
 temporaldummy <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                    of=c("year","quarter","month","week","day","hour","minute"), h=0) UseMethod("temporaldummy")
+                    of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0) UseMethod("temporaldummy")
 
 #' @rdname temporaldummy
 #' @export
 temporaldummy.default <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                            of=c("year","quarter","month","week","day","hour","minute"), h=0){
+                            of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -89,16 +96,21 @@ temporaldummy.default <- function(object, type=c("month","quarter","week","day",
     factorVariable <- factor(rep(c(1:dataFrequency),ceiling(obsAll/dataFrequency))[1:obsAll],
                              levels=c(1:dataFrequency));
 
-    # Do model matrix for sparse factors
-    temporaldummy <- sparse.model.matrix(~factorVariable-1);
-    colnames(temporaldummy) <- paste0(type,c(1:dataFrequency),"of",of);
+    if(!factors){
+        # Do model matrix for sparse factors
+        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        colnames(temporaldummy) <- paste0(type,c(1:dataFrequency),"of",of);
+        return(temporaldummy);
+    }
+    else{
+        return(factorVariable);
+    }
 
-    return(temporaldummy);
 }
 
 #' @export
 temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                             of=c("year","quarter","month","week","day","hour","minute"), h=0){
+                             of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
 
     # Define frequency (we don't know it in case of default class)
     dataFrequency <- frequency(object);
@@ -108,12 +120,13 @@ temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour
     of <- switch(as.character(dataFrequency), "52"=, "12"=, "4"="year", "7"="week", "24"=,
                  "48"="day", "60"="hour", "minute");
 
-    return(ts(as.matrix(temporaldummy.default(object, type=type, of=of, h=h)), start=start(object), frequency=dataFrequency));
+    return(ts(as.matrix(temporaldummy.default(object, type=type, of=of, factors=factors, h=h)),
+              start=start(object), frequency=dataFrequency));
 }
 
 #' @export
 temporaldummy.Date <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -209,11 +222,15 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
     # Create factors
     factorVariable <- factor(dateFinal)[1:obsAll];
 
-    # Do model matrix for sparse factors
-    temporaldummy <- sparse.model.matrix(~factorVariable-1);
-    colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
-
-    return(temporaldummy);
+    if(!factors){
+        # Do model matrix for sparse factors
+        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
+        return(temporaldummy);
+    }
+    else{
+        return(factorVariable);
+    }
 }
 
 #' @export
@@ -359,11 +376,15 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
     # Create factors
     factorVariable <- factor(dateFinal)[1:obsAll];
 
-    # Do model matrix for sparse factors
-    temporaldummy <- sparse.model.matrix(~factorVariable-1);
-    colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
-
-    return(temporaldummy);
+    if(!factors){
+        # Do model matrix for sparse factors
+        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
+        return(temporaldummy);
+    }
+    else{
+        return(factorVariable);
+    }
 }
 
 #' @export
@@ -380,5 +401,5 @@ temporaldummy.zoo <- function(object, type=c("month","quarter","week","day","hou
     }
 
     # Invoke the respective class for the date / time
-    return(zoo(as.matrix(temporaldummy(dates, type=type, of=of, h=h)), order.by=dates));
+    return(zoo(as.matrix(temporaldummy(dates, type=type, of=of, factors=factors, h=h)), order.by=dates));
 }
