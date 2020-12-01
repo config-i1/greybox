@@ -235,7 +235,7 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
 
 #' @export
 temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -389,7 +389,7 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
 
 #' @export
 temporaldummy.zoo <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
     type <- match.arg(type);
     of <- match.arg(of);
 
