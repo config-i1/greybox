@@ -1149,8 +1149,8 @@ alm <- function(formula, data, subset, na.action,
                 matrixXreg <- matrixXreg[,-(which(determValues==1)[1]+1),drop=FALSE];
                 variablesNames <- colnames(matrixXreg);
             }
-            nVariables <- length(variablesNames);
         }
+        nVariables <- length(variablesNames);
     }
     # The number of exogenous variables (no ARI elements)
     nVariablesExo <- nVariables;
