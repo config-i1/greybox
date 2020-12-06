@@ -113,7 +113,7 @@ extractAIC.alm <- function(fit, scale=NULL, k=2, ...){
         return(c(nparam(fit),IC(fit)));
     }
     else{
-        return(c(nparam(fit),-2*logLik(fit)+2*k));
+        return(c(nparam(fit),k*nparam(fit)-2*logLik(fit)));
     }
 }
 
