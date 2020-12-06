@@ -324,12 +324,12 @@ Kurtosis of Student t distribution depends on the value of $\nu$, and for the ca
 
 In order to see how this works, we will create the following data:
 ```{r normalDistributionData}
-xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
-xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(100,0,3),xreg,rnorm(100,300,10))
+xreg <- cbind(rnorm(200,10,3),rnorm(200,50,5))
+xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(200,0,3),xreg,rnorm(200,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
 
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
+inSample <- xreg[1:180,]
+outSample <- xreg[-c(1:180),]
 ```
 
 ALM can be run either with data frame or with matrix. Here's an example with normal distribution and several levels for the construction of prediction interval:
@@ -682,8 +682,8 @@ where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optim
 Round up the response variable for the next example:
 ```{r dataRound}
 xreg[,1] <- round(abs(xreg[,1]))
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
+inSample <- xreg[1:180,]
+outSample <- xreg[-c(1:180),]
 ```
 Negative Binomial distribution:
 ```{r negBinRegression}
@@ -783,8 +783,8 @@ As an example of mixture model, let's generate some data:
 xreg[,1] <- round(exp(xreg[,1]-400) / (1 + exp(xreg[,1]-400)),0) * xreg[,1]
 # Sometimes the generated data contains huge values
 xreg[is.nan(xreg[,1]),1] <- 0;
-inSample <- xreg[1:80,]
-outSample <- xreg[-c(1:80),]
+inSample <- xreg[1:180,]
+outSample <- xreg[-c(1:180),]
 ```
 
 First, we estimate the occurrence model (it will complain that the response variable is not binary, but it will work):
