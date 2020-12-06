@@ -105,6 +105,18 @@ BICc.varest <- function(object, ...){
     return(IC);
 }
 
+#' @export
+extractAIC.alm <- function(fit, scale=NULL, k=2, ...){
+    ellipsis <- list(...);
+    if(!is.null(ellipsis$ic)){
+        IC <- switch(ellipsis$ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
+        return(c(nparam(fit),IC(fit)));
+    }
+    else{
+        return(c(nparam(fit),-2*logLik(fit)+2*k));
+    }
+}
+
 #' Functions that extracts type of error from the model
 #'
 #' This function allows extracting error type from any model.

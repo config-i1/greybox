@@ -138,6 +138,7 @@ distribution="dnorm"),
 \item call - how the model was called,
 \item rank - rank of the model,
 \item data - data used for the model construction,
+\item terms - terms of the data. Needed for some additional methods to work,
 \item occurrence - the occurrence model used in the estimation,
 \item B - the value of the optimised parameters. Typically, this is a duplicate of coefficients,
 \item other - the list of all the other parameters either passed to the

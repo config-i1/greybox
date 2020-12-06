@@ -163,6 +163,7 @@
 #' \item call - how the model was called,
 #' \item rank - rank of the model,
 #' \item data - data used for the model construction,
+#' \item terms - terms of the data. Needed for some additional methods to work,
 #' \item occurrence - the occurrence model used in the estimation,
 #' \item B - the value of the optimised parameters. Typically, this is a duplicate of coefficients,
 #' \item other - the list of all the other parameters either passed to the
@@ -268,7 +269,7 @@ alm <- function(formula, data, subset, na.action,
 
     cl <- match.call();
     # This is needed in order to have a reasonable formula saved, so that there are no issues with it
-    cl$formula <- eval(cl$formula);
+        cl$formula <- eval(cl$formula);
     distribution <- match.arg(distribution);
     if(is.function(loss)){
         lossFunction <- loss;
@@ -953,6 +954,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     dataWork <- eval(mf, parent.frame());
+    dataTerms <- terms(dataWork);
     y <- dataWork[,1];
 
     interceptIsNeeded <- attr(terms(dataWork),"intercept")!=0;
@@ -1855,7 +1857,7 @@ alm <- function(formula, data, subset, na.action,
                                  mu=mu, scale=scale, distribution=distribution, logLik=logLik,
                                  loss=loss, lossFunction=lossFunction, lossValue=CFValue,
                                  df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
-                                 data=dataWork,
+                                 data=dataWork, terms=dataTerms,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B),
                             class=c("alm","greybox"));
 
