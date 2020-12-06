@@ -3159,10 +3159,10 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     }
     else{
         ourForecast <- as.vector(matrixOfxreg %*% parameters);
-        # abs is needed for some cases, when the likelihood was not fully optimised
-        vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
 
         if(interval!="none"){
+            # abs is needed for some cases, when the likelihood was not fully optimised
+            vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
             yUpper <- yLower <- matrix(NA, h, nLevels);
             if(interval=="confidence"){
                 for(i in 1:nLevels){
