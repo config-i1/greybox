@@ -3159,6 +3159,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     }
     else{
         ourForecast <- as.vector(matrixOfxreg %*% parameters);
+        vectorOfVariances <- NULL;
 
         if(interval!="none"){
             # abs is needed for some cases, when the likelihood was not fully optimised
