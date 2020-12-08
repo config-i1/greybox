@@ -57,9 +57,9 @@
 #' \url{https://en.wikipedia.org/wiki/Laplace_distribution}.
 #' }
 #'
-#' @rdname laplace-distribution
+#' @rdname Laplace
 #' @export dlaplace
-#' @aliases dlaplace
+#' @aliases Laplace dlaplace
 dlaplace <- function(q, mu=0, scale=1, log=FALSE){
     laplaceReturn <- 1/(2*scale)*exp(-abs(mu-q)/scale);
     if(log){
@@ -68,7 +68,7 @@ dlaplace <- function(q, mu=0, scale=1, log=FALSE){
     return(laplaceReturn);
 }
 
-#' @rdname laplace-distribution
+#' @rdname Laplace
 #' @export plaplace
 #' @aliases plaplace
 plaplace <- function(q, mu=0, scale=1){
@@ -76,7 +76,7 @@ plaplace <- function(q, mu=0, scale=1){
     return(laplaceReturn);
 }
 
-#' @rdname laplace-distribution
+#' @rdname Laplace
 #' @export qlaplace
 #' @aliases qlaplace
 qlaplace <- function(p, mu=0, scale=1){
@@ -107,7 +107,7 @@ qlaplace <- function(p, mu=0, scale=1){
     return(laplaceReturn);
 }
 
-#' @rdname laplace-distribution
+#' @rdname Laplace
 #' @export rlaplace
 #' @aliases rlaplace
 rlaplace <- function(n=1, mu=0, scale=1){

@@ -59,8 +59,9 @@
 #' Biometrics, 21 (3), 721–732. doi: 10.2307/2528553
 #' }
 #'
-#' @rdname logitnorm-distribution
+#' @rdname LogitNormal
 #' @importFrom stats dnorm pnorm qnorm rnorm
+#' @aliases LogitNormal dlogitnorm
 #' @export dlogitnorm
 dlogitnorm <- function(q, mu=0, sigma=1, log=FALSE){
     logitnormReturn <- 1 / (sigma*sqrt(2*pi)*q*(1-q))*exp(-(log(q/(1-q))-mu)^2/(2*sigma^2));
@@ -75,7 +76,7 @@ dlogitnorm <- function(q, mu=0, sigma=1, log=FALSE){
     return(logitnormReturn);
 }
 
-#' @rdname logitnorm-distribution
+#' @rdname LogitNormal
 #' @export plogitnorm
 #' @aliases plogitnorm
 plogitnorm <- function(q, mu=0, sigma=1){
@@ -86,7 +87,7 @@ plogitnorm <- function(q, mu=0, sigma=1){
     return(logitnormReturn);
 }
 
-#' @rdname logitnorm-distribution
+#' @rdname LogitNormal
 #' @export qlogitnorm
 #' @aliases qlogitnorm
 qlogitnorm <- function(p, mu=0, sigma=1){
@@ -96,7 +97,7 @@ qlogitnorm <- function(p, mu=0, sigma=1){
     return(logitnormReturn);
 }
 
-#' @rdname logitnorm-distribution
+#' @rdname LogitNormal
 #' @export rlogitnorm
 #' @aliases rlogitnorm
 rlogitnorm <- function(n=1, mu=0, sigma=1){

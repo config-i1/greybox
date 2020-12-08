@@ -72,9 +72,9 @@
 #' \url{https://doi.org/10.1080/03610920500199018}
 #' }
 #'
-#' @rdname alaplace-distribution
+#' @rdname ALaplace
 #' @export dalaplace
-#' @aliases dalaplace
+#' @aliases ALaplace dalaplace
 dalaplace <- function(q, mu=0, scale=1, alpha=0.5, log=FALSE){
     alaplaceReturn <- alpha * (1-alpha) / scale * exp(-(q-mu)/scale * (alpha - (q<=mu)*1));
     if(log){
@@ -83,7 +83,7 @@ dalaplace <- function(q, mu=0, scale=1, alpha=0.5, log=FALSE){
     return(alaplaceReturn);
 }
 
-#' @rdname alaplace-distribution
+#' @rdname ALaplace
 #' @export palaplace
 #' @aliases palaplace
 palaplace <- function(q, mu=0, scale=1, alpha=0.5){
@@ -93,7 +93,7 @@ palaplace <- function(q, mu=0, scale=1, alpha=0.5){
     return(alaplaceReturn);
 }
 
-#' @rdname alaplace-distribution
+#' @rdname ALaplace
 #' @export qalaplace
 #' @aliases qalaplace
 qalaplace <- function(p, mu=0, scale=1, alpha=0.5){
@@ -135,7 +135,7 @@ qalaplace <- function(p, mu=0, scale=1, alpha=0.5){
     return(alaplaceReturn);
 }
 
-#' @rdname alaplace-distribution
+#' @rdname ALaplace
 #' @export ralaplace
 #' @aliases ralaplace
 ralaplace <- function(n=1, mu=0, scale=1, alpha=0.5){

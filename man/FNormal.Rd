@@ -2,6 +2,7 @@
 % Please edit documentation in R/fnorm.R
 \name{dfnorm}
 \alias{dfnorm}
+\alias{FNormal}
 \alias{pfnorm}
 \alias{qfnorm}
 \alias{rfnorm}

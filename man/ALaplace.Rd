@@ -2,6 +2,7 @@
 % Please edit documentation in R/alaplace.R
 \name{dalaplace}
 \alias{dalaplace}
+\alias{ALaplace}
 \alias{palaplace}
 \alias{qalaplace}
 \alias{ralaplace}

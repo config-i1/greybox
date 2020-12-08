@@ -2,6 +2,7 @@
 % Please edit documentation in R/bcnorm.R
 \name{dbcnorm}
 \alias{dbcnorm}
+\alias{BCNormal}
 \alias{pbcnorm}
 \alias{qbcnorm}
 \alias{rbcnorm}

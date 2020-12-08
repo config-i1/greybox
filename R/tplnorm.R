@@ -61,8 +61,9 @@
 #' 6(2), 505–515. \url{https://doi.org/10.1029/WR006i002p00505}
 #' }
 #'
-#' @rdname tplnorm-distribution
+#' @rdname TPLNormal
 #' @importFrom stats plnorm qlnorm rlnorm
+#' @aliases TPLNormal dtplnorm
 #' @export dtplnorm
 dtplnorm <- function(q, mu=0, sigma=1, shift=0, log=FALSE){
     tplnormReturn <- dlnorm(x=q-shift, meanlog=mu, sdlog=sigma, log=log);
@@ -71,7 +72,7 @@ dtplnorm <- function(q, mu=0, sigma=1, shift=0, log=FALSE){
     return(tplnormReturn);
 }
 
-#' @rdname tplnorm-distribution
+#' @rdname TPLNormal
 #' @export ptplnorm
 #' @aliases ptplnorm
 ptplnorm <- function(q, mu=0, sigma=1, shift=0){
@@ -80,7 +81,7 @@ ptplnorm <- function(q, mu=0, sigma=1, shift=0){
     return(tplnormReturn);
 }
 
-#' @rdname tplnorm-distribution
+#' @rdname TPLNormal
 #' @export qtplnorm
 #' @aliases qtplnorm
 qtplnorm <- function(p, mu=0, sigma=1, shift=0){
@@ -88,7 +89,7 @@ qtplnorm <- function(p, mu=0, sigma=1, shift=0){
     return(tplnormReturn);
 }
 
-#' @rdname tplnorm-distribution
+#' @rdname TPLNormal
 #' @export rtplnorm
 #' @aliases rtplnorm
 rtplnorm <- function(n=1, mu=0, sigma=1, shift=0){

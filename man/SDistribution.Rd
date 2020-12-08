@@ -2,6 +2,7 @@
 % Please edit documentation in R/svet.R
 \name{ds}
 \alias{ds}
+\alias{SDistribution}
 \alias{ps}
 \alias{qs}
 \alias{rs}

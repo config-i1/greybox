@@ -54,10 +54,10 @@
 #' x <- rs(1000, 0, 1)
 #' hist(x)
 #'
-#' @rdname s-distribution
+#' @rdname SDistribution
 #' @importFrom stats optimize runif
 #' @export ds
-#' @aliases ds
+#' @aliases SDistribution ds
 ds <- function(q, mu=0, scale=1, log=FALSE){
     svetReturn <- 1/(4*scale^2)*exp(-sqrt(abs(mu-q))/scale);
     if(log){
@@ -66,7 +66,7 @@ ds <- function(q, mu=0, scale=1, log=FALSE){
     return(svetReturn);
 }
 
-#' @rdname s-distribution
+#' @rdname SDistribution
 #' @export ps
 #' @aliases ps
 ps <- function(q, mu=0, scale=1){
@@ -74,7 +74,7 @@ ps <- function(q, mu=0, scale=1){
     return(svetReturn);
 }
 
-#' @rdname s-distribution
+#' @rdname SDistribution
 #' @export qs
 #' @importFrom lamW lambertWm1
 #' @aliases qs
@@ -126,7 +126,7 @@ qs <- function(p, mu=0, scale=1){
     return(svetReturn);
 }
 
-#' @rdname s-distribution
+#' @rdname SDistribution
 #' @export rs
 #' @aliases rs
 rs <- function(n=1, mu=0, scale=1){

@@ -2,6 +2,7 @@
 % Please edit documentation in R/laplace.R
 \name{dlaplace}
 \alias{dlaplace}
+\alias{Laplace}
 \alias{plaplace}
 \alias{qlaplace}
 \alias{rlaplace}

@@ -56,8 +56,9 @@
 #' \url{https://en.wikipedia.org/wiki/Folded_normal_distribution}.
 #' }
 #'
-#' @rdname fnorm-distribution
+#' @rdname FNormal
 #' @importFrom stats optim pnorm qnorm rnorm
+#' @aliases FNormal dfnorm
 #' @export dfnorm
 dfnorm <- function(q, mu=0, sigma=1, log=FALSE){
     fnormReturn <- 1/(sqrt(2 * pi)*sigma) * (exp(-(q-mu)^2 / (2 * sigma^2)) +
@@ -70,7 +71,7 @@ dfnorm <- function(q, mu=0, sigma=1, log=FALSE){
     return(fnormReturn);
 }
 
-#' @rdname fnorm-distribution
+#' @rdname FNormal
 #' @export pfnorm
 #' @aliases pfnorm
 pfnorm <- function(q, mu=0, sigma=1){
@@ -79,7 +80,7 @@ pfnorm <- function(q, mu=0, sigma=1){
     return(fnormReturn);
 }
 
-#' @rdname fnorm-distribution
+#' @rdname FNormal
 #' @export qfnorm
 #' @aliases qfnorm
 qfnorm <- function(p, mu=0, sigma=1){
@@ -135,7 +136,7 @@ qfnorm <- function(p, mu=0, sigma=1){
     return(fnormReturn);
 }
 
-#' @rdname fnorm-distribution
+#' @rdname FNormal
 #' @export rfnorm
 #' @aliases rfnorm
 rfnorm <- function(n=1, mu=0, sigma=1){

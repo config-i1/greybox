@@ -62,8 +62,9 @@
 #' 26(2), 211–252. Retrieved from https://www.jstor.org/stable/2984418
 #' }
 #'
-#' @rdname bcnorm-distribution
+#' @rdname BCNormal
 #' @importFrom stats dnorm pnorm qnorm rnorm
+#' @aliases BCNormal dbcnorm
 #' @export dbcnorm
 dbcnorm <- function(q, mu=0, sigma=1, lambda=0, log=FALSE){
     if(lambda==0){
@@ -85,7 +86,7 @@ dbcnorm <- function(q, mu=0, sigma=1, lambda=0, log=FALSE){
     return(bcnormReturn);
 }
 
-#' @rdname bcnorm-distribution
+#' @rdname BCNormal
 #' @export pbcnorm
 #' @aliases pbcnorm
 pbcnorm <- function(q, mu=0, sigma=1, lambda=0){
@@ -100,7 +101,7 @@ pbcnorm <- function(q, mu=0, sigma=1, lambda=0){
     return(bcnormReturn);
 }
 
-#' @rdname bcnorm-distribution
+#' @rdname BCNormal
 #' @export qbcnorm
 #' @aliases qbcnorm
 qbcnorm <- function(p, mu=0, sigma=1, lambda=0){
@@ -114,7 +115,7 @@ qbcnorm <- function(p, mu=0, sigma=1, lambda=0){
     return(bcnormReturn);
 }
 
-#' @rdname bcnorm-distribution
+#' @rdname BCNormal
 #' @export rbcnorm
 #' @aliases rbcnorm
 rbcnorm <- function(n=1, mu=0, sigma=1, lambda=0){

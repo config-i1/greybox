@@ -2,6 +2,7 @@
 % Please edit documentation in R/logitnorm.R
 \name{dlogitnorm}
 \alias{dlogitnorm}
+\alias{LogitNormal}
 \alias{plogitnorm}
 \alias{qlogitnorm}
 \alias{rlogitnorm}

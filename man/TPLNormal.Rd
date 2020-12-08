@@ -2,6 +2,7 @@
 % Please edit documentation in R/tplnorm.R
 \name{dtplnorm}
 \alias{dtplnorm}
+\alias{TPLNormal}
 \alias{ptplnorm}
 \alias{qtplnorm}
 \alias{rtplnorm}
