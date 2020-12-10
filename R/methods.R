@@ -2386,7 +2386,7 @@ summary.greybox <- function(object, level=0.95, ...){
                                    paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn$coefficients <- parametersTable;
     # Mark those that are significant on the selected level
-    ourReturn$significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
+    ourReturn$significance <- (parametersTable[,3]<=0 & parametersTable[,4]>=0);
 
     ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
     names(ICs) <- c("AIC","AICc","BIC","BICc");
@@ -2426,7 +2426,7 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
                                    paste0("Upper ",(1+level)/2*100,"%"));
     ourReturn <- list(coefficients=parametersTable);
     # Mark those that are significant on the selected level
-    ourReturn$significance <- !(parametersTable[,3]<0 & parametersTable[,4]>0);
+    ourReturn$significance <- !(parametersTable[,3]<=0 & parametersTable[,4]>=0);
 
     # If there is a likelihood, then produce ICs
     if(!is.na(logLik(object))){
@@ -2472,7 +2472,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
     # Mark those that are significant on the selected level
-    significance <- (parametersTable[,4]<0 & parametersTable[,5]>0);
+    significance <- (parametersTable[,4]<=0 & parametersTable[,5]>=0);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
@@ -2514,7 +2514,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
     # Mark those that are significant on the selected level
-    significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
+    significance <- (parametersTable[,3]<=0 & parametersTable[,4]>=0);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
