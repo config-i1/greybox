@@ -2472,7 +2472,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
     # Mark those that are significant on the selected level
-    significance <- (parametersTable[,3]<0 & parametersTable[,4]>0);
+    significance <- (parametersTable[,4]<0 & parametersTable[,5]>0);
 
     # Extract degrees of freedom
     df <- c(object$df, object$df.residual, object$rank);
