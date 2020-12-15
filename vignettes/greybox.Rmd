@@ -32,7 +32,7 @@ At the moment the package contains augmented linear model function and several b
 ## Main functions
 The package includes the following functions for models construction:
 
-1. [alm()](alm.html) - Augmented Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data.
+1. [alm()](alm.html) - Augmented Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data and allows adding trend to the data via the formula.
 2. [stepwise()](#stepwise) - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
 3. [lmCombine()](#lmCombine) - combine the linear models into one using IC weights;
 4. [lmDynamic()](#lmDynamic) - produce model with dynamic weights and time varying parameters based on point IC weight.

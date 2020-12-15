@@ -3155,6 +3155,12 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 
         # Extract the formula and get rid of the response variable
         testFormula <- formula(object);
+
+        # If the user asked for trend, but it's not in the data, add it
+        if(any(all.vars(testFormula)=="trend") && all(colnames(newdata)!="trend")){
+            newdata <- cbind(newdata,trend=nobs(object)+c(1:nrow(newdata)));
+        }
+
         testFormula[[2]] <- NULL;
         # Expand the data frame
         newdataExpanded <- model.frame(testFormula, newdata);
@@ -3500,17 +3506,28 @@ forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){
     else if(is.null(newdata) & !is.null(h)){
         warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
         if(ncol(object$data)>1){
-            # If smooth is not installed, use Naive
-            if(!requireNamespace("smooth", quietly = TRUE)){
-                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
-                                  dimnames=list(NULL, colnames(object$data)));
-            }
-            # Otherwise use es()
-            else{
+
+            # If smooth is installed, use ADAM
+            if(requireNamespace("smooth", quietly=TRUE) && (packageVersion("smooth")>="3.0.0")){
                 newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
 
+                # If the user asked for trend, but it's not in the data, add it
+                if(any(all.vars(formula(object))=="trend")){
+                    newdata[,"trend"] <- nobs(object)+c(1:h);
+                }
                 for(i in 1:ncol(newdata)){
-                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                    if(colnames(newdata)[i]!="trend"){
+                        newdata[,i] <- smooth::adam(object$data[,i+1], occurrence="i", h=h)$forecast;
+                    }
+                }
+            }
+            # Otherwise use Naive
+            else{
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+                # If the user asked for trend, but it's not in the data, add it
+                if(any(all.vars(formula(object))=="trend")){
+                    newdata[,"trend"] <- nobs(object)+c(1:h);
                 }
             }
         }
@@ -3541,13 +3558,8 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
     else if(is.null(newdata) & !is.null(h)){
         warning("No newdata provided, the values will be forecasted", call.=FALSE, immediate.=TRUE);
         if(ncol(object$data)>1){
-            # If smooth is not installed, use Naive
-            if(!requireNamespace("smooth", quietly = TRUE)){
-                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
-                                  dimnames=list(NULL, colnames(object$data)));
-            }
-            # Otherwise use es()
-            else{
+            # If smooth is installed, use ADAM
+            if(requireNamespace("smooth", quietly=TRUE) && (packageVersion("smooth")>="3.0.0")){
                 if(!is.null(object$other$polynomial)){
                     ariLength <- length(object$other$polynomial);
                     newdata <- matrix(NA, h, ncol(object$data)-ariLength-1,
@@ -3557,8 +3569,23 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
                     newdata <- matrix(NA, h, ncol(object$data)-1, dimnames=list(NULL, colnames(object$data)[-1]));
                 }
 
+                # If the user asked for trend, but it's not in the data, add it
+                if(any(all.vars(formula(object))=="trend")){
+                    newdata[,"trend"] <- nobs(object)+c(1:h);
+                }
                 for(i in 1:ncol(newdata)){
-                    newdata[,i] <- smooth::es(object$data[,i+1], occurrence="i", h=h)$forecast;
+                    if(colnames(newdata)[i]!="trend"){
+                        newdata[,i] <- smooth::adam(object$data[,i+1], occurrence="i", h=h)$forecast;
+                    }
+                }
+            }
+            # Otherwise use Naive
+            else{
+                newdata <- matrix(object$data[nobs(object),], h, ncol(object$data), byrow=TRUE,
+                                  dimnames=list(NULL, colnames(object$data)));
+                # If the user asked for trend, but it's not in the data, add it
+                if(any(all.vars(formula(object))=="trend")){
+                    newdata[,"trend"] <- nobs(object)+c(1:h);
                 }
             }
         }

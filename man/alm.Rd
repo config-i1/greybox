@@ -13,7 +13,8 @@ alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
-that class): a symbolic description of the model to be fitted.}
+that class): a symbolic description of the model to be fitted. Can also include
+\code{trend}, which would add the global trend.}
 
 \item{data}{a data frame or a matrix, containing the variables in the model.}
 
@@ -215,15 +216,13 @@ xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,30
 colnames(xreg) <- c("y","x1","x2","Noise")
 
 # An example with Laplace distribution
-ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dlaplace")
+ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
 summary(ourModel)
 plot(predict(ourModel,xreg[-c(1:80),]))
 
 # And another one with Asymmetric Laplace distribution (quantile regression)
 # with optimised alpha
-ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")
-summary(ourModel)
-plot(predict(ourModel,xreg[-c(1:80),]))
+\dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
 
 # An example with AR(1) order
 ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", ar=1)

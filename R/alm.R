@@ -47,7 +47,8 @@
 #' @template keywords
 #'
 #' @param formula an object of class "formula" (or one that can be coerced to
-#' that class): a symbolic description of the model to be fitted.
+#' that class): a symbolic description of the model to be fitted. Can also include
+#' \code{trend}, which would add the global trend.
 #' @param data a data frame or a matrix, containing the variables in the model.
 #' @param subset an optional vector specifying a subset of observations to be
 #' used in the fitting process.
@@ -199,15 +200,13 @@
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #'
 #' # An example with Laplace distribution
-#' ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dlaplace")
+#' ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),]))
 #'
 #' # And another one with Asymmetric Laplace distribution (quantile regression)
 #' # with optimised alpha
-#' ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")
-#' summary(ourModel)
-#' plot(predict(ourModel,xreg[-c(1:80),]))
+#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
 #'
 #' # An example with AR(1) order
 #' ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", ar=1)
@@ -918,6 +917,19 @@ alm <- function(formula, data, subset, na.action,
         }
         # Fix names of variables
         colnames(mf$data) <- make.names(colnames(mf$data), unique=TRUE);
+
+        # If the data is a matrix / data.frame, get the nrows
+        if(!is.null(dim(mf$data))){
+            obsAll <- nrow(mf$data);
+        }
+        else{
+            obsAll <- length(mf$data);
+        }
+
+        # If the user asked for trend, but it's not in the data, add it
+        if(any(all.vars(formula)=="trend") && all(colnames(mf$data)!="trend")){
+            mf$data <- cbind(mf$data,trend=c(1:obsAll));
+        }
     }
     else{
         dataContainsNaNs <- FALSE;

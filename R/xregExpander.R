@@ -148,7 +148,12 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                             xregModel <- suppressWarnings(smooth::oes(xregData, model="MNN", h=maxLead, occurrence="i"));
                         }
                         else{
-                            xregModel <- suppressWarnings(smooth::es(xregData, h=maxLead, occurrence="a"));
+                            if(packageVersion("smooth")>="3.0.0"){
+                                xregModel <- suppressWarnings(smooth::adam(xregData, h=maxLead, occurrence="a"));
+                            }
+                            else{
+                                xregModel <- suppressWarnings(smooth::es(xregData, h=maxLead));
+                            }
                         }
                         xregDataNew <- c(xregData,xregModel$forecast);
                     }
@@ -174,9 +179,20 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                                                                           persistence=xregModel$persistence, h=maxLag));
                             }
                             else{
-                                xregModel <- suppressWarnings(smooth::es(rev(xregData), model=smooth::modelType(xregModel), persistence=xregModel$persistence,
-                                                                         occurrence=xregModel$occurrence, oesmodel=smooth::modelType(xregModel$occurrence),
-                                                                         h=maxLag));
+                                if(packageVersion("smooth")>="3.0.0"){
+                                    xregModel <- suppressWarnings(smooth::adam(rev(xregData), model=smooth::modelType(xregModel),
+                                                                               persistence=xregModel$persistence,
+                                                                               occurrence=xregModel$occurrence,
+                                                                               oesmodel=smooth::modelType(xregModel$occurrence),
+                                                                               h=maxLag));
+                                }
+                                else{
+                                    xregModel <- suppressWarnings(smooth::es(rev(xregData), model=smooth::modelType(xregModel),
+                                                                             persistence=xregModel$persistence,
+                                                                             occurrence=xregModel$occurrence,
+                                                                             oesmodel=smooth::modelType(xregModel$occurrence),
+                                                                             h=maxLag));
+                                }
                             }
                             xregDataNew <- c(rev(xregModel$forecast),xregDataNew);
                         }
@@ -186,7 +202,12 @@ xregExpander <- function(xreg, lags=c(-frequency(xreg):frequency(xreg)),
                                 xregModel <- suppressWarnings(smooth::oes(rev(xregData), model="MNN", h=maxLag, occurrence="i"));
                             }
                             else{
-                                xregModel <- suppressWarnings(smooth::es(rev(xregData), h=maxLag, occurrence="a"));
+                                if(packageVersion("smooth")>="3.0.0"){
+                                    xregModel <- suppressWarnings(smooth::adam(rev(xregData), h=maxLag, occurrence="a"));
+                                }
+                                else{
+                                    xregModel <- suppressWarnings(smooth::es(rev(xregData), h=maxLag));
+                                }
                             }
                             xregDataNew <- c(rev(xregModel$forecast),xregData);
                         }

@@ -6,6 +6,8 @@ Changes:
 * An option for temporaldummy() to return a factor instead of a matrix with dummies.
 * terms in alm() and extractAIC method, so that step() works. extractAIC accepts ic parameter, so one can choose between the standard AIC, BIC, AICc and BICc.
 * Don't produce covariance matrix of parameters if the interval="none" in predict.greybox.
+* formula in alm() now also accepts "trend", fitting the global trend to the data.
+* We now also use adam() in case smooth is installed and something needs to be predicted.
 
 
 greybox v0.6.4 (Release data: 2020-12-01)
