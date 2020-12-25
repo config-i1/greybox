@@ -10,7 +10,7 @@ Changes:
 * We now also use adam() in case smooth is installed and something needs to be predicted.
 
 Bugfixes:
-* A fig in qgnorm, pgnorm and rgnorm for very big values of beta - we use uniform approximation in that case.
+* A fix in qgnorm, pgnorm and rgnorm for very big values of beta - we use uniform approximation in that case.
 
 
 greybox v0.6.4 (Release data: 2020-12-01)
