@@ -841,7 +841,7 @@ plot(modelMixture, c(1:9))
 ```
 
 After that we can produce forecasts using the data from the holdout sample (in this example we also ask for several confidence levels):
-```{r mixturePredict}
+```{r mixturePredict, eval=FALSE}
 predict(modelMixture,outSample,interval="p",level=c(0.8,0.9,0.95))
 ```
 
