@@ -597,11 +597,11 @@ The scale of the distribution can be estimated via the maximisation of likelihoo
 \end{equation}
 
 Estimating the model with Log Normal distribution is equivalent to estimating the parameters of logit-linear model:
-\begin{equation} \label{eq:logLinearModel}
+\begin{equation} \label{eq:logitLinearModel}
     \mathrm{logit}(y_t) = \mu_t + \epsilon_t,
 \end{equation}
 where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
-\begin{equation} \label{eq:logLinearModelExp}
+\begin{equation} \label{eq:logitLinearModelExp}
     y_t = \mathrm{logit}^{-1}(\mu_t + \epsilon_t),
 \end{equation}
 where $\mathrm{logit}^{-1}(z)=\frac{\exp(z)}{1+\exp(z)}$ is the inverse logistic transform.
@@ -652,7 +652,7 @@ legend("topright",legend=c("Beta(1,1)","Beta(0.1,1)","Beta(1,0.1)","Beta(2,2)"),
 Respectively, when `predict()` function is used for the `alm` model with Beta distribution, the two models are used in order to produce predicted values for $\alpha_t$ and $\beta_t$. After that the conditional mean `mu` and conditional variance `variances` are produced using the formulae above. The prediction intervals are generated using `qbeta` function with the provided shape parameters for the holdout. As for the confidence intervals, they are produced assuming normality for the parameters of the model and using the estimate of the variance of the mean based on the `variances` (which is weird and probably wrong).
 
 
-## Density functions of discrete distributions {#discrete}
+## Probability mass functions of discrete distributions {#discrete}
 This group includes:
 
 1. [Poisson distribution](#poisson),
@@ -661,11 +661,28 @@ This group includes:
 These distributions should be used in cases of count data.
 
 ### Poisson distribution {#poisson}
-Poisson distribution used in ALM has the following standard probability mass function:
+Poisson distribution used in ALM has the following standard probability mass function (PMF):
 \begin{equation} \label{eq:Poisson}
     P(X=y_t) = \frac{\lambda_t^{y_t} \exp(-\lambda_t)}{y_t!},
 \end{equation}
 where $\lambda_t = \mu_t = \sigma^2_t = \exp(x_t' B)$. As it can be noticed, here we assume that the variance of the model varies in time and depends on the values of the exogenous variables, which is a specific case of heteroscedasticity. The exponent of $x_t' B$ is needed in order to avoid the negative values in $\lambda_t$.
+
+Here are several examples of the PMF of Poisson with different values of parameters $\lambda$:
+```{r pmfPoisson, echo=FALSE}
+plot(seq(0,10,1),dpois(seq(0,10,1),0.1),type="b",ylim=c(0,1),
+     xlab="y_t",ylab="Density",main="PMF of Poisson distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dpois(seq(0,10,1),0.5),type="b",
+     col="blue", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dpois(seq(0,10,1),1),type="b",
+     col="purple", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dpois(seq(0,10,1),5),type="b",
+     col="red", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("Poisson(0.1)","Poisson(0.5)","Poisson(1)","Poisson(5)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
 
 `alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful...
 
@@ -675,6 +692,23 @@ Negative Binomial distribution implemented in `alm()` is parameterised in terms 
     P(X=y_t) = \binom{y_t+\frac{\mu_t^2}{\sigma^2-\mu_t}}{y_t} \left( \frac{\sigma^2 - \mu_t}{\sigma^2} \right)^{y_t} \left( \frac{\mu_t}{\sigma^2} \right)^\frac{\mu_t^2}{\sigma^2 - \mu_t},
 \end{equation}
 where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optimisation process. These values are then used in the `dnbinom()` function in order to calculate the log-likelihood based on the distribution function.
+
+Here are some examples of PMF of Negative Binomial distribution with different sizes and probabilities:
+```{r pmfNegBin, echo=FALSE}
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.5),type="b",ylim=c(0,0.4),
+     xlab="y_t",ylab="Density",main="PMF of Negative Binomial distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.75),type="b",
+     col="blue", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.25),type="b",
+     col="purple", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dnbinom(seq(0,10,1),3,0.5),type="b",
+     col="red", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("NegBin(5,0.5)","NegBin(5,0.9)","NegBin(5,0.1)","NegBin(3,0.5)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
 
 `alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$. The user can also provide `size` parameter in ellipsis if it is reasonable to assume that it is known.
 
