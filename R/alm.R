@@ -8,7 +8,7 @@
 #' \item \link[stats]{dnorm} - Normal distribution,
 #' \item \link[greybox]{dlaplace} - Laplace distribution,
 #' \item \link[greybox]{ds} - S-distribution,
-#' \item dgnorm - Generalised Normal distribution,
+#' \item \link[greybox]{dgnorm} - Generalised Normal distribution,
 #' \item \link[stats]{dlogis} - Logistic Distribution,
 #' \item \link[stats]{dt} - T-distribution,
 #' \item \link[greybox]{dalaplace} - Asymmetric Laplace distribution,
@@ -113,6 +113,7 @@
 #' \item \code{alpha} - value for Asymmetric Laplace distribution;
 #' \item \code{size} - the size for the Negative Binomial distribution;
 #' \item \code{nu} - the number of degrees of freedom for Chi-Squared and Student's t;
+#' \item \code{shape} - the shape parameter for Generalised Normal distribution;
 #' \item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
 #' regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
 #' and 1 means shrink everything (ignore MSE);
@@ -360,7 +361,7 @@ alm <- function(formula, data, subset, na.action,
                 B <- B[-1];
             }
             else{
-                other <- beta;
+                other <- shape;
             }
         }
         else if(distribution=="dbcnorm"){
@@ -494,8 +495,8 @@ alm <- function(formula, data, subset, na.action,
                                    "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
                                    "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                    "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                   "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], alpha=fitterReturn$scale,
-                                                     beta=fitterReturn$other, log=TRUE),
+                                   "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                     shape=fitterReturn$other, log=TRUE),
                                    "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
                                    "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
                                    "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
@@ -504,8 +505,8 @@ alm <- function(formula, data, subset, na.action,
                                    "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
                                                           scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
                                    "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                   "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], alpha=fitterReturn$scale,
-                                                      beta=fitterReturn$other, log=TRUE)-log(y[otU]),
+                                   "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                      shape=fitterReturn$other, log=TRUE)-log(y[otU]),
                                    "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
                                                        lambda=fitterReturn$other, log=TRUE),
                                    "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
@@ -686,11 +687,11 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else if(any(distribution==c("dgnorm","dlgnorm"))){
-        if(is.null(ellipsis$beta)){
+        if(is.null(ellipsis$shape)){
             aParameterProvided <- FALSE;
         }
         else{
-            beta <- ellipsis$beta;
+            shape <- ellipsis$shape;
             aParameterProvided <- TRUE;
         }
     }
@@ -719,7 +720,7 @@ alm <- function(formula, data, subset, na.action,
         warning("The chosen loss function does not allow optimisation of additional parameters ",
                 "for the distribution=\"",distribution,"\". Use likelihood instead. We will use 0.5.",
                 call.=FALSE);
-            alpha <- nu <- size <- sigma <- beta <- lambdaBC <- nu <- 0.5;
+            alpha <- nu <- size <- sigma <- shape <- lambdaBC <- nu <- 0.5;
             aParameterProvided <- TRUE;
     }
     # LASSO / RIDGE loss
@@ -1612,9 +1613,9 @@ alm <- function(formula, data, subset, na.action,
         }
         else if(any(distribution==c("dgnorm","dlgnorm"))){
             if(!aParameterProvided){
-                ellipsis$beta <- beta <- abs(parameters[1]);
+                ellipsis$shape <- shape <- abs(parameters[1]);
                 parameters <- parameters[-1];
-                names(B) <- c("beta",variablesNames);
+                names(B) <- c("shape",variablesNames);
             }
             else{
                 names(B) <- variablesNames;

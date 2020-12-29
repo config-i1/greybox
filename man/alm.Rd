@@ -87,6 +87,7 @@ includes:
 \item \code{alpha} - value for Asymmetric Laplace distribution;
 \item \code{size} - the size for the Negative Binomial distribution;
 \item \code{nu} - the number of degrees of freedom for Chi-Squared and Student's t;
+\item \code{shape} - the shape parameter for Generalised Normal distribution;
 \item \code{lambda} - the meta parameter for LASSO / RIDGE. Should be between 0 and 1,
 regulating the strength of shrinkage, where 0 means don't shrink parameters (use MSE)
 and 1 means shrink everything (ignore MSE);
@@ -157,7 +158,7 @@ of several non-normal distributions. These include:
 \item \link[stats]{dnorm} - Normal distribution,
 \item \link[greybox]{dlaplace} - Laplace distribution,
 \item \link[greybox]{ds} - S-distribution,
-\item dgnorm - Generalised Normal distribution,
+\item \link[greybox]{dgnorm} - Generalised Normal distribution,
 \item \link[stats]{dlogis} - Logistic Distribution,
 \item \link[stats]{dt} - T-distribution,
 \item \link[greybox]{dalaplace} - Asymmetric Laplace distribution,

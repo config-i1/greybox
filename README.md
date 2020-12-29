@@ -36,10 +36,11 @@ There are several groups of functions in the package.
 1. qlaplace, dlaplace, rlaplace, plaplace - functions for Laplace distribution.
 2. qalaplace, dalaplace, ralaplace, palaplace - functions for Asymmetric Laplace distribution.
 3. qs, ds, rs, ps - functions for S distribution.
-4. qfnorm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
-5. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
-6. qbcnorm, dbcnorm, rbcnorm, pbcnorm - functions for Box-Cox normal distribution (discussed in Box & Cox, 1964).
-7. qlogitnorm, dlogitnorm, rlogitnorm, plogitnorm - functions for Logit-normal distribution.
+4. qgnorm, dgnorm, rgnorm, pgnorm - functions for Generalised normal distribution.
+5. qfnorm, dfnorm, rfnorm, pfnorm - functions for folded normal distribution.
+6. qtplnorm, dtplnorm, rtplnorm, ptplnorm - functions for three parameter log normal distribution.
+7. qbcnorm, dbcnorm, rbcnorm, pbcnorm - functions for Box-Cox normal distribution (discussed in Box & Cox, 1964).
+8. qlogitnorm, dlogitnorm, rlogitnorm, plogitnorm - functions for Logit-normal distribution.
 
 ### Methods for the introduced and some existing classes:
 1. temporaldummy - the method that creates a matrix of dummy variables for an object based on the selected frequency. e.g. this can create week of year based on the provided zoo object.

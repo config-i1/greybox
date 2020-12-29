@@ -1,4 +1,4 @@
-greybox v0.6.5 (Release data: 2020-12-24)
+greybox v0.6.5 (Release data: 2020-12-29)
 ==============
 
 Changes:
@@ -8,6 +8,7 @@ Changes:
 * Don't produce covariance matrix of parameters if the interval="none" in predict.greybox.
 * formula in alm() now also accepts "trend", fitting the global trend to the data.
 * We now also use adam() in case smooth is installed and something needs to be predicted.
+* Generalised Normal distribution functions, imported from gnorm package, but more efficient.
 
 Bugfixes:
 * A fix in qgnorm, pgnorm and rgnorm for very big values of beta - we use uniform approximation in that case.

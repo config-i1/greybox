@@ -237,8 +237,8 @@ pointLik.alm <- function(object, ...){
     likValues[otU] <- switch(distribution,
                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                            "dgnorm" = dgnorm(y, mu=mu, alpha=scale, beta=object$other$beta, log=TRUE),
-                            "dlgnorm" = dgnorm(log(y), mu=mu, alpha=scale, beta=object$other$beta, log=TRUE),
+                            "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
+                            "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
                             "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
@@ -272,8 +272,8 @@ pointLik.alm <- function(object, ...){
                                    "dlogitnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
                                    "dgnorm" =,
-                                   "dlgnorm" = 1/object$other$beta -
-                                       log(object$other$beta / (2*scale*gamma(1/object$other$beta))),
+                                   "dlgnorm" = 1/object$other$shape -
+                                       log(object$other$shape / (2*scale*gamma(1/object$other$shape))),
                                    "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
                                    "dlaplace" =,
                                    "dllaplace" =,
@@ -854,7 +854,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                 newCall$lambdaBC <- object$other$lambdaBC;
             }
             else if(any(object$distribution==c("dgnorm","dlgnorm"))){
-                newCall$beta <- object$other$beta;
+                newCall$shape <- object$other$shape;
             }
             newCall$FI <- TRUE;
             # newCall$occurrence <- NULL;
@@ -1269,10 +1269,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Generalised Normal distribution";
             }
-            ellipsis$x <- qgnorm(ppoints(500), mu=0, alpha=x$scale, beta=x$other$beta);
+            ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=x$scale, shape=x$other$shape);
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, alpha=x$scale, beta=x$other$beta));
+            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=x$scale, shape=x$other$shape));
         }
         else if(any(x$distribution==c("dlaplace","dllaplace"))){
             if(!any(names(ellipsis)=="main")){
@@ -1890,8 +1890,8 @@ print.summary.alm <- function(x, ...){
 
     distrib <- switch(x$distribution,
                       "dnorm" = "Normal",
-                      "dgnorm" = paste0("Generalised Normal Distribution with shape=",round(x$other$beta,digits)),
-                      "dlgnorm" = paste0("Log Generalised Normal Distribution with shape=",round(x$other$beta,digits)),
+                      "dgnorm" = paste0("Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
+                      "dlgnorm" = paste0("Log Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
                       "dlogis" = "Logistic",
                       "dlaplace" = "Laplace",
                       "dllaplace" = "Log Laplace",
@@ -2151,7 +2151,7 @@ rstandard.greybox <- function(model, ...){
     }
     else if(any(model$distribution==c("dgnorm","dlgnorm"))){
         errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
-                         (model$scale^model$other$beta * obs / df)^{1/model$other$beta});
+                         (model$scale^model$other$shape * obs / df)^{1/model$other$shape});
     }
     else if(model$distribution=="dinvgauss"){
         errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
@@ -2219,7 +2219,7 @@ rstudent.greybox <- function(model, ...){
     }
     else if(any(model$distribution==c("dgnorm","dlgnorm"))){
         for(i in which(residsToGo)){
-            rstudentised[i] <- errors[i] /  (sum(abs(errors[-i])^model$other$beta) * (model$other$beta/df))^{1/model$other$beta};
+            rstudentised[i] <- errors[i] /  (sum(abs(errors[-i])^model$other$shape) * (model$other$shape/df))^{1/model$other$shape};
         }
     }
     else if(model$distribution=="dlogis"){
@@ -2337,7 +2337,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                       "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
                       "dt"=qt(c((1-level)/2, (1+level)/2), nobs(object)-nparam(object)),
                       "dgnorm"=,
-                      "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$beta),
+                      "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$shape),
                       "ds"=,
                       "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                       # In the next one, the scale is debiased, taking n-k into account
@@ -2755,12 +2755,12 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dgnorm"){
         # Use the connection between the variance and scale in Generalised Normal distribution
         if(interval!="none"){
-            scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$beta)/gamma(3/object$other$beta)));
+            scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$shape)/gamma(3/object$other$shape)));
             greyboxForecast$scale <- scaleValues;
         }
         if(interval=="prediction"){
-            greyboxForecast$lower[] <- qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$beta);
-            greyboxForecast$upper[] <- qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$beta);
+            greyboxForecast$lower[] <- qgnorm(levelLow,greyboxForecast$mean,scaleValues,object$other$shape);
+            greyboxForecast$upper[] <- qgnorm(levelUp,greyboxForecast$mean,scaleValues,object$other$shape);
         }
     }
     else if(object$distribution=="dlgnorm"){
