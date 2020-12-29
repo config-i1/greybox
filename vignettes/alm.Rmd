@@ -224,13 +224,13 @@ where once again $\sigma^2$ is substituted either by the conditional variance of
 ### Generalised Normal distribution {#gnormal}
 The Generalised Normal distribution is a generalisation, which has Normal, Laplace and S as special cases. It has the following density function:
 \begin{equation} \label{eq:gnormal}
-    f(y_t) = \frac{\beta}{2\alpha \Gamma(1/\beta)}\exp\left(-\left(\frac{|y_t - \mu|}{\alpha}\right)^\beta\right),
+    f(y_t) = \frac{\beta}{2s \Gamma(1/\beta)}\exp\left(-\left(\frac{|y_t - \mu|}{s}\right)^\beta\right),
 \end{equation}
-where $\alpha$ is the scale and $\beta$ is the shape parameters. If estimated via maximum likelihood, the scale parameter is equal to:
+where $s$ is the scale and $\beta$ is the shape parameters. If estimated via maximum likelihood, the scale parameter is equal to:
 \begin{equation} \label{eq:gnormalScale}
-    \hat{\alpha} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| y_t - \mu_t \right|^{\beta}} .
+    \hat{s} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| y_t - \mu_t \right|^{\beta}} .
 \end{equation}
-In the special cases, this becomes either $\sqrt{2}\times$RMSE ($\beta=2$), or MAE ($\beta=1$) or a half of HAM ($\beta=0.5$). It is important to note that although in case of $\beta=2$, the distribution becomes equivalent to Normal, the scale of it will differ from the $\sigma$ (this follows directly from the formula above). The relations between the two is: $\alpha^2 = 2 \sigma^2$.
+In the special cases, this becomes either $\sqrt{2}\times$RMSE ($\beta=2$), or MAE ($\beta=1$) or a half of HAM ($\beta=0.5$). It is important to note that although in case of $\beta=2$, the distribution becomes equivalent to Normal, the scale of it will differ from the $\sigma$ (this follows directly from the formula above). The relations between the two is: $s^2 = 2 \sigma^2$.
 ```{r pdfgnorm, echo=FALSE}
 plot(seq(-5,5,0.1),dgnorm(seq(-5,5,0.1),0,1,2),type="l",
      xlab="y_t",ylab="Density",main="PDF of Generalised Normal distribution")
@@ -243,9 +243,9 @@ legend("topright",legend=c("GN(0,1,2)","GN(0,1,1)","GN(0,1,0.5)","GN(0,1,100)"),
 
 The kurtosis of Generalised Normal distribution is determined by $\beta$ and is equal to $\frac{\Gamma(5/\beta)\Gamma(1/\beta)}{\Gamma(3/\beta)^2}$.
 
-`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $\alpha$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the internal `qgnorm()` function from `greybox` package and use the connection between the scale and the variance:
+`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $s$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the internal `qgnorm()` function from `greybox` package and use the connection between the scale and the variance:
 \begin{equation} \label{eq:gnormalAlphaAndSigma}
-    \alpha = \left( \frac{\sigma^2 \Gamma(1/\beta)}{\Gamma(3/\beta)} \right) ^{\frac{1}{2}},
+    s = \left( \frac{\sigma^2 \Gamma(1/\beta)}{\Gamma(3/\beta)} \right) ^{\frac{1}{2}},
 \end{equation}
 where once again $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$, depending on what type of interval is needed.
 
@@ -483,11 +483,11 @@ where $\epsilon_t \sim \mathcal{S}(0, \sigma^2)$. This distribution can be used 
 ### Log Generalised Normal distribution {#lgnormal}
 This is based on the exponent of [Generalised Normal distribution](#gnormal), giving the PDF:
 \begin{equation} \label{eq:lgnormal}
-    f(y_t) = \frac{\beta}{2\alpha \Gamma(1/\beta)y_t}\exp\left(-\left(\frac{|\log(y_t) - \mu|}{\alpha}\right)^\beta\right),
+    f(y_t) = \frac{\beta}{2s \Gamma(1/\beta)y_t}\exp\left(-\left(\frac{|\log(y_t) - \mu|}{s}\right)^\beta\right),
 \end{equation}
 The model implemented in the package has similarity with [Log Normal](#lnormal), [Log Laplace](#llaplace) and [Log S](#lsvetunkov) distributions. The MLE scale is:
 \begin{equation} \label{eq:LogAlpha}
-    \hat{\alpha} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| \log(y_t) - \mu_t \right|^{\beta}} .
+    \hat{s} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| \log(y_t) - \mu_t \right|^{\beta}} .
 \end{equation}
 The shapes of the distribution depend on the value of parameters, giving it in some cases very long right tail:
 ```{r pdflogGN, echo=FALSE}
@@ -504,9 +504,9 @@ Estimating the model with Log Generalised Normal distribution is equivalent to e
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
-where $\epsilon_t \sim \mathcal{GN}(0, \alpha, \beta)$.
+where $\epsilon_t \sim \mathcal{GN}(0, s, \beta)$.
 
-`alm()` with `distribution="dlgnorm"` uses the `dgnorm()` function from `greybox` package with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $\alpha$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
+`alm()` with `distribution="dlgnorm"` uses the `dgnorm()` function from `greybox` package with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
 ### Folded Normal distribution {#fnormal}

@@ -5,11 +5,11 @@
 #' mu, a scale and a shape parameters.
 #'
 #' A generalized normal random variable \eqn{x} with parameters location \eqn{\mu},
-#' scale \eqn{\alpha > 0} and shape \eqn{\beta > 0} has density:
+#' scale \eqn{s > 0} and shape \eqn{\beta > 0} has density:
 #'
-#' \deqn{p(x) = \beta exp{-(|x - \mu|/\alpha)^\beta}/(2\alpha \Gamma(1/\beta)).} \cr
+#' \deqn{p(x) = \beta exp{-(|x - \mu|/s)^\beta}/(2s \Gamma(1/\beta)).} \cr
 #' The mean and variance of \eqn{x} are \eqn{\mu} and
-#' \eqn{\alpha^2 \Gamma(3/\beta)/\Gamma(1/\beta)}, respectively.
+#' \eqn{s^2 \Gamma(3/\beta)/\Gamma(1/\beta)}, respectively.
 #'
 #' The function are based on the functions from gnorm package of Maryclare Griffin
 #' (package has been abandoned since 2018).
