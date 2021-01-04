@@ -65,7 +65,7 @@
 #' @references \itemize{
 #' \item Tashman, (2000) Out-of-sample tests of forecasting accuracy:
 #' an analysis and review International Journal of Forecasting, 16,
-#' pp. 437-450. \url{https://doi.org/10.1016/S0169-2070(00)00065-0}.
+#' pp. 437-450. \doi{10.1016/S0169-2070(00)00065-0}.
 #' }
 #'
 #' @examples

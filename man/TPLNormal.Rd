@@ -83,7 +83,7 @@ hist(x)
 \itemize{
 \item Sangal, B. P., & Biswas, A. K. (1970). The 3-Parameter
 Distribution Applications in Hydrology. Water Resources Research,
-6(2), 505–515. \url{https://doi.org/10.1029/WR006i002p00505}
+6(2), 505–515. \doi{10.1029/WR006i002p00505}
 }
 }
 \author{

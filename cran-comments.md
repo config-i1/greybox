@@ -1,15 +1,15 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "01 December 2020"
+date: "04 January 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.4
+This is the release of the package ``greybox``, v0.6.5
 
 ## Test environments
-* local ubuntu 19.10, R 4.0.3
+* local ubuntu 20.04, R 4.0.3
 * ubuntu 16.04.6 (on travis-ci), R 4.0.0
 * win-builder (devel and release)
 * rhub
@@ -26,17 +26,16 @@ This is expected, because doMC is not available for Windows.
 
 ## R-hub
 **Rhub, Windows Server 2008 R2 SP1, R-devel, 32/64 bit gives an error:**
->* checking package dependencies ... ERROR
->Packages required but not available:
->  'Rcpp'
->Packages suggested but not available:
->  'smooth', 'doMC', 'doParallel', 'foreach', 'testthat', 'rmarkdown',
->  'knitr'
->Package which this enhances but not available for checking: 'vars'
->Packages suggested but not available: 'doMC'
+Rhub says that all is ok, but looking through the logs I see:
+> Problem closing connection: No space left on device
+> Warning in file(name, "wb") :
+> cannot open file 'greybox/inst/doc/maUsingGreybox.R': No space left on device
+> Error in file(name, "wb") : cannot open the connection
+> Execution halted
 
-However, the former packages are available on CRAN, so it's not clear, what the problem is. What's wrong with this platform?
-`doMC` is just not available for Windows.
+This implies that the test was not done fully. This is just FYI.
+I know that it usually complains about doMC, which is not available for Windows, but the rest is typically fine.
+
 
 **Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE

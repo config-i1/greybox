@@ -74,7 +74,7 @@ of Production Economics, 128, pp.625-636.
 \item Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy:
 The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
 International Journal of Forecasting, 29(3), 510-522.
-\url{https://doi.org/10.1016/j.ijforecast.2012.09.002}
+\doi{10.1016/j.ijforecast.2012.09.002}
 }
 }
 \author{
