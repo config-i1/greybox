@@ -159,12 +159,12 @@ The values in the function are listed in the order of most correlated with the r
 
 All the basic methods can be used together with the final model (e.g. `predict()`, `forecast()`, `summary()` etc).
 
-Furthremore, the `greybox` package implements `extract()` method from `texreg` package for the production of printable outputs from the regression, here is an example:
+Furthermore, the `greybox` package implements `extract()` method from `texreg` package for the production of printable outputs from the regression, here is an example:
 ```{r texregExample, results = 'asis'}
 texreg::htmlreg(ourModel)
 ```
 
-Similarly, you can produce pdf tables via `texreg()` function from that package.
+Similarly, you can produce pdf tables via `texreg()` function from that package. Alternatively, you can use `kable()` function from `knitr` package on the summary to get a table for LaTeX / HTML.
 
 ## lmCombine {#lmCombine}
 

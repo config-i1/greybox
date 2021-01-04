@@ -24,7 +24,7 @@
 #' \item vcov - the covariance matrix of parameters;
 #' \item coefficients - the matrix with the bootstrapped coefficients.
 #' \item nsim - number of runs done;
-#' \item size - the sample size used in the bootsrtap;
+#' \item size - the sample size used in the bootstrap;
 #' \item replace - whether the sampling was done with replacement;
 #' \item prob - a vector of probability weights used in the process;
 #' \item parallel - whether the calculations were done in parallel;

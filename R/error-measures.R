@@ -625,7 +625,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 #'
 #' @aliases hm
 #' @param x A variable based on which HM is estimated.
-#' @param C Centering parameter.
+#' @param C Centring parameter.
 #' @param ...  Other parameters passed to mean function.
 #' @return A complex variable is returned for \code{hm} function and real values
 #' are returned for \code{cbias} and \code{ham}.

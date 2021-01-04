@@ -10,7 +10,7 @@ This is the release of the package ``greybox``, v0.6.5
 
 ## Test environments
 * local ubuntu 20.04, R 4.0.3
-* ubuntu 16.04.6 (on travis-ci), R 4.0.0
+* ubuntu 16.04.6 (on travis-ci), R 4.0.3
 * win-builder (devel and release)
 * rhub - see the comments below!
 

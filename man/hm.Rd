@@ -15,7 +15,7 @@ cbias(x, C = mean(x), ...)
 \arguments{
 \item{x}{A variable based on which HM is estimated.}
 
-\item{C}{Centering parameter.}
+\item{C}{Centring parameter.}
 
 \item{...}{Other parameters passed to mean function.}
 }

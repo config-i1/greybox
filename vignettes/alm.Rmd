@@ -36,11 +36,11 @@ This vignette contains the following sections:
 
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
-1. [Density functions of continuous distributions](#cont),
-2. [Density functions for continuous positive data](#contPlus),
-3. [Continuous distributions on a specific interval](#contInterval),
+1. [Density functions of continuous distributions](#continuous),
+2. [Density functions for continuous positive data](#continuousPlus),
+3. [Continuous distributions on a specific interval](#continuousInterval),
 4. [Density functions of discrete distributions](#discrete),
-5. [Cumulative functions for binary variables](#cumul).
+5. [Cumulative functions for binary variables](#cumulative).
 
 All of them rely on respective d- and p- functions in R. For example, Log Normal distribution uses `dlnorm()` function from `stats` package.
 
@@ -72,7 +72,7 @@ When the number of estimated parameters is calculated, in case of `loss=="likeli
 
 Although the basic principles of estimation of models and predictions from them are the same for all the distributions, each of the distribution has its own features. So it makes sense to discuss them individually. We discuss the distributions in the four groups mentioned above.
 
-## Density functions of continuous distributions {#cont}
+## Density functions of continuous distributions {#continuous}
 This group of functions includes:
 
 1. [Normal distribution](#normal),
@@ -191,7 +191,7 @@ In case of $\alpha=0.5$ the function reverts to the symmetric Laplace where $s=\
 \end{equation}
 where $\sigma^2$ is substituted either by the conditional variance of $\mu_t$ or $y_t$.
 
-**NOTE**: in order for the Asymmetric Laplace to work well, you might need to have large samples. This is inheritted from the pinball score of the quantile regression. If you fit the model on 40 observations with $\alpha=0.05$, you will only have 2 observations below the line, which does not help very much with the fit. Similarly, the covariance matrix, produced via the Hessian might not be adequate in this situation (because there is not enough variability in the data due to extreme value of $\alpha$). The latter can be partially addressed by using bootstrap, but do not expect miracles on small samples.
+**NOTE**: in order for the Asymmetric Laplace to work well, you might need to have large samples. This is inherited from the pinball score of the quantile regression. If you fit the model on 40 observations with $\alpha=0.05$, you will only have 2 observations below the line, which does not help very much with the fit. Similarly, the covariance matrix, produced via the Hessian might not be adequate in this situation (because there is not enough variability in the data due to extreme value of $\alpha$). The latter can be partially addressed by using bootstrap, but do not expect miracles on small samples.
 
 
 ### S distribution {#svetunkov}
@@ -321,7 +321,7 @@ plot(predict(ourModel,outSample))
 ```
 
 
-## Density functions for continuous positive data {#contPlus}
+## Density functions for continuous positive data {#continuousPlus}
 This group includes:
 
 1. [Log Normal distribution](#lnormal),
@@ -397,7 +397,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 
 ### Inverse Gaussian distribution {#invgauss}
-Inverse Gaussian distribution is an interesting distribution, which is defined for positive values only and has some properties similar to the properties of the Normal distribution. It has two parameters: location $\mu_t$ and scale $\phi$ (aka "dispersion"). There are different ways to parameterise this distribution, we use the dispersion-based one. The important thing that distincts the implementation in `alm()` from the one in `glm()` or in any other function is that we assume that the model has the following form:
+Inverse Gaussian distribution is an interesting distribution, which is defined for positive values only and has some properties similar to the properties of the Normal distribution. It has two parameters: location $\mu_t$ and scale $\phi$ (aka "dispersion"). There are different ways to parameterise this distribution, we use the dispersion-based one. The important thing that distinguishes the implementation in `alm()` from the one in `glm()` or in any other function is that we assume that the model has the following form:
 \begin{equation} \label{eq:InverseGaussianModel}
     y_t = \mu_t \times \epsilon_t 
 \end{equation}
@@ -538,7 +538,7 @@ The model that is assumed in the case of Folded Normal distribution can be summa
 The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
 
-## Continuous distributions on a specific interval {#contInterval}
+## Continuous distributions on a specific interval {#continuousInterval}
 There is currently only one distribution in this group:
 
 1. [Logit-normal distribution](#logitnormal).
@@ -563,7 +563,7 @@ lines(seq(0.01,0.99,0.01),dlogitnorm(seq(0.01,0.99,0.01),0,3), col="red")
 legend("topright",legend=c("logitN(0,1)","logitN(-1,1)","logitN(1,1)","logitN(0,3)"),
        lwd=1, col=c("black","blue","purple","red"))
 ```
-Depending on the values of location and scale, the distribution can be either unimodal or bimodal and can be positively or negatively skewed. Because of its connection with normal distribution, the logit-normal has formulae for density, cumultive and quantile functions. However, the moment generation function does not have a closed form. 
+Depending on the values of location and scale, the distribution can be either unimodal or bimodal and can be positively or negatively skewed. Because of its connection with normal distribution, the logit-normal has formulae for density, cumulative and quantile functions. However, the moment generation function does not have a closed form. 
 
 The scale of the distribution can be estimated via the maximisation of likelihood and has some similarities with the scale in [Log Normal](#lnormal) distribution:
 \begin{equation} \label{eq:sigmaLogitNormal}
@@ -704,7 +704,7 @@ ourModel <- alm(y~x1+x2, data=inSample, distribution="dnbinom", size=30)
 summary(ourModel)
 ```
 
-## Cumulative functions for binary variables {#cumul}
+## Cumulative functions for binary variables {#cumulative}
 The final class of models includes two cases:
 
 1. [Logistic distribution (logit model)](#logit),
