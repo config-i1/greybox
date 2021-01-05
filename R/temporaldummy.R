@@ -249,7 +249,7 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
 
     # Invoke the respective class for the Date
     if(any(type==c("month","quarter","week","day"))){
-        return(temporaldummy(as.Date(object), type=type, of=of, h=h));
+        return(temporaldummy(as.Date(object), type=type, of=of, factors=factors, h=h));
     }
     else{
         if(type=="hour"){
