@@ -78,7 +78,7 @@ determination <- function(xreg, bruteforce=TRUE, ...){
         # If we have a non-matrix object and there are non-numeric values in it, use mcor
         if(!is.numeric(xreg) && !all(unlist(lapply(xreg,is.numeric)))){
             for(i in 1:nVariables){
-                vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i,drop=FALSE],xreg[,i,drop=FALSE])$value^2);
+                vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i,drop=FALSE],xreg[,i])$value^2);
             }
         }
         else{
