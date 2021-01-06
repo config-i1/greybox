@@ -78,14 +78,15 @@ determination <- function(xreg, bruteforce=TRUE, ...){
         # If we have a non-matrix object and there are non-numeric values in it, use mcor
         if(!is.numeric(xreg) && !all(unlist(lapply(xreg,is.numeric)))){
             for(i in 1:nVariables){
-                vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i],xreg[,i])$value^2);
+                vectorCorrelationsMultiple[i] <- suppressWarnings(mcor(xreg[,-i,drop=FALSE],xreg[,i,drop=FALSE])$value^2);
             }
         }
         else{
             corMatrix <- cor(xreg, ...);
             for(i in 1:nVariables){
                 vectorCorrelationsMultiple[i] <- (corMatrix[i,-i,drop=FALSE] %*%
-                                                      chol2inv(chol(corMatrix[-i,-i])) %*%
+                                                      # chol2inv(chol(corMatrix[-i,-i,drop=FALSE])) %*%
+                                                      solve(corMatrix[-i,-i,drop=FALSE], diag(nVariables-1)) %*%
                                                       corMatrix[-i,i,drop=FALSE]);
             }
         }
