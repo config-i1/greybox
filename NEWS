@@ -1,5 +1,8 @@
-greybox v0.6.6 (Release data: 2021-01-05)
+greybox v0.6.6 (Release data: 2021-01-06)
 ==============
+
+Changes:
+* Speed up the determination function for the numeric data.
 
 Bugfixes:
 * A bugfix in temporaldummy.POSIXt for days of week etc, not passing factors properly.
