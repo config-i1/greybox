@@ -84,10 +84,10 @@ determination <- function(xreg, bruteforce=TRUE, ...){
         else{
             corMatrix <- cor(xreg, ...);
             for(i in 1:nVariables){
-                vectorCorrelationsMultiple[i] <- (corMatrix[i,-i,drop=FALSE] %*%
-                                                      # chol2inv(chol(corMatrix[-i,-i,drop=FALSE])) %*%
-                                                      solve(corMatrix[-i,-i,drop=FALSE], diag(nVariables-1)) %*%
-                                                      corMatrix[-i,i,drop=FALSE]);
+                vectorCorrelationsMultiple[i] <- tryCatch(corMatrix[i,-i,drop=FALSE] %*%
+                                                              chol2inv(chol(corMatrix[-i,-i,drop=FALSE])) %*%
+                                                              # solve(corMatrix[-i,-i,drop=FALSE], diag(nVariables-1)) %*%
+                                                              corMatrix[-i,i,drop=FALSE], error=function(e) 1);
             }
         }
     }
