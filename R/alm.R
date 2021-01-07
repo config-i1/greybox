@@ -189,7 +189,7 @@
 #' # The standard model with Log Normal distribution
 #' ourModel <- alm(mpg~., mtcars2[1:30,], distribution="dlnorm")
 #' summary(ourModel)
-#' plot(ourModel)
+#' \dontrun{plot(ourModel)}
 #'
 #' # Produce predictions with the one sided interval (upper bound)
 #' predict(ourModel, mtcars2[-c(1:30),], interval="p", side="u")
