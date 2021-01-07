@@ -1,12 +1,12 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "04 January 2021"
+date: "07 January 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.5
+This is the release of the package ``greybox``, v0.6.6
 
 ## Test environments
 * local ubuntu 20.04, R 4.0.3
@@ -24,16 +24,7 @@ R CMD check results
 
 This is expected, because doMC is not available for Windows.
 
->** running examples for arch 'i386' ... [45s] NOTE
->Examples with CPU (user + system) or elapsed time > 10s
->     user system elapsed
->alm 23.94   0.08   24.01
->** running examples for arch 'x64' ... [46s] NOTE
->Examples with CPU (user + system) or elapsed time > 10s
->     user system elapsed
->alm 22.71   0.03   22.77
-
-Not sure what has happened, but nothing affecting the speed of the alm() function has been done in 0.6.5. Comparing it via microbenchmark with the version 0.6.4 shows almost no difference.
+I also had to switch off almost all examples for alm(), because win-builder would complain about the speed of the function. Comparing it via microbenchmark with the version 0.6.4 of greybox shows almost no difference, so this is probably because of some changes on the server side.
 
 
 ## R-hub
