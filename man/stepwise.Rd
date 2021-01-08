@@ -8,8 +8,8 @@ stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, method = c("pearson", "kendall", "spearman"),
   distribution = c("dnorm", "dlaplace", "ds", "dgnorm", "dlogis", "dt",
   "dalaplace", "dfnorm", "dlnorm", "dllaplace", "dls", "dbcnorm", "dinvgauss",
-  "dpois", "dnbinom", "plogis", "pnorm"), occurrence = c("none", "plogis",
-  "pnorm"), ...)
+  "dgamma", "dpois", "dnbinom", "plogis", "pnorm"), occurrence = c("none",
+  "plogis", "pnorm"), ...)
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and

@@ -54,7 +54,7 @@ where $y_t$ is the value of the response variable, $x_t$ is the vector of exogen
 \begin{equation} \label{eq:basicALMMixture}
     \begin{matrix}
         y_t = o_t f(x_t' B, \epsilon_t) \\
-        o_t \sim \mathcal{Bernoulli}(p_t) \\
+        o_t \sim \mathrm{Bernoulli}(p_t) \\
         p_t = g(z_t' A)
     \end{matrix},
 \end{equation}
@@ -86,7 +86,7 @@ This group of functions includes:
 For all the functions in this category `resid()` method returns $e_t = y_t - \mu_t$.
 
 ### Normal distribution {#normal}
-The density of normal distribution $\mathcal{N}(\mu_t,\sigma)$ is:
+The density of normal distribution $\mathrm{N}(\mu_t,\sigma)$ is:
 \begin{equation} \label{eq:Normal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
@@ -105,7 +105,7 @@ Maximising the likelihood of the model \eqref{eq:Normal} is equivalent to the es
 \begin{equation} \label{eq:linearModel}
     y_t = \mu_t + \epsilon_t = x_t' B + \epsilon_t,
 \end{equation}
-where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$.
+where $\epsilon_t \sim \mathrm{N}(0, \sigma^2)$.
 
 The variance $\sigma^2$ is estimated in `alm()` based on likelihood:
 \begin{equation} \label{eq:sigmaNormal}
@@ -145,7 +145,7 @@ where $s$ is the scale parameter, which, when estimated using likelihood, is equ
 \begin{equation} \label{eq:bLaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left| y_t - \mu_t \right| .
 \end{equation}
-So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathcal{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails, the PDF has the following shape:
+So maximising the likelihood \eqref{eq:Laplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $s$ \eqref{eq:bLaplace}. So when estimating a model via minimising $s$, the assumption imposed on the error term is $\epsilon_t \sim \mathrm{Laplace}(0, s)$. The main difference of Laplace from Normal distribution is its fatter tails, the PDF has the following shape:
 ```{r pdfLaplace, echo=FALSE}
 plot(seq(-5,5,0.1),dlaplace(seq(-5,5,0.1)),type="l",
      xlab="y_t",ylab="Density",main="PDF of Laplace distribution")
@@ -172,7 +172,7 @@ where $s$ is the scale parameter, $\alpha$ is the skewness parameter and $I(y_t 
 \begin{equation} \label{eq:bALaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left(y_t - \mu_t \right)(\alpha - I(y_t \leq \mu_t)) .
 \end{equation}
-Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \mathcal{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
+Thus maximising the likelihood \eqref{eq:ALaplace} is equivalent to estimating the linear regression \eqref{eq:linearModel} via the minimisation of $\alpha$ quantile, making this equivalent to quantile regression. So quantile regression models assume indirectly that the error term is $\epsilon_t \sim \mathrm{ALaplace}(0, s, \alpha)$ [@Geraci2007]. The advantage of using `alm()` in this case is in having the full distribution, which allows to do all the fancy things you can do when you have likelihood.
 
 Graphically, the PDF of asymmetric Laplace is:
 ```{r pdfALaplace, echo=FALSE}
@@ -259,7 +259,7 @@ where $s$ is the scale parameter, which is estimated in `alm()` based on the con
 \begin{equation} \label{eq:sLogisticAndSigma}
     \hat{s} = \sigma \sqrt{\frac{3}{\pi^2}}.
 \end{equation}
-Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathcal{Logistic}(0, s)$.
+Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathrm{Logistic}(0, s)$.
 ```{r pdfLogis, echo=FALSE}
 plot(seq(-5,5,0.1),dlogis(seq(-5,5,0.1),0,0.5),type="l",
      xlab="y_t",ylab="Density",main="PDF of Logistic distribution")
@@ -327,15 +327,16 @@ This group includes:
 1. [Log Normal distribution](#lnormal),
 2. [Box-Cox Normal distribution](#bcnormal),
 3. [Inverse Gaussian distribution](#invgauss),
-4. [Log Laplace distribution](#llaplace),
-5. [Log S distribution](#lsvetunkov),
-6. [Log Generalised Normal distribution](#lgnormal),
-7. [Folded Normal distribution](#fnormal),
+4. [Gamma distribution](#gamma),
+5. [Log Laplace distribution](#llaplace),
+6. [Log S distribution](#lsvetunkov),
+7. [Log Generalised Normal distribution](#lgnormal),
+8. [Folded Normal distribution](#fnormal),
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
 
 ### Log Normal distribution {#lnormal}
-Log Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathcal{N}(\mu, \sigma^2)$. The density function of Log Normal distribution is:
+Log Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathrm{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathrm{N}(\mu, \sigma^2)$. The density function of Log Normal distribution is:
 \begin{equation} \label{eq:LogNormal}
     f(y_t) = \frac{1}{y_t \sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\log y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
@@ -356,7 +357,7 @@ Estimating the model with Log Normal distribution is equivalent to estimating th
 \begin{equation} \label{eq:logLinearModel}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation}
-where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+where $\epsilon_t \sim \mathrm{N}(0, \sigma^2)$ or:
 \begin{equation} \label{eq:logLinearModelExp}
     y_t = \exp(\mu_t + \epsilon_t).
 \end{equation}
@@ -365,7 +366,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 
 
 ### Box-Cox Normal distribution {#bcnormal}
-Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformations. This means that if $x=\frac{y^\lambda+1}{\lambda}$, $x \sim \mathcal{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathcal{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
+Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformations. This means that if $x=\frac{y^\lambda+1}{\lambda}$, $x \sim \mathrm{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathrm{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
 \begin{equation} \label{eq:BCNormal}
     f(y_t) = \frac{y_t^{\lambda-1}} {\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
@@ -388,7 +389,7 @@ Estimating the model with Box-Cox Normal distribution is equivalent to estimatin
 \begin{equation} \label{eq:BCLinearModel}
     \frac{y_t^{\lambda}-1}{\lambda} = \mu_t + \epsilon_t,
 \end{equation}
-where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+where $\epsilon_t \sim \mathrm{N}(0, \sigma^2)$ or:
 \begin{equation} \label{eq:BCLinearModelExp}
     y_t = \left((\mu_t + \epsilon_t) \lambda +1 \right)^{\frac{1}{\lambda}}.
 \end{equation}
@@ -401,7 +402,7 @@ Inverse Gaussian distribution is an interesting distribution, which is defined f
 \begin{equation} \label{eq:InverseGaussianModel}
     y_t = \mu_t \times \epsilon_t 
 \end{equation}
-and that $\epsilon_t \sim \mathcal{IG}(1, \phi)$. This means that $y_t \sim \mathcal{IG}\left(\mu_t, \frac{\phi}{\mu_t} \right)$, implying that the dispersion of the model changes together with the expectation. The density function for the error term in this case is:
+and that $\epsilon_t \sim \mathrm{IG}(1, \phi)$. This means that $y_t \sim \mathrm{IG}\left(\mu_t, \frac{\phi}{\mu_t} \right)$, implying that the dispersion of the model changes together with the conditional expectation. The density function for the error term in this case is:
 \begin{equation} \label{eq:InverseGaussian}
     f(\epsilon_t) = \frac{1}{\sqrt{2 \pi \phi \epsilon_t^3}} \exp \left( -\frac{\left(\epsilon_t - 1 \right)^2}{2 \phi \epsilon_t} \right) ,
 \end{equation}
@@ -409,7 +410,7 @@ where the dispersion parameter is estimated via maximising the likelihood and is
 \begin{equation} \label{eq:InverseGaussianDispersion}
     \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \frac{\left(\epsilon_t - 1 \right)^2}{\epsilon_t} .
 \end{equation}
-Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the means is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution. The density function has following shapes depending on the values of parameters:
+Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the mean is always positive. This implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow the Inverse Gaussian distribution. The density function has following shapes depending on the values of parameters:
 ```{r pdfIG, echo=FALSE}
 library(statmod)
 plot(seq(0,5,0.01),dinvgauss(seq(0,5,0.01),1,1),type="l",
@@ -421,6 +422,37 @@ legend("topright",legend=c("IG(1,1)","IG(1,2)","IG(2,1)"),
 ```
 
 `alm()` with `distribution="dinvgauss"` estimates the density for $y_t$ using `dinvgauss()` function from `statmod` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the dispersion $\phi$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qinvgauss()` function from the `statmod` package.
+
+
+### Gamma distribution {#gamma}
+Another popular distribution, defined for positive values only is called "Gamma". It is parametrised via the shape $k$ and scale $\sigma^2$ and has closed forms for mean and variance: $\mathrm{E}(x)=k \sigma^2$, $\mathrm{V}(x)=k \sigma^4$.
+
+The important thing that distinguishes the implementation in `alm()` from the one in `glm()` or in any other function is that we assume that the model has the following form (similar to the [Inverse Gaussian](#invgauss) model in alm):
+\begin{equation*}
+    y_t = \mu_t \times \epsilon_t 
+\end{equation*}
+and that $\epsilon_t \sim \Gamma \left(\sigma^{-2}, \sigma^2 \right)$, implying that $\mathrm{E}(\epsilon_t)= k \sigma^2 = 1$ and $\mathrm{V}(\epsilon_t)=\sigma^2$. This means that $y_t \sim \Gamma\left(\sigma^{-2}, \sigma^2 \mu_t \right)$, meaning that the variance of the model changes together with the conditional expectation. The density function for the error term in this case is:
+\begin{equation} \label{eq:Gamma}
+    f(\epsilon_t) = \frac{1}{\Gamma(\sigma^{-2}) (\sigma^{2})^{\sigma^{-2}}} x^{\sigma^{-2}-1}\exp \left(-\frac{\epsilon_t}{\sigma^2}\right),
+\end{equation}
+where the scale parameter $\sigma^2$ can be estimated via the method of moments based on its relation to the variance:
+\begin{equation} \label{eq:GammaDispersion}
+    \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \left(\epsilon_t - 1 \right)^2.
+\end{equation}
+Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the mean is always positive, which implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow Gamma distribution. All of this makes the model restrictive, but arguably reasonable - otherwise the mean of the distribution might behave uncontrollably.
+
+The density function has following shapes depending on the values of parameters:
+```{r pdfGamma, echo=FALSE}
+library(statmod)
+plot(seq(0,5,0.01),dgamma(seq(0,5,0.01),shape=1,scale=1),type="l",
+     xlab="y_t",ylab="Density",main="PDF of Gamma distribution")
+lines(seq(0.01,5,0.01),dgamma(seq(0.01,5,0.01),shape=0.5,scale=2), col="blue")
+lines(seq(0,5,0.01),dgamma(seq(0,5,0.01),shape=2,scale=0.5), col="red")
+legend("topright",legend=c("Gamma(1,1)","Gamma(0.5,2)","Gamma(2,0.5)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
+
+`alm()` with `distribution="dgamma"` estimates the density for $y_t$ using `dgamma()` function from `stats` package. The $\mu_t$ is returned in the variables `mu` and `fitted.values`, the scale $\sigma^2$ is in the variable `scale`. `resid()` method returns $e_t = \frac{y_t}{\mu_t}$. Finally, the prediction and confidence intervals for the regression model are generated using `qgamma()` function from the `stats` package.
 
 
 ### Log Laplace distribution {#llaplace}
@@ -447,7 +479,7 @@ Estimating the model with Log Laplace distribution is equivalent to estimating t
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
-where $\epsilon_t \sim \mathcal{Laplace}(0, \sigma^2)$. This distribution might be useful if the data has a strong skewness (larger than in case of log normal distribution).
+where $\epsilon_t \sim \mathrm{Laplace}(0, \sigma^2)$. This distribution might be useful if the data has a strong skewness (larger than in case of log normal distribution).
 
 `alm()` with `distribution="dllaplace"` uses `dlaplace()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
@@ -475,7 +507,7 @@ Estimating the model with Log S distribution is equivalent to estimating the par
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
-where $\epsilon_t \sim \mathcal{S}(0, \sigma^2)$. This distribution can be used for sever seldom right tail cases.
+where $\epsilon_t \sim \mathrm{S}(0, \sigma^2)$. This distribution can be used for sever seldom right tail cases.
 
 `alm()` with `distribution="dls"` uses `ds()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
@@ -504,13 +536,13 @@ Estimating the model with Log Generalised Normal distribution is equivalent to e
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
-where $\epsilon_t \sim \mathcal{GN}(0, s, \beta)$.
+where $\epsilon_t \sim \mathrm{GN}(0, s, \beta)$.
 
 `alm()` with `distribution="dlgnorm"` uses the `dgnorm()` function from `greybox` package with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
 ### Folded Normal distribution {#fnormal}
-Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
+Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathrm{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathrm{N}(\mu, \sigma^2)$. The density function is:
 \begin{equation} \label{eq:foldedNormal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
 \end{equation}
@@ -549,7 +581,7 @@ A random variable follows Logit-normal distribution if its logistic transform fo
 \begin{equation} \label{eq:logitFunction}
     z = \mathrm{logit}(y) = \log \left(\frac{y}{1-y}) \right),
 \end{equation}
-where $y\in (0,1)$, $y\sim \mathrm{logit}\mathcal{N}(\mu,\sigma^2)$ and $z\sim \mathcal{N}(\mu,\sigma^2)$. The bounds are not supported, because the variable $z$ becomes infinite. The density function of $y$ is:
+where $y\in (0,1)$, $y\sim \mathrm{logit}\mathrm{N}(\mu,\sigma^2)$ and $z\sim \mathrm{N}(\mu,\sigma^2)$. The bounds are not supported, because the variable $z$ becomes infinite. The density function of $y$ is:
 \begin{equation} \label{eq:logitNormal}
     f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2} y_t (1-y_t)} \exp \left( -\frac{\left(\mathrm{logit}(y_t) - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
@@ -574,7 +606,7 @@ Estimating the model with Log Normal distribution is equivalent to estimating th
 \begin{equation} \label{eq:logitLinearModel}
     \mathrm{logit}(y_t) = \mu_t + \epsilon_t,
 \end{equation}
-where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+where $\epsilon_t \sim \mathrm{N}(0, \sigma^2)$ or:
 \begin{equation} \label{eq:logitLinearModelExp}
     y_t = \mathrm{logit}^{-1}(\mu_t + \epsilon_t),
 \end{equation}
@@ -713,7 +745,7 @@ The final class of models includes two cases:
 In both of them it is assumed that the response variable is binary and can be either zero or one. The main idea for this class of models is to use a transformation of the original data and link a continuous latent variable with the binary one. As a reminder, all the models eventually assume that:
 \begin{equation} \label{eq:basicALMCumulative}
     \begin{matrix}
-        o_t \sim \mathcal{Bernoulli}(p_t) \\
+        o_t \sim \mathrm{Bernoulli}(p_t) \\
         p_t = g(x_t' A)
     \end{matrix},
 \end{equation}

@@ -20,6 +20,7 @@
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 # \item \link[stats]{dchisq} - Chi-Squared Distribution,
 #' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
+#' \item \link[stats]{dgamma} - Gamma distribution,
 #' \item \link[greybox]{dlogitnorm} - Logit-normal distribution,
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
@@ -244,14 +245,15 @@
 #' @importFrom pracma hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms model.matrix
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma
 #' @importFrom stats plogis
 #' @importFrom statmod dinvgauss
 #' @importFrom forecast Arima
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                               "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm","dinvgauss",
+                               "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
+                               "dinvgauss","dgamma",
                                "dpois","dnbinom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
@@ -411,6 +413,7 @@ alm <- function(formula, data, subset, na.action,
 
         mu[] <- switch(distribution,
                        "dinvgauss"=,
+                       "dgamma"=,
                        "dpois" =,
                        "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
@@ -447,6 +450,7 @@ alm <- function(formula, data, subset, na.action,
                         "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/obsInsample)^{1/other},
                         "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
                         "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
+                        "dgamma" = sum((y[otU]/mu[otU]-1)^2)/obsInsample,
                         "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/obsInsample),
                         "dfnorm" = abs(other),
                         "dt" = ,
@@ -512,6 +516,8 @@ alm <- function(formula, data, subset, na.action,
                                    "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
                                                            dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+                                   "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
+                                                     scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
                                    "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
@@ -538,6 +544,9 @@ alm <- function(formula, data, subset, na.action,
                                               # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
                                               #                                 sum(log(fitterReturn$mu[!otU]))),
                                               "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                                              "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                                                                  log(gamma(1/fitterReturn$scale)) +
+                                                                  (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
                                               "dlaplace" =,
                                               "dllaplace" =,
                                               "ds" =,
@@ -572,6 +581,7 @@ alm <- function(formula, data, subset, na.action,
                                 "dnorm" =,
                                 "dgnorm" =,
                                 "dinvgauss" =,
+                                "dgamma" =,
                                 "dlaplace" =,
                                 "dalaplace" =,
                                 "dlogis" =,
@@ -1013,12 +1023,13 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss","dchisq","dpois","dnbinom"))){
+    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dllaplace","dls","dbcnorm","dchisq","dpois","dnbinom",
+                                      "dinvgauss","dgamma"))){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
 
-    if(any(y==0) & any(distribution==c("dinvgauss")) & !occurrenceModel){
+    if(any(y==0) & any(distribution==c("dinvgauss","dgamma")) & !occurrenceModel){
         stop(paste0("Zero values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
@@ -1262,7 +1273,8 @@ alm <- function(formula, data, subset, na.action,
         if(is.null(B)){
             #### I(0) initialisation ####
             if(iOrder==0){
-                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom","dinvgauss"))){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
+                                       "dinvgauss","dgamma"))){
                     if(any(y[otU]==0)){
                         # Use Box-Cox if there are zeroes
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
@@ -1340,7 +1352,8 @@ alm <- function(formula, data, subset, na.action,
                     matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
                 }
 
-                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom","dinvgauss"))){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
+                                       "dinvgauss","dgamma"))){
                     B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
                 }
                 else if(any(distribution==c("plogis","pnorm"))){
@@ -1665,6 +1678,7 @@ alm <- function(formula, data, subset, na.action,
                        "dnorm" =,
                        "dgnorm" =,
                        "dinvgauss" =,
+                       "dgamma" =,
                        "dlaplace" =,
                        "dalaplace" =,
                        "dlogis" =,
@@ -1697,7 +1711,8 @@ alm <- function(formula, data, subset, na.action,
                        "dgnorm" =,
                        "dnbinom" =,
                        "dpois" = y - mu,
-                       "dinvgauss" = y / mu,
+                       "dinvgauss" =,
+                       "dgamma" = y / mu,
                        "dchisq" = sqrt(y) - sqrt(mu),
                        "dlnorm" =,
                        "dllaplace" =,

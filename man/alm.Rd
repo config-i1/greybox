@@ -6,9 +6,9 @@
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
-  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dpois", "dnbinom", "dbeta",
-  "dlogitnorm", "plogis", "pnorm"), loss = c("likelihood", "MSE", "MAE",
-  "HAM", "LASSO", "RIDGE"), occurrence = c("none", "plogis", "pnorm"),
+  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
+  "dbeta", "dlogitnorm", "plogis", "pnorm"), loss = c("likelihood", "MSE",
+  "MAE", "HAM", "LASSO", "RIDGE"), occurrence = c("none", "plogis", "pnorm"),
   ar = 0, parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
@@ -169,6 +169,7 @@ of several non-normal distributions. These include:
 \item \link[greybox]{dfnorm} - Folded normal distribution,
 \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
+\item \link[stats]{dgamma} - Gamma distribution,
 \item \link[greybox]{dlogitnorm} - Logit-normal distribution,
 \item \link[stats]{dbeta} - Beta distribution,
 \item \link[stats]{dpois} - Poisson Distribution,
