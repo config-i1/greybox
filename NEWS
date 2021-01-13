@@ -1,8 +1,11 @@
-greybox v0.6.7 (Release data: 2021-01-08)
+greybox v0.6.7 (Release data: 2021-01-13)
 ==============
 
 Changes:
 * Gamma distribution in alm().
+
+Bugfixes:
+* temporaldummy() now does not return zoo from zoo objects. This would break the factors.
 
 
 greybox v0.6.6 (Release data: 2021-01-07)

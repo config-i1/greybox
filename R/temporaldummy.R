@@ -220,7 +220,7 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
     }
 
     # Create factors
-    factorVariable <- factor(dateFinal)[1:obsAll];
+    factorVariable <- factor(dateFinal[1:obsAll]);
 
     if(!factors){
         # Do model matrix for sparse factors
@@ -374,7 +374,7 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
     }
 
     # Create factors
-    factorVariable <- factor(dateFinal)[1:obsAll];
+    factorVariable <- factor(dateFinal[1:obsAll]);
 
     if(!factors){
         # Do model matrix for sparse factors
@@ -401,5 +401,5 @@ temporaldummy.zoo <- function(object, type=c("month","quarter","week","day","hou
     }
 
     # Invoke the respective class for the date / time
-    return(zoo(as.matrix(temporaldummy(dates, type=type, of=of, factors=factors, h=h)), order.by=dates));
+    return(temporaldummy(dates, type=type, of=of, factors=factors, h=h));
 }
