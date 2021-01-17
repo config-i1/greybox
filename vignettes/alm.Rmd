@@ -433,11 +433,11 @@ The important thing that distinguishes the implementation in `alm()` from the on
 \end{equation*}
 and that $\epsilon_t \sim \Gamma \left(\sigma^{-2}, \sigma^2 \right)$, implying that $\mathrm{E}(\epsilon_t)= k \sigma^2 = 1$ and $\mathrm{V}(\epsilon_t)=\sigma^2$. This means that $y_t \sim \Gamma\left(\sigma^{-2}, \sigma^2 \mu_t \right)$, meaning that the variance of the model changes together with the conditional expectation. The density function for the error term in this case is:
 \begin{equation} \label{eq:Gamma}
-    f(\epsilon_t) = \frac{1}{\Gamma(\sigma^{-2}) (\sigma^{2})^{\sigma^{-2}}} x^{\sigma^{-2}-1}\exp \left(-\frac{\epsilon_t}{\sigma^2}\right),
+    f(\epsilon_t) = \frac{1}{\Gamma(\sigma^{-2}) (\sigma^{2})^{\sigma^{-2}}} \epsilon_t^{\sigma^{-2}-1}\exp \left(-\frac{\epsilon_t}{\sigma^2}\right),
 \end{equation}
 where the scale parameter $\sigma^2$ can be estimated via the method of moments based on its relation to the variance:
 \begin{equation} \label{eq:GammaDispersion}
-    \hat{\phi} = \frac{1}{T} \sum_{t=1}^T \left(\epsilon_t - 1 \right)^2.
+    \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\epsilon_t - 1 \right)^2.
 \end{equation}
 Note that in our formulation $\mu_t = \exp\left( x_t' B \right)$, so that the mean is always positive, which implies that we deal with a pure multiplicative model. In addition, we assume that $\mu_t$ is just a scale for the distribution, otherwise $y_t$ would not follow Gamma distribution. All of this makes the model restrictive, but arguably reasonable - otherwise the mean of the distribution might behave uncontrollably.
 
