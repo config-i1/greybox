@@ -6,13 +6,13 @@
 \alias{coefbootstrap.alm}
 \title{Bootstrap for parameters of models}
 \usage{
-coefbootstrap(object, nsim = 1000, size = floor(0.8 * nobs(object)),
+coefbootstrap(object, nsim = 1000, size = floor(0.75 * nobs(object)),
   replace = FALSE, prob = NULL, parallel = FALSE)
 
-\method{coefbootstrap}{lm}(object, nsim = 1000, size = floor(0.8 *
+\method{coefbootstrap}{lm}(object, nsim = 1000, size = floor(0.75 *
   nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
 
-\method{coefbootstrap}{alm}(object, nsim = 1000, size = floor(0.8 *
+\method{coefbootstrap}{alm}(object, nsim = 1000, size = floor(0.75 *
   nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
 }
 \arguments{
@@ -21,7 +21,8 @@ coefbootstrap(object, nsim = 1000, size = floor(0.8 * nobs(object)),
 \item{nsim}{Number of iterations (simulations) to run.}
 
 \item{size}{A non-negative integer giving the number of items to choose (the sample size),
-passed to \link[base]{sample} function in R.}
+passed to \link[base]{sample} function in R. If not provided and model contains ARIMA
+components, this value will be selected at random on each iteration.}
 
 \item{replace}{Should sampling be with replacement? Also, passed to \link[base]{sample}
 function in R.}
