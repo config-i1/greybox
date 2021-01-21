@@ -66,12 +66,13 @@
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
                      method=c("pearson","kendall","spearman"),
                      distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                                    "dfnorm","dlnorm","dllaplace","dls","dbcnorm",
+                                    "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
                                     "dinvgauss","dgamma",
                                     "dpois","dnbinom",
+                                    "dlogitnorm",
                                     "plogis","pnorm"),
                      occurrence=c("none","plogis","pnorm"), ...){
-##### Function that selects variables based on IC and using partial correlations
+    ##### Function that selects variables based on IC and using partial correlations
     if(is.null(df)){
         df <- 0;
     }
@@ -88,7 +89,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         }
     }
 
-    distribution <- distribution[1];
+    distribution <- match.arg(distribution);
     if(distribution=="dnorm"){
         useALM <- FALSE;
     }
@@ -188,7 +189,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     if(any(noVariability)){
         if(all(noVariability)){
             stop("None of exogenous variables has variability. There's nothing to select!",
-                    call.=FALSE);
+                 call.=FALSE);
         }
         else{
             warning("Some exogenous variables did not have any variability. We dropped them out.",

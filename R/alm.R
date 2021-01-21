@@ -271,7 +271,7 @@ alm <- function(formula, data, subset, na.action,
 
     cl <- match.call();
     # This is needed in order to have a reasonable formula saved, so that there are no issues with it
-        cl$formula <- eval(cl$formula);
+    cl$formula <- eval(cl$formula);
     distribution <- match.arg(distribution);
     if(is.function(loss)){
         lossFunction <- loss;
@@ -579,14 +579,14 @@ alm <- function(formula, data, subset, na.action,
                                 "dfnorm" = sqrt(2/pi)*fitterReturn$scale*exp(-fitterReturn$mu^2/(2*fitterReturn$scale^2))+
                                     fitterReturn$mu*(1-2*pnorm(-fitterReturn$mu/fitterReturn$scale)),
                                 "dnorm" =,
-                                "dgnorm" =,
-                                "dinvgauss" =,
-                                "dgamma" =,
                                 "dlaplace" =,
+                                "ds" =,
+                                "dgnorm" =,
                                 "dalaplace" =,
                                 "dlogis" =,
                                 "dt" =,
-                                "ds" =,
+                                "dinvgauss" =,
+                                "dgamma" =,
                                 "dpois" =,
                                 "dnbinom" = fitterReturn$mu,
                                 "dchisq" = fitterReturn$mu + nu,
@@ -1702,13 +1702,13 @@ alm <- function(formula, data, subset, na.action,
     errors[] <- switch(distribution,
                        "dbeta" = y - yFitted,
                        "dfnorm" =,
+                       "dnorm" =,
                        "dlaplace" =,
+                       "ds" =,
+                       "dgnorm" =,
                        "dalaplace" =,
                        "dlogis" =,
                        "dt" =,
-                       "ds" =,
-                       "dnorm" =,
-                       "dgnorm" =,
                        "dnbinom" =,
                        "dpois" = y - mu,
                        "dinvgauss" =,

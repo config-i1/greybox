@@ -75,8 +75,10 @@
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                                     "dfnorm","dlnorm","dllaplace","dls","dbcnorm","dinvgauss",
+                                     "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
+                                     "dinvgauss","dgamma",
                                      "dpois","dnbinom",
+                                     "dlogitnorm",
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
@@ -137,7 +139,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     colnames(data) <- make.names(colnames(data), unique=TRUE);
 
     # Define cases, when to use ALM
-    distribution <- distribution[1];
+    distribution <- match.arg(distribution);
     if(distribution=="dnorm"){
         useALM <- FALSE;
     }
@@ -257,6 +259,51 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             alpha <- ellipsis$alpha;
         }
         other$alpha <- listToCall$alpha <- alpha;
+    }
+    else if(any(distribution==c("dt","dchisq"))){
+        if(is.null(ellipsis$nu)){
+            nu <- NULL;
+        }
+        else{
+            nu <- ellipsis$nu;
+        }
+        other$nu <- listToCall$nu <- nu;
+    }
+    else if(distribution=="dnbinom"){
+        if(is.null(ellipsis$size)){
+            size <- NULL;
+        }
+        else{
+            size <- ellipsis$size;
+        }
+        other$size <- listToCall$size <- size;
+    }
+    else if(distribution=="dfnorm"){
+        if(is.null(ellipsis$sigma)){
+            sigma <- NULL;
+        }
+        else{
+            sigma <- ellipsis$sigma;
+        }
+        other$sigma <- listToCall$sigma <- sigma;
+    }
+    else if(any(distribution==c("dgnorm","dlgnorm"))){
+        if(is.null(ellipsis$shape)){
+            shape <- NULL;
+        }
+        else{
+            shape <- ellipsis$shape;
+        }
+        other$shape <- listToCall$shape <- shape;
+    }
+    else if(distribution=="dbcnorm"){
+        if(is.null(ellipsis$lambdaBC)){
+            lambdaBC <- NULL;
+        }
+        else{
+            lambdaBC <- ellipsis$lambdaBC;
+        }
+        other$lambdaBC <- listToCall$lambdaBC <- lambdaBC;
     }
 
     # Observations in sample, assuming that the missing values are for the holdout
@@ -385,7 +432,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         }
     }
 
-    if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+    if(any(distribution==c("dt","dchisq","dnbinom","dalaplace","dgnorm","dlgnorm","dbcnorm"))){
         otherParameters <- rep(NA, nCombinations);
         otherParameters[1] <- ourModel$other[[1]];
     }
@@ -404,7 +451,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             vcovValues <- vcov(ourModel);
             pointLiks <- pointLik(ourModel);
 
-            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+            if(any(distribution==c("dt","dchisq","dnbinom","dalaplace","dgnorm","dlgnorm","dbcnorm"))){
                 otherParameters <- ourModel$other[[1]];
             }
             else{
@@ -420,7 +467,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- forLoopReturns[[i-1]]$vcovValues;
             pointLiks[,i] <- forLoopReturns[[i-1]]$pointLiks;
 
-            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+            if(any(distribution==c("dt","dchisq","dnbinom","dalaplace","dgnorm","dlgnorm","dbcnorm"))){
                 otherParameters[i] <- forLoopReturns[[i-1]]$otherParameters;
             }
         }
@@ -446,7 +493,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
             vcovValues[i,c(1,variablesCombinations[i,])==1,c(1,variablesCombinations[i,])==1] <- vcov(ourModel);
             pointLiks[,i] <- pointLik(ourModel);
 
-            if(any(distribution==c("dchisq","dnbinom","dalaplace"))){
+            if(any(distribution==c("dt","dchisq","dnbinom","dalaplace","dgnorm","dlgnorm","dbcnorm"))){
                 otherParameters[i] <- ourModel$other[[1]];
             }
         }
@@ -473,19 +520,49 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     colnames(ourDataExo) <- variablesNamesOriginal;
     colnames(listToCall$data) <- variablesNamesOriginal;
 
+    if(distribution=="dbcnorm"){
+        # Function for the Box-Cox transform
+        bcTransform <- function(y, lambdaBC){
+            if(lambdaBC==0){
+                return(log(y));
+            }
+            else{
+                return((y^lambdaBC-1)/lambdaBC);
+            }
+        }
+
+        # Function for the inverse Box-Cox transform
+        bcTransformInv <- function(y, lambdaBC){
+            if(lambdaBC==0){
+                return(exp(y));
+            }
+            else{
+                return((y*lambdaBC+1)^{1/lambdaBC});
+            }
+        }
+    }
+
     # Calculate the mean based on the mean values of parameters
     mu <- switch(distribution,
-                 "dpois" = exp(as.matrix(ourDataExo) %*% parametersMean),
                  "dchisq" = (as.matrix(ourDataExo) %*% parametersMean)^2,
+                 "dinvgauss" =,
+                 "dgamma" =,
+                 "dpois" =,
                  "dnbinom" = exp(as.matrix(ourDataExo) %*% parametersMean),
                  "dnorm" =,
                  "dfnorm" =,
-                 "dlnorm" =,
+                 "dbcnorm"=,
+                 "dlogitnorm"=,
                  "dlaplace" =,
-                 "dalaplace" =,
+                 "ds" =,
+                 "dgnorm" =,
                  "dlogis" =,
                  "dt" =,
-                 "ds" =,
+                 "dalaplace" =,
+                 "dlnorm" =,
+                 "dllaplace" =,
+                 "dls" =,
+                 "dlgnorm" =,
                  "pnorm" =,
                  "plogis" = as.matrix(ourDataExo) %*% parametersMean
     );
@@ -493,13 +570,21 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     scale <- switch(distribution,
                     "dnorm" =,
                     "dfnorm" = sqrt(mean((y-mu)^2)),
-                    "dlnorm" = sqrt(mean((log(y)-mu)^2)),
+                    "dbcnorm" = sqrt(mean((bcTransform(y,other)-mu)^2)),
+                    "dlogitnorm" = sqrt(mean((log(y/(1-y))-mu)^2)),
                     "dlaplace" = mean(abs(y-mu)),
-                    "dalaplace" = mean((y-mu) * (alpha - (y<=mu)*1)),
-                    "dlogis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
                     "ds" = mean(sqrt(abs(y-mu))) / 2,
+                    "dgnorm" = (otherParameters*mean(abs(y-mu)^otherParameters))^{1/otherParameters},
+                    "dlogis" = sqrt(mean((y-mu)^2) * 3 / pi^2),
                     "dt" = max(2,2/(1-(mean((y-mu)^2))^{-1})),
+                    "dalaplace" = mean((y-mu) * (alpha - (y<=mu)*1)),
+                    "dlnorm" = sqrt(mean((log(y)-mu)^2)),
+                    "dllaplace" = mean(abs(log(y)-mu)),
+                    "dls" = mean(sqrt(abs(log(y)-mu))) / 2,
+                    "dlgnorm" = (otherParameters*mean(abs(log(y)-mu)^otherParameters))^{1/otherParameters},
                     "dchisq" = pICWeightsMean %*% otherParameters,
+                    "dinvgauss" = mean((y/mu-1)^2 / (y/mu)),
+                    "dgamma" = mean((y/mu-1)^2),
                     "dnbinom" = pICWeightsMean %*% otherParameters,
                     "dpois" = mu,
                     "pnorm" = sqrt(mean(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
@@ -510,31 +595,44 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                       "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
                       "dnorm" =,
                       "dlaplace" =,
+                      "ds" =,
+                      "dgnorm" =,
                       "dalaplace" =,
                       "dlogis" =,
                       "dt" =,
-                      "ds" =,
+                      "dinvgauss" =,
+                      "dgamma" =,
                       "dpois" =,
                       "dnbinom" = mu,
+                      "dlogitnorm" = exp(mu)/(1+exp(mu)),
+                      "dbcnorm" = bcTransformInv(mu,other),
                       "dchisq" = mu + df,
-                      "dlnorm" = exp(mu),
+                      "dlnorm" =,
+                      "dllaplace" =,
+                      "dls" =,
+                      "dlgnorm" = exp(mu),
                       "pnorm" = pnorm(mu, mean=0, sd=1),
                       "plogis" = plogis(mu, location=0, scale=1)
     );
 
     errors <- switch(distribution,
-                     "dbeta" = y - yFitted,
                      "dfnorm" =,
+                     "dnorm" =,
                      "dlaplace" =,
+                     "ds" =,
+                     "dgnorm" =,
                      "dalaplace" =,
                      "dlogis" =,
                      "dt" =,
-                     "ds" =,
-                     "dnorm" =,
                      "dpois" =,
                      "dnbinom" = y - mu,
+                     "dinvgauss" =,
+                     "dgamma" = y / mu,
                      "dchisq" = sqrt(y) - sqrt(mu),
-                     "dlnorm"= log(y) - mu,
+                     "dlnorm" =,
+                     "dllaplace" =,
+                     "dls" =,
+                     "dlgnorm" = log(y) - mu,
                      "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
                      "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)) # Here we use the proxy from Svetunkov et al. (2018)
     );

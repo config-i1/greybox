@@ -6,9 +6,9 @@
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteforce = FALSE,
   silent = TRUE, distribution = c("dnorm", "dlaplace", "ds", "dgnorm",
-  "dlogis", "dt", "dalaplace", "dfnorm", "dlnorm", "dllaplace", "dls",
-  "dbcnorm", "dinvgauss", "dpois", "dnbinom", "plogis", "pnorm"),
-  parallel = FALSE, ...)
+  "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls", "dlgnorm",
+  "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom", "dlogitnorm",
+  "plogis", "pnorm"), parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and

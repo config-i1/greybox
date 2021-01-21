@@ -1,9 +1,10 @@
-greybox v0.6.7 (Release data: 2021-01-20)
+greybox v0.6.7 (Release data: 2021-01-21)
 ==============
 
 Changes:
 * Gamma distribution in alm().
 * coefbootstrap() now uses changable sample size in case of ar!=0 in alm() and size not provided explicitly.
+* Proper distributions in stepwise(), lmCombine() and lmDynamic().
 
 Bugfixes:
 * temporaldummy() now does not return zoo from zoo objects. This would break the factors.
