@@ -277,15 +277,16 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         newCall$lambdaBC <- object$other$lambdaBC;
     }
     else if(any(object$distribution==c("dgnorm","dlgnorm"))){
-        newCall$beta <- object$other$beta;
+        newCall$shape <- object$other$shape;
     }
     newCall$occurrence <- object$occurrence;
+    newCall$B <- object$B;
 
     # Function creates a random sample. Needed for dynamic models
     sampler <- function(indices,size,replace,prob,arimaModel=FALSE,changeSize=FALSE){
         if(arimaModel){
             if(changeSize){
-                size[] <- floor(runif(1,nVariables+1,obsInsample));
+                size[] <- floor(runif(1,nVariables,obsInsample))+1;
             }
             # This way we return the continuos sample, but with random starting point
             return(floor(runif(1,0,obsInsample-size))+c(1:size));
