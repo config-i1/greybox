@@ -332,6 +332,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                      class="bootstrap"));
 }
 
+#' @export
 print.bootstrap <- function(x, ...){
     cat(paste0("Bootstrap for the ", x$model, " model with nsim=",x$nsim," and size=",x$size,"\n"))
     cat(paste0("Time elapsed: ",round(as.numeric(x$timeElapsed,units="secs"),2)," seconds\n"));
