@@ -614,10 +614,10 @@ alm <- function(formula, data, subset, na.action,
                 B[] <- B / denominator;
 
                 if(interceptIsNeeded){
-                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B[-1]))
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2))/yDenominator + lambda * sum(abs(B[-1]))
                 }
                 else{
-                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sum(abs(B))
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2))/yDenominator + lambda * sum(abs(B))
                 }
                 # This is a hack. If lambda=1, then we only need the mean of the data
                 if(lambda==1){
@@ -628,10 +628,10 @@ alm <- function(formula, data, subset, na.action,
                 B[] <- B / denominator;
 
                 if(interceptIsNeeded){
-                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B[-1]^2))
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2))/yDenominator + lambda * sqrt(sum(B[-1]^2))
                 }
                 else{
-                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2)) + lambda * sqrt(sum(B^2))
+                    CFValue <- (1-lambda) * sqrt(meanFast((y-yFitted)^2))/yDenominator + lambda * sqrt(sum(B^2))
                 }
                 # This is a hack. If lambda=1, then we only need the mean of the data
                 if(lambda==1){
@@ -1480,6 +1480,7 @@ alm <- function(formula, data, subset, na.action,
             denominator[is.infinite(denominator)] <- 1;
             # # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
             # denominator[abs(denominator)<1] <- 1;
+            yDenominator <- max(sd(diff(yInSample)),1);
         }
         else{
             denominator <- NULL;
