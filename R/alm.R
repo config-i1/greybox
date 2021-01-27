@@ -1480,7 +1480,7 @@ alm <- function(formula, data, subset, na.action,
             denominator[is.infinite(denominator)] <- 1;
             # # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
             # denominator[abs(denominator)<1] <- 1;
-            yDenominator <- max(sd(diff(yInSample)),1);
+            yDenominator <- max(sd(diff(y)),1);
         }
         else{
             denominator <- NULL;
