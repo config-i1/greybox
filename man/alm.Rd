@@ -9,7 +9,7 @@ alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
   "dbeta", "dlogitnorm", "plogis", "pnorm"), loss = c("likelihood", "MSE",
   "MAE", "HAM", "LASSO", "RIDGE"), occurrence = c("none", "plogis", "pnorm"),
-  ar = 0, parameters = NULL, fast = FALSE, ...)
+  orders = c(0, 0, 0), parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -71,7 +71,7 @@ If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 (excluding zeroes from the data).}
 
-\item{ar}{the order of AR to include in the model. Only non-seasonal
+\item{orders}{the orders of ARIMA to include in the model. Only non-seasonal
 orders are accepted.}
 
 \item{parameters}{vector of parameters of the linear model. When \code{NULL}, it
@@ -179,8 +179,8 @@ of several non-normal distributions. These include:
 }
 
 This function can be considered as an analogue of \link[stats]{glm}, but with the
-focus on time series. This is why, for example, the function has \code{ar} and
-\code{i} parameters and produces time series analysis plots with \code{plot(alm(...))}.
+focus on time series. This is why, for example, the function has \code{orders} parameter
+for ARIMA and produces time series analysis plots with \code{plot(alm(...))}.
 
 This function is slower than \code{lm}, because it relies on likelihood estimation
 of parameters, hessian calculation and matrix multiplication. So think twice when
@@ -227,7 +227,7 @@ plot(predict(ourModel,xreg[-c(1:80),]))}
 \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
 
 # An example with AR(1) order
-\dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", ar=1)
+\dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", orders=c(1,0,0))
 summary(ourModel)
 plot(predict(ourModel,xreg[-c(1:80),]))}
 

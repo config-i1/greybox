@@ -851,9 +851,9 @@ After that we can produce forecasts using the data from the holdout sample (in t
 predict(modelMixture,outSample,interval="p",level=c(0.8,0.9,0.95))
 ```
 
-If you expect autoregressive elements in the data, then you can specify the order of AR via the respective parameter
+If you expect autoregressive elements in the data, then you can specify the order of ARIMA via the respective parameter (note that the MA part is not supported yet. Use `adam` function from `smooth` package for that):
 ```{r mixtureExampleFinalAR}
-modelMixtureAR <- alm(y~x1+x2+Noise, inSample, distribution="dlnorm", occurrence=modelOccurrence, ar=1)
+modelMixtureAR <- alm(y~x1+x2+Noise, inSample, distribution="dlnorm", occurrence=modelOccurrence, orders=c(1,0,0))
 summary(modelMixtureAR)
 plot(predict(modelMixtureAR,outSample,interval="p",side="u"))
 ```

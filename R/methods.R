@@ -748,8 +748,9 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                            "It is recommended to use bootstrap=TRUE option in this case."),
                     call.=FALSE);
         }
+        arimaModel <- !is.null(object$other$arima);
 
-        if(any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
+        if(!arimaModel && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             matrixXreg <- object$data[,-1,drop=FALSE];
             if(interceptIsNeeded){
                 matrixXreg <- cbind(1,matrixXreg);
@@ -783,7 +784,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
-        else if(object$distribution=="dpois"){
+        else if(!arimaModel && object$distribution=="dpois"){
             matrixXreg <- object$data[,-1,drop=FALSE];
             obsInsample <- nobs(object);
             if(interceptIsNeeded){
@@ -836,8 +837,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             else{
                 newCall$loss <- object$loss;
             }
-            newCall$ar <- object$call$ar;
-            newCall$i <- object$call$i;
+            newCall$orders <- object$other$orders;
             newCall$parameters <- coef(object);
             newCall$fast <- TRUE;
             if(any(object$distribution==c("dchisq","dt"))){
@@ -3286,11 +3286,11 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     y <- actuals(object, all=FALSE);
 
     # Write down the AR order
-    if(is.null(object$call$ar)){
+    if(is.null(object$other$arima)){
         arOrder <- 0;
     }
     else{
-        arOrder <- object$call$ar;
+        arOrder <- object$other$orders[1];
     }
 
     ariOrder <- length(object$other$polynomial);
@@ -3350,7 +3350,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
         colnames(newdata) <- make.names(colnames(newdata), unique=TRUE);
         # Extract the formula and get rid of the response variable
-        testFormula <- formula(object)
+        testFormula <- formula(object);
         testFormula[[2]] <- NULL;
         # Expand the data frame
         newdataExpanded <- model.frame(testFormula, newdata);

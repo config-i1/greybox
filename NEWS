@@ -6,6 +6,7 @@ Changes:
 * coefbootstrap() now uses changable sample size in case of ar!=0 in alm() and size not provided explicitly.
 * Proper distributions in stepwise(), lmCombine() and lmDynamic().
 * Scale the MSE part of LASSO and RIDGE in alm() by the sd(diff(y)).
+* Parameter orders in alm() instead of ar and i. Currently supports only ARIMA(p,d,0). MA(q) is in future plans.
 
 
 Bugfixes:
