@@ -1168,7 +1168,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         abline(h=statistic, col="red", lty=2);
         if(length(outliersID)>0){
             points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
-            text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
+            text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$y[outliersID]>0)*2+1);
         }
         if(lowess){
             # Remove NAs
