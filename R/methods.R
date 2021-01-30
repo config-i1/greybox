@@ -3515,8 +3515,11 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     return(structure(ourModel,class="predict.greybox"));
 }
 
-#' @importFrom forecast forecast
+#' @rdname predict.greybox
+#' @aliases forecast
 #' @export forecast
+forecast <- function(object, ...) UseMethod("forecast")
+
 #' @rdname predict.greybox
 #' @export
 forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){

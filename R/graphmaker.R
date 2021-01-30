@@ -30,13 +30,13 @@
 #' @keywords plots linear graph
 #' @examples
 #'
-#' x <- rnorm(100,0,1)
-#' values <- forecast(arima(x),h=10,level=0.95)
+#' xreg <- cbind(y=rnorm(100,100,10),x=rnorm(100,10,10))
+#' almModel <- alm(y~x, xreg, subset=c(1:90))
+#' values <- predict(almModel, newdata=xreg[-c(1:90),], interval="prediction")
 #'
-#' graphmaker(x,values$mean,fitted(values))
-#' graphmaker(x,values$mean,fitted(values),legend=FALSE)
-#' graphmaker(x,values$mean,fitted(values),values$lower,values$upper,level=0.95)
-#' graphmaker(x,values$mean,fitted(values),values$lower,values$upper,level=0.95,legend=FALSE)
+#' graphmaker(xreg[,1],values$mean,fitted(values))
+#' graphmaker(xreg[,1],values$mean,fitted(values),legend=FALSE)
+#' graphmaker(xreg[,1],values$mean,fitted(values),legend=FALSE,lower=values$lower,upper=values$upper)
 #'
 #' # Produce the necessary ts objects from an arbitrary vectors
 #' actuals <- ts(c(1:10), start=c(2000,1), frequency=4)

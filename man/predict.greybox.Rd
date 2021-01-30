@@ -16,6 +16,8 @@
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
   "lower"), ...)
 
+forecast(object, ...)
+
 \method{forecast}{greybox}(object, newdata = NULL, h = NULL, ...)
 
 \method{forecast}{alm}(object, newdata = NULL, h = NULL, ...)

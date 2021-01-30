@@ -246,7 +246,7 @@
 #' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma
 #' @importFrom stats plogis
 #' @importFrom statmod dinvgauss
-#' @importFrom forecast Arima
+#' @importFrom stats arima
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
@@ -1208,7 +1208,7 @@ alm <- function(formula, data, subset, na.action,
             # In case of plogis and pnorm, the AR elements need to be generated from a model, i.e. oes from smooth.
             if(any(distribution==c("plogis","pnorm"))){
                 if(!requireNamespace("smooth", quietly = TRUE)){
-                    yNew <- abs(fitted(Arima(y, order=c(0,1,1))));
+                    yNew <- abs(fitted(arima(y, order=c(0,1,1))));
                     yNew[is.na(yNew)] <- min(yNew);
                     yNew[yNew==0] <- 1E-10;
                     yNew[] <- log(yNew / (1-yNew));
