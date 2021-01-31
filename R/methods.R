@@ -3520,6 +3520,17 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 #' @export forecast
 forecast <- function(object, ...) UseMethod("forecast")
 
+#' @export
+forecast.default <- function(object, ...){
+    # If the forecast is not available, use predict function
+    if(!requireNamespace("forecast", quietly = TRUE)){
+        return(predict(object, ...));
+    }
+    else{
+        return(forecast::forecast(object, ...));
+    }
+}
+
 #' @rdname predict.greybox
 #' @export
 forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){

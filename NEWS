@@ -1,4 +1,4 @@
-greybox v0.6.7 (Release data: 2021-01-30)
+greybox v0.6.7 (Release data: 2021-01-31)
 ==============
 
 Changes:
@@ -7,7 +7,7 @@ Changes:
 * Proper distributions in stepwise(), lmCombine() and lmDynamic().
 * Scale the MSE part of LASSO and RIDGE in alm() by the sd(diff(y)).
 * Parameter orders in alm() instead of ar and i. Currently supports only ARIMA(p,d,0). MA(q) is in future plans.
-* Removed imports from forecast package. We now do not depend on it.
+* Removed forecast package from imports. We now do not depend on it, but only suggest.
 
 
 Bugfixes:

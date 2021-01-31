@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 0.6.7.41008
-Date: 2021-01-30
+Version: 0.6.7.41009
+Date: 2021-01-31
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -41,6 +41,7 @@ Suggests:
     foreach,
     testthat,
     rmarkdown,
+    forecast,
     knitr
 Enhances:
     vars,
