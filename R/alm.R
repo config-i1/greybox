@@ -1132,7 +1132,7 @@ alm <- function(formula, data, subset, na.action,
             corThreshold <- 0.999;
             if(nVariables>1){
                 # Check perfectly correlated cases
-                corMatrix <- cor(matrixXreg[otU,,drop=FALSE]);
+                corMatrix <- cor(matrixXreg[otU,,drop=FALSE],use="complete.obs");
                 corHigh <- upper.tri(corMatrix) & abs(corMatrix)>=corThreshold;
                 if(any(corHigh)){
                     removexreg <- unique(which(corHigh,arr.ind=TRUE)[,1]);

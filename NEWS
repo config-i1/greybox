@@ -1,4 +1,4 @@
-greybox v0.6.7 (Release data: 2021-01-31)
+greybox v0.6.7 (Release data: 2021-02-04)
 ==============
 
 Changes:
@@ -9,10 +9,10 @@ Changes:
 * Parameter orders in alm() instead of ar and i. Currently supports only ARIMA(p,d,0). MA(q) is in future plans.
 * Removed forecast package from imports. We now do not depend on it, but only suggest.
 
-
 Bugfixes:
 * temporaldummy() now does not return zoo from zoo objects. This would break the factors.
 * export print.bootstrap method.
+* added `use="complete.obs"` in cor() in alm(), just in case.
 
 
 greybox v0.6.6 (Release data: 2021-01-07)
