@@ -1166,14 +1166,14 @@ alm <- function(formula, data, subset, na.action,
                 }
             }
         }
-    }
 
-    #### Finish forming the matrix of exogenous variables ####
-    # Remove the redudant dummies, if there are any
-    varsToLeave <- apply(matrixXreg[otU,,drop=FALSE],2,var)!=0;
-    matrixXreg <- matrixXreg[,varsToLeave,drop=FALSE];
-    variablesNames <- variablesNames[varsToLeave];
-    nVariables <- length(variablesNames);
+        #### Finish forming the matrix of exogenous variables ####
+        # Remove the redudant dummies, if there are any
+        varsToLeave <- apply(matrixXreg[otU,,drop=FALSE],2,var)!=0;
+        matrixXreg <- matrixXreg[,varsToLeave,drop=FALSE];
+        variablesNames <- variablesNames[varsToLeave];
+        nVariables <- length(variablesNames);
+    }
 
     if(interceptIsNeeded){
         matrixXreg <- cbind(1,matrixXreg);

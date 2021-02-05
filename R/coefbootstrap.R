@@ -250,6 +250,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
     # ari is not needed, because it is in the object$data
     newCall$ar <- NULL;
     newCall$i <- NULL;
+    newCall$orders <- c(0,0,0);
     arimaModel <- !is.null(object$other$polynomial);
 
     # If this is ARIMA, and the size wasn't specified, make it changable
