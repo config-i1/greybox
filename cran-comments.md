@@ -1,12 +1,12 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "07 January 2021"
+date: "14 February 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.6
+This is the release of the package ``greybox``, v0.6.7
 
 ## Test environments
 * local ubuntu 20.04, R 4.0.3
@@ -23,8 +23,6 @@ R CMD check results
 >Package suggested but not available for checking: 'doMC'
 
 This is expected, because doMC is not available for Windows.
-
-I also had to switch off almost all examples for alm(), because win-builder would complain about the speed of the function. Comparing it via microbenchmark with the version 0.6.4 of greybox shows almost no difference (the new version is actually slightly faster), so this is probably because of some changes on the server side.
 
 
 ## R-hub
