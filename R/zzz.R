@@ -1,9 +1,8 @@
 .onAttach <- function(libname, pkgname) {
     startUpMessage <- paste0("Package \"greybox\", v",packageVersion(pkgname)," loaded.");
-    randomNumber <- ceiling(runif(1,0,10));
-    # randomNumber <- trunc(runif(1,1,101));
+    randomNumber <- trunc(runif(1,1,101));
     if(randomNumber<=4){
-      startUpMessage <- paste0(startUpMessage,"\n\033[38;2;00;70;20m");
+      # startUpMessage <- paste0(startUpMessage,"\n\033[38;2;00;70;20m");
       if(randomNumber==1){
         startUpMessage <- paste0(startUpMessage,"\nBy the way, have you already tried temporaldummy() function from greybox?");
       }
