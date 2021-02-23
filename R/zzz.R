@@ -1,6 +1,6 @@
 .onAttach <- function(libname, pkgname) {
     startUpMessage <- paste0("Package \"greybox\", v",packageVersion(pkgname)," loaded.");
-    randomNumber <- ceil(runif(1,0,10));
+    randomNumber <- ceiling(runif(1,0,10));
     # randomNumber <- trunc(runif(1,1,101));
     if(randomNumber<=4){
       startUpMessage <- paste0(startUpMessage,"\n\033[38;2;00;70;20m");
