@@ -35,7 +35,7 @@
 #' @template author
 #'
 #' @aliases Errors
-#' @param actual The vector or matrix of actual values.
+#' @param holdout The vector or matrix of holdout values.
 #' @param forecast The vector or matrix of forecasts values.
 #' @param lower The lower bound of the prediction interval.
 #' @param upper The upper bound of the prediction interval.
@@ -123,100 +123,100 @@
 #' @rdname error-measures
 #' @export ME
 #' @aliases ME
-ME <- function(actual,forecast){
+ME <- function(holdout,forecast){
 # This function calculates Mean Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(as.vector(actual)-as.vector(forecast),na.rm=TRUE));
+        return(mean(as.vector(holdout)-as.vector(forecast),na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MAE
 #' @aliases MAE
-MAE <- function(actual,forecast){
+MAE <- function(holdout,forecast){
 # This function calculates Mean Absolute Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE));
+        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MSE
 #' @aliases MSE
-MSE <- function(actual,forecast){
+MSE <- function(holdout,forecast){
 # This function calculates Mean squared Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE));
+        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MRE
 #' @aliases MRE
-MRE <- function(actual,forecast){
+MRE <- function(holdout,forecast){
 # This function calculates Mean squared Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(sqrt(as.complex(as.vector(actual)-as.vector(forecast))),na.rm=TRUE));
+        return(mean(sqrt(as.complex(as.vector(holdout)-as.vector(forecast))),na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MIS
 #' @aliases MIS
-MIS <- function(actual,lower,upper,level=0.95){
+MIS <- function(holdout,lower,upper,level=0.95){
 # This function calculates Mean Interval Score from Gneiting & Raftery, 2007
-# actual - actual values,
+# holdout - holdout values,
 # lower - the lower bound of the interval,
 # upper - the upper bound of the interval,
     if(level>1){
         level[] <- level / 100;
     }
     alpha <- 1-level;
-    lengthsVector <- c(length(actual),length(upper),length(lower))
+    lengthsVector <- c(length(holdout),length(upper),length(lower))
     if(any(lengthsVector>min(lengthsVector))){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of lower: ",length(lower)));
         message(paste0("Length of upper: ",length(upper)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        h <- length(actual);
+        h <- length(holdout);
         MISValue <- sum(as.vector(upper)-as.vector(lower)) +
-            2/alpha*(sum((as.vector(lower)-as.vector(actual))*(as.vector(actual)<as.vector(lower))) +
-                         sum((as.vector(actual)-as.vector(upper))*(as.vector(actual)>as.vector(upper))));
+            2/alpha*(sum((as.vector(lower)-as.vector(holdout))*(as.vector(holdout)<as.vector(lower))) +
+                         sum((as.vector(holdout)-as.vector(upper))*(as.vector(holdout)>as.vector(upper))));
         MISValue[] <- MISValue / h;
         return(MISValue);
     }
@@ -225,74 +225,74 @@ MIS <- function(actual,lower,upper,level=0.95){
 #' @rdname error-measures
 #' @export MPE
 #' @aliases MPE
-MPE <- function(actual,forecast){
+MPE <- function(holdout,forecast){
 # This function calculates Mean / Median Percentage Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted or fitted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(actual)-as.vector(forecast))/as.vector(actual),na.rm=TRUE));
+        return(mean((as.vector(holdout)-as.vector(forecast))/as.vector(holdout),na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MAPE
 #' @aliases MAPE
-MAPE <- function(actual,forecast){
+MAPE <- function(holdout,forecast){
 # This function calculates Mean Absolute Percentage Error
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs((as.vector(actual)-as.vector(forecast))/as.vector(actual)),na.rm=TRUE));
+        return(mean(abs((as.vector(holdout)-as.vector(forecast))/as.vector(holdout)),na.rm=TRUE));
     }
 }
 
 #' @rdname error-measures
 #' @export MASE
 #' @aliases MASE
-MASE <- function(actual,forecast,scale){
+MASE <- function(holdout,forecast,scale){
 # This function calculates Mean Absolute Scaled Error as in Hyndman & Koehler, 2006
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with. Usually - MAE of in-sample.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE)/scale);
+        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export RMSSE
 #' @aliases RMSSE
-RMSSE <- function(actual,forecast,scale){
+RMSSE <- function(holdout,forecast,scale){
 # This function calculates Root Mean Squared Scaled Error from M5 competition
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with. Usually - MSE of in-sample.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/scale));
+        return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/scale));
     }
 }
 
@@ -300,14 +300,14 @@ RMSSE <- function(actual,forecast,scale){
 #' @rdname error-measures
 #' @export rMAE
 #' @aliases rMAE
-rMAE <-function(actual,forecast,benchmark){
+rMAE <-function(holdout,forecast,benchmark){
 # This function calculates Average Relative MAE
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted or fitted values.
 # benchmark - forecasted or fitted values of etalon method.
-    if((length(actual) != length(forecast)) | (length(actual) != length(benchmark)) | (length(benchmark) != length(forecast))){
+    if((length(holdout) != length(forecast)) | (length(holdout) != length(benchmark)) | (length(benchmark) != length(forecast))){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         message(paste0("Length of benchmark: ",length(benchmark)));
         stop("Cannot proceed.",call.=FALSE);
@@ -317,8 +317,8 @@ rMAE <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(mean(abs(as.vector(actual)-as.vector(forecast)),na.rm=TRUE)/
-                             mean(abs(as.vector(actual)-as.vector(benchmark)),na.rm=TRUE));
+            return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE)/
+                             mean(abs(as.vector(holdout)-as.vector(benchmark)),na.rm=TRUE));
         }
     }
 }
@@ -326,14 +326,14 @@ rMAE <-function(actual,forecast,benchmark){
 #' @rdname error-measures
 #' @export rRMSE
 #' @aliases rRMSE
-rRMSE <-function(actual,forecast,benchmark){
+rRMSE <-function(holdout,forecast,benchmark){
     # This function calculates Relative MSE
-    # actual - actual values,
+    # holdout - holdout values,
     # forecast - forecasted or fitted values.
     # benchmark - forecasted or fitted values of etalon method.
-    if((length(actual) != length(forecast)) | (length(actual) != length(benchmark)) | (length(benchmark) != length(forecast))){
+    if((length(holdout) != length(forecast)) | (length(holdout) != length(benchmark)) | (length(benchmark) != length(forecast))){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         message(paste0("Length of benchmark: ",length(benchmark)));
         stop("Cannot proceed.",call.=FALSE);
@@ -343,8 +343,8 @@ rRMSE <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(sqrt(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/
-                             mean((as.vector(actual)-as.vector(benchmark))^2,na.rm=TRUE)));
+            return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/
+                             mean((as.vector(holdout)-as.vector(benchmark))^2,na.rm=TRUE)));
         }
     }
 }
@@ -352,14 +352,14 @@ rRMSE <-function(actual,forecast,benchmark){
 #' @rdname error-measures
 #' @export rAME
 #' @aliases rAME
-rAME <-function(actual,forecast,benchmark){
+rAME <-function(holdout,forecast,benchmark){
     # This function calculates Relative Absolute ME
-    # actual - actual values,
+    # holdout - holdout values,
     # forecast - forecasted or fitted values.
     # benchmark - forecasted or fitted values of etalon method.
-    if((length(actual) != length(forecast)) | (length(actual) != length(benchmark)) | (length(benchmark) != length(forecast))){
+    if((length(holdout) != length(forecast)) | (length(holdout) != length(benchmark)) | (length(benchmark) != length(forecast))){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         message(paste0("Length of benchmark: ",length(benchmark)));
         stop("Cannot proceed.",call.=FALSE);
@@ -369,8 +369,8 @@ rAME <-function(actual,forecast,benchmark){
             return(1);
         }
         else{
-            return(abs(mean((as.vector(actual)-as.vector(forecast)),na.rm=TRUE))/
-                             abs(mean((as.vector(actual)-as.vector(benchmark)),na.rm=TRUE)));
+            return(abs(mean((as.vector(holdout)-as.vector(forecast)),na.rm=TRUE))/
+                             abs(mean((as.vector(holdout)-as.vector(benchmark)),na.rm=TRUE)));
         }
     }
 }
@@ -378,23 +378,23 @@ rAME <-function(actual,forecast,benchmark){
 #' @rdname error-measures
 #' @export rMIS
 #' @aliases rMIS
-rMIS <-function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
+rMIS <-function(holdout,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
 # This function calculates scaled MIS
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with.
 # lower - the lower bound of the interval,
 # upper - the upper bound of the interval,
 # benchmarkLower - the lower bound of the interval of the benchmark method.
 # benchmarkUpper - the upper bound of the interval of the benchmark method.
-    lengthsVector <- c(length(actual),length(upper),length(lower),length(benchmarkLower),length(benchmarkUpper));
+    lengthsVector <- c(length(holdout),length(upper),length(lower),length(benchmarkLower),length(benchmarkUpper));
     if(any(lengthsVector>min(lengthsVector))){
         message("The length of the provided data differs.");
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(MIS(actual=actual,lower=lower,upper=upper,level=level) /
-                   MIS(actual=actual,lower=benchmarkLower,upper=benchmarkUpper,level=level));
+        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level) /
+                   MIS(holdout=holdout,lower=benchmarkLower,upper=benchmarkUpper,level=level));
     }
 }
 
@@ -402,114 +402,114 @@ rMIS <-function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
 #' @rdname error-measures
 #' @export RelMAE
 #' @aliases rMAE
-RelMAE <- function(actual,forecast,benchmark){
+RelMAE <- function(holdout,forecast,benchmark){
     warning("This function is depricated. Please, use rMAE instead");
-    return(rMAE(actual,forecast,benchmark));
+    return(rMAE(holdout,forecast,benchmark));
 }
 
 #' @rdname error-measures
 #' @export RelRMSE
 #' @aliases rRMSE
-RelRMSE <- function(actual,forecast,benchmark){
+RelRMSE <- function(holdout,forecast,benchmark){
     warning("This function is depricated. Please, use rRMSE instead");
-    return(rRMSE(actual,forecast,benchmark));
+    return(rRMSE(holdout,forecast,benchmark));
 }
 
 #' @rdname error-measures
 #' @export RelAME
 #' @aliases rAME
-RelAME <- function(actual,forecast,benchmark){
+RelAME <- function(holdout,forecast,benchmark){
     warning("This function is depricated. Please, use rAME instead");
-    return(rAME(actual,forecast,benchmark));
+    return(rAME(holdout,forecast,benchmark));
 }
 
 #' @rdname error-measures
 #' @export RelMIS
 #' @aliases rMIS
-RelMIS <- function(actual,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
+RelMIS <- function(holdout,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
     warning("This function is depricated. Please, use rMIS instead");
-    return(rMIS(actual,lower,upper,benchmarkLower,benchmarkUpper,level));
+    return(rMIS(holdout,lower,upper,benchmarkLower,benchmarkUpper,level));
 }
 
 #' @rdname error-measures
 #' @export sMSE
 #' @aliases sMSE
-sMSE <- function(actual,forecast,scale){
+sMSE <- function(holdout,forecast,scale){
 # This function calculates scaled Mean Squared Error.
 # Attention! Scale factor should be provided as squares of something!
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with. Usually - MAE of in-sample.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(actual)-as.vector(forecast))^2,na.rm=TRUE)/scale);
+        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sPIS
 #' @aliases sPIS
-sPIS <- function(actual,forecast,scale){
+sPIS <- function(holdout,forecast,scale){
 # This function calculates scaled Periods-In-Stock.
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(cumsum(as.vector(forecast)-as.vector(actual)))/scale);
+        return(sum(cumsum(as.vector(forecast)-as.vector(holdout)))/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sCE
 #' @aliases sCE
-sCE <- function(actual,forecast,scale){
+sCE <- function(holdout,forecast,scale){
 # This function calculates scaled Cumulative Error.
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with.
-    if(length(actual) != length(forecast)){
+    if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of forecast: ",length(forecast)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(as.vector(actual)-as.vector(forecast))/scale);
+        return(sum(as.vector(holdout)-as.vector(forecast))/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sMIS
 #' @aliases sMIS
-sMIS <- function(actual,lower,upper,scale,level=0.95){
+sMIS <- function(holdout,lower,upper,scale,level=0.95){
 # This function calculates scaled MIS
-# actual - actual values,
+# holdout - holdout values,
 # forecast - forecasted values.
 # scale - the measure to scale errors with.
 # lower - the lower bound of the interval,
 # upper - the upper bound of the interval,
 # scale - the measure to scale errors with.
-    lengthsVector <- c(length(actual),length(upper),length(lower))
+    lengthsVector <- c(length(holdout),length(upper),length(lower))
     if(any(lengthsVector>min(lengthsVector))){
         message("The length of the provided data differs.");
-        message(paste0("Length of actual: ",length(actual)));
+        message(paste0("Length of holdout: ",length(holdout)));
         message(paste0("Length of lower: ",length(lower)));
         message(paste0("Length of upper: ",length(upper)));
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(MIS(actual=actual,lower=lower,upper=upper,level=level)/scale);
+        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level)/scale);
     }
 }
 

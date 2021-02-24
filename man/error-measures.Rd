@@ -25,50 +25,50 @@
 \alias{sMIS}
 \title{Error measures}
 \usage{
-ME(actual, forecast)
+ME(holdout, forecast)
 
-MAE(actual, forecast)
+MAE(holdout, forecast)
 
-MSE(actual, forecast)
+MSE(holdout, forecast)
 
-MRE(actual, forecast)
+MRE(holdout, forecast)
 
-MIS(actual, lower, upper, level = 0.95)
+MIS(holdout, lower, upper, level = 0.95)
 
-MPE(actual, forecast)
+MPE(holdout, forecast)
 
-MAPE(actual, forecast)
+MAPE(holdout, forecast)
 
-MASE(actual, forecast, scale)
+MASE(holdout, forecast, scale)
 
-RMSSE(actual, forecast, scale)
+RMSSE(holdout, forecast, scale)
 
-rMAE(actual, forecast, benchmark)
+rMAE(holdout, forecast, benchmark)
 
-rRMSE(actual, forecast, benchmark)
+rRMSE(holdout, forecast, benchmark)
 
-rAME(actual, forecast, benchmark)
+rAME(holdout, forecast, benchmark)
 
-rMIS(actual, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
+rMIS(holdout, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
 
-RelMAE(actual, forecast, benchmark)
+RelMAE(holdout, forecast, benchmark)
 
-RelRMSE(actual, forecast, benchmark)
+RelRMSE(holdout, forecast, benchmark)
 
-RelAME(actual, forecast, benchmark)
+RelAME(holdout, forecast, benchmark)
 
-RelMIS(actual, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
+RelMIS(holdout, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
 
-sMSE(actual, forecast, scale)
+sMSE(holdout, forecast, scale)
 
-sPIS(actual, forecast, scale)
+sPIS(holdout, forecast, scale)
 
-sCE(actual, forecast, scale)
+sCE(holdout, forecast, scale)
 
-sMIS(actual, lower, upper, scale, level = 0.95)
+sMIS(holdout, lower, upper, scale, level = 0.95)
 }
 \arguments{
-\item{actual}{The vector or matrix of actual values.}
+\item{holdout}{The vector or matrix of holdout values.}
 
 \item{forecast}{The vector or matrix of forecasts values.}
 
