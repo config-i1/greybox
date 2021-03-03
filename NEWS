@@ -3,6 +3,7 @@ greybox v0.6.8 (Release data: 2021-03-03)
 
 Changes:
 * MAE, MSE etc now have parameter "holdout" instead of "actual". This is needed for consistency purposes with measures() function.
+* qqplot for alm() with Poisson and Negative Binomial distributions.
 
 Bugfixes:
 * A fix for an exotic case of zoo + data.table, resulting in destruction of response variable.
