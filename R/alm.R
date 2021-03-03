@@ -1039,23 +1039,22 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(y<0) & any(distribution==c("dfnorm","dlnorm","dllaplace","dls","dbcnorm","dchisq","dpois","dnbinom",
-                                      "dinvgauss","dgamma"))){
+    if(any(distribution==c("dfnorm","dlnorm","dllaplace","dls","dbcnorm","dchisq",
+                           "dpois","dnbinom",
+                           "dinvgauss","dgamma")) && any(y<0)){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
 
-    if(any(y==0) & any(distribution==c("dinvgauss","dgamma")) & !occurrenceModel){
+    if(any(distribution==c("dinvgauss","dgamma")) && any(y==0) && !occurrenceModel){
         stop(paste0("Zero values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
     }
 
-    if(any(distribution==c("dpois","dnbinom"))){
-        if(any(y!=trunc(y))){
-            stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
-                        "Maybe you should try some other distribution?"),
-                 call.=FALSE);
-        }
+    if(any(distribution==c("dpois","dnbinom")) && any(y!=trunc(y))){
+        stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
+                    "Maybe you should try some other distribution?"),
+             call.=FALSE);
     }
 
     if(any(distribution==c("dbeta","dlogitnorm"))){
