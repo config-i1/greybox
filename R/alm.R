@@ -994,7 +994,8 @@ alm <- function(formula, data, subset, na.action,
 
     dataWork <- eval(mf, parent.frame());
     dataTerms <- terms(dataWork);
-    y <- dataWork[,1];
+    # Make this numeric, to address potential issues with zoo + data.table
+    y <- as.numeric(dataWork[,1]);
 
     interceptIsNeeded <- attr(terms(dataWork),"intercept")!=0;
     # Create a model from the provided stuff. This way we can work with factors

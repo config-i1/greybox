@@ -1,8 +1,11 @@
-greybox v0.6.8 (Release data: 2021-02-14)
+greybox v0.6.8 (Release data: 2021-03-03)
 ==============
 
 Changes:
 * MAE, MSE etc now have parameter "holdout" instead of "actual". This is needed for consistency purposes with measures() function.
+
+Bugfixes:
+* A fix for an exotic case of zoo + data.table, resulting in destruction of response variable.
 
 
 greybox v0.6.7 (Release data: 2021-02-14)
