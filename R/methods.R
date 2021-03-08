@@ -3321,7 +3321,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     }
     nonariParametersNumber <- length(parameters);
     parametersNames <- names(parameters);
-    ourVcov <- vcov(object);
+    ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
     levelLow <- levelUp <- vector("numeric",nLevels);
