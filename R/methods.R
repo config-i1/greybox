@@ -3532,19 +3532,42 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     return(structure(ourModel,class="predict.greybox"));
 }
 
-#' @rdname predict.greybox
-#' @aliases forecast
+#' @importFrom forecast forecast
 #' @export forecast
-forecast <- function(object, ...) UseMethod("forecast")
+NULL
+# forecast <- function(object, ...) UseMethod("forecast")
 
 #' @export
 forecast.default <- function(object, ...){
-    # If the forecast is not available, use predict function
-    if(!requireNamespace("forecast", quietly = TRUE)){
-        return(predict(object, ...));
+    # If the forecast is attached, use stuff
+    if("forecast" %in% (.packages())){
+        if(is.alm(object)){
+            return(forecast.alm(object, ...));
+        }
+        else if(is.greybox(object)){
+            return(forecast.greybox(object, ...));
+        }
+        else if(inherits(object,"adam")){
+            return(smooth:::forecast.adam(object, ...));
+        }
+        else if(inherits(object,"oes")){
+            return(smooth:::forecast.oes(object, ...));
+        }
+        else if(inherits(object,"msdecompose")){
+            return(smooth:::forecast.msdecompose(object, ...));
+        }
+        else if(inherits(object,"adamCombined")){
+            return(smooth:::forecast.adamCombined(object, ...));
+        }
+        else if(inherits(object,"smooth")){
+            return(smooth:::forecast.smooth(object, ...));
+        }
+        else{
+            return(forecast:::forecast.ts(object, ...));
+        }
     }
     else{
-        return(forecast::forecast(object, ...));
+        return(predict(object, ...));
     }
 }
 
