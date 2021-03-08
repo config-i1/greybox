@@ -3537,39 +3537,10 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 NULL
 # forecast <- function(object, ...) UseMethod("forecast")
 
-#' @export
-forecast.default <- function(object, ...){
-    # If the forecast is attached, use stuff
-    if("forecast" %in% (.packages())){
-        if(is.alm(object)){
-            return(forecast.alm(object, ...));
-        }
-        else if(is.greybox(object)){
-            return(forecast.greybox(object, ...));
-        }
-        else if(inherits(object,"adam")){
-            return(smooth:::forecast.adam(object, ...));
-        }
-        else if(inherits(object,"oes")){
-            return(smooth:::forecast.oes(object, ...));
-        }
-        else if(inherits(object,"msdecompose")){
-            return(smooth:::forecast.msdecompose(object, ...));
-        }
-        else if(inherits(object,"adamCombined")){
-            return(smooth:::forecast.adamCombined(object, ...));
-        }
-        else if(inherits(object,"smooth")){
-            return(smooth:::forecast.smooth(object, ...));
-        }
-        else{
-            return(forecast:::forecast.ts(object, ...));
-        }
-    }
-    else{
-        return(predict(object, ...));
-    }
-}
+# @export
+# forecast.default <- function(object, ...){
+#     return(predict(object, ...));
+# }
 
 #' @rdname predict.greybox
 #' @export
