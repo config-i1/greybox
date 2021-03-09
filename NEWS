@@ -6,6 +6,7 @@ Changes:
 * qqplot for alm() with Poisson and Negative Binomial distributions.
 * alm() with distribution=c("dpois","dnorm") and ar>0 now relies on analytical covariance matrix.
 * alm(), stepwise() and lmCombine() now return the elapsed time.
+* stepwise() now reuses testModel (internal object) instead of creating new copies.
 
 Bugfixes:
 * A fix for an exotic case of zoo + data.table, resulting in destruction of response variable.

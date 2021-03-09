@@ -289,7 +289,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
         # Include the new element in the original model
         testFormula <- paste0(testFormula,"+`",newElement,"`");
         listToCall$formula <- as.formula(testFormula);
-        testModel <- do.call(lmCall,listToCall);
+        testModel[] <- do.call(lmCall,listToCall);
         # Modify logLik
         logLikValue <- logLik(testModel);
         attributes(logLikValue)$df <- nparam(logLikValue) + df;
