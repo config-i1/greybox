@@ -748,15 +748,26 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                            "It is recommended to use bootstrap=TRUE option in this case."),
                     call.=FALSE);
         }
-        arimaModel <- !is.null(object$other$arima);
 
-        if(!arimaModel && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
-            matrixXreg <- object$data[,-1,drop=FALSE];
+        # If there are ARIMA orders, define them.
+        if(!is.null(object$other$arima)){
+            arOrders <- object$other$orders[1];
+            iOrders <- object$other$orders[2];
+            maOrders <- object$other$orders[3];
+        }
+        else{
+            arOrders <- iOrders <- maOrders <- 0;
+        }
+
+        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
+            matrixXreg <- object$data;
             if(interceptIsNeeded){
-                matrixXreg <- cbind(1,matrixXreg);
+                matrixXreg[,1] <- 1;
                 colnames(matrixXreg)[1] <- "(Intercept)";
             }
-            # colnames(matrixXreg) <- names(coef(object));
+            else{
+                matrixXreg <- matrixXreg[,-1,drop=FALSE];
+            }
             matrixXreg <- crossprod(matrixXreg);
             vcovMatrixTry <- try(chol2inv(chol(matrixXreg)), silent=TRUE);
             if(any(class(vcovMatrixTry)=="try-error")){
@@ -784,14 +795,16 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
-        else if(!arimaModel && object$distribution=="dpois"){
-            matrixXreg <- object$data[,-1,drop=FALSE];
-            obsInsample <- nobs(object);
+        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois"){
+            matrixXreg <- object$data;
             if(interceptIsNeeded){
-                matrixXreg <- cbind(1,matrixXreg);
+                matrixXreg[,1] <- 1;
                 colnames(matrixXreg)[1] <- "(Intercept)";
             }
-            # colnames(matrixXreg) <- names(coef(object));
+            else{
+                matrixXreg <- matrixXreg[,-1,drop=FALSE];
+            }
+            obsInsample <- nobs(object);
             FIMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * object$mu[1];
             for(j in 2:obsInsample){
                 FIMatrix[] <- FIMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * object$mu[j];

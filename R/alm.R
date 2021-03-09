@@ -654,14 +654,14 @@ alm <- function(formula, data, subset, na.action,
     #### Define the rest of parameters ####
     ellipsis <- list(...);
     # If arima was provided in the old style
-    if(orders[1]==0 && !is.null(ellipsis$ar)){
-        orders[1] <- ellipsis$ar;
+    if(orders[1]==0 && !is.null(ellipsis[["ar", exact=TRUE]])){
+        orders[1] <- ellipsis[["ar", exact=TRUE]]$ar;
     }
-    if(orders[2]==0 && !is.null(ellipsis$i)){
-        orders[2] <- ellipsis$i;
+    if(orders[2]==0 && !is.null(ellipsis[["i", exact=TRUE]])){
+        orders[2] <- ellipsis[["i", exact=TRUE]];
     }
-    if(orders[3]==0 && !is.null(ellipsis$ma)){
-        orders[3] <- ellipsis$ma;
+    if(orders[3]==0 && !is.null(ellipsis[["ma", exact=TRUE]])){
+        orders[3] <- ellipsis[["ma", exact=TRUE]];
     }
 
     # Parameters for distributions
@@ -969,27 +969,6 @@ alm <- function(formula, data, subset, na.action,
     # In case of plogis and pnorm, all the ARI values need to be refitted
     if(any(distribution==c("plogis","pnorm")) && ariModel){
         recursiveModel <- TRUE;
-    }
-
-    #### Define what to do with the maxeval ####
-    if(is.null(ellipsis$maxeval)){
-        if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
-            maxeval <- 500;
-        }
-        # The following ones don't really need the estimation. This is for consistency only
-        else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
-            maxeval <- 1;
-        }
-        else{
-            maxeval <- 200;
-        }
-        # LASSO / RIDGE need more iterations to converge
-        if(any(loss==c("LASSO","RIDGE"))){
-            maxeval <- 1000;
-        }
-    }
-    else{
-        maxeval <- ellipsis$maxeval;
     }
 
     dataWork <- eval(mf, parent.frame());
@@ -1503,6 +1482,30 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             denominator <- NULL;
+        }
+
+        #### Define what to do with the maxeval ####
+        if(is.null(ellipsis$maxeval)){
+            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
+                # maxeval <- 500;
+                maxeval <- length(B) * 40;
+            }
+            # The following ones don't really need the estimation. This is for consistency only
+            else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
+                maxeval <- 1;
+            }
+            else{
+                # maxeval <- 200;
+                maxeval <- length(B) * 40;
+            }
+            # LASSO / RIDGE need more iterations to converge
+            if(any(loss==c("LASSO","RIDGE"))){
+                # maxeval <- 1000;
+                maxeval <- length(B) * 80;
+            }
+        }
+        else{
+            maxeval <- ellipsis$maxeval;
         }
 
         # Although this is not needed in case of distribution="dnorm", we do that in a way, for the code consistency purposes
