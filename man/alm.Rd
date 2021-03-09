@@ -103,8 +103,9 @@ You can also pass parameters to the optimiser:
 \item \code{B} - the vector of starting values of parameters for the optimiser,
 should correspond to the ordering of the explanatory variables;
 \item \code{algorithm} - the algorithm to use in optimisation
-(\code{"NLOPT_LN_SBPLX"} by default).
-\item \code{maxeval} - maximum number of evaluations to carry out (default is 100);
+(\code{"NLOPT_LN_SBPLX"} by default);
+\item \code{maxeval} - maximum number of evaluations to carry out. Default is 40 per
+estimated parameter. In case of LASSO / RIDGE the default is 80 per estimated parameter;
 \item \code{maxtime} - stop, when the optimisation time (in seconds) exceeds this;
 \item \code{xtol_rel} - the precision of the optimiser (the default is 1E-6);
 \item \code{xtol_abs} - the absolute precision of the optimiser (the default is 1E-8);
@@ -145,7 +146,8 @@ distribution="dnorm"),
 \item B - the value of the optimised parameters. Typically, this is a duplicate of coefficients,
 \item other - the list of all the other parameters either passed to the
 function or estimated in the process, but not included in the standard output
-(e.g. \code{alpha} for Asymmetric Laplace).
+(e.g. \code{alpha} for Asymmetric Laplace),
+\item timeElapsed - the time elapsed for the estimation of the model.
 }
 }
 \description{
