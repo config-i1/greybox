@@ -655,7 +655,7 @@ alm <- function(formula, data, subset, na.action,
     ellipsis <- list(...);
     # If arima was provided in the old style
     if(orders[1]==0 && !is.null(ellipsis[["ar", exact=TRUE]])){
-        orders[1] <- ellipsis[["ar", exact=TRUE]]$ar;
+        orders[1] <- ellipsis[["ar", exact=TRUE]];
     }
     if(orders[2]==0 && !is.null(ellipsis[["i", exact=TRUE]])){
         orders[2] <- ellipsis[["i", exact=TRUE]];
