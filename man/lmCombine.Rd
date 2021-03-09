@@ -49,7 +49,8 @@ the combined model,
 \item df - number of degrees of freedom of the combined model,
 \item importance - importance of the parameters,
 \item combination - the table, indicating which variables were used in every
-model construction and what were the weights for each model.
+model construction and what were the weights for each model,
+\item timeElapsed - the time elapsed for the estimation of the model.
 }
 }
 \description{

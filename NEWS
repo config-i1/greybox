@@ -5,10 +5,12 @@ Changes:
 * MAE, MSE etc now have parameter "holdout" instead of "actual". This is needed for consistency purposes with measures() function.
 * qqplot for alm() with Poisson and Negative Binomial distributions.
 * alm() with distribution=c("dpois","dnorm") and ar>0 now relies on analytical covariance matrix.
+* alm(), stepwise() and lmCombine() now return the elapsed time.
 
 Bugfixes:
 * A fix for an exotic case of zoo + data.table, resulting in destruction of response variable.
 * predict.almari() now supports bootstrapped covariance matrix.
+* Fix in stepwise() which sometimes would make it select the same variable in the loop.
 
 
 greybox v0.6.7 (Release data: 2021-02-14)

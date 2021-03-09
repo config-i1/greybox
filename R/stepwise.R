@@ -73,6 +73,10 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                                     "plogis","pnorm"),
                      occurrence=c("none","plogis","pnorm"), ...){
     ##### Function that selects variables based on IC and using partial correlations
+
+    # Start measuring the time of calculations
+    startTime <- Sys.time();
+
     if(is.null(df)){
         df <- 0;
     }
@@ -274,7 +278,9 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     while(bestICNotFound){
         ourCorrelation <- assocFast();
 
-        newElement <- variablesNames[which(abs(ourCorrelation)==max(abs(ourCorrelation),na.rm=TRUE))[1]];
+        newElement <- variablesNames[which(abs(ourCorrelation)==
+                                               max(abs(ourCorrelation[!(variablesNames %in% all.vars(as.formula(bestFormula)))]),
+                                                                    na.rm=TRUE))[1]];
         # If the newElement is the same as before, stop
         if(is.na(newElement) || any(newElement==all.vars(as.formula(bestFormula)))){
             bestICNotFound <- FALSE;
@@ -376,6 +382,7 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     }
 
     bestModel$ICs <- unlist(allICs);
+    bestModel$timeElapsed <- Sys.time()-startTime;
 
     return(bestModel);
 }

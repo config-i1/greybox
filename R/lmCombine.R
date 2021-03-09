@@ -46,7 +46,8 @@
 #' \item df - number of degrees of freedom of the combined model,
 #' \item importance - importance of the parameters,
 #' \item combination - the table, indicating which variables were used in every
-#' model construction and what were the weights for each model.
+#' model construction and what were the weights for each model,
+#' \item timeElapsed - the time elapsed for the estimation of the model.
 #' }
 #'
 #' @seealso \code{\link[stats]{step}, \link[greybox]{xregExpander},
@@ -93,6 +94,10 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
+
+    # Start measuring the time of calculations
+    startTime <- Sys.time();
+
     cl <- match.call();
     cl$formula <- as.formula(paste0("`",colnames(data)[1],"`~ ."));
 
@@ -691,11 +696,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                 call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersCombined, vcov=vcovCombined, fitted=as.vector(yFitted),
-                       residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
-                       ICType=ic, df.residual=df, df=sum(importance)+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
-                       combination=variablesCombinations, other=other);
+    finalModel <- structure(list(coefficients=parametersCombined, vcov=vcovCombined, fitted=as.vector(yFitted),
+                                 residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
+                                 ICType=ic, df.residual=df, df=sum(importance)+1, importance=importance,
+                                 call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
+                                 combination=variablesCombinations, other=other,
+                                 timeElapsed=Sys.time()-startTime),
+                            class=c("greyboxC","alm","greybox"));
 
-    return(structure(finalModel,class=c("greyboxC","alm","greybox")));
+    return(finalModel);
 }

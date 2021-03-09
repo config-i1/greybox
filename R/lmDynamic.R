@@ -53,8 +53,9 @@
 #' \item coefficientsDynamic - table with parameters of the model, varying over
 #' the time,
 #' \item df.residualDynamic - dynamic df.residual,
-#' \item dfDynamic - dynamic df.
-#' \item weights - the dynamic weights for each model under consideration.
+#' \item dfDynamic - dynamic df,
+#' \item weights - the dynamic weights for each model under consideration,
+#' \item timeElapsed - the time elapsed for the estimation of the model.
 #' }
 #'
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
@@ -82,6 +83,10 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
+
+    # Start measuring the time of calculations
+    startTime <- Sys.time();
+
     cl <- match.call();
     cl$formula <- as.formula(paste0("`",colnames(data)[1],"`~ ."));
 
@@ -676,12 +681,14 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                 call.=FALSE);
     }
 
-    finalModel <- list(coefficients=parametersMean, vcov=vcovCombined, fitted=as.vector(yFitted),
-                       residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
-                       ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
-                       call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
-                       coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                       weights=pICWeights, other=other);
+    finalModel <- structure(list(coefficients=parametersMean, vcov=vcovCombined, fitted=as.vector(yFitted),
+                                 residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
+                                 ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
+                                 call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
+                                 coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
+                                 weights=pICWeights, other=other,
+                                 timeElapsed=Sys.time()-startTime),
+                            class=c("greyboxD","alm","greybox"));
 
-    return(structure(finalModel,class=c("greyboxD","alm","greybox")));
+    return(finalModel);
 }
