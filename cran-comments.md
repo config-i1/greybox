@@ -1,18 +1,18 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "14 February 2021"
+date: "12 March 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.6.7
+This is the release of the package ``greybox``, v0.6.8
 
 ## Test environments
-* local ubuntu 20.04, R 4.0.3
-* ubuntu 16.04.6 (on travis-ci), R 4.0.3
+* local ubuntu 20.04, R 4.0.4
+* ubuntu 16.04.6 (on travis-ci), R 4.0.2
 * win-builder (devel and release)
-* rhub - see the comments below!
+* rhub - see the comments below.
 
 ## R CMD check results
 R CMD check results
@@ -45,9 +45,3 @@ Fails, complaining that forecast package is not available. Not sure why.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
-
-## CRAN checks for the greybox version 0.6.4
-Looking through CRAN logs, I see that the package fails to install on r-release-windows-ix86+x86_64. This seems to happen because of a weird issue in C++ for arch - x64:
-> cc1plus.exe: out of memory allocating 65536 bytes
-
-The only C++ piece of code in the package is a small function that does polynomials multiplication, which hasn't changed for more than a year.
