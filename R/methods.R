@@ -2158,6 +2158,11 @@ hatvalues.greybox <- function(model, ...){
         hatValue <- diag(xreg %*% vcov(model) %*% t(xreg))/sigma(model)^2;
     }
     names(hatValue) <- names(actuals(model));
+
+    # Substitute extreme values by something very big.
+    if(any(hatValue==1)){
+        hatValue[hatValue==1] <- 1 -1E5;
+    }
     return(hatValue);
 }
 

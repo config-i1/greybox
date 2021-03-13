@@ -2,6 +2,13 @@ greybox v0.6.8 (Release data: 2021-03-12)
 ==============
 
 Changes:
+* hatvalues() now returns 1 -1E5 instead of 1. Otherwise things break...
+
+
+greybox v0.6.8 (Release data: 2021-03-12)
+==============
+
+Changes:
 * MAE, MSE etc now have parameter "holdout" instead of "actual". This is needed for consistency purposes with measures() function.
 * qqplot for alm() with Poisson and Negative Binomial distributions.
 * alm() with distribution=c("dpois","dnorm") and ar>0 now relies on analytical covariance matrix.
