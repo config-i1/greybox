@@ -62,7 +62,7 @@ association <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everyt
                         method=c("auto","pearson","spearman","kendall","cramer")){
     # Function returns the measures of association between the variables based on their type
 
-    use <- substr(use[1],1,1);
+    use <- match.arg(use);
     method <- match.arg(method,c("auto","pearson","spearman","kendall","cramer"));
 
     if(is.matrix(x) | is.data.frame(x)){
@@ -198,7 +198,7 @@ association <- function(x, y=NULL, use=c("na.or.complete","complete.obs","everyt
     }
 
     if(any(is.na(data))){
-        if((use=="c" & nrow(data[!apply(is.na(data),1,any),])<2) | use=="a"){
+        if((use=="complete.obs" & nrow(data[!apply(is.na(data),1,any),])<2) | use=="all.obs"){
             variablesNA <- apply(is.na(data),2,any);
             stop(paste0("Missing observations in the variables: ",paste0(namesData[variablesNA],collapse=", ")), call.=FALSE);
         }

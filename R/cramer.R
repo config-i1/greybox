@@ -36,7 +36,7 @@
 #' @export cramer
 cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.obs")){
 
-    use <- substr(use[1],1,1);
+    use <- match.arg(use);
 
     # Function returns values or NAs or error
     returner <- function(errorType=c(0,1,2)){
@@ -71,13 +71,13 @@ cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all
     obsNAx <- is.na(x);
     obsNAy <- is.na(y);
     if(any(obsNAx) | any(obsNAy)){
-        if(use=="e"){
+        if(use=="everything"){
             return(returner(1));
         }
-        else if(use=="a"){
+        else if(use=="all.obs"){
             returner(2);
         }
-        else if(any(use==c("n","c"))){
+        else if(any(use==c("na.or.complete","complete.obs"))){
             x <- x[!obsNAx & !obsNAy];
             y <- y[!obsNAx & !obsNAy];
             if(length(x)<2){

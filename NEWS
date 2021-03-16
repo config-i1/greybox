@@ -1,8 +1,11 @@
-greybox v0.6.8 (Release data: 2021-03-12)
+greybox v0.6.8 (Release data: 2021-03-16)
 ==============
 
 Changes:
 * hatvalues() now returns 1 -1E5 instead of 1. Otherwise things break...
+
+Bugfixes:
+* mcor(), assoc() and spread() are now more robust to missing values.
 
 
 greybox v0.6.8 (Release data: 2021-03-12)

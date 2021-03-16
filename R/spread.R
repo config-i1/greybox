@@ -37,8 +37,7 @@
 #' @importFrom graphics barplot boxplot hist mtext text title
 #' @importFrom stats formula
 #' @export spread
-spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
-                   ...){
+spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
     ellipsis <- list(...);
 
     if(is.null(ellipsis$main)){
@@ -122,7 +121,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                             text(midPoint,midPoint,variablesNames[i],cex=1.5);
                         }
                         else{
-                            uniqueValues <- unique(data[[i]]);
+                            uniqueValues <- levels(data[[i]]);
                             midPoint <- (1+length(uniqueValues))/2;
                             plot(0, 0, col="white", axes=FALSE,
                                  xlim=c(0.5,length(uniqueValues)+0.5), ylim=c(0.5,length(uniqueValues)+0.5));
@@ -131,7 +130,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                     }
                 }
                 else{
-                    if(numericData[i] & numericData[j]){
+                    if(numericData[i] && numericData[j]){
                         plot(data[[i]],data[[j]], main="", axes=FALSE);
                         if(lowess){
                             lines(lowess(data[[i]], data[[j]]), col="darkgrey", lty=2, lwd=2);
@@ -139,19 +138,22 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                     }
                     else if(numericData[i]){
                         # boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
-                        boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),data,horizontal=TRUE, main="", axes=FALSE);
+                        boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),
+                                data, horizontal=TRUE, main="", axes=FALSE);
                         if(lowess){
-                            lines(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), col="darkgrey", lty=2, lwd=2);
+                            lines(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
+                                  c(1:length(levels(data[[j]]))), col="darkgrey", lty=2, lwd=2);
                         }
-                        points(tapply(data[[i]],data[[j]],mean), c(1:length(unique(data[[j]]))), pch=19, col="darkgrey");
+                        points(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
+                               c(1:length(levels(data[[j]]))), pch=19, col="darkgrey");
                     }
                     else if(numericData[j]){
                         # boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
                         boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),data, main="", axes=FALSE);
                         if(lowess){
-                            lines(tapply(data[[j]],data[[i]],mean), col="darkgrey", lty=2, lwd=2);
+                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col="darkgrey", lty=2, lwd=2);
                         }
-                        points(tapply(data[[j]],data[[i]],mean), pch=19, col="darkgrey");
+                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col="darkgrey");
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);
@@ -168,9 +170,9 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                             axis(2);
                         }
                         else{
-                            uniqueValues <- unique(data[[j]]);
+                            uniqueValues <- levels(data[[j]]);
                             axis(2, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                                 labels=sort(uniqueValues));
+                                 labels=sort(uniqueValues,na.last=TRUE));
                         }
                     }
                 }
@@ -190,14 +192,14 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                 #                 }
 
                 # Add axis, if this is the last element in the matrix
-                if(i==nVariables & histograms){
+                if(i==nVariables && histograms){
                     if(numericData[j]){
                         axis(4);
                     }
                     else{
-                        uniqueValues <- unique(data[[j]]);
+                        uniqueValues <- levels(data[[j]]);
                         axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                             labels=sort(uniqueValues));
+                             labels=sort(uniqueValues,na.last=TRUE));
                     }
                 }
 
@@ -208,7 +210,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE,
                 axis(1);
             }
             else{
-                uniqueValues <- sort(unique(data[[i]]));
+                uniqueValues <- levels(unique(data[[i]]));
                 axis(1,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
                      labels=uniqueValues);
             }
