@@ -2,9 +2,12 @@
 % Please edit documentation in R/methods.R
 \name{nparam}
 \alias{nparam}
-\title{Number of parameters in the model}
+\alias{nvariate}
+\title{Number of parameters and number of variates in the model}
 \usage{
 nparam(object, ...)
+
+nvariate(object, ...)
 }
 \arguments{
 \item{object}{Time series model.}
@@ -12,14 +15,18 @@ nparam(object, ...)
 \item{...}{Some other parameters passed to the method.}
 }
 \value{
-This function returns a numeric value.
+Both functions return numeric values.
 }
 \description{
-This function returns the number of estimated parameters in the model
+\code{nparam()} returns the number of estimated parameters in the model,
+while \code{nvariate()} returns number of variates for the response
+variable.
 }
 \details{
-This is a very basic and a simple function which does what it says:
-extracts number of parameters in the estimated model.
+\code{nparam()} is a very basic and a simple function which does what it says:
+extracts number of estimated parameters in the model. \code{nvariate()} returns
+number of variates (dimensions, columns) for the response variable (1 for the
+univariate regression).
 }
 \examples{
 
@@ -30,6 +37,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 ourModel <- lm(y~.,data=as.data.frame(xreg))
 
 nparam(ourModel)
+nvariate(ourModel)
 
 }
 \seealso{

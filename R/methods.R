@@ -639,17 +639,20 @@ nobs.varest <- function(object, ...){
     return(object$obs);
 }
 
-#' Number of parameters in the model
+#' Number of parameters and number of variates in the model
 #'
-#' This function returns the number of estimated parameters in the model
+#' \code{nparam()} returns the number of estimated parameters in the model,
+#' while \code{nvariate()} returns number of variates for the response
+#' variable.
 #'
-#' This is a very basic and a simple function which does what it says:
-#' extracts number of parameters in the estimated model.
+#' \code{nparam()} is a very basic and a simple function which does what it says:
+#' extracts number of estimated parameters in the model. \code{nvariate()} returns
+#' number of variates (dimensions, columns) for the response variable (1 for the
+#' univariate regression).
 #'
-#' @aliases nparam
 #' @param object Time series model.
 #' @param ... Some other parameters passed to the method.
-#' @return This function returns a numeric value.
+#' @return Both functions return numeric values.
 #' @template author
 #' @seealso \link[stats]{nobs}, \link[stats]{logLik}
 #' @keywords htest
@@ -662,9 +665,10 @@ nobs.varest <- function(object, ...){
 #' ourModel <- lm(y~.,data=as.data.frame(xreg))
 #'
 #' nparam(ourModel)
+#' nvariate(ourModel)
 #'
-#' @rdname nparam
 #' @importFrom stats coef
+#' @rdname nparam
 #' @export nparam
 nparam <- function(object, ...) UseMethod("nparam")
 
@@ -702,6 +706,20 @@ nparam.varest <- function(object, ...){
     ### This is the nparam per series
     # Parameters in all the matrices + the elements of the covariance matrix
     return(nrow(coef(object)[[1]])*object$K + 0.5*object$K*(object$K+1));
+}
+
+#' @rdname nparam
+#' @export nvariate
+nvariate <- function(object, ...) UseMethod("nvariate")
+
+#' @export
+nvariate.default <- function(object, ...){
+    if(is.null(dim(actuals(object)))){
+        return(1)
+    }
+    else{
+        return(ncol(actuals(object)));
+    }
 }
 
 #' @importFrom stats sigma
