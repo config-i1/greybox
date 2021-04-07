@@ -981,7 +981,7 @@ vcov.lmGreybox <- function(object, ...){
 
 #' Plots of the fit and residuals
 #'
-#' The function produces fitted values and plots for the residuals of the greybox functions
+#' The function produces diagnostics plots for a \code{greybox} model
 #'
 #' The list of produced plots includes:
 #' \enumerate{
@@ -1017,7 +1017,7 @@ vcov.lmGreybox <- function(object, ...){
 #' 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
 #' the intervals.
 #'
-#' @param x Time series model for which forecasts are required.
+#' @param x Estimated greybox model.
 #' @param which Which of the plots to produce. The possible options (see details for explanations):
 #' \enumerate{
 #' \item Actuals vs Fitted values;

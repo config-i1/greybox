@@ -10,7 +10,7 @@
   dev.interactive(), lowess = TRUE, ...)
 }
 \arguments{
-\item{x}{Time series model for which forecasts are required.}
+\item{x}{Estimated greybox model.}
 
 \item{which}{Which of the plots to produce. The possible options (see details for explanations):
 \enumerate{
@@ -43,7 +43,7 @@
 The function produces the number of plots, specified in the parameter \code{which}.
 }
 \description{
-The function produces fitted values and plots for the residuals of the greybox functions
+The function produces diagnostics plots for a \code{greybox} model
 }
 \details{
 The list of produced plots includes:
