@@ -1,6 +1,6 @@
 #' Grey box
 #'
-#' Toolbox for working with multivariate models for purposes of analysis and forecasting
+#' Toolbox for working with univariate models for purposes of analysis and forecasting
 #'
 #' \tabular{ll}{ Package: \tab greybox\cr Type: \tab Package\cr Date: \tab
 #' 2018-02-13 - Inf\cr License: \tab GPL-2 \cr } The following functions are

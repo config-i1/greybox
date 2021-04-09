@@ -5,7 +5,7 @@
 \alias{greybox}
 \title{Grey box}
 \description{
-Toolbox for working with multivariate models for purposes of analysis and forecasting
+Toolbox for working with univariate models for purposes of analysis and forecasting
 }
 \details{
 \tabular{ll}{ Package: \tab greybox\cr Type: \tab Package\cr Date: \tab
