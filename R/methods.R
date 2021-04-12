@@ -12,6 +12,8 @@
 #'
 #' IMPORTANT NOTE: both of the criteria can only be used for univariate models
 #' (regression models, ARIMA, ETS etc) with normally distributed residuals!
+#' In case of multivariate models, both criteria need to be modified. See
+#' Bedrick & Tsai (1994) for details.
 #'
 #' @aliases AICc
 #' @template author
@@ -29,6 +31,9 @@
 #' information criterion and the finite corrections, Communications in
 #' Statistics - Theory and Methods, 7:1, 13-26,
 #' \doi{10.1080/03610927808827599}
+#' \item Bedrick, E. J., & Tsai, C.-L. (1994). Model Selection for
+#' Multivariate Regression in Small Samples. Biometrics, 50(1), 226.
+#' \doi{10.2307/2533213}
 #' }
 #' @keywords htest
 #' @examples
@@ -84,8 +89,13 @@ AICc.varest <- function(object, ...){
     nparamAll <- nrow(coef(object)[[1]]);
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + ((2*obs*(nparamAll*nSeries + nSeries*(nSeries+1)/2)) /
-                                (obs - (nparamAll + nSeries + 1)));
+    if(obs - (nparamAll + nSeries + 1) <=0){
+        IC <- Inf;
+    }
+    else{
+        IC <- -2*llikelihood + ((2*obs*(nparamAll*nSeries + nSeries*(nSeries+1)/2)) /
+                                    (obs - (nparamAll + nSeries + 1)));
+    }
 
     return(IC);
 }
@@ -98,9 +108,13 @@ BICc.varest <- function(object, ...){
     nparamAll <- nrow(coef(object)[[1]]) + object$K;
 
     obs <- nobs(object);
-    IC <- -2*llikelihood + (((nparamAll + nSeries*(nSeries+1)/2) *
-                                 log(obs * nSeries) * obs * nSeries) /
-                                (obs * nSeries - nparamAll - nSeries*(nSeries+1)/2));
+    if(obs - (nparamAll + nSeries + 1) <=0){
+        IC <- Inf;
+    }
+    else{
+        IC <- -2*llikelihood + ((log(obs)*obs*(nparamAll*nSeries + nSeries*(nSeries+1)/2)) /
+                                    (obs - (nparamAll + nSeries + 1)));
+    }
 
     return(IC);
 }
