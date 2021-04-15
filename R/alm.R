@@ -1360,7 +1360,7 @@ alm <- function(formula, data, subset, na.action,
                                                   byrow=TRUE),
                                        2,all);
                 if(any(noVariability)){
-                    warning("Some variables had no variability after taking differences.",
+                    warning("Some variables had no variability after taking differences. ",
                             "This might mean that all the variability for them happened ",
                             "in the very beginning of the series. We'll try to fix this, but the model might fail.",
                             call.=FALSE);
