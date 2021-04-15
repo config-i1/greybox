@@ -1340,10 +1340,8 @@ alm <- function(formula, data, subset, na.action,
             #### I(d) initialisation ####
             # If this is an I(d) model, do the primary estimation in differences
             else{
-                # Matrix without the first D rows and without the last D columns
-                # matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE][-c(1:iOrder),,drop=FALSE];
-
                 # Use only AR elements of the matrix, take differences for the initialisation purposes
+                # This matrix does not contain columns for iOrder and has fewer observations to match diff(y)
                 matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE];
                 if(arOrder>0){
                     matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <- diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
@@ -1353,6 +1351,20 @@ alm <- function(formula, data, subset, na.action,
                 }
                 else{
                     matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
+                }
+
+                # Check variability in the new data. Have we removed important observations?
+                noVariability <- apply(matrixXregForDiffs[,-interceptIsNeeded,drop=FALSE]==
+                                           matrix(matrixXregForDiffs[1,-interceptIsNeeded],
+                                                  nrow(matrixXregForDiffs),ncol(matrixXregForDiffs)-interceptIsNeeded,
+                                                  byrow=TRUE),
+                                       2,all);
+                if(any(noVariability)){
+                    warning("Some variables had no variability after taking differences.",
+                            "This might mean that all the variability for them happened ",
+                            "in the very beginning of the series. We'll try to fix this, but the model might fail.",
+                            call.=FALSE);
+                    matrixXregForDiffs[1,which(noVariability)+1] <- rnorm(sum(noVariability));
                 }
 
                 if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
@@ -1496,11 +1508,11 @@ alm <- function(formula, data, subset, na.action,
                 maxeval <- length(B) * 40;
             }
             # The following ones don't really need the estimation. This is for consistency only
-            else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && any(loss==c("likelihood","MSE"))){
+            else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && iOrder==0 &&
+                    any(loss==c("likelihood","MSE"))){
                 maxeval <- 1;
             }
             else{
-                # maxeval <- 200;
                 maxeval <- length(B) * 40;
             }
             # LASSO / RIDGE need more iterations to converge
