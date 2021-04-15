@@ -247,11 +247,12 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
     else{
         newCall$loss <- object$loss;
     }
-    # ari is not needed, because it is in the object$data
-    newCall$ar <- NULL;
-    newCall$i <- NULL;
-    newCall$orders <- c(0,0,0);
+
+    # Deal with ari components. Remove the columns with lagged variables
     arimaModel <- !is.null(object$other$polynomial);
+    if(arimaModel){
+        newCall$data <- newCall$data[,!(colnames(newCall$data) %in% names(object$other$polynomial))];
+    }
 
     # If this is ARIMA, and the size wasn't specified, make it changable
     if(arimaModel && is.null(cl$size)){

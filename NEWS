@@ -10,6 +10,8 @@ Changes:
 Bugfixes:
 * mcor(), assoc() and spread() are now more robust to missing values.
 * A fix in alm() for an exotic case with i>0 and a variable not having any variability after the t>i.
+* A fix for coefbootstrap in case of i>0 (previously didn't work).
+* A fix for spread() not working for low count variable. It now treats it as factor.
 
 
 greybox v0.6.8 (Release data: 2021-03-12)

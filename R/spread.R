@@ -71,6 +71,8 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
         if(numericData[i]){
             if(length(unique(data[[i]]))<=10){
                 numericData[i] <- FALSE;
+                # If there are some data with low levels transform them into factors
+                data[[i]] <- factor(data[[i]]);
             }
         }
     }

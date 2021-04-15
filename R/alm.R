@@ -469,6 +469,7 @@ alm <- function(formula, data, subset, na.action,
 
     fitterRecursive <- function(B, distribution, y, matrixXreg){
         fitterReturn <- fitter(B, distribution, y, matrixXreg);
+        # Fill in the first ariOrder elements with fitted values
         for(i in 1:ariOrder){
             matrixXreg[ariZeroes[,i],nVariablesExo+i] <- switch(distribution,
                                                                 "dnbinom" =,
