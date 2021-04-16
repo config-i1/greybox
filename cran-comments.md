@@ -1,7 +1,7 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "15 April 2021"
+date: "17 April 2021"
 output: html_document
 ---
 
@@ -34,14 +34,14 @@ This is expected, because doMC is not available for Windows.
 
 'doMC' is not available for Windows. Why 'vars' is not available, is not clear.
 
-**Rhub, Ubuntu Linux 16.04 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
+**Rhub, Ubuntu Linux 20.04.1 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
 >Package which this enhances but not available for checking: ‘vars’
 
 Similar to the previous comments. Not clear, why. Both are on CRAN.
 
 **Debian Linux, R-devel, GCC ASAN/UBSAN**
-Fails, complaining that forecast package is not available. Not sure why.
+Fails, complaining that forecast package is not available.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
