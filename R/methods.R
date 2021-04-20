@@ -1488,6 +1488,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             yName <- "Studentised";
         }
 
+        # If there is occurrence part, substitute zeroes with NAs
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x[actuals(x$occurrence)==0] <- NA;
+        }
+
         if(!any(names(ellipsis)=="main")){
             ellipsis$main <- paste0(yName," Residuals vs Time");
         }
@@ -1532,6 +1537,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         if(length(outliersID)>0){
             points(outliersID, ellipsis$x[outliersID], pch=16);
             text(outliersID, ellipsis$x[outliersID], labels=outliersID, pos=(ellipsis$x[outliersID]>0)*2+1);
+        }
+        # If there is occurrence model, plot points to fill in breaks
+        if(is.occurrence(x$occurrence)){
+            points(time(ellipsis$x), ellipsis$x);
         }
         if(lowess){
             # Substitute NAs with the mean
