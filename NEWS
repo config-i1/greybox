@@ -1,8 +1,9 @@
-greybox v0.7.0 (Release data: 2021-04-21)
+greybox v0.7.0 (Release data: 2021-04-27)
 ==============
 
 Changes:
 * plot(..., which=c(8,9)) now drops residuals for zero actuals if occurrence model is present. Should look better and provide a proper message.
+* We finally do not depend on forecast package. forecast method is now dynamically loaded if forecast is present.
 
 
 greybox v0.6.9 (Release data: 2021-04-17)
