@@ -100,6 +100,7 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
     if(outplot!="none"){
         # Save the current par() values
         parDefault <- par(no.readonly=TRUE);
+        on.exit(par(parDefault));
         parMar <- parDefault$mar;
         # If plot is asked, always sort the results
         sort <- TRUE
@@ -503,11 +504,6 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
         if(!is.null(select)){
             points(0,select,pch=20,col=brewer.pal(3,"Set1")[1],cex=2)
         }
-    }
-
-    # Revert to the original par() values
-    if(outplot!="none"){
-        par(parDefault)
     }
 
     return(structure(list("mean"=ranksMeans,"interval"=ranksIntervals,

@@ -1813,6 +1813,7 @@ plot.coef.greyboxD <- function(x, ...){
     # We are not interested in intercept, so skip it in plot
 
     parDefault <- par(no.readonly=TRUE);
+    on.exit(par(parDefault));
 
     pages <- ceiling((ncol(ourData)-1) / 8);
     perPage <- ceiling((ncol(ourData)-1) / pages);
@@ -1836,8 +1837,6 @@ plot.coef.greyboxD <- function(x, ...){
         ellipsis$main <- colnames(ourData)[i];
         do.call(plot,ellipsis);
     }
-
-    par(parDefault);
 }
 
 #' @importFrom grDevices rgb

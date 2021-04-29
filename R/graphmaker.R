@@ -91,6 +91,9 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
     # Write down the default values of par
     parDefault <- par(no.readonly=TRUE);
+    if(parReset){
+        on.exit(par(parDefault));
+    }
 
     if(legend){
         layout(matrix(c(2,1),2,1),heights=c(0.86,0.14));
@@ -349,9 +352,5 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         else{
             points(forecast,col="blue",lwd=2,pch=4);
         }
-    }
-
-    if(parReset){
-        par(parDefault);
     }
 }

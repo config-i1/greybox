@@ -159,8 +159,8 @@
 #' ## This is useful when working with functions from smooth package.
 #' ## The following call will return the forecasts from es() function of smooth.
 #' \dontrun{ourCall <- "es(data=data, h=h, xreg=xreg[countf,,drop=FALSE])"
-#' \dontrun{ourValue <- "forecast"}
-#' \dontrun{ro(x,h=5,origins=5,ourCall,ourValue)}}
+#' ourValue <- "forecast"
+#' ro(x,h=5,origins=5,ourCall,ourValue)}
 #'
 #' @export ro
 ro <- function(data,h=10,origins=10,call,value=NULL,

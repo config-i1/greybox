@@ -355,6 +355,7 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
     else if(outplot=="lines"){
         # Save the current par() values
         parDefault <- par(no.readonly=TRUE);
+        on.exit(par(parDefault));
         parMar <- parDefault$mar;
 
         vlines <- x$vlines;
@@ -419,8 +420,6 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
             lines(c(0,1), rep(vlines[1,2],times=2), col=lineCol, lty=2);
         }
         axis(2, at=c(1:nMethods), labels=namesMethods, las=2);
-
-        par(parDefault)
     }
 }
 

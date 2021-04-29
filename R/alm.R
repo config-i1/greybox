@@ -190,55 +190,55 @@
 #' # The standard model with Log Normal distribution
 #' ourModel <- alm(mpg~., mtcars2[1:30,], distribution="dlnorm")
 #' summary(ourModel)
-#' \dontrun{plot(ourModel)}
+#' \donttest{plot(ourModel)}
 #'
 #' # Produce predictions with the one sided interval (upper bound)
 #' predict(ourModel, mtcars2[-c(1:30),], interval="p", side="u")
 #'
 #'
 #' ### Artificial data for the other examples
-#' \dontrun{xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
+#' \donttest{xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")}
 #'
 #' # An example with Laplace distribution
-#' \dontrun{ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
+#' \donttest{ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),]))}
 #'
 #' # And another one with Asymmetric Laplace distribution (quantile regression)
 #' # with optimised alpha
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
 #'
 #' # An example with AR(1) order
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", orders=c(1,0,0))
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", orders=c(1,0,0))
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),]))}
 #'
 #' ### Examples with the count data
-#' \dontrun{xreg[,1] <- round(exp(xreg[,1]-70),0)}
+#' \donttest{xreg[,1] <- round(exp(xreg[,1]-70),0)}
 #'
 #' # Negative Binomial distribution
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnbinom")
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnbinom")
 #' summary(ourModel)
 #' predict(ourModel,xreg[-c(1:80),],interval="p",side="u")}
 #'
 #' # Poisson distribution
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dpois")
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dpois")
 #' summary(ourModel)
 #' predict(ourModel,xreg[-c(1:80),],interval="p",side="u")}
 #'
 #'
 #' ### Examples with binary response variable
-#' \dontrun{xreg[,1] <- round(xreg[,1] / (1 + xreg[,1]),0)}
+#' \donttest{xreg[,1] <- round(xreg[,1] / (1 + xreg[,1]),0)}
 #'
 #' # Logistic distribution (logit regression)
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="plogis")
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="plogis")
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),],interval="c"))}
 #'
 #' # Normal distribution (probit regression)
-#' \dontrun{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="pnorm")
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="pnorm")
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),],interval="p"))}
 #'

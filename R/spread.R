@@ -92,6 +92,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
     variablesNames <- colnames(data);
 
     parDefault <- par(no.readonly=TRUE);
+    on.exit(par(parDefault));
 
     if(nVariables==1){
         if(numericData[1]){
@@ -225,7 +226,5 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
             title(main=mainTitle, outer=TRUE, line=3, cex.main=2);
         }
     }
-
-    par(parDefault);
 }
 

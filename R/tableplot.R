@@ -138,6 +138,7 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
 
     if(legend){
         parDefault <- par(no.readonly=TRUE);
+        on.exit(par(parDefault));
         layout(matrix(1:2,1,2),widths=c(0.9,0.1));
         colPalette <- colorRampPalette(c("white","black"));
         par(mar=mar1);
@@ -183,7 +184,5 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
         rect(xl, head(seq(yb,yt,(yt-yb)/5),-1), xr, tail(seq(yb,yt,(yt-yb)/5),-1), col=colPalette(5));
 
         mtext(0:4/4,side=4,at=tail(seq(yb,yt,(yt-yb)/5),-1)-0.05,las=2);
-
-        par(parDefault);
     }
 }
