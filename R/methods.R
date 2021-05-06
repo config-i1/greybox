@@ -1881,6 +1881,9 @@ plot.rollingOrigin <- function(x, ...){
 #### Print ####
 #' @export
 print.greybox <- function(x, ...){
+    if(!is.null(x$timeElapsed)){
+        cat("Time elapsed:",round(as.numeric(x$timeElapsed,units="secs"),2),"seconds\n");
+    }
     cat("Call:\n");
     print(x$call);
     cat("\nCoefficients:\n");

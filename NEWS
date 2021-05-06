@@ -1,4 +1,4 @@
-greybox v0.7.0 (Release data: 2021-04-29)
+greybox v0.7.0 (Release data: 2021-05-06)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * We finally do not depend on forecast package. forecast method is now dynamically loaded if forecast is present.
 * /donttest{} instead of /dontrun{} in examples in the documentation.
 * on.exit() restore par for plot functions.
+* Print time elapsed for the print.greybox methods if it is available.
 
 
 greybox v0.6.9 (Release data: 2021-04-17)
