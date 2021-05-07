@@ -837,21 +837,21 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                 matrixXreg <- matrixXreg[,-1,drop=FALSE];
             }
             obsInsample <- nobs(object);
-            FIMatrix <- matrixXreg[1,] %*% t(matrixXreg[1,]) * object$mu[1];
+            FIMatrix <- t(matrixXreg[1,,drop=FALSE]) %*% matrixXreg[1,,drop=FALSE] * object$mu[1];
             for(j in 2:obsInsample){
-                FIMatrix[] <- FIMatrix + matrixXreg[j,] %*% t(matrixXreg[j,]) * object$mu[j];
+                FIMatrix[] <- FIMatrix + t(matrixXreg[j,,drop=FALSE]) %*% matrixXreg[j,,drop=FALSE] * object$mu[j];
             }
 
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
-            if(any(class(vcovMatrixTry)=="try-error")){
+            if(inherits(vcovMatrixTry,"try-error")){
                 warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
                                "The estimate of the covariance matrix of parameters might be inaccurate.\n"),
-                        call.=FALSE);
+                        call.=FALSE, immediate.=TRUE);
                 vcov <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
 
                 # If the conventional approach failed, do bootstrap
-                if(any(class(FIMatrix)=="try-error")){
+                if(inherits(vcov,"try-error")){
                     warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                    "Switching to bootstrap of covariance matrix of parameters.\n"),
                             call.=FALSE, immediate.=TRUE);
@@ -911,12 +911,12 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
 
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
-            if(any(class(vcovMatrixTry)=="try-error")){
+            if(inherits(vcovMatrixTry,"try-error")){
                 warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
                                "The estimate of the covariance matrix of parameters might be inaccurate.\n"),
-                        call.=FALSE);
-                FIMatrix <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
-                if(any(class(FIMatrix)=="try-error")){
+                        call.=FALSE, immediate.=TRUE);
+                vcovMatrixTry <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+                if(inherits(vcovMatrixTry,"try-error")){
                     vcov <- diag(1e+100,nVariables);
                 }
                 else{
@@ -928,7 +928,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
 
             # If the conventional approach failed, do bootstrap
-            if(any(class(FIMatrix)=="try-error")){
+            if(inherits(vcovMatrixTry,"try-error")){
                 warning(paste0("Sorry, but the hessian is singular, so we could not invert it.\n",
                                "Switching to bootstrap of covariance matrix of parameters.\n"),
                         call.=FALSE, immediate.=TRUE);
