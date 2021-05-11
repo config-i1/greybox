@@ -355,8 +355,16 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
     else if(outplot=="lines"){
         # Save the current par() values
         parDefault <- par(no.readonly=TRUE);
-        on.exit(par(parDefault));
-        parMar <- parDefault$mar;
+        parReset <- FALSE;
+        # If this is the default par, modify it
+        if(all(parDefault$mar %in% c(5.1,4.1,4.1,2.1)) &&
+           all(parDefault$mfcol %in% c(1,1)) &&
+           all(parDefault$mfrow %in% c(1,1)) &&
+           parDefault$cex==1){
+            parReset <- TRUE;
+            on.exit(par(parDefault));
+            parMar <- parDefault$mar;
+        }
 
         vlines <- x$vlines;
 
@@ -381,23 +389,25 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
             args$ylim <- c(1-0.1,nMethods+0.1);
         }
 
-        if(all(parMar==(c(5,4,4,2)+0.1))){
-            parMar <- c(2, 2+labelSize/2, 2, 2) + 0.1
-        }
-        else{
-            parMar <- parMar + c(0, labelSize/2, 0, 2)
-        }
+        if(parReset){
+            if(all(parMar==(c(5,4,4,2)+0.1))){
+                parMar <- c(2, 2+labelSize/2, 2, 2) + 0.1
+            }
+            else{
+                parMar <- parMar + c(0, labelSize/2, 0, 2)
+            }
 
-        if(args$main!=""){
-            parMar <- parMar + c(0,0,4,0)
+            if(args$main!=""){
+                parMar <- parMar + c(0,0,4,0)
+            }
+            if(args$ylab!=""){
+                parMar <- parMar + c(0,2,0,0);
+            }
+            if(args$xlab!=""){
+                parMar <- parMar + c(2,0,0,0);
+            }
+            par(mar=parMar);
         }
-        if(args$ylab!=""){
-            parMar <- parMar + c(0,2,0,0);
-        }
-        if(args$xlab!=""){
-            parMar <- parMar + c(2,0,0,0);
-        }
-        par(mar=parMar);
 
         # Use do.call to use manipulated ellipsis (...)
         do.call(plot, args);

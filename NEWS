@@ -1,4 +1,4 @@
-greybox v0.7.0 (Release data: 2021-05-06)
+greybox v0.7.0 (Release data: 2021-05-11)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 * /donttest{} instead of /dontrun{} in examples in the documentation.
 * on.exit() restore par for plot functions.
 * Print time elapsed for the print.greybox methods if it is available.
+* Reset par() in rmcb only if it is the default one.
 
 
 greybox v0.6.9 (Release data: 2021-04-17)
