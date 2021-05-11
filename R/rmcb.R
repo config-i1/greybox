@@ -383,10 +383,10 @@ plot.rmcb <- function(x, outplot=c("mcb","lines"), select=NULL, ...){
         }
         # Remaining defaults
         if(!("xlim" %in% argsNames)){
-            args$xlim <- c(0,k+0.1);
+            args$xlim <- c(0,k+0.2);
         }
         if(!("ylim" %in% argsNames)){
-            args$ylim <- c(1-0.1,nMethods+0.1);
+            args$ylim <- c(1-0.2,nMethods+0.2);
         }
 
         if(parReset){
