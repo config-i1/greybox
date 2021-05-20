@@ -9,7 +9,8 @@ alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
   "dbeta", "dlogitnorm", "plogis", "pnorm"), loss = c("likelihood", "MSE",
   "MAE", "HAM", "LASSO", "RIDGE"), occurrence = c("none", "plogis", "pnorm"),
-  orders = c(0, 0, 0), parameters = NULL, fast = FALSE, ...)
+  scale = NULL, orders = c(0, 0, 0), parameters = NULL, fast = FALSE,
+  ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -71,6 +72,12 @@ If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
 (excluding zeroes from the data).}
 
+\item{scale}{formula for scale parameter of the model. If \code{NULL}, then it is
+assumed that the scale is constant. This might be useful if you need a model with
+changing variance (i.e. in case of heteroscedasticity). The log-link is used for
+the scale (i.e. take exponent of obtained fitted value for the scale, so that
+it is always positive).}
+
 \item{orders}{the orders of ARIMA to include in the model. Only non-seasonal
 orders are accepted.}
 
@@ -101,7 +108,8 @@ and initial states of the model. This is used in the \link[stats]{vcov} method;
 You can also pass parameters to the optimiser:
 \enumerate{
 \item \code{B} - the vector of starting values of parameters for the optimiser,
-should correspond to the ordering of the explanatory variables;
+should correspond to the explanatory variables. If formula for scale was provided,
+the parameters for that part should follow the parameters for location;
 \item \code{algorithm} - the algorithm to use in optimisation
 (\code{"NLOPT_LN_SBPLX"} by default);
 \item \code{maxeval} - maximum number of evaluations to carry out. Default is 40 per
@@ -128,7 +136,8 @@ Function returns \code{model} - the final model of the class
 \item fitted - fitted values,
 \item residuals - residuals of the model,
 \item mu - the estimated location parameter of the distribution,
-\item scale - the estimated scale parameter of the distribution,
+\item scale - the estimated scale parameter of the distribution. If a formula was provided for
+scale, then an object of class "scale" will be returned.
 \item distribution - distribution used in the estimation,
 \item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
 and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
@@ -213,6 +222,8 @@ summary(ourModel)
 # Produce predictions with the one sided interval (upper bound)
 predict(ourModel, mtcars2[-c(1:30),], interval="p", side="u")
 
+# Model with heteroscedasticity (scale changes with the change of qsec)
+\donttest{ourModel <- alm(mpg~., mtcars2[1:30,], scale=~qsec)}
 
 ### Artificial data for the other examples
 \donttest{xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))

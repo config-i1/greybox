@@ -245,7 +245,7 @@ pointLik.alm <- function(object, ...){
         otU <- rep(TRUE, nobs(object));
         mu <- object$mu;
     }
-    scale <- object$scale;
+    scale <- extractScale(object);
 
     likValues <- vector("numeric",nobs(object));
     likValues[otU] <- switch(distribution,
@@ -527,6 +527,10 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
     parameters <- coef(object);
     if(!bootstrap){
         parametersSE <- sqrt(diag(vcov(object)));
+        # Add scale parameters if they were estimated
+        if(is.scale(object$scale)){
+            parameters <- c(parameters,coef(object$scale));
+        }
         # Define quantiles using Student distribution
         paramQuantiles <- qt((1+level)/2,df=object$df.residual);
 
@@ -688,8 +692,8 @@ nparam <- function(object, ...) UseMethod("nparam")
 
 #' @export
 nparam.default <- function(object, ...){
-    # The length of the vector of parameters + variance
-    return(length(coef(object))+1);
+    # The length of the vector of parameters
+    return(length(coef(object)));
 }
 
 #' @export
@@ -745,7 +749,7 @@ sigma.greybox <- function(object, all=FALSE, ...){
 #' @export
 sigma.alm <- function(object, ...){
     if(any(object$distribution==c("plogis","pnorm"))){
-        return(object$scale);
+        return(extractScale(object));
     }
     else{
         return(sigma.greybox(object, ...));
@@ -763,6 +767,16 @@ sigma.varest <- function(object, ...){
     return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nparam(object)+object$K));
 }
 
+# Function extracts the scale from the model
+extractScale <- function(object, all=FALSE, ...){
+    if(is.scale(object$scale)){
+        return(fitted(object$scale));
+    }
+    else{
+        return(object$scale);
+    }
+}
+
 #' @aliases vcov.alm
 #' @rdname coef.alm
 #' @importFrom stats vcov
@@ -771,6 +785,11 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
     nVariables <- length(coef(object));
     variablesNames <- names(coef(object));
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
+    scaleModel <- is.scale(object$scale);
+    if(scaleModel){
+        nVariables <- nVariables + nparam(object$scale);
+        variablesNames <- c(variablesNames,names(coef(object$scale)));
+    }
 
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
@@ -791,7 +810,8 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             arOrders <- iOrders <- maOrders <- 0;
         }
 
-        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
+        # Analytical values for vcov
+        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm")) && !scaleModel){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -827,7 +847,8 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
-        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois"){
+        # Analytical values in case of Poisson
+        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois" && !scaleModel){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -864,6 +885,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
 
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
+        # Fisher Information approach
         else{
             # Form the call for alm
             newCall <- object$call;
@@ -884,6 +906,9 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             newCall$orders <- object$other$orders;
             newCall$parameters <- coef(object);
+            if(scaleModel){
+                newCall$scale <- object$scale;
+            }
             newCall$fast <- TRUE;
             if(any(object$distribution==c("dchisq","dt"))){
                 newCall$nu <- object$other$nu;
@@ -908,6 +933,13 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             newCall$occurrence <- object$occurrence;
             # Recall alm to get hessian
             FIMatrix <- eval(newCall)$FI;
+            # If any row contains all zeroes, then it means that the variable does not impact the likelihood
+            brokenVariables <- apply(FIMatrix==0,1,all) | apply(is.nan(FIMatrix),1,any);
+            # If there are issues, try the same stuff, but with a different step size for hessian
+            if(any(brokenVariables)){
+                newCall$stepSize <- .Machine$double.eps^(1/6);
+                FIMatrix <- eval(newCall)$FI;
+            }
 
             # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
             vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
@@ -1316,46 +1348,46 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Generalised Normal distribution";
             }
-            ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=x$scale, shape=x$other$shape);
+            ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=extractScale(x), shape=x$other$shape);
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=x$scale, shape=x$other$shape));
+            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
         }
         else if(any(x$distribution==c("dlaplace","dllaplace"))){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Laplace distribution";
             }
-            ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=x$scale);
+            ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
         }
         else if(x$distribution=="dalaplace"){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
             }
-            ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=x$scale, alpha=x$other$alpha);
+            ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=extractScale(x), alpha=x$other$alpha);
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=x$scale, alpha=x$other$alpha));
+            qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
         }
         else if(x$distribution=="dlogis"){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Logistic distribution";
             }
-            ellipsis$x <- qlogis(ppoints(500), location=0, scale=x$scale);
+            ellipsis$x <- qlogis(ppoints(500), location=0, scale=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
         }
         else if(any(x$distribution==c("ds","dls"))){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of S distribution";
             }
-            ellipsis$x <- qs(ppoints(500), mu=0, scale=x$scale);
+            ellipsis$x <- qs(ppoints(500), mu=0, scale=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
         }
         else if(x$distribution=="dt"){
             # Standardise residuals
@@ -1363,10 +1395,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Student's distribution";
             }
-            ellipsis$x <- qt(ppoints(500), df=x$scale);
+            ellipsis$x <- qt(ppoints(500), df=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qt(p, df=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
         }
         else if(x$distribution=="dinvgauss"){
             # Transform residuals for something meaningful
@@ -1374,10 +1406,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
             }
-            ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=x$scale);
+            ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
         }
         else if(x$distribution=="dgamma"){
             # Transform residuals for something meaningful
@@ -1385,10 +1417,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Gamma distribution";
             }
-            ellipsis$x <- qgamma(ppoints(500), shape=1/x$scale, scale=x$scale);
+            ellipsis$x <- qgamma(ppoints(500), shape=1/extractScale(x), scale=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/x$scale, scale=x$scale));
+            qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
         }
         else if(x$distribution=="dchisq"){
             message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
@@ -1413,10 +1445,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Negative Binomial distribution";
             }
-            ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=x$scale);
+            ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=extractScale(x));
 
             do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=x$scale)-actuals(x));
+            qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
             # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
         }
     }
@@ -1891,6 +1923,14 @@ print.greybox <- function(x, ...){
 }
 
 #' @export
+print.scale <- function(x, ...){
+    cat("Formula:\n");
+    print(formula(x));
+    cat("\nCoefficients:\n");
+    print(coef(x));
+}
+
+#' @export
 print.coef.greyboxD <- function(x, ...){
     print(x$coefficients);
 }
@@ -2018,12 +2058,19 @@ print.summary.alm <- function(x, ...){
     if(x$bootstrap){
         cat("\nBootstrap was used for the estimation of uncertainty of parameters");
     }
+
     cat("\nCoefficients:\n");
     stars <- setNames(vector("character",length(x$significance)),
                       names(x$significance));
     stars[x$significance] <- "*";
-    print(data.frame(round(x$coefficients,digits),stars,
+    print(data.frame(round(x$coefficients[!x$scaleParameters,,drop=FALSE],digits),stars[!x$scaleParameters],
                      check.names=FALSE,fix.empty.names=FALSE));
+
+    if(any(x$scaleParameters)){
+        cat("\nCoefficients for scale:\n");
+        print(data.frame(round(x$coefficients[x$scaleParameters,,drop=FALSE],digits),stars[x$scaleParameters],
+                         check.names=FALSE,fix.empty.names=FALSE));
+    }
 
     cat("\nError standard deviation: "); cat(round(sqrt(x$s2),digits));
     cat("\nSample size: "); cat(x$dfTable[1]);
@@ -2198,7 +2245,12 @@ hatvalues.greybox <- function(model, ...){
         hatValue <- hat(xreg);
     }
     else{
-        hatValue <- diag(xreg %*% vcov(model) %*% t(xreg))/sigma(model)^2;
+        vcovValues <- vcov(model);
+        # Remove the scale parameters covariance
+        if(is.scale(model$scale)){
+            vcovValues <- vcovValues[1:length(coef(model)),1:length(coef(model)),drop=FALSE];
+        }
+        hatValue <- diag(xreg %*% vcovValues %*% t(xreg))/sigma(model)^2;
     }
     names(hatValue) <- names(actuals(model));
 
@@ -2436,9 +2488,9 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                       "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
                       # In the next one, the scale is debiased, taking n-k into account
                       "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
-                                            dispersion=object$scale * nobs(object) /
+                                            dispersion=extractScale(object) * nobs(object) /
                                                 (nobs(object)-nparam(object))),
-                      "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/object$scale, scale=object$scale),
+                      "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
                       qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     outliersID <- which(errors>statistic[2] | errors<statistic[1]);
     outliersNumber <- length(outliersID);
@@ -2511,11 +2563,18 @@ summary.greybox <- function(object, level=0.95, ...){
 summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
     errors <- residuals(object);
     obs <- nobs(object, all=TRUE);
+    scaleModel <- is.scale(object$scale);
 
     # Collect parameters and their standard errors
     parametersConfint <- confint(object, level=level, bootstrap=bootstrap, ...);
-    parametersTable <- cbind(coef(object),parametersConfint);
-    rownames(parametersTable) <- names(coef(object));
+    parameters <- coef(object);
+    scaleParameters <- rep(FALSE,length(parameters));
+    if(scaleModel){
+        parameters <- c(parameters, coef(object$scale));
+        scaleParameters <- c(scaleParameters,rep(TRUE,length(coef(object$scale))));
+    }
+    parametersTable <- cbind(parameters,parametersConfint);
+    rownames(parametersTable) <- names(parameters);
     colnames(parametersTable) <- c("Estimate","Std. Error",
                                    paste0("Lower ",(1-level)/2*100,"%"),
                                    paste0("Upper ",(1+level)/2*100,"%"));
@@ -2547,6 +2606,7 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
     ourReturn$s2 <- sigma(object)^2;
 
     ourReturn$bootstrap <- bootstrap;
+    ourReturn$scaleParameters <- scaleParameters;
 
     ourReturn <- structure(ourReturn,class=c("summary.alm","summary.greybox"));
     return(ourReturn);
@@ -2723,7 +2783,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     greyboxForecast$location <- greyboxForecast$mean;
     if(interval!="none"){
-        greyboxForecast$scale <- sqrt(greyboxForecast$variance);
+        greyboxForecast$scale <- sqrt(greyboxForecast$variances);
     }
     greyboxForecast$distribution <- object$distribution;
 
@@ -2745,6 +2805,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         # Create a matrix of levels for each horizon and level
         level <- matrix(level, h, nLevels, byrow=TRUE);
     }
+
+    scaleModel <- is.scale(object$scale);
 
     # levelLow and levelUp are matrices here...
     levelLow <- levelUp <- matrix(level, h, nLevels, byrow=TRUE);
@@ -2850,7 +2912,12 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dgnorm"){
         # Use the connection between the variance and scale in Generalised Normal distribution
         if(interval!="none"){
-            scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$shape)/gamma(3/object$other$shape)));
+            if(scaleModel){
+                scaleValues <- greyboxForecast$variances;
+            }
+            else{
+                scaleValues <- sqrt(greyboxForecast$variances*(gamma(1/object$other$shape)/gamma(3/object$other$shape)));
+            }
             greyboxForecast$scale <- scaleValues;
         }
         if(interval=="prediction"){
@@ -2885,15 +2952,15 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dfnorm"){
         if(interval=="prediction"){
             for(i in 1:nLevels){
-                greyboxForecast$lower[,i] <- qfnorm(levelLow[,i],greyboxForecast$mean,sqrt(greyboxForecast$variance));
-                greyboxForecast$upper[,i] <- qfnorm(levelUp[,i],greyboxForecast$mean,sqrt(greyboxForecast$variance));
+                greyboxForecast$lower[,i] <- qfnorm(levelLow[,i],greyboxForecast$mean,sqrt(greyboxForecast$variances));
+                greyboxForecast$upper[,i] <- qfnorm(levelUp[,i],greyboxForecast$mean,sqrt(greyboxForecast$variances));
             }
         }
         if(interval!="none"){
             # Correct the mean value
-            greyboxForecast$mean <- (sqrt(2/pi)*sqrt(greyboxForecast$variance)*exp(-greyboxForecast$mean^2 /
-                                                                                       (2*greyboxForecast$variance)) +
-                                         greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variance))));
+            greyboxForecast$mean <- (sqrt(2/pi)*sqrt(greyboxForecast$variances)*exp(-greyboxForecast$mean^2 /
+                                                                                       (2*greyboxForecast$variances)) +
+                                         greyboxForecast$mean*(1-2*pnorm(-greyboxForecast$mean/sqrt(greyboxForecast$variances))));
         }
         else{
             warning("The mean of Folded Normal distribution was not corrected. ",
@@ -2912,8 +2979,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$upper[] <- (greyboxForecast$upper)^2;
         }
         if(interval!="none"){
-            greyboxForecast$mean <- greyboxForecast$mean + object$scale;
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$mean <- greyboxForecast$mean + extractScale(object);
+            greyboxForecast$scale <- extractScale(object);
         }
         else{
             warning("The mean of Chi Squared distribution was not corrected. ",
@@ -2923,11 +2990,16 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dlnorm"){
         if(interval=="prediction"){
-            sdlog <- sqrt(greyboxForecast$variance - sigma(object)^2 + object$scale^2);
+            if(scaleModel){
+                sdlog <- sqrt(greyboxForecast$variances);
+            }
+            else{
+                sdlog <- sqrt(greyboxForecast$variances - sigma(object)^2 + extractScale(object)^2);
+            }
             greyboxForecast$scale <- sdlog;
         }
         else if(interval=="confidence"){
-            sdlog <- sqrt(greyboxForecast$variance);
+            sdlog <- sqrt(greyboxForecast$variances);
             greyboxForecast$scale <- sdlog;
         }
         if(interval!="none"){
@@ -2938,7 +3010,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dbcnorm"){
         if(interval!="none"){
-            sigma <- sqrt(greyboxForecast$variance);
+            sigma <- sqrt(greyboxForecast$variances);
             greyboxForecast$scale <- sigma;
         }
         # If negative values were produced, zero them out
@@ -2962,11 +3034,16 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dlogitnorm"){
         if(interval=="prediction"){
-            sigma <- sqrt(greyboxForecast$variance - sigma(object)^2 + object$scale^2);
+            if(scaleModel){
+                sigma <- sqrt(greyboxForecast$variances);
+            }
+            else{
+                sigma <- sqrt(greyboxForecast$variances - sigma(object)^2 + extractScale(object)^2);
+            }
             greyboxForecast$scale <- sigma;
         }
         else if(interval=="confidence"){
-            sigma <- sqrt(greyboxForecast$variance);
+            sigma <- sqrt(greyboxForecast$variances);
             greyboxForecast$scale <- sigma;
         }
         if(interval=="prediction"){
@@ -2982,7 +3059,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dinvgauss"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval=="prediction"){
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$scale <- extractScale(object);
             greyboxForecast$lower[] <- greyboxForecast$mean*qinvgauss(levelLow,mean=1,
                                                                       dispersion=greyboxForecast$scale);
             greyboxForecast$upper[] <- greyboxForecast$mean*qinvgauss(levelUp,mean=1,
@@ -2996,7 +3073,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="dgamma"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
         if(interval=="prediction"){
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$scale <- extractScale(object);
             greyboxForecast$lower[] <- greyboxForecast$mean*qgamma(levelLow, shape=1/greyboxForecast$scale,
                                                                    scale=greyboxForecast$scale);
             greyboxForecast$upper[] <- greyboxForecast$mean*qgamma(levelUp, shape=1/greyboxForecast$scale,
@@ -3032,12 +3109,12 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
     else if(object$distribution=="dnbinom"){
         greyboxForecast$mean <- exp(greyboxForecast$mean);
-        if(interval!="none" && is.null(object$scale)){
+        if(interval!="none" && is.null(extractScale(object))){
             # This is a very approximate thing in order for something to work...
             greyboxForecast$scale <- abs(greyboxForecast$mean^2 / (greyboxForecast$variances - greyboxForecast$mean));
         }
         else{
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$scale <- extractScale(object);
         }
         if(interval=="prediction"){
             greyboxForecast$lower[] <- qnbinom(levelLow,mu=greyboxForecast$mean,size=greyboxForecast$scale);
@@ -3069,7 +3146,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="plogis"){
         # The intervals are based on the assumption that a~N(0, sigma^2), and p=exp(a) / (1 + exp(a))
         if(interval!="none"){
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$scale <- extractScale(object);
         }
         greyboxForecast$mean <- plogis(greyboxForecast$location, location=0, scale=1);
 
@@ -3083,7 +3160,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else if(object$distribution=="pnorm"){
         # The intervals are based on the assumption that a~N(0, sigma^2), and pnorm link
         if(interval!="none"){
-            greyboxForecast$scale <- object$scale;
+            greyboxForecast$scale <- extractScale(object);
         }
 
         greyboxForecast$mean <- pnorm(greyboxForecast$location, mean=0, sd=1);
@@ -3210,8 +3287,15 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     interval <- match.arg(interval);
     side <- match.arg(side);
 
+    scaleModel <- is.scale(object$scale);
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
+    # This is needed in order to get vcov without the one for scale
+    if(scaleModel){
+        scalePart <- object$scale;
+        object$scale <- NULL;
+        object$call$scale <- NULL;
+    }
     ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
@@ -3239,6 +3323,9 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         }
         else{
             matrixOfxreg <- matrixOfxreg[,-1,drop=FALSE];
+        }
+        if(scaleModel){
+            matrixXregScale <- scalePart$data;
         }
     }
     else{
@@ -3276,6 +3363,20 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
         matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
+        # The matrix for scale
+        if(scaleModel){
+            # Extract the formula and get rid of the response variable
+            testFormula <- formula(scalePart);
+
+            # If the user asked for trend, but it's not in the data, add it
+            if(any(all.vars(testFormula)=="trend") && all(colnames(newdata)!="trend")){
+                newdata <- cbind(newdata,trend=nobs(object)+c(1:nrow(newdata)));
+            }
+
+            # Expand the data frame
+            newdataExpanded <- model.frame(testFormula, newdata);
+            matrixXregScale <- model.matrix(newdataExpanded,data=newdataExpanded);
+        }
     }
 
     h <- nrow(matrixOfxreg);
@@ -3327,7 +3428,11 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
                 }
             }
             else if(interval=="prediction"){
-                vectorOfVariances[] <- vectorOfVariances + sigma(object)^2;
+                sigmaValues <- sigma(object)^2;
+                if(scaleModel){
+                   sigmaValues <- exp(matrixXregScale %*% coef(scalePart));
+                }
+                vectorOfVariances[] <- vectorOfVariances + sigmaValues;
                 for(i in 1:nLevels){
                     yLower[,i] <- ourForecast + paramQuantiles[i] * sqrt(vectorOfVariances);
                     yUpper[,i] <- ourForecast + paramQuantiles[i+nLevels] * sqrt(vectorOfVariances);

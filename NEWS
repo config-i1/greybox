@@ -1,3 +1,10 @@
+greybox v1.0.0 (Release data: 2021-05-20)
+==============
+
+Changes:
+* scale parameter in alm(), allowing modelling the scale of distribution (GAMLSS style).
+
+
 greybox v0.7.0 (Release data: 2021-05-18)
 ==============
 

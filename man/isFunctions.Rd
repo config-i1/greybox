@@ -8,6 +8,7 @@
 \alias{is.greyboxD}
 \alias{is.rollingOrigin}
 \alias{is.rmc}
+\alias{is.scale}
 \title{Greybox classes checkers}
 \usage{
 is.greybox(x)
@@ -23,6 +24,8 @@ is.greyboxD(x)
 is.rollingOrigin(x)
 
 is.rmc(x)
+
+is.scale(x)
 }
 \arguments{
 \item{x}{The object to check.}
@@ -47,7 +50,9 @@ function;
 function;
 \item \code{is.rmc()} tests if the object was produced by \code{rmc()} function;
 \item \code{is.rollingOrigin()} tests if the object was produced by \code{ro()}
-function.
+function;
+\item \code{is.scale()} tests if the object is of the class "scale" (produced by
+alm in case of heteroscedastic model);
 }
 }
 \examples{
