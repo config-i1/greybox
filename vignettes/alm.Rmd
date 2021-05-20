@@ -257,7 +257,7 @@ The density function of Logistic distribution is:
 \end{equation}
 where $s$ is the scale parameter, which is estimated in `alm()` based on the connection between the parameter and the variance in the logistic distribution:
 \begin{equation} \label{eq:sLogisticAndSigma}
-    \hat{s} = \sigma \sqrt{\frac{3}{\pi^2}}.
+    \hat{s} = \sigma \frac{\sqrt{3}}{\pi}.
 \end{equation}
 Once again the maximisation of \eqref{eq:Logistic} implies the estimation of the linear model \eqref{eq:linearModel}, where $\epsilon_t \sim \mathcal{Logistic}(0, s)$.
 ```{r pdfLogis, echo=FALSE}

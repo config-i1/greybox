@@ -249,30 +249,30 @@ pointLik.alm <- function(object, ...){
 
     likValues <- vector("numeric",nobs(object));
     likValues[otU] <- switch(distribution,
-                            "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                            "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                            "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                            "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                            "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                            "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
-                            "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
-                            "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
-                            "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=TRUE),
-                            "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                            "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
-                            "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
-                            "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                            "dt" = dt(y-mu, df=scale, log=TRUE),
-                            "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                            "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
-                            "dpois" = dpois(y, lambda=mu, log=TRUE),
-                            "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                            "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
-                            "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
-                            "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
-                                         plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
-                            "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                                        pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
+                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
+                             "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
+                             "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
+                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
+                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
+                             "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
+                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
+                             "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=TRUE),
+                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
+                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
+                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
+                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
+                             "dt" = dt(y-mu, df=scale, log=TRUE),
+                             "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
+                             "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
+                             "dpois" = dpois(y, lambda=mu, log=TRUE),
+                             "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
+                             "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
+                             "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
+                             "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
+                                          plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
+                             "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
+                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
     );
     if(any(distribution==c("dllaplace","dls","dlgnorm"))){
         likValues[otU] <- likValues[otU] - log(y);
@@ -768,12 +768,42 @@ sigma.varest <- function(object, ...){
 }
 
 # Function extracts the scale from the model
-extractScale <- function(object, all=FALSE, ...){
+extractScale <- function(object, ...){
     if(is.scale(object$scale)){
         return(fitted(object$scale));
     }
     else{
         return(object$scale);
+    }
+}
+
+# Function extracts variance from the model. Needed for scaleModel
+extractSigma <- function(object, ...){
+    if(is.scale(object$scale)){
+        return(switch(object$distribution,
+                      "dnorm"=,
+                      "dlnorm"=,
+                      "dlogitnorm"=,
+                      "dbcnorm"=,
+                      "dfnorm"=,
+                      "dinvgauss"=,
+                      "dgamma"=extractScale(object),
+                      "dlaplace"=,
+                      "dllaplace"=sqrt(2*extractScale(object)),
+                      "ds"=,
+                      "dls"=sqrt(120*(extractScale(object)^4)),
+                      "dgnorm"=,
+                      "dlgnorm"=sqrt(extractScale(object)^2*gamma(3/object$other$shape) / gamma(1/object$other$shape)),
+                      "dlogis"=extractScale(object)*pi/sqrt(3),
+                      "dt"=1/sqrt(1-2/extractScale(object)),
+                      "dalaplace"=extractScale(object)/sqrt((object$other$alpha^2*(1-object$other$alpha)^2)*
+                          (object$other$alpha^2+(1-object$other$alpha)^2)),
+                      # For now sigma is returned for: dpois, dnbinom, dchisq, dbeta and plogis, pnorm.
+                      sigma(object)
+                      ));
+    }
+    else{
+        return(sigma(object));
     }
 }
 
@@ -2250,7 +2280,7 @@ hatvalues.greybox <- function(model, ...){
         if(is.scale(model$scale)){
             vcovValues <- vcovValues[1:length(coef(model)),1:length(coef(model)),drop=FALSE];
         }
-        hatValue <- diag(xreg %*% vcovValues %*% t(xreg))/sigma(model)^2;
+        hatValue <- diag(xreg %*% vcovValues %*% t(xreg))/extractSigma(model)^2;
     }
     names(hatValue) <- names(actuals(model));
 
@@ -2288,22 +2318,23 @@ rstandard.greybox <- function(model, ...){
     else{
         residsToGo <- rep(TRUE,obs);
     }
+
     # The proper residuals with leverage are currently done only for normal-based distributions
     if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
-        errors[] <- errors / (sigma(model)*sqrt(1-hatvalues(model)));
+        errors[] <- errors / (extractScale(model)*sqrt(1-hatvalues(model)));
     }
     else if(any(model$distribution==c("ds","dls"))){
-        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (model$scale * obs / df)^2;
+        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df)^2;
     }
     else if(any(model$distribution==c("dgnorm","dlgnorm"))){
         errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
-                         (model$scale^model$other$shape * obs / df)^{1/model$other$shape});
+                         (extractScale(model)^model$other$shape * obs / df)^{1/model$other$shape});
     }
     else if(any(model$distribution==c("dinvgauss","dgamma"))){
         errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
     }
     else{
-        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (model$scale * obs / df);
+        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
     }
 
     # Fill in values with NAs if there is occurrence model
@@ -2477,21 +2508,21 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
     type <- match.arg(type);
     errors <- switch(type,"rstandard"=rstandard(object),"rstudent"=rstudent(object));
     statistic <- switch(object$distribution,
-                      "dlaplace"=,
-                      "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
-                      "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, object$other$alpha),
-                      "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
-                      "dt"=qt(c((1-level)/2, (1+level)/2), nobs(object)-nparam(object)),
-                      "dgnorm"=,
-                      "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$shape),
-                      "ds"=,
-                      "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                      # In the next one, the scale is debiased, taking n-k into account
-                      "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
-                                            dispersion=extractScale(object) * nobs(object) /
-                                                (nobs(object)-nparam(object))),
-                      "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
-                      qnorm(c((1-level)/2, (1+level)/2), 0, 1));
+                        "dlaplace"=,
+                        "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
+                        "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, object$other$alpha),
+                        "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
+                        "dt"=qt(c((1-level)/2, (1+level)/2), nobs(object)-nparam(object)),
+                        "dgnorm"=,
+                        "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$shape),
+                        "ds"=,
+                        "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
+                        # In the next one, the scale is debiased, taking n-k into account
+                        "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
+                                              dispersion=extractScale(object) * nobs(object) /
+                                                  (nobs(object)-nparam(object))),
+                        "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
+                        qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     outliersID <- which(errors>statistic[2] | errors<statistic[1]);
     outliersNumber <- length(outliersID);
     if(outliersNumber>0){
