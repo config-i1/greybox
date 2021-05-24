@@ -25,7 +25,9 @@
 \item Studentised residuals vs Time;
 \item ACF of the residuals;
 \item PACF of the residuals;
-\item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution.
+\item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+\item Absolute standardised residuals vs Fitted;
+\item Squared standardised residuals vs Fitted.
 }}
 
 \item{level}{Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
@@ -74,7 +76,14 @@ details;
 for details;
 \item Cook's distance over time. Shows influential observations. If a value is above 0.5, then
 this means that the observation influences the parameters of the model. This does not work well
-for non-normal distributions.
+for non-normal distributions;
+\item Squared standardised residuals vs Fitted. This is an additional plot needed to diagnose
+heteroscedasticity in a model with varying scale. The variance on this plot will be constant if
+the adequate model for \code{scale} was constructed. This is more appropriate for normal and
+the related distributions;
+\item Absolute standardised residuals vs Fitted. Similar to the previous, but with absolute
+values. This is more relevant to the models where scale is calculated as an absolute value of
+something (e.g. Laplace).
 }
 Which of the plots to produce, is specified via the \code{which} parameter. The plots 2, 3, 7,
 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
@@ -88,8 +97,8 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 
 ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
 
-par(mfcol=c(3,4))
-plot(ourModel, c(1:12))
+par(mfcol=c(4,4))
+plot(ourModel, c(1:14))
 
 }
 \seealso{

@@ -1,9 +1,10 @@
-greybox v1.0.0 (Release data: 2021-05-20)
+greybox v1.0.0 (Release data: 2021-05-24)
 ==============
 
 Changes:
 * scale parameter in alm(), allowing modelling the scale of distribution (GAMLSS style).
 * hatvalues() and rstandard() now use varying scale if scaleModel was done.
+* (standardised residuals)^2 vs fitted and abs(standardised residuals) in plot.greybox() (which=c(13,14)). This should allow doing diagnostics in case of scale model.
 
 
 greybox v0.7.0 (Release data: 2021-05-18)

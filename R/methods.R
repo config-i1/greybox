@@ -1087,7 +1087,14 @@ vcov.lmGreybox <- function(object, ...){
 #' for details;
 #' \item Cook's distance over time. Shows influential observations. If a value is above 0.5, then
 #' this means that the observation influences the parameters of the model. This does not work well
-#' for non-normal distributions.
+#' for non-normal distributions;
+#' \item Squared standardised residuals vs Fitted. This is an additional plot needed to diagnose
+#' heteroscedasticity in a model with varying scale. The variance on this plot will be constant if
+#' the adequate model for \code{scale} was constructed. This is more appropriate for normal and
+#' the related distributions;
+#' \item Absolute standardised residuals vs Fitted. Similar to the previous, but with absolute
+#' values. This is more relevant to the models where scale is calculated as an absolute value of
+#' something (e.g. Laplace).
 #' }
 #' Which of the plots to produce, is specified via the \code{which} parameter. The plots 2, 3, 7,
 #' 8 and 9 also use the parameters \code{level}, which specifies the confidence level for
@@ -1107,7 +1114,9 @@ vcov.lmGreybox <- function(object, ...){
 #' \item Studentised residuals vs Time;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals;
-#' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution.
+#' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+#' \item Absolute standardised residuals vs Fitted;
+#' \item Squared standardised residuals vs Fitted.
 #' }
 #' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
 #' (8), (9), (10) and (11).
@@ -1128,8 +1137,8 @@ vcov.lmGreybox <- function(object, ...){
 #'
 #' ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
 #'
-#' par(mfcol=c(3,4))
-#' plot(ourModel, c(1:12))
+#' par(mfcol=c(4,4))
+#' plot(ourModel, c(1:14))
 #'
 #' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess qf
 #' @importFrom grDevices dev.interactive devAskNewPage grey
@@ -1714,6 +1723,54 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
+    # 13 and 14. Fitted vs (std. Residuals)^2 or Fitted vs |std. Residuals|
+    plot9 <- function(x, type="abs", ...){
+        ellipsis <- list(...);
+
+        ellipsis$x <- as.vector(fitted(x));
+        ellipsis$y <- as.vector(rstandard(x));
+        if(any(x$distribution==c("dinvgauss","dgamma"))){
+            ellipsis$y[] <- log(ellipsis$y);
+        }
+        if(type=="abs"){
+            ellipsis$y[] <- abs(ellipsis$y);
+        }
+        else{
+            ellipsis$y[] <- ellipsis$y^2;
+        }
+
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x <- ellipsis$x[ellipsis$y!=0];
+            ellipsis$y <- ellipsis$y[ellipsis$y!=0];
+        }
+        if(!any(names(ellipsis)=="main")){
+            if(type=="abs"){
+                ellipsis$main <- "|Standardised Residuals| vs Fitted";
+            }
+            else{
+                ellipsis$main <- "Standardised Residuals^2 vs Fitted";
+            }
+        }
+
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Fitted";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            if(type=="abs"){
+                ellipsis$ylab <- "|Standardised Residuals|";
+            }
+            else{
+                ellipsis$ylab <- "Standardised Residuals^2";
+            }
+        }
+
+        do.call(plot,ellipsis);
+        abline(h=0, col="grey", lty=2);
+        if(lowess){
+            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+        }
+    }
+
     if(any(which==1)){
         plot1(x, ...);
     }
@@ -1762,6 +1819,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         plot8(x, ...);
     }
 
+    if(any(which==13)){
+        plot9(x, type="squared", ...);
+    }
+
+    if(any(which==14)){
+        plot9(x, ...);
+    }
 }
 
 #' @export
