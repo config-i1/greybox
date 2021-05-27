@@ -1767,7 +1767,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
         if(lowess){
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x[!is.na(ellipsis$y)], ellipsis$y[!is.na(ellipsis$y)]), col="red");
         }
     }
 
