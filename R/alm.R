@@ -489,7 +489,25 @@ alm <- function(formula, data, subset, na.action,
     scaler <- function(B, distribution, y, matrixXreg, mu, other, scaleModel=FALSE, A=NULL){
         # If this is scale model, then calculate the time varying scale
         if(scaleModel){
-            scale <- exp(matrixXregScale %*% A);
+            scale <- switch(distribution,
+                            "dnorm"=,
+                            "dlnorm"=,
+                            "dbcnorm"=,
+                            "dlogitnorm"=,
+                            "dfnorm"=,
+                            "dlogis"=sqrt(exp(matrixXregScale %*% A)),
+                            "dlaplace"=,
+                            "dllaplace"=,
+                            "dalaplace"=exp(matrixXregScale %*% A),
+                            "ds"=,
+                            "dls"=exp(matrixXregScale %*% A)^2,
+                            "dgnorm"=,
+                            "dlgnorm"=exp(matrixXregScale %*% A)^{1/other},
+                            "dgamma"=sqrt(exp(matrixXregScale %*% A))+1,
+                            # This is based on polynomial from y = (x-1)^2/x
+                            "dinvgauss"=(exp(matrixXregScale %*% A)+2+
+                                             sqrt(exp(matrixXregScale %*% A)^2+4*exp(matrixXregScale %*% A)))/2,
+                            exp(matrixXregScale %*% A));
         }
         # If not, just return the basic thing
         else{
@@ -1628,7 +1646,33 @@ alm <- function(formula, data, subset, na.action,
                 yFitted[] <- extractorFitted(distribution, fittedValues$mu, fittedValues$scale);
                 errors[] <- extractorResiduals(distribution, fittedValues$mu, fittedValues$yFitted);
 
-                B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(errors)))$coefficients);
+                if(any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","dlogis"))){
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(errors)))$coefficients);
+                }
+                else if(any(distribution==c("dlaplace","dllaplace","dalaplace"))){
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(errors)))$coefficients);
+                }
+                else if(any(distribution==c("ds","dls"))){
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],0.5*log(abs(errors)))$coefficients);
+                }
+                else if(any(distribution==c("dgnorm","dlgnorm"))){
+                    if(aParameterProvided){
+                        B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],shape+shape*log(abs(errors)))$coefficients);
+                    }
+                    else{
+                        B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(errors)))$coefficients);
+                    }
+                }
+                else if(distribution=="dgamma"){
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(errors-1)))$coefficients);
+                }
+                else if(distribution=="dinvgauss"){
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(errors-1)^2/errors))$coefficients);
+                }
+                # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
+                else{
+                    B <- c(B, .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(errors)))$coefficients);
+                }
             }
             if(!is.null(BLower)){
                 BLower <- c(BLower,rep(-Inf,nvariablesScale));
