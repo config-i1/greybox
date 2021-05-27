@@ -22,8 +22,8 @@
 #' printed out. \code{silent=TRUE} means that nothing is produced.
 #' @param df Number of degrees of freedom to add (should be used if stepwise is
 #' used on residuals).
-#' @param method Method of correlations calculation. The default is Kendall's
-#' Tau, which should be applicable to a wide range of data in different scales.
+#' @param method Method of correlations calculation. The default is Pearson's
+#' correlation, which should be applicable to a wide range of data in different scales.
 #' @param distribution Distribution to pass to \code{alm()}. See \link[greybox]{alm}
 #' for details.
 #' @param occurrence what distribution to use for occurrence part. See
