@@ -1804,7 +1804,7 @@ alm <- function(formula, data, subset, na.action,
     #### Produce Fisher Information ####
     if(FI){
         # Only vcov is needed, no point in redoing the occurrenceModel
-        occurrenceModel <- FALSE;
+        # occurrenceModel <- FALSE;
         FI <- hessian(CF, B, h=stepSize,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel, scaleModel=scaleModel, denominator=denominator);
