@@ -3,12 +3,15 @@
 \name{actuals}
 \alias{actuals}
 \alias{actuals.default}
+\alias{actuals.lm}
 \alias{actuals.alm}
 \title{Function extracts the actual values from the function}
 \usage{
 actuals(object, all = TRUE, ...)
 
 \method{actuals}{default}(object, all = TRUE, ...)
+
+\method{actuals}{lm}(object, all = TRUE, ...)
 
 \method{actuals}{alm}(object, all = TRUE, ...)
 }

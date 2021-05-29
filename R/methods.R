@@ -458,6 +458,11 @@ actuals.alm <- function(object, all=TRUE, ...){
     }
 }
 
+#' @export
+formula.alm <- function(x, ...){
+    return(x$call$formula);
+}
+
 #' Coefficients of the model and their statistics
 #'
 #' These are the basic methods for the alm and greybox models that extract coefficients,
