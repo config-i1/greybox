@@ -443,6 +443,12 @@ actuals.default <- function(object, all=TRUE, ...){
 
 #' @rdname actuals
 #' @export
+actuals.lm <- function(object, all=TRUE, ...){
+    return(object$model[,1]);
+}
+
+#' @rdname actuals
+#' @export
 actuals.alm <- function(object, all=TRUE, ...){
     if(all){
         return(object$data[,1])
