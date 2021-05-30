@@ -38,7 +38,23 @@ sm <- function(model, formula=NULL, data=NULL, parameters=NULL, ...) UseMethod("
 #' @rdname sm
 #' @export
 sm.default <- function(model, formula=NULL, data=NULL, parameters=NULL, ...){
-    stop("Sorry, the general method for scale is not supported");
+    # The function creates a scale model for the provided model
+    distribution <- "dnorm";
+    if(is.null(data)){
+        if(is.matrix(model$model)){
+            data <- model$model;
+        }
+        else if(is.matrix(model$data)){
+            data <- model$data;
+        }
+    }
+    if(is.null(formula)){
+        formula <- formula(model);
+        formula[[2]] <- NULL;
+    }
+    return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
+                                 distribution, fitted(model), actuals(model), residuals(model),
+                                 parameters, cl=model$call, ...)));
 }
 
 #' @rdname sm
@@ -47,7 +63,6 @@ sm.lm <- function(model, formula=NULL, data=NULL,
                   parameters=NULL, ...){
     # The function creates a scale model for the provided model
     distribution <- "dnorm";
-    cl <- model$call;
     if(is.null(data)){
         data <- model$model;
     }
@@ -57,7 +72,7 @@ sm.lm <- function(model, formula=NULL, data=NULL,
     }
     return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
                                  distribution, fitted(model), actuals(model), residuals(model),
-                                 parameters, cl=cl, ...)));
+                                 parameters, cl=model$call, ...)));
 }
 
 #' @rdname sm
