@@ -24,8 +24,12 @@
 #' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #'
+#' # Estimate the location model
 #' ourModel <- alm(y~.,xreg)
+#' # Estimate the scale model
 #' ourScale <- sm(ourModel,formula=~x1+x2)
+#' # Summary of the scale model
+#' summary(ourScale)
 #'
 #' @rdname sm
 #' @export
