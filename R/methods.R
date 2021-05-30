@@ -572,6 +572,10 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
     return(confintValues[parm,,drop=FALSE]);
 }
 
+#' @rdname coef.alm
+#' @export
+confint.scale <- confint.alm;
+
 #' @export
 confint.greyboxC <- function(object, parm, level=0.95, ...){
 
@@ -1061,6 +1065,58 @@ vcov.greyboxD <- function(object, ...){
 #' @export
 vcov.lmGreybox <- function(object, ...){
     vcov <- sigma(object)^2 * solve(crossprod(object$xreg));
+    return(vcov);
+}
+
+
+#' @rdname coef.alm
+#' @export
+vcov.scale <- function(object, bootstrap=FALSE, ...){
+    nVariables <- length(coef(object));
+    variablesNames <- names(coef(object));
+    interceptIsNeeded <- any(variablesNames=="(Intercept)");
+
+    # Form the call for scaler
+    newCall <- object$call;
+    if(interceptIsNeeded){
+        newCall$formula <- as.formula(~.);
+        newCall$data <- object$data[,-1,drop=FALSE];
+    }
+    else{
+        newCall$formula <- as.formula(~.-1);
+        newCall$data <- object$data;
+    }
+    newCall$subset <- object$subset;
+    newCall$parameters <- coef(object);
+    newCall$FI <- TRUE;
+    # Recall alm to get hessian
+    FIMatrix <- eval(newCall)$FI;
+    # If any row contains all zeroes, then it means that the variable does not impact the likelihood
+    brokenVariables <- apply(FIMatrix==0,1,all) | apply(is.nan(FIMatrix),1,any);
+    # If there are issues, try the same stuff, but with a different step size for hessian
+    if(any(brokenVariables)){
+        newCall$stepSize <- .Machine$double.eps^(1/6);
+        FIMatrix <- eval(newCall)$FI;
+    }
+
+    # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+    vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+    if(inherits(vcovMatrixTry,"try-error")){
+        warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                       "The estimate of the covariance matrix of parameters might be inaccurate.\n"),
+                call.=FALSE, immediate.=TRUE);
+        vcovMatrixTry <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+        if(inherits(vcovMatrixTry,"try-error")){
+            vcov <- diag(1e+100,nVariables);
+        }
+        else{
+            vcov <- FIMatrix;
+        }
+    }
+    else{
+        vcov <- vcovMatrixTry;
+    }
+
     return(vcov);
 }
 
@@ -2189,6 +2245,64 @@ print.summary.alm <- function(x, ...){
 }
 
 #' @export
+print.summary.scale <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    distrib <- switch(x$distribution,
+                      "dnorm" = "Normal",
+                      "dgnorm" = paste0("Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
+                      "dlgnorm" = paste0("Log Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
+                      "dlogis" = "Logistic",
+                      "dlaplace" = "Laplace",
+                      "dllaplace" = "Log Laplace",
+                      "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,digits)),
+                      "dt" = paste0("Student t with nu=",round(x$other$nu, digits)),
+                      "ds" = "S",
+                      "dls" = "Log S",
+                      "dfnorm" = "Folded Normal",
+                      "dlnorm" = "Log Normal",
+                      "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
+                      "dlogitnorm" = "Logit Normal",
+                      "dinvgauss" = "Inverse Gaussian",
+                      "dgamma" = "Gamma",
+                      "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
+                      "dpois" = "Poisson",
+                      "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbeta" = "Beta",
+                      "plogis" = "Cumulative logistic",
+                      "pnorm" = "Cumulative normal"
+    );
+
+    cat(paste0("Scale model for the variable: ", paste0(x$responseName,collapse="")));
+    cat(paste0("\nDistribution used in the estimation: ", distrib));
+    if(x$bootstrap){
+        cat("\nBootstrap was used for the estimation of uncertainty of parameters");
+    }
+
+    cat("\nCoefficients:\n");
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    print(data.frame(round(x$coefficients,digits),stars,
+                     check.names=FALSE,fix.empty.names=FALSE));
+
+    cat("\nSample size: "); cat(x$dfTable[1]);
+    cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
+    cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
+    if(!is.null(x$ICs)){
+        cat("\nInformation criteria:\n");
+        print(round(x$ICs,digits));
+    }
+    cat("\n");
+}
+
+#' @export
 print.summary.greybox <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
@@ -2715,6 +2829,45 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
     ourReturn$scaleParameters <- scaleParameters;
 
     ourReturn <- structure(ourReturn,class=c("summary.alm","summary.greybox"));
+    return(ourReturn);
+}
+
+#' @export
+summary.scale <- function(object, level=0.95, bootstrap=FALSE, ...){
+    obs <- nobs(object, all=TRUE);
+
+    # Collect parameters and their standard errors
+    parametersConfint <- confint(object, level=level, bootstrap=bootstrap, ...);
+    parameters <- coef(object);
+    parametersTable <- cbind(parameters,parametersConfint);
+    rownames(parametersTable) <- names(parameters);
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+    ourReturn <- list(coefficients=parametersTable);
+    # Mark those that are significant on the selected level
+    ourReturn$significance <- !(parametersTable[,3]<=0 & parametersTable[,4]>=0);
+
+    # If there is a likelihood, then produce ICs
+    if(!is.na(logLik(object))){
+        ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+        names(ICs) <- c("AIC","AICc","BIC","BICc");
+        ourReturn$ICs <- ICs;
+    }
+    ourReturn$distribution <- object$distribution;
+    ourReturn$loss <- object$loss;
+    ourReturn$other <- object$other;
+    ourReturn$responseName <- object$responseName;
+
+    # Table with degrees of freedom
+    dfTable <- c(obs,nparam(object),obs-nparam(object));
+    names(dfTable) <- c("n","k","df");
+
+    ourReturn$dfTable <- dfTable;
+
+    ourReturn$bootstrap <- bootstrap;
+
+    ourReturn <- structure(ourReturn,class="summary.scale");
     return(ourReturn);
 }
 

@@ -1,5 +1,3 @@
-
-#### Coefficients and extraction functions ####
 #' Scale Model
 #'
 #' This method produces a model for scale of distribution for the provided pre-estimated model.
@@ -155,20 +153,21 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     if(print_level==41){
         print_level[] <- 0;
     }
-    cl <- match.call();
-    if(is.null(ellipsis$cl)){
-        # This is needed in order to have a reasonable formula saved, so that there are no issues with it
-        cl$formula <- eval(cl$formula);
-    }
-    else{
-        cl$data <- quote(ellipsis$cl$data);
-    }
     if(is.null(ellipsis$stepSize)){
         stepSize <- .Machine$double.eps^(1/4);
     }
     else{
         stepSize <- ellipsis$stepSize;
     }
+
+    if(is.null(ellipsis$cl)){
+        responseName <- "y";
+    }
+    else{
+        responseName <- formula(ellipsis$cl)[[2]];
+    }
+
+    cl <- match.call();
 
     occurrenceModel <- FALSE;
     obsZero <- 0;
@@ -389,9 +388,10 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     # Form the scale object
     finalModel <- structure(list(formula=formula, coefficients=B, fitted=scale, residuals=errors,
                                  df.residual=obsInsample-nVariables, df=nVariables, call=cl, rank=nVariables,
-                                 data=matrixXregScale, terms=dataTerms,
+                                 data=matrixXregScale, terms=dataTerms, logLik=-CFValue,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B, FI=FI,
+                                 distribution=distribution, other=other, responseName=responseName,
                                  timeElapsed=Sys.time()-startTime),
-                            class="scale");
+                            class=c("scale","alm"));
     return(finalModel);
 }

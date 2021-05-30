@@ -4,7 +4,9 @@
 \alias{coef.greybox}
 \alias{coef.alm}
 \alias{confint.alm}
+\alias{confint.scale}
 \alias{vcov.alm}
+\alias{vcov.scale}
 \alias{summary.alm}
 \title{Coefficients of the model and their statistics}
 \usage{
@@ -12,7 +14,11 @@
 
 \method{confint}{alm}(object, parm, level = 0.95, bootstrap = FALSE, ...)
 
+\method{confint}{scale}(object, parm, level = 0.95, bootstrap = FALSE, ...)
+
 \method{vcov}{alm}(object, bootstrap = FALSE, ...)
+
+\method{vcov}{scale}(object, bootstrap = FALSE, ...)
 
 \method{summary}{alm}(object, level = 0.95, bootstrap = FALSE, ...)
 }
