@@ -387,7 +387,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                      "dgnorm"=,
                      "dlgnorm"=abs(residuals)^{1/other},
                      "dgamma"=abs(residuals),
-                     "dinvgauss"=abs(residuals))/scale;
+                     "dinvgauss"=abs(residuals));
 
     #### Produce Fisher Information ####
     if(FI){
@@ -404,13 +404,26 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         dimnames(FI) <- list(variablesNames,variablesNames);
     }
 
+    # Write the original residuals as the response variable
+    interceptIsNeeded <- attr(dataTerms,"intercept")!=0;
+    if(interceptIsNeeded){
+        matrixXregScale[,1] <- errors;
+    }
+    else{
+        matrixXregScale <- cbind(errors,matrixXregScale);
+    }
+    colnames(matrixXregScale)[1] <- "residuals";
+    errors[] <- errors / scale;
+
+    cl$formula <- update.formula(formula,paste0(responseName,"~."))
+
     # Form the scale object
     finalModel <- structure(list(formula=formula, coefficients=B, fitted=scale, residuals=errors,
                                  df.residual=obsInsample-nVariables, df=nVariables, call=cl, rank=nVariables,
                                  data=matrixXregScale, terms=dataTerms, logLik=-CFValue,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B, FI=FI,
-                                 distribution=distribution, other=other, responseName=responseName,
+                                 distribution=distribution, other=other,
                                  timeElapsed=Sys.time()-startTime),
-                            class=c("scale","alm"));
+                            class=c("scale","alm","greybox"));
     return(finalModel);
 }

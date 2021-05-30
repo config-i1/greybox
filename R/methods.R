@@ -1078,13 +1078,12 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 
     # Form the call for scaler
     newCall <- object$call;
+    newCall$data <- object$data[,-1,drop=FALSE];
     if(interceptIsNeeded){
-        newCall$formula <- as.formula(~.);
-        newCall$data <- object$data[,-1,drop=FALSE];
+        newCall$formula <- as.formula(paste0("~",paste(colnames(newCall$data),collapse="+")));
     }
     else{
-        newCall$formula <- as.formula(~.-1);
-        newCall$data <- object$data;
+        newCall$formula <- as.formula(paste0("~",paste(colnames(newCall$data),collapse="+"),"-1"));
     }
     newCall$subset <- object$subset;
     newCall$parameters <- coef(object);
@@ -2299,7 +2298,6 @@ print.summary.scale <- function(x, ...){
         cat("\nInformation criteria:\n");
         print(round(x$ICs,digits));
     }
-    cat("\n");
 }
 
 #' @export
@@ -2857,7 +2855,7 @@ summary.scale <- function(object, level=0.95, bootstrap=FALSE, ...){
     ourReturn$distribution <- object$distribution;
     ourReturn$loss <- object$loss;
     ourReturn$other <- object$other;
-    ourReturn$responseName <- object$responseName;
+    ourReturn$responseName <- formula(object)[[2]];
 
     # Table with degrees of freedom
     dfTable <- c(obs,nparam(object),obs-nparam(object));
