@@ -91,7 +91,7 @@ sm.alm <- function(model, formula=NULL, data=NULL,
         formula[[2]] <- NULL;
     }
     return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
-                                 distribution, fitted(model), actuals(model), residuals(model),
+                                 distribution, model$mu, actuals(model), residuals(model),
                                  parameters, model$occurrence, model$other, cl=cl, ...)));
 }
 
@@ -214,44 +214,6 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     nVariables <- ncol(matrixXregScale);
     variablesNames <- colnames(matrixXregScale);
 
-    # Prepare parameters
-    if(is.null(B)){
-        if(any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","dlogis"))){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals)))$coefficients;
-        }
-        else if(any(distribution==c("dlaplace","dllaplace","dalaplace"))){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
-        }
-        else if(any(distribution==c("ds","dls"))){
-            B <- .lm.fit(matrixXregScale,0.5*log(abs(residuals)))$coefficients;
-        }
-        else if(any(distribution==c("dgnorm","dlgnorm"))){
-            B <- .lm.fit(matrixXregScale,other+other*log(abs(residuals)))$coefficients;
-        }
-        else if(distribution=="dgamma"){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals-1)))$coefficients;
-        }
-        else if(distribution=="dinvgauss"){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals-1)^2/residuals))$coefficients;
-        }
-        # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
-        else{
-            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
-        }
-    }
-    names(B) <- variablesNames;
-
-    BLower <- rep(-Inf,nVariables);
-    BUpper <- rep(Inf,nVariables);
-
-    #### Define what to do with the maxeval ####
-    if(is.null(ellipsis$maxeval)){
-        maxeval <- length(B) * 40;
-    }
-    else{
-        maxeval <- ellipsis$maxeval;
-    }
-
     fitter <- function(B, distribution){
         scale <- exp(matrixXregScale %*% B);
         scale[] <- switch(distribution,
@@ -356,6 +318,44 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
             );
         }
         return(CFValue);
+    }
+
+    # Prepare parameters
+    if(is.null(B)){
+        if(any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","dlogis"))){
+            B <- .lm.fit(matrixXregScale,2*log(abs(residuals)))$coefficients;
+        }
+        else if(any(distribution==c("dlaplace","dllaplace","dalaplace"))){
+            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
+        }
+        else if(any(distribution==c("ds","dls"))){
+            B <- .lm.fit(matrixXregScale,0.5*log(abs(residuals)))$coefficients;
+        }
+        else if(any(distribution==c("dgnorm","dlgnorm"))){
+            B <- .lm.fit(matrixXregScale,other+other*log(abs(residuals)))$coefficients;
+        }
+        else if(distribution=="dgamma"){
+            B <- .lm.fit(matrixXregScale,2*log(abs(residuals-1)))$coefficients;
+        }
+        else if(distribution=="dinvgauss"){
+            B <- .lm.fit(matrixXregScale,log(abs(residuals-1)^2/residuals))$coefficients;
+        }
+        # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
+        else{
+            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
+        }
+    }
+    names(B) <- variablesNames;
+
+    BLower <- rep(-Inf,nVariables);
+    BUpper <- rep(Inf,nVariables);
+
+    #### Define what to do with the maxeval ####
+    if(is.null(ellipsis$maxeval)){
+        maxeval <- length(B) * 40;
+    }
+    else{
+        maxeval <- ellipsis$maxeval;
     }
 
     res <- nloptr(B, CF,
