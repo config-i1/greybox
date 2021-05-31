@@ -104,6 +104,19 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
 
     obsInsample <- length(y);
 
+    # Extract the other value
+    if(!is.null(other)){
+        other <- switch(distribution,
+                        "dgnorm"=,
+                        "dlgnorm"=other$shape,
+                        "dalaplace"=other$alpha,
+                        "dnbinom"=other$size,
+                        "dchisq"=other$nu,
+                        "dbcnorm"=other$lambdaBC,
+                        "dt"=other$df,
+                        NULL);
+    }
+
     #### Ellipsis values ####
     ellipsis <- list(...);
     # Fisher Information
