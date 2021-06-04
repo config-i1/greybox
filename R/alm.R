@@ -93,8 +93,10 @@
 #' regression using \code{alm()} is estimated for the occurrence part;
 #' \code{"pnorm"} - then probit is constructed via \code{alm()} for the
 #' occurrence part. In both of the latter cases, the formula used is the same
-#' as the formula for the sizes. Finally, an "alm" model can be provided and
-#' its estimates will be used in the model construction.
+#' as the formula for the sizes. Alternatively, you can provide the formula here,
+#' and \code{alm} will estimate logistic occurrence model with that formula.
+#' Finally, an "alm" model can be provided and its estimates will be used in
+#' the model construction.
 #'
 #' If this is not \code{"none"}, then the model is estimated
 #' in two steps: 1. Occurrence part of the model; 2. Sizes part of the model
@@ -884,14 +886,20 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Occurrence part ####
+    occurrenceFormula <- NULL;
     # If occurrence is not provideded, then set it to "none"
     if(is.null(occurrence)){
         occurrence <- "none";
+    }
+    else if(inherits(occurrence,"formula")){
+        occurrence <- "plogis";
+        occurrenceFormula <- occurrence;
     }
     # See if the occurrence model is provided, and whether we need to treat the data as intermittent
     if(is.occurrence(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
+        occurrenceFormula <- formula(occurrence);
     }
     else{
         occurrence <- occurrence[1];
@@ -909,6 +917,7 @@ alm <- function(formula, data, subset, na.action,
             occurrenceModel <- FALSE;
             occurrence <- NULL;
         }
+        occurrenceFormula <- formula;
     }
 
     #### Scale part ####
@@ -1893,10 +1902,11 @@ alm <- function(formula, data, subset, na.action,
         # New data and new response variable
         dataNew <- dataWork
         # dataNew <- mf$data[mf$subset,,drop=FALSE];
-        dataNew[,all.vars(formula)[1]] <- (ot)*1;
+        dataNew[,all.vars(occurrenceFormula)[1]] <- (ot)*1;
 
         if(!occurrenceProvided){
-            occurrence <- do.call("alm", list(formula=formula, data=dataNew, distribution=occurrence, ar=arOrder, i=iOrder));
+            occurrence <- do.call("alm", list(formula=occurrenceFormula, data=dataNew,
+                                              distribution=occurrence, ar=arOrder, i=iOrder));
             if(exists("dataSubstitute",inherits=FALSE,mode="call")){
                 occurrence$call$data <- as.name(paste0(deparse(dataSubstitute),collapse=""));
             }
