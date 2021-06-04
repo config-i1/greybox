@@ -538,9 +538,12 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
     parameters <- coef(object);
     if(!bootstrap){
         parametersSE <- sqrt(diag(vcov(object)));
+        parametersNames <- names(parameters);
         # Add scale parameters if they were estimated
         if(is.scale(object$scale)){
             parameters <- c(parameters,coef(object$scale));
+            parametersSE <- c(parametersSE, sqrt(diag(vcov(object$scale))));
+            parametersNames <- names(parameters);
         }
         # Define quantiles using Student distribution
         paramQuantiles <- qt((1+level)/2,df=object$df.residual);
@@ -549,12 +552,12 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
         confintValues <- cbind(parameters-paramQuantiles*parametersSE,
                                parameters+paramQuantiles*parametersSE);
         colnames(confintValues) <- confintNames;
-        rownames(confintValues) <- names(parameters);
 
         # Return S.E. as well, so not to repeat the thing twice...
         confintValues <- cbind(parametersSE, confintValues);
         # Give the name to the first column
         colnames(confintValues)[1] <- "S.E.";
+        rownames(confintValues) <- parametersNames;
     }
     else{
         coefValues <- coefbootstrap(object, ...);
@@ -566,7 +569,7 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
 
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
-        parm <- names(parameters);
+        parm <- c(1:length(parameters));
     }
 
     return(confintValues[parm,,drop=FALSE]);
@@ -830,11 +833,6 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
     nVariables <- length(coef(object));
     variablesNames <- names(coef(object));
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
-    scaleModel <- is.scale(object$scale);
-    if(scaleModel){
-        nVariables <- nVariables + nparam(object$scale);
-        variablesNames <- c(variablesNames,names(coef(object$scale)));
-    }
 
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
@@ -856,7 +854,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         }
 
         # Analytical values for vcov
-        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm")) && !scaleModel){
+        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -893,7 +891,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
         # Analytical values in case of Poisson
-        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois" && !scaleModel){
+        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois"){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -951,9 +949,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             newCall$orders <- object$other$orders;
             newCall$parameters <- coef(object);
-            if(scaleModel){
-                newCall$scale <- object$scale;
-            }
+            newCall$scale <- object$scale;
             newCall$fast <- TRUE;
             if(any(object$distribution==c("dchisq","dt"))){
                 newCall$nu <- object$other$nu;

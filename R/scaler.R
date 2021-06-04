@@ -227,7 +227,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     nVariables <- ncol(matrixXregScale);
     variablesNames <- colnames(matrixXregScale);
 
-    fitter <- function(B, distribution){
+    fitterScale <- function(B, distribution){
         scale <- exp(matrixXregScale %*% B);
         scale[] <- switch(distribution,
                           "dnorm"=,
@@ -251,8 +251,8 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     }
 
     #### The function estimates parameters of scale model ####
-    CF <- function(B){
-        scale <- fitter(B, distribution);
+    CFScale <- function(B){
+        scale <- fitterScale(B, distribution);
         CFValue <- -sum(switch(distribution,
                                "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
                                "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
@@ -371,7 +371,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         maxeval <- ellipsis$maxeval;
     }
 
-    res <- nloptr(B, CF,
+    res <- nloptr(B, CFScale,
                   opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
                             maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
                   lb=BLower, ub=BUpper);
@@ -383,7 +383,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         print(res);
     }
 
-    scale <- fitter(B, distribution);
+    scale <- fitterScale(B, distribution);
     #### !!!! This needs to be double checked
     errors <- switch(distribution,
                      "dnorm"=,
@@ -406,7 +406,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     if(FI){
         # Only vcov is needed, no point in redoing the occurrenceModel
         occurrenceModel <- FALSE;
-        FI <- hessian(CF, B, h=stepSize);
+        FI <- hessian(CFScale, B, h=stepSize);
 
         if(any(is.nan(FI))){
             warning("Something went wrong and we failed to produce the covariance matrix of the parameters.\n",

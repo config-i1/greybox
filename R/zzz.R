@@ -62,7 +62,7 @@ overwrite_S3_method <- function(pkg, generic){
     register_S3_method("fabletools","forecast","alm");
   }
   # Do things if forecast is present in the installed packages
-  else if(length(find.package("forecast", quiet=TRUE, verbose=FALSE))!=0){
+  if(length(find.package("forecast", quiet=TRUE, verbose=FALSE))!=0){
     overwrite_S3_method("forecast","forecast");
     register_S3_method("forecast","forecast","greybox");
     register_S3_method("forecast","forecast","alm");
