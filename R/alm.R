@@ -1703,7 +1703,10 @@ alm <- function(formula, data, subset, na.action,
         fitterReturn <- fitter(B, distribution, y, matrixXreg);
     }
     mu[] <- fitterReturn$mu;
-    scale <- fitterReturn$scale;
+    # Write down scale if it is not provided
+    if(!scaleProvided){
+        scale <- fitterReturn$scale;
+    }
 
     #### Produce Fisher Information ####
     if(FI){

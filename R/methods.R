@@ -3543,12 +3543,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     scaleModel <- is.scale(object$scale);
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
-    # This is needed in order to get vcov without the one for scale
-    if(scaleModel){
-        scalePart <- object$scale;
-        object$scale <- NULL;
-        object$call$scale <- NULL;
-    }
     ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
@@ -3576,9 +3570,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         }
         else{
             matrixOfxreg <- matrixOfxreg[,-1,drop=FALSE];
-        }
-        if(scaleModel){
-            matrixXregScale <- scalePart$data;
         }
     }
     else{
@@ -3616,20 +3607,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
         matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
-        # The matrix for scale
-        if(scaleModel){
-            # Extract the formula and get rid of the response variable
-            testFormula <- formula(scalePart);
-
-            # If the user asked for trend, but it's not in the data, add it
-            if(any(all.vars(testFormula)=="trend") && all(colnames(newdata)!="trend")){
-                newdata <- cbind(newdata,trend=nobs(object)+c(1:nrow(newdata)));
-            }
-
-            # Expand the data frame
-            newdataExpanded <- model.frame(testFormula, newdata);
-            matrixXregScale <- model.matrix(newdataExpanded,data=newdataExpanded);
-        }
     }
 
     h <- nrow(matrixOfxreg);
@@ -3681,9 +3658,32 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
                 }
             }
             else if(interval=="prediction"){
-                sigmaValues <- sigma(object)^2;
                 if(scaleModel){
-                   sigmaValues <- exp(matrixXregScale %*% coef(scalePart));
+                    sigmaValues <- predict.scale(object$scale, newdata, interval="none", ...)$mean;
+                    # Get variance from the scale
+                    sigmaValues[] <- switch(object$distribution,
+                                            "dnorm"=,
+                                            "dlnorm"=,
+                                            "dbcnorm"=,
+                                            "dlogitnorm"=,
+                                            "dfnorm"=sigmaValues^2,
+                                            "dlaplace"=,
+                                            "dllaplace"=2*sigmaValues^2,
+                                            "dalaplace"=sigmaValues^2*
+                                                ((1-object$other$alpha)^2+object$other$alpha^2)/
+                                                (object$other$alpha*(1-object$other$alpha))^2,
+                                            "ds"=,
+                                            "dls"=120*sigmaValues^4,
+                                            "dgnorm"=,
+                                            "dlgnorm"=sigmaValues^2*gamma(3/object$other$shape)/
+                                                gamma(1/object$other$shape),
+                                            "dlogis"=sigmaValues*pi/sqrt(3),
+                                            "dgamma"=,
+                                            "dinvgauss"=,
+                                            sigmaValues);
+                }
+                else{
+                    sigmaValues <- sigma(object)^2;
                 }
                 vectorOfVariances[] <- vectorOfVariances + sigmaValues;
                 for(i in 1:nLevels){
@@ -3949,6 +3949,37 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     ourModel <- list(model=object, mean=ourForecast, lower=yLower, upper=yUpper, level=c(levelLow, levelUp), newdata=newdata,
                      variances=vectorOfVariances, newdataProvided=newdataProvided);
     return(structure(ourModel,class="predict.greybox"));
+}
+
+#' @rdname predict.greybox
+#' @export
+predict.scale <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+                          level=0.95, side=c("both","upper","lower"), ...){
+    scalePredicted <- predict.greybox(object, newdata, interval, level, side, ...);
+
+    # Fix the predicted scale
+    scalePredicted$mean[] <- exp(scalePredicted$mean);
+    scalePredicted$mean[] <- switch(object$distribution,
+                                           "dnorm"=,
+                                           "dlnorm"=,
+                                           "dbcnorm"=,
+                                           "dlogitnorm"=,
+                                           "dfnorm"=,
+                                           "dlogis"=sqrt(scalePredicted$mean),
+                                           "dlaplace"=,
+                                           "dllaplace"=,
+                                           "dalaplace"=scalePredicted$mean,
+                                           "ds"=,
+                                           "dls"=scalePredicted$mean^2,
+                                           "dgnorm"=,
+                                           "dlgnorm"=scalePredicted$mean^{1/object$other},
+                                           "dgamma"=sqrt(scalePredicted$mean)+1,
+                                           # This is based on polynomial from y = (x-1)^2/x
+                                           "dinvgauss"=(scalePredicted$mean+2+
+                                                            sqrt(scalePredicted$mean^2+
+                                                                     4*scalePredicted$mean))/2,
+                                           scalePredicted$mean);
+    return(scalePredicted);
 }
 
 # @importFrom forecast forecast

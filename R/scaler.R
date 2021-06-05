@@ -243,9 +243,11 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                           "dls"=scale^2,
                           "dgnorm"=,
                           "dlgnorm"=scale^{1/other},
-                          "dgamma"=sqrt(scale)+1,
+                          "dgamma"=,
+                          "dinvgauss"=scale,
+                          # "dgamma"=sqrt(scale)+1,
                           # This is based on polynomial from y = (x-1)^2/x
-                          "dinvgauss"=(scale+2+sqrt(scale^2+4*scale))/2,
+                          # "dinvgauss"=(scale+2+sqrt(scale^2+4*scale))/2,
                           scale);
         return(scale);
     }
