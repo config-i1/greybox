@@ -5,6 +5,7 @@
 \alias{predict.greybox}
 \alias{forecast}
 \alias{forecast.greybox}
+\alias{predict.scale}
 \alias{forecast.alm}
 \title{Forecasting using greybox functions}
 \usage{
@@ -13,6 +14,10 @@
   "lower"), ...)
 
 \method{predict}{greybox}(object, newdata = NULL, interval = c("none",
+  "confidence", "prediction"), level = 0.95, side = c("both", "upper",
+  "lower"), ...)
+
+\method{predict}{scale}(object, newdata = NULL, interval = c("none",
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
   "lower"), ...)
 

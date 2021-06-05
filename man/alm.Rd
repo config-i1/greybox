@@ -65,8 +65,10 @@ See \code{vignette("alm","greybox")} for some details on losses and distribution
 regression using \code{alm()} is estimated for the occurrence part;
 \code{"pnorm"} - then probit is constructed via \code{alm()} for the
 occurrence part. In both of the latter cases, the formula used is the same
-as the formula for the sizes. Finally, an "alm" model can be provided and
-its estimates will be used in the model construction.
+as the formula for the sizes. Alternatively, you can provide the formula here,
+and \code{alm} will estimate logistic occurrence model with that formula.
+Finally, an "alm" model can be provided and its estimates will be used in
+the model construction.
 
 If this is not \code{"none"}, then the model is estimated
 in two steps: 1. Occurrence part of the model; 2. Sizes part of the model

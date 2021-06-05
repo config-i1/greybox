@@ -443,6 +443,12 @@ actuals.default <- function(object, all=TRUE, ...){
 
 #' @rdname actuals
 #' @export
+actuals.lm <- function(object, all=TRUE, ...){
+    return(object$model[,1]);
+}
+
+#' @rdname actuals
+#' @export
 actuals.alm <- function(object, all=TRUE, ...){
     if(all){
         return(object$data[,1])
@@ -450,6 +456,11 @@ actuals.alm <- function(object, all=TRUE, ...){
     else{
         return(object$data[object$data[,1]!=0,1]);
     }
+}
+
+#' @export
+formula.alm <- function(x, ...){
+    return(x$call$formula);
 }
 
 #' Coefficients of the model and their statistics
@@ -527,9 +538,12 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
     parameters <- coef(object);
     if(!bootstrap){
         parametersSE <- sqrt(diag(vcov(object)));
+        parametersNames <- names(parameters);
         # Add scale parameters if they were estimated
         if(is.scale(object$scale)){
             parameters <- c(parameters,coef(object$scale));
+            parametersSE <- c(parametersSE, sqrt(diag(vcov(object$scale))));
+            parametersNames <- names(parameters);
         }
         # Define quantiles using Student distribution
         paramQuantiles <- qt((1+level)/2,df=object$df.residual);
@@ -538,12 +552,12 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
         confintValues <- cbind(parameters-paramQuantiles*parametersSE,
                                parameters+paramQuantiles*parametersSE);
         colnames(confintValues) <- confintNames;
-        rownames(confintValues) <- names(parameters);
 
         # Return S.E. as well, so not to repeat the thing twice...
         confintValues <- cbind(parametersSE, confintValues);
         # Give the name to the first column
         colnames(confintValues)[1] <- "S.E.";
+        rownames(confintValues) <- parametersNames;
     }
     else{
         coefValues <- coefbootstrap(object, ...);
@@ -555,11 +569,15 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
 
     # If parm was not provided, return everything.
     if(!exists("parm",inherits=FALSE)){
-        parm <- names(parameters);
+        parm <- c(1:length(parameters));
     }
 
     return(confintValues[parm,,drop=FALSE]);
 }
+
+#' @rdname coef.alm
+#' @export
+confint.scale <- confint.alm;
 
 #' @export
 confint.greyboxC <- function(object, parm, level=0.95, ...){
@@ -815,11 +833,6 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
     nVariables <- length(coef(object));
     variablesNames <- names(coef(object));
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
-    scaleModel <- is.scale(object$scale);
-    if(scaleModel){
-        nVariables <- nVariables + nparam(object$scale);
-        variablesNames <- c(variablesNames,names(coef(object$scale)));
-    }
 
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
@@ -841,7 +854,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         }
 
         # Analytical values for vcov
-        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm")) && !scaleModel){
+        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -878,7 +891,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             rownames(vcov) <- colnames(vcov) <- variablesNames;
         }
         # Analytical values in case of Poisson
-        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois" && !scaleModel){
+        else if(iOrders==0 && maOrders==0 && object$distribution=="dpois"){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
@@ -936,9 +949,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             }
             newCall$orders <- object$other$orders;
             newCall$parameters <- coef(object);
-            if(scaleModel){
-                newCall$scale <- object$scale;
-            }
+            newCall$scale <- object$scale;
             newCall$fast <- TRUE;
             if(any(object$distribution==c("dchisq","dt"))){
                 newCall$nu <- object$other$nu;
@@ -1050,6 +1061,57 @@ vcov.greyboxD <- function(object, ...){
 #' @export
 vcov.lmGreybox <- function(object, ...){
     vcov <- sigma(object)^2 * solve(crossprod(object$xreg));
+    return(vcov);
+}
+
+
+#' @rdname coef.alm
+#' @export
+vcov.scale <- function(object, bootstrap=FALSE, ...){
+    nVariables <- length(coef(object));
+    variablesNames <- names(coef(object));
+    interceptIsNeeded <- any(variablesNames=="(Intercept)");
+
+    # Form the call for scaler
+    newCall <- object$call;
+    newCall$data <- object$data[,-1,drop=FALSE];
+    if(interceptIsNeeded){
+        newCall$formula <- as.formula(paste0("~",paste(colnames(newCall$data),collapse="+")));
+    }
+    else{
+        newCall$formula <- as.formula(paste0("~",paste(colnames(newCall$data),collapse="+"),"-1"));
+    }
+    newCall$subset <- object$subset;
+    newCall$parameters <- coef(object);
+    newCall$FI <- TRUE;
+    # Recall alm to get hessian
+    FIMatrix <- eval(newCall)$FI;
+    # If any row contains all zeroes, then it means that the variable does not impact the likelihood
+    brokenVariables <- apply(FIMatrix==0,1,all) | apply(is.nan(FIMatrix),1,any);
+    # If there are issues, try the same stuff, but with a different step size for hessian
+    if(any(brokenVariables)){
+        newCall$stepSize <- .Machine$double.eps^(1/6);
+        FIMatrix <- eval(newCall)$FI;
+    }
+
+    # See if Choleski works... It sometimes fails, when we don't get to the max of likelihood.
+    vcovMatrixTry <- try(chol2inv(chol(FIMatrix)), silent=TRUE);
+    if(inherits(vcovMatrixTry,"try-error")){
+        warning(paste0("Choleski decomposition of hessian failed, so we had to revert to the simple inversion.\n",
+                       "The estimate of the covariance matrix of parameters might be inaccurate.\n"),
+                call.=FALSE, immediate.=TRUE);
+        vcovMatrixTry <- try(solve(FIMatrix, diag(nVariables), tol=1e-20), silent=TRUE);
+        if(inherits(vcovMatrixTry,"try-error")){
+            vcov <- diag(1e+100,nVariables);
+        }
+        else{
+            vcov <- FIMatrix;
+        }
+    }
+    else{
+        vcov <- vcovMatrixTry;
+    }
+
     return(vcov);
 }
 
@@ -2178,6 +2240,63 @@ print.summary.alm <- function(x, ...){
 }
 
 #' @export
+print.summary.scale <- function(x, ...){
+    ellipsis <- list(...);
+    if(!any(names(ellipsis)=="digits")){
+        digits <- 4;
+    }
+    else{
+        digits <- ellipsis$digits;
+    }
+
+    distrib <- switch(x$distribution,
+                      "dnorm" = "Normal",
+                      "dgnorm" = paste0("Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
+                      "dlgnorm" = paste0("Log Generalised Normal Distribution with shape=",round(x$other$shape,digits)),
+                      "dlogis" = "Logistic",
+                      "dlaplace" = "Laplace",
+                      "dllaplace" = "Log Laplace",
+                      "dalaplace" = paste0("Asymmetric Laplace with alpha=",round(x$other$alpha,digits)),
+                      "dt" = paste0("Student t with nu=",round(x$other$nu, digits)),
+                      "ds" = "S",
+                      "dls" = "Log S",
+                      "dfnorm" = "Folded Normal",
+                      "dlnorm" = "Log Normal",
+                      "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
+                      "dlogitnorm" = "Logit Normal",
+                      "dinvgauss" = "Inverse Gaussian",
+                      "dgamma" = "Gamma",
+                      "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
+                      "dpois" = "Poisson",
+                      "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbeta" = "Beta",
+                      "plogis" = "Cumulative logistic",
+                      "pnorm" = "Cumulative normal"
+    );
+
+    cat(paste0("Scale model for the variable: ", paste0(x$responseName,collapse="")));
+    cat(paste0("\nDistribution used in the estimation: ", distrib));
+    if(x$bootstrap){
+        cat("\nBootstrap was used for the estimation of uncertainty of parameters");
+    }
+
+    cat("\nCoefficients:\n");
+    stars <- setNames(vector("character",length(x$significance)),
+                      names(x$significance));
+    stars[x$significance] <- "*";
+    print(data.frame(round(x$coefficients,digits),stars,
+                     check.names=FALSE,fix.empty.names=FALSE));
+
+    cat("\nSample size: "); cat(x$dfTable[1]);
+    cat("\nNumber of estimated parameters: "); cat(x$dfTable[2]);
+    cat("\nNumber of degrees of freedom: "); cat(x$dfTable[3]);
+    if(!is.null(x$ICs)){
+        cat("\nInformation criteria:\n");
+        print(round(x$ICs,digits));
+    }
+}
+
+#' @export
 print.summary.greybox <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
@@ -2704,6 +2823,45 @@ summary.alm <- function(object, level=0.95, bootstrap=FALSE, ...){
     ourReturn$scaleParameters <- scaleParameters;
 
     ourReturn <- structure(ourReturn,class=c("summary.alm","summary.greybox"));
+    return(ourReturn);
+}
+
+#' @export
+summary.scale <- function(object, level=0.95, bootstrap=FALSE, ...){
+    obs <- nobs(object, all=TRUE);
+
+    # Collect parameters and their standard errors
+    parametersConfint <- confint(object, level=level, bootstrap=bootstrap, ...);
+    parameters <- coef(object);
+    parametersTable <- cbind(parameters,parametersConfint);
+    rownames(parametersTable) <- names(parameters);
+    colnames(parametersTable) <- c("Estimate","Std. Error",
+                                   paste0("Lower ",(1-level)/2*100,"%"),
+                                   paste0("Upper ",(1+level)/2*100,"%"));
+    ourReturn <- list(coefficients=parametersTable);
+    # Mark those that are significant on the selected level
+    ourReturn$significance <- !(parametersTable[,3]<=0 & parametersTable[,4]>=0);
+
+    # If there is a likelihood, then produce ICs
+    if(!is.na(logLik(object))){
+        ICs <- c(AIC(object),AICc(object),BIC(object),BICc(object));
+        names(ICs) <- c("AIC","AICc","BIC","BICc");
+        ourReturn$ICs <- ICs;
+    }
+    ourReturn$distribution <- object$distribution;
+    ourReturn$loss <- object$loss;
+    ourReturn$other <- object$other;
+    ourReturn$responseName <- formula(object)[[2]];
+
+    # Table with degrees of freedom
+    dfTable <- c(obs,nparam(object),obs-nparam(object));
+    names(dfTable) <- c("n","k","df");
+
+    ourReturn$dfTable <- dfTable;
+
+    ourReturn$bootstrap <- bootstrap;
+
+    ourReturn <- structure(ourReturn,class="summary.scale");
     return(ourReturn);
 }
 
@@ -3385,12 +3543,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     scaleModel <- is.scale(object$scale);
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
-    # This is needed in order to get vcov without the one for scale
-    if(scaleModel){
-        scalePart <- object$scale;
-        object$scale <- NULL;
-        object$call$scale <- NULL;
-    }
     ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
@@ -3418,9 +3570,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         }
         else{
             matrixOfxreg <- matrixOfxreg[,-1,drop=FALSE];
-        }
-        if(scaleModel){
-            matrixXregScale <- scalePart$data;
         }
     }
     else{
@@ -3458,20 +3607,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         interceptIsNeeded <- attr(terms(newdataExpanded),"intercept")!=0;
         matrixOfxreg <- model.matrix(newdataExpanded,data=newdataExpanded);
         matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
-        # The matrix for scale
-        if(scaleModel){
-            # Extract the formula and get rid of the response variable
-            testFormula <- formula(scalePart);
-
-            # If the user asked for trend, but it's not in the data, add it
-            if(any(all.vars(testFormula)=="trend") && all(colnames(newdata)!="trend")){
-                newdata <- cbind(newdata,trend=nobs(object)+c(1:nrow(newdata)));
-            }
-
-            # Expand the data frame
-            newdataExpanded <- model.frame(testFormula, newdata);
-            matrixXregScale <- model.matrix(newdataExpanded,data=newdataExpanded);
-        }
     }
 
     h <- nrow(matrixOfxreg);
@@ -3523,9 +3658,32 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
                 }
             }
             else if(interval=="prediction"){
-                sigmaValues <- sigma(object)^2;
                 if(scaleModel){
-                   sigmaValues <- exp(matrixXregScale %*% coef(scalePart));
+                    sigmaValues <- predict.scale(object$scale, newdata, interval="none", ...)$mean;
+                    # Get variance from the scale
+                    sigmaValues[] <- switch(object$distribution,
+                                            "dnorm"=,
+                                            "dlnorm"=,
+                                            "dbcnorm"=,
+                                            "dlogitnorm"=,
+                                            "dfnorm"=sigmaValues^2,
+                                            "dlaplace"=,
+                                            "dllaplace"=2*sigmaValues^2,
+                                            "dalaplace"=sigmaValues^2*
+                                                ((1-object$other$alpha)^2+object$other$alpha^2)/
+                                                (object$other$alpha*(1-object$other$alpha))^2,
+                                            "ds"=,
+                                            "dls"=120*sigmaValues^4,
+                                            "dgnorm"=,
+                                            "dlgnorm"=sigmaValues^2*gamma(3/object$other$shape)/
+                                                gamma(1/object$other$shape),
+                                            "dlogis"=sigmaValues*pi/sqrt(3),
+                                            "dgamma"=,
+                                            "dinvgauss"=,
+                                            sigmaValues);
+                }
+                else{
+                    sigmaValues <- sigma(object)^2;
                 }
                 vectorOfVariances[] <- vectorOfVariances + sigmaValues;
                 for(i in 1:nLevels){
@@ -3791,6 +3949,37 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     ourModel <- list(model=object, mean=ourForecast, lower=yLower, upper=yUpper, level=c(levelLow, levelUp), newdata=newdata,
                      variances=vectorOfVariances, newdataProvided=newdataProvided);
     return(structure(ourModel,class="predict.greybox"));
+}
+
+#' @rdname predict.greybox
+#' @export
+predict.scale <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+                          level=0.95, side=c("both","upper","lower"), ...){
+    scalePredicted <- predict.greybox(object, newdata, interval, level, side, ...);
+
+    # Fix the predicted scale
+    scalePredicted$mean[] <- exp(scalePredicted$mean);
+    scalePredicted$mean[] <- switch(object$distribution,
+                                           "dnorm"=,
+                                           "dlnorm"=,
+                                           "dbcnorm"=,
+                                           "dlogitnorm"=,
+                                           "dfnorm"=,
+                                           "dlogis"=sqrt(scalePredicted$mean),
+                                           "dlaplace"=,
+                                           "dllaplace"=,
+                                           "dalaplace"=scalePredicted$mean,
+                                           "ds"=,
+                                           "dls"=scalePredicted$mean^2,
+                                           "dgnorm"=,
+                                           "dlgnorm"=scalePredicted$mean^{1/object$other},
+                                           "dgamma"=sqrt(scalePredicted$mean)+1,
+                                           # This is based on polynomial from y = (x-1)^2/x
+                                           "dinvgauss"=(scalePredicted$mean+2+
+                                                            sqrt(scalePredicted$mean^2+
+                                                                     4*scalePredicted$mean))/2,
+                                           scalePredicted$mean);
+    return(scalePredicted);
 }
 
 # @importFrom forecast forecast
