@@ -227,6 +227,10 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     nVariables <- ncol(matrixXregScale);
     variablesNames <- colnames(matrixXregScale);
 
+    if(is.null(subset)){
+        subset <- c(1:nrow(matrixXregScale));
+    }
+
     fitterScale <- function(B, distribution){
         scale <- exp(matrixXregScale %*% B);
         scale[] <- switch(distribution,
@@ -256,37 +260,37 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     CFScale <- function(B){
         scale <- fitterScale(B, distribution);
         CFValue <- -sum(switch(distribution,
-                               "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                               "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                               "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                               "dgnorm" = dgnorm(y, mu=mu, scale=scale,
+                               "dnorm" = dnorm(y[subset], mean=mu[subset], sd=scale, log=TRUE),
+                               "dlaplace" = dlaplace(y[subset], mu=mu[subset], scale=scale, log=TRUE),
+                               "ds" = ds(y[subset], mu=mu[subset], scale=scale, log=TRUE),
+                               "dgnorm" = dgnorm(y[subset], mu=mu[subset], scale=scale,
                                                  shape=other, log=TRUE),
-                               "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                               "dt" = dt(y-mu, df=scale, log=TRUE),
-                               "dalaplace" = dalaplace(y, mu=mu, scale=scale,
+                               "dlogis" = dlogis(y[subset], location=mu[subset], scale=scale, log=TRUE),
+                               "dt" = dt(y[subset]-mu[subset], df=scale, log=TRUE),
+                               "dalaplace" = dalaplace(y[subset], mu=mu[subset], scale=scale,
                                                        alpha=other, log=TRUE),
-                               "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                               "dllaplace" = dlaplace(log(y), mu=mu,
-                                                      scale=scale, log=TRUE)-log(y),
-                               "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE)-log(y),
-                               "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale,
-                                                  shape=other, log=TRUE)-log(y),
-                               "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale,
+                               "dlnorm" = dlnorm(y[subset], meanlog=mu[subset], sdlog=scale, log=TRUE),
+                               "dllaplace" = dlaplace(log(y[subset]), mu=mu[subset],
+                                                      scale=scale, log=TRUE)-log(y[subset]),
+                               "dls" = ds(log(y[subset]), mu=mu[subset], scale=scale, log=TRUE)-log(y[subset]),
+                               "dlgnorm" = dgnorm(log(y[subset]), mu=mu[subset], scale=scale,
+                                                  shape=other, log=TRUE)-log(y[subset]),
+                               "dbcnorm" = dbcnorm(y[subset], mu=mu[subset], sigma=scale,
                                                    lambda=other, log=TRUE),
-                               "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                               "dinvgauss" = dinvgauss(y, mean=mu,
-                                                       dispersion=scale/mu, log=TRUE),
-                               "dgamma" = dgamma(y, shape=1/scale,
-                                                 scale=scale*mu, log=TRUE),
-                               "dchisq" = dchisq(y, df=scale, ncp=mu, log=TRUE),
-                               "dpois" = dpois(y, lambda=mu, log=TRUE),
-                               "dnbinom" = dnbinom(y, mu=mu, size=scale, log=TRUE),
-                               "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE)
-                               # "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
-                               # "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                               #             pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                               # "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
-                               #              plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+                               "dfnorm" = dfnorm(y[subset], mu=mu[subset], sigma=scale, log=TRUE),
+                               "dinvgauss" = dinvgauss(y[subset], mean=mu[subset],
+                                                       dispersion=scale/mu[subset], log=TRUE),
+                               "dgamma" = dgamma(y[subset], shape=1/scale,
+                                                 scale=scale*mu[subset], log=TRUE),
+                               "dchisq" = dchisq(y[subset], df=scale, ncp=mu[subset], log=TRUE),
+                               "dpois" = dpois(y[subset], lambda=mu[subset], log=TRUE),
+                               "dnbinom" = dnbinom(y[subset], mu=mu[subset], size=scale, log=TRUE),
+                               "dlogitnorm" = dlogitnorm(y[subset], mu=mu[subset], sigma=scale, log=TRUE)
+                               # "dbeta" = dbeta(y[subset], shape1=mu[subset], shape2=scale, log=TRUE),
+                               # "pnorm" = c(pnorm(mu[subset][ot], mean=0, sd=1, log.p=TRUE),
+                               #             pnorm(mu[subset][!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                               # "plogis" = c(plogis(mu[subset][ot], location=0, scale=1, log.p=TRUE),
+                               #              plogis(mu[subset][!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
         ));
 
         # The differential entropy for the models with the missing data
@@ -338,26 +342,26 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     # Prepare parameters
     if(is.null(B)){
         if(any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","dlogis"))){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals)))$coefficients;
+            B <- .lm.fit(matrixXregScale,2*log(abs(residuals[subset])))$coefficients;
         }
         else if(any(distribution==c("dlaplace","dllaplace","dalaplace"))){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
+            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset])))$coefficients;
         }
         else if(any(distribution==c("ds","dls"))){
-            B <- .lm.fit(matrixXregScale,0.5*log(abs(residuals)))$coefficients;
+            B <- .lm.fit(matrixXregScale,0.5*log(abs(residuals[subset])))$coefficients;
         }
         else if(any(distribution==c("dgnorm","dlgnorm"))){
-            B <- .lm.fit(matrixXregScale,other+other*log(abs(residuals)))$coefficients;
+            B <- .lm.fit(matrixXregScale,other+other*log(abs(residuals[subset])))$coefficients;
         }
         else if(distribution=="dgamma"){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals-1)))$coefficients;
+            B <- .lm.fit(matrixXregScale,2*log(abs(residuals[subset]-1)))$coefficients;
         }
         else if(distribution=="dinvgauss"){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals-1)^2/residuals))$coefficients;
+            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset]-1)^2/residuals[subset]))$coefficients;
         }
         # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
         else{
-            B <- .lm.fit(matrixXregScale,log(abs(residuals)))$coefficients;
+            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset])))$coefficients;
         }
     }
     names(B) <- variablesNames;
@@ -396,13 +400,13 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                      "dlogis"=,
                      "dlaplace"=,
                      "dllaplace"=,
-                     "dalaplace"=abs(residuals),
+                     "dalaplace"=abs(residuals[subset]),
                      "ds"=,
-                     "dls"=residuals^2,
+                     "dls"=residuals[subset]^2,
                      "dgnorm"=,
-                     "dlgnorm"=abs(residuals)^{1/other},
-                     "dgamma"=abs(residuals),
-                     "dinvgauss"=abs(residuals));
+                     "dlgnorm"=abs(residuals[subset])^{1/other},
+                     "dgamma"=abs(residuals[subset]),
+                     "dinvgauss"=abs(residuals[subset]));
 
     #### Produce Fisher Information ####
     if(FI){
@@ -430,7 +434,11 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     colnames(matrixXregScale)[1] <- "residuals";
     errors[] <- errors / scale;
 
-    cl$formula <- update.formula(formula,paste0(responseName,"~."))
+    # If formula does not have response variable, update it.
+    # This is mainly needed for the proper plots and outputs
+    if(length(formula)==2){
+        cl$formula <- update.formula(formula,paste0(responseName,"~."))
+    }
 
     # Form the scale object
     finalModel <- structure(list(formula=formula, coefficients=B, fitted=scale, residuals=errors,

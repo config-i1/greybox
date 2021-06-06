@@ -254,7 +254,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         newCall$data <- newCall$data[,!(colnames(newCall$data) %in% names(object$other$polynomial))];
     }
 
-    # If this is ARIMA, and the size wasn't specified, make it changable
+    # If this is ARIMA, and the size wasn't specified, make it changeable
     if(arimaModel && is.null(cl$size)){
         changeSize <- TRUE;
     }
@@ -283,6 +283,10 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
     }
     newCall$occurrence <- object$occurrence;
     newCall$B <- object$B;
+    # If there is scale model, remove it
+    if(is.scale(object$scale)){
+        newCall$scale <- NULL;
+    }
 
     # Function creates a random sample. Needed for dynamic models
     sampler <- function(indices,size,replace,prob,arimaModel=FALSE,changeSize=FALSE){
@@ -333,6 +337,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                           model=object$call[[1]], timeElapsed=Sys.time()-startTime),
                      class="bootstrap"));
 }
+
 
 #' @export
 print.bootstrap <- function(x, ...){
