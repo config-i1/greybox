@@ -972,6 +972,9 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             newCall$FI <- TRUE;
             # newCall$occurrence <- NULL;
             newCall$occurrence <- object$occurrence;
+            # Include bloody ellipsis
+            newCall <- as.call(c(as.list(newCall),substitute(ellipsis)));
+
             # Recall alm to get hessian
             FIMatrix <- eval(newCall)$FI;
             # If any row contains all zeroes, then it means that the variable does not impact the likelihood
@@ -1072,6 +1075,8 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
     variablesNames <- names(coef(object));
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
 
+    ellipsis <- list(...);
+
     # Form the call for scaler
     newCall <- object$call;
     newCall$data <- object$data[,-1,drop=FALSE];
@@ -1084,6 +1089,9 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
     newCall$subset <- object$subset;
     newCall$parameters <- coef(object);
     newCall$FI <- TRUE;
+    # Include bloody ellipsis
+    newCall <- as.call(c(as.list(newCall),substitute(ellipsis)));
+
     # Recall alm to get hessian
     FIMatrix <- eval(newCall)$FI;
     # If any row contains all zeroes, then it means that the variable does not impact the likelihood

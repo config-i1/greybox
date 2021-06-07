@@ -1,4 +1,4 @@
-greybox v1.0.0 (Release data: 2021-06-06)
+greybox v1.0.0 (Release data: 2021-06-07)
 ==============
 
 Changes:
@@ -9,6 +9,7 @@ Changes:
 * occurrence in alm() now also accepts formula. It will construct logistic regression in this case.
 * Proper working predict.scale() and predict.greybox() with scaleModel and all distributions.
 * coefbootstrap() working for scale now.
+* vcov() now passes ellipsis to the alm() / sm() functions.
 
 
 greybox v0.7.0 (Release data: 2021-05-18)
