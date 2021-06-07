@@ -445,7 +445,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                                  df.residual=obsInsample-nVariables, df=nVariables, call=cl, rank=nVariables,
                                  data=matrixXregScale, terms=dataTerms, logLik=-CFValue,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B, FI=FI,
-                                 distribution=distribution, other=other,
+                                 distribution=distribution, other=other, loss="likelihood",
                                  timeElapsed=Sys.time()-startTime),
                             class=c("scale","alm","greybox"));
     return(finalModel);
