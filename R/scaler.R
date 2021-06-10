@@ -208,6 +208,16 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         obsZero[] <- sum(actuals(occurrence)==0);
     }
 
+    # Deal with subset
+    if(is.null(subset)){
+        subset <- c(1:nrow(matrixXregScale));
+    }
+    # Failsafe for subset
+    if(any(residuals[subset]==0)){
+        subset <- subset[residuals[subset]!=0];
+        mf$subset <- subset;
+    }
+
     # Prepare the data
     mf <- match.call(expand.dots = FALSE);
     m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L);
@@ -226,12 +236,6 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     # Extract number of variables and their names
     nVariables <- ncol(matrixXregScale);
     variablesNames <- colnames(matrixXregScale);
-
-    if(is.null(subset)){
-        subset <- c(1:nrow(matrixXregScale));
-    }
-    print(subset)
-    print(residuals)
 
     fitterScale <- function(B, distribution){
         scale <- exp(matrixXregScale %*% B);
