@@ -212,12 +212,6 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     if(is.null(subset)){
         subset <- c(1:length(residuals));
     }
-    # Failsafe for subset
-    if(any(residuals[subset]==0)){
-        subset <- subset[residuals[subset]!=0];
-        mf$subset <- subset;
-    }
-
     # Prepare the data
     mf <- match.call(expand.dots = FALSE);
     m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L);
@@ -228,6 +222,11 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     }
     if(!is.data.frame(mf$data)){
         mf$data <- data.frame(mf$data);
+    }
+    # Failsafe for subset
+    if(any(residuals[subset]==0)){
+        subset <- subset[residuals[subset]!=0];
+        mf$subset <- subset;
     }
     mf[[1L]] <- quote(stats::model.frame);
     dataWork <- eval(mf, parent.frame());
