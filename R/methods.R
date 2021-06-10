@@ -833,6 +833,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
     nVariables <- length(coef(object));
     variablesNames <- names(coef(object));
     interceptIsNeeded <- any(variablesNames=="(Intercept)");
+    ellipsis <- list(...);
 
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
