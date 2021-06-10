@@ -230,6 +230,8 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     if(is.null(subset)){
         subset <- c(1:nrow(matrixXregScale));
     }
+    print(subset)
+    print(residuals)
 
     fitterScale <- function(B, distribution){
         scale <- exp(matrixXregScale %*% B);
