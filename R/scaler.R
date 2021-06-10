@@ -210,7 +210,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
 
     # Deal with subset
     if(is.null(subset)){
-        subset <- c(1:nrow(matrixXregScale));
+        subset <- c(1:length(residuals));
     }
     # Failsafe for subset
     if(any(residuals[subset]==0)){
