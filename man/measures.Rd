@@ -38,7 +38,7 @@ The functions returns the named vector of errors:
 \item rMAE,
 \item rRMSE,
 \item rAME,
-\item cbias,
+\item asymmetry,
 \item sPIS.
 }
 For the details on these errors, see \link[greybox]{Errors}.

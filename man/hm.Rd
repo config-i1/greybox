@@ -3,14 +3,14 @@
 \name{hm}
 \alias{hm}
 \alias{ham}
-\alias{cbias}
+\alias{asymmetry}
 \title{Half moment of a distribution and its derivatives.}
 \usage{
 hm(x, C = mean(x), ...)
 
 ham(x, C = mean(x), ...)
 
-cbias(x, C = mean(x), ...)
+asymmetry(x, C = mean(x), ...)
 }
 \arguments{
 \item{x}{A variable based on which HM is estimated.}
@@ -21,12 +21,12 @@ cbias(x, C = mean(x), ...)
 }
 \value{
 A complex variable is returned for \code{hm} function and real values
-are returned for \code{cbias} and \code{ham}.
+are returned for \code{asymmetry} and \code{ham}.
 }
 \description{
 \code{hm} function estimates half moment from some predefined constant
-\code{C}. \code{ham} estimates half absolute moment. Finally, \code{cbias}
-function returns bias based on \code{hm}.
+\code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
+function returns asymmetry coefficient based on \code{hm}.
 }
 \details{
 \code{NA} values of \code{x} are excluded on the first step of calculation.
@@ -36,7 +36,7 @@ function returns bias based on \code{hm}.
 x <- rnorm(100,0,1)
 hm(x)
 ham(x)
-cbias(x)
+asymmetry(x)
 
 }
 \author{

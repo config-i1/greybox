@@ -1,4 +1,4 @@
-greybox v1.0.0 (Release data: 2021-06-07)
+greybox v1.0.0 (Release data: 2021-06-15)
 ==============
 
 Changes:
@@ -10,6 +10,7 @@ Changes:
 * Proper working predict.scale() and predict.greybox() with scaleModel and all distributions.
 * coefbootstrap() working for scale now.
 * vcov() now passes ellipsis to the alm() / sm() functions.
+* Renamed cbias() into asymmetry().
 
 
 greybox v0.7.0 (Release data: 2021-05-18)
