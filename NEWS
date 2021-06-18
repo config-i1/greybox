@@ -13,6 +13,9 @@ Changes:
 * Renamed cbias() into asymmetry().
 * Introduced extremity() coefficient, based on hm. The name is not final.
 
+Bugfixes:
+* detectdst would not work correctly with half-hourly data.
+
 
 greybox v0.7.0 (Release data: 2021-05-18)
 ==============

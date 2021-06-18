@@ -51,7 +51,7 @@ detectdst.POSIXt <- function(object){
     DSTIssues <- FALSE;
 
     # The Spring day
-    DSTTime1 <- which(diff(as.numeric(strftime(object,"%H")))==2)+1;
+    DSTTime1 <- which(diff(as.POSIXlt(object)$isdst)==1)+1;
     # If there are non-spring times, this might be an issue with the data
     if(any(!(strftime(object[DSTTime1],"%m") %in% c("03","04")))){
         DSTTime1 <- DSTTime1[strftime(object[DSTTime1],"%m") %in% c("03","04")];
@@ -59,7 +59,7 @@ detectdst.POSIXt <- function(object){
     }
 
     # The Autumn day
-    DSTTime2 <- which(diff(as.numeric(strftime(object,"%H")))==0)+1;
+    DSTTime2 <- which(diff(as.POSIXlt(object)$isdst)==-1)+1;
     # If there are non-spring times, this might be an issue with the data
     if(any(!(strftime(object[DSTTime2],"%m") %in% c("10","11")))){
         DSTTime2 <- DSTTime2[strftime(object[DSTTime2],"%m") %in% c("10","11")];
