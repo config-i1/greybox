@@ -617,7 +617,8 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 #'
 #' \code{hm} function estimates half moment from some predefined constant
 #' \code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
-#' function returns asymmetry coefficient based on \code{hm}.
+#' function returns asymmetry coefficient, while \code{extremity}
+#' returns the coefficient of excess, both based on \code{hm}.
 #'
 #' \code{NA} values of \code{x} are excluded on the first step of calculation.
 #'
@@ -657,6 +658,14 @@ ham <- function(x,C=mean(x),...){
 asymmetry <- function(x,C=mean(x),...){
     # This function calculates half moment
     return(1 - Arg(hm(x,C,...))/(pi/4));
+}
+
+#' @rdname hm
+#' @export extremity
+#' @aliases extremity
+extremity <- function(x,C=mean(x),...){
+    # This function calculates half moment
+    return(ham(x,C)/mean((x-C)^2)^0.25);
 }
 
 #' Pinball function

@@ -1,4 +1,4 @@
-greybox v1.0.0 (Release data: 2021-06-15)
+greybox v1.0.0 (Release data: 2021-06-18)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Changes:
 * coefbootstrap() working for scale now.
 * vcov() now passes ellipsis to the alm() / sm() functions.
 * Renamed cbias() into asymmetry().
+* Introduced extremity() coefficient, based on hm. The name is not final.
 
 
 greybox v0.7.0 (Release data: 2021-05-18)

@@ -4,6 +4,7 @@
 \alias{hm}
 \alias{ham}
 \alias{asymmetry}
+\alias{extremity}
 \title{Half moment of a distribution and its derivatives.}
 \usage{
 hm(x, C = mean(x), ...)
@@ -11,6 +12,8 @@ hm(x, C = mean(x), ...)
 ham(x, C = mean(x), ...)
 
 asymmetry(x, C = mean(x), ...)
+
+extremity(x, C = mean(x), ...)
 }
 \arguments{
 \item{x}{A variable based on which HM is estimated.}
@@ -26,7 +29,8 @@ are returned for \code{asymmetry} and \code{ham}.
 \description{
 \code{hm} function estimates half moment from some predefined constant
 \code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
-function returns asymmetry coefficient based on \code{hm}.
+function returns asymmetry coefficient, while \code{extremity}
+returns the coefficient of excess, both based on \code{hm}.
 }
 \details{
 \code{NA} values of \code{x} are excluded on the first step of calculation.
