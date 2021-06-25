@@ -902,7 +902,7 @@ summary(almModel)
 ```
 
 Forecasting of the overall model (with location and scale) can be done in the same was as for the basic model:
-```{r mixturePredict, eval=FALSE}
+```{r eval=FALSE}
 plot(predict(almModel,mtcars[1:3,],interval="p",level=0.95))
 ```
 
