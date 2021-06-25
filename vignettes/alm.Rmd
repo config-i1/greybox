@@ -60,6 +60,8 @@ where $y_t$ is the value of the response variable, $x_t$ is the vector of exogen
 \end{equation}
 where $o_t$ is the binary variable, $p_t$ is the probability of occurrence, $z_t$ is the vector of exogenous variables and $A$ is the vector of parameters for the $p_t$.
 
+In addition, the function supports scale model, i.e. the model that predicts the values of scale of distribution (for example, variance in case of normal distribution) based on the provided explanatory variables. This is discussed in some detail in [a separate section](#scaleModel).
+
 The `alm()` function returns, along with the set of common for `lm()` variables (such as `coefficient` and `fitted.values`), the variable `mu`, which corresponds to the conditional mean used inside the distribution, and `scale` -- the second parameter, which usually corresponds to standard error or dispersion parameter. The values of these two variables vary from distribution to distribution. Note, however, that the `model` variable returned by `lm()` function was renamed into `data` in `alm()`, and that `alm()` does not return `terms` and QR decomposition.
 
 Given that the parameters of any model in `alm()` are estimated via likelihood, it can be assumed that they have asymptotically normal distribution, thus the confidence intervals for any model rely on the normality and are constructed based on the unbiased estimate of variance, extracted using `sigma()` function.
@@ -863,6 +865,50 @@ If the explanatory variables are not available for the holdout sample, the `fore
 plot(forecast(modelMixtureAR, h=10, interval="p",side="u"))
 ```
 It will produce forecasts for each of the explanatory variables based on the available data using `es()` function from `smooth` package (if it is available; otherwise, it will use Naive) and use those values as the new data.
+
+
+# Scale model {#scaleModel}
+Finally, `alm()` supports scale model, estimating the scale of assumed distribution via the specified set of variables. This might be handy if you suspect that some variables cause heteroscedasticity. However, this can only be done if likelihood approach is used for the model estimation and is done via `scale` parameter, which can accept either previously estimated model (e.g. via `sm()` method) or a formula for the model. While the details will differ from one distribution to another, the main idea will be the same, so here we discuss this on example of [Normal distribution](#normal), for which the model becomes:
+\begin{equation} \label{eq:scaleModel}
+    y_t = \sim \mathcal{N}\left(\mathbf{x}_t' \mathbf{b}, \exp^2\left(\mathbf{z}_t' \mathbf{c}\right) \right),
+\end{equation}
+where $\mathbf{x}_t$ and $\mathbf{B}$ are defined [as above](#normal), $\mathbf{z}_t$ is the vector of explanatory variables for the scale and $\mathbf{c}$ is the vector of parameters for this part of model. The exponent in the formula above is needed to make sure that the resulting values are always positive. Given that the location and scale of distribution are independent, we can construct the complete model in two steps: first by estimating the parameters of location and then the parameters of scale. The parameters are initialised based on the residuals of the model and then are optimised via maximisation of likelihood of the specified probability density function. This is done using the generic method `sm()` after constructing a model. For example, you can estimate a model based on `lm()` and then construct scale model for it (`sm()` will assume Normal distribution in this case):
+```{r}
+locationModel <- lm(mpg~., mtcars)
+scaleModel <- sm(locationModel,~qsec+wt)
+```
+
+The function returns the object of class `scale`, which contains several potentially useful variables, including the fitted value ($\hat{\sigma}_t = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$) and residuals. The formula for residuals would differ from one distribution to another. For normal distribution it is:
+\begin{equation} \label{eq:scaleModelResiduals}
+    u_t = \frac{e_t^2}{\sigma^2_t} .
+\end{equation}
+They do not have any proper meaning or follow any specific distribution, but they might provide some idea about the performance of scale model. The resulting model supports several methods. Here is an example:
+```{r}
+summary(scaleModel)
+```
+
+The diagnostic plots can be produced as well, but they do not make much sense yet.
+
+When it comes to `alm()`, the model can be estimated in the same function:
+
+```{r}
+almModel <- alm(mpg~., mtcars[-c(1:3),], scale=~qsec+wt)
+```
+
+In this case, the summary of the model would differ - it would include the output for the scale model together with the location one:
+
+```{r}
+summary(almModel)
+```
+
+Forecasting of the overall model (with location and scale) can be done in the same was as for the basic model:
+```{r mixturePredict, eval=FALSE}
+plot(predict(almModel,mtcars[1:3,],interval="p",level=0.95))
+```
+
+If the prediction interval is required, the function would first produce forecasts of the scale, and then use them for the construction of interval via the standard procedure, depending on the assumed distribution.
+
+Note that the scale model is currently a new experimental feature, so it might not produce perfect results.
 
 
 # Using different loss functions {#losses}

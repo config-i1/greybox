@@ -791,7 +791,12 @@ extractScale <- function(object, ...){
         return(fitted(object$scale));
     }
     else{
-        return(object$scale);
+        if(is.scale(object)){
+            return(fitted(object));
+        }
+        else{
+            return(object$scale);
+        }
     }
 }
 
