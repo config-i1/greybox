@@ -102,6 +102,8 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     # Start measuring the time of calculations
     startTime <- Sys.time();
 
+    cl <- match.call();
+
     obsInsample <- length(y);
 
     # Extract the other value
@@ -199,19 +201,25 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         responseName <- formula(ellipsis$cl)[[2]];
     }
 
-    cl <- match.call();
-
     occurrenceModel <- FALSE;
     obsZero <- 0;
+    otU <- rep(TRUE,obsInsample);
     if(is.occurrence(occurrence)){
         occurrenceModel[] <- TRUE;
-        obsZero[] <- sum(actuals(occurrence)==0);
+        otU[] <- actuals(occurrence)!=0;
+        obsZero[] <- sum(!otU);
     }
-
     # Deal with subset
     if(is.null(subset)){
-        subset <- c(1:length(residuals));
+        subset <- c(1:obsInsample);
     }
+    else if(is.logical(subset)){
+        otU <- otU & subset;
+    }
+    else{
+        otU <- which(otU) == subset;
+    }
+
     # Prepare the data
     mf <- match.call(expand.dots = FALSE);
     m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L);
@@ -223,10 +231,8 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     if(!is.data.frame(mf$data)){
         mf$data <- data.frame(mf$data);
     }
-    # Failsafe for subset
-    if(any(residuals[subset]==0)){
-        subset <- subset[residuals[subset]!=0];
-        mf$subset <- subset;
+    if(is.logical(mf$subset)){
+        mf$subset <- which(mf$subset)
     }
     mf[[1L]] <- quote(stats::model.frame);
     dataWork <- eval(mf, parent.frame());
@@ -265,81 +271,81 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     CFScale <- function(B){
         scale <- fitterScale(B, distribution);
         CFValue <- -sum(switch(distribution,
-                               "dnorm" = dnorm(y[subset], mean=mu[subset], sd=scale, log=TRUE),
-                               "dlaplace" = dlaplace(y[subset], mu=mu[subset], scale=scale, log=TRUE),
-                               "ds" = ds(y[subset], mu=mu[subset], scale=scale, log=TRUE),
-                               "dgnorm" = dgnorm(y[subset], mu=mu[subset], scale=scale,
+                               "dnorm" = dnorm(y[otU], mean=mu[otU], sd=scale, log=TRUE),
+                               "dlaplace" = dlaplace(y[otU], mu=mu[otU], scale=scale, log=TRUE),
+                               "ds" = ds(y[otU], mu=mu[otU], scale=scale, log=TRUE),
+                               "dgnorm" = dgnorm(y[otU], mu=mu[otU], scale=scale,
                                                  shape=other, log=TRUE),
-                               "dlogis" = dlogis(y[subset], location=mu[subset], scale=scale, log=TRUE),
-                               "dt" = dt(y[subset]-mu[subset], df=scale, log=TRUE),
-                               "dalaplace" = dalaplace(y[subset], mu=mu[subset], scale=scale,
+                               "dlogis" = dlogis(y[otU], location=mu[otU], scale=scale, log=TRUE),
+                               "dt" = dt(y[otU]-mu[otU], df=scale, log=TRUE),
+                               "dalaplace" = dalaplace(y[otU], mu=mu[otU], scale=scale,
                                                        alpha=other, log=TRUE),
-                               "dlnorm" = dlnorm(y[subset], meanlog=mu[subset], sdlog=scale, log=TRUE),
-                               "dllaplace" = dlaplace(log(y[subset]), mu=mu[subset],
-                                                      scale=scale, log=TRUE)-log(y[subset]),
-                               "dls" = ds(log(y[subset]), mu=mu[subset], scale=scale, log=TRUE)-log(y[subset]),
-                               "dlgnorm" = dgnorm(log(y[subset]), mu=mu[subset], scale=scale,
-                                                  shape=other, log=TRUE)-log(y[subset]),
-                               "dbcnorm" = dbcnorm(y[subset], mu=mu[subset], sigma=scale,
+                               "dlnorm" = dlnorm(y[otU], meanlog=mu[otU], sdlog=scale, log=TRUE),
+                               "dllaplace" = dlaplace(log(y[otU]), mu=mu[otU],
+                                                      scale=scale, log=TRUE)-log(y[otU]),
+                               "dls" = ds(log(y[otU]), mu=mu[otU], scale=scale, log=TRUE)-log(y[otU]),
+                               "dlgnorm" = dgnorm(log(y[otU]), mu=mu[otU], scale=scale,
+                                                  shape=other, log=TRUE)-log(y[otU]),
+                               "dbcnorm" = dbcnorm(y[otU], mu=mu[otU], sigma=scale,
                                                    lambda=other, log=TRUE),
-                               "dfnorm" = dfnorm(y[subset], mu=mu[subset], sigma=scale, log=TRUE),
-                               "dinvgauss" = dinvgauss(y[subset], mean=mu[subset],
-                                                       dispersion=scale/mu[subset], log=TRUE),
-                               "dgamma" = dgamma(y[subset], shape=1/scale,
-                                                 scale=scale*mu[subset], log=TRUE),
-                               "dchisq" = dchisq(y[subset], df=scale, ncp=mu[subset], log=TRUE),
-                               "dpois" = dpois(y[subset], lambda=mu[subset], log=TRUE),
-                               "dnbinom" = dnbinom(y[subset], mu=mu[subset], size=scale, log=TRUE),
-                               "dlogitnorm" = dlogitnorm(y[subset], mu=mu[subset], sigma=scale, log=TRUE)
-                               # "dbeta" = dbeta(y[subset], shape1=mu[subset], shape2=scale, log=TRUE),
-                               # "pnorm" = c(pnorm(mu[subset][ot], mean=0, sd=1, log.p=TRUE),
-                               #             pnorm(mu[subset][!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                               # "plogis" = c(plogis(mu[subset][ot], location=0, scale=1, log.p=TRUE),
-                               #              plogis(mu[subset][!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+                               "dfnorm" = dfnorm(y[otU], mu=mu[otU], sigma=scale, log=TRUE),
+                               "dinvgauss" = dinvgauss(y[otU], mean=mu[otU],
+                                                       dispersion=scale/mu[otU], log=TRUE),
+                               "dgamma" = dgamma(y[otU], shape=1/scale,
+                                                 scale=scale*mu[otU], log=TRUE),
+                               "dchisq" = dchisq(y[otU], df=scale, ncp=mu[otU], log=TRUE),
+                               "dpois" = dpois(y[otU], lambda=mu[otU], log=TRUE),
+                               "dnbinom" = dnbinom(y[otU], mu=mu[otU], size=scale, log=TRUE),
+                               "dlogitnorm" = dlogitnorm(y[otU], mu=mu[otU], sigma=scale, log=TRUE)
+                               # "dbeta" = dbeta(y[otU], shape1=mu[otU], shape2=scale, log=TRUE),
+                               # "pnorm" = c(pnorm(mu[otU][ot], mean=0, sd=1, log.p=TRUE),
+                               #             pnorm(mu[otU][!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                               # "plogis" = c(plogis(mu[otU][ot], location=0, scale=1, log.p=TRUE),
+                               #              plogis(mu[otU][!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
         ));
 
         # The differential entropy for the models with the missing data
         if(occurrenceModel){
-            CFValue[] <- CFValue + switch(distribution,
-                                          "dnorm" =,
-                                          "dfnorm" =,
-                                          "dbcnorm" =,
-                                          "dlogitnorm" =,
-                                          "dlnorm" = obsZero*(log(sqrt(2*pi)*scale)+0.5),
-                                          "dgnorm" =,
-                                          "dlgnorm" =obsZero*(1/other-
-                                                                  log(other /
-                                                                          (2*scale*gamma(1/other)))),
-                                          # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(scale)))-
-                                          #                                 sum(log(mu[!otU]))),
-                                          "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(scale)))),
-                                          "dgamma" = obsZero*(1/scale + log(scale) +
-                                                                  log(gamma(1/scale)) +
-                                                                  (1-1/scale)*digamma(1/scale)),
-                                          "dlaplace" =,
-                                          "dllaplace" =,
-                                          "ds" =,
-                                          "dls" = obsZero*(2 + 2*log(2*scale)),
-                                          "dalaplace" = obsZero*(1 + log(2*scale)),
-                                          "dlogis" = obsZero*2,
-                                          "dt" = obsZero*((scale+1)/2 *
-                                                              (digamma((scale+1)/2)-digamma(scale/2)) +
-                                                              log(sqrt(scale) * beta(scale/2,0.5))),
-                                          "dchisq" = obsZero*(log(2)*gamma(scale/2)-
-                                                                  (1-scale/2)*digamma(scale/2)+
-                                                                  scale/2),
-                                          # "dbeta" = sum(log(beta(mu[otU],scale[otU]))-
-                                          #                   (mu[otU]-1)*
-                                          #                   (digamma(mu[otU])-
-                                          #                        digamma(mu[otU]+scale[otU]))-
-                                          #                   (scale[otU]-1)*
-                                          #                   (digamma(scale[otU])-
-                                          #                        digamma(mu[otU]+scale[otU]))),
-                                          # This is a normal approximation of the real entropy
-                                          # "dpois" = sum(0.5*log(2*pi*scale)+0.5),
-                                          # "dnbinom" = obsZero*(log(sqrt(2*pi)*scale)+0.5),
-                                          0
-            );
+            CFValue[] <- CFValue + sum(switch(distribution,
+                                              "dnorm" =,
+                                              "dfnorm" =,
+                                              "dbcnorm" =,
+                                              "dlogitnorm" =,
+                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*scale[!otU])+0.5),
+                                              "dgnorm" =,
+                                              "dlgnorm" =obsZero*(1/other-
+                                                                      log(other /
+                                                                              (2*scale[!otU]*gamma(1/other)))),
+                                              # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(scale[!otU])))-
+                                              #                                 sum(log(mu[!otU]))),
+                                              "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(scale[!otU])))),
+                                              "dgamma" = obsZero*(1/scale[!otU] + log(scale[!otU]) +
+                                                                      log(gamma(1/scale[!otU])) +
+                                                                      (1-1/scale[!otU])*digamma(1/scale[!otU])),
+                                              "dlaplace" =,
+                                              "dllaplace" =,
+                                              "ds" =,
+                                              "dls" = obsZero*(2 + 2*log(2*scale[!otU])),
+                                              "dalaplace" = obsZero*(1 + log(2*scale[!otU])),
+                                              "dlogis" = obsZero*2,
+                                              "dt" = obsZero*((scale[!otU]+1)/2 *
+                                                                  (digamma((scale[!otU]+1)/2)-digamma(scale[!otU]/2)) +
+                                                                  log(sqrt(scale[!otU]) * beta(scale[!otU]/2,0.5))),
+                                              "dchisq" = obsZero*(log(2)*gamma(scale[!otU]/2)-
+                                                                      (1-scale[!otU]/2)*digamma(scale[!otU]/2)+
+                                                                      scale[!otU]/2),
+                                              # "dbeta" = sum(log(beta(mu[otU],scale[!otU][otU]))-
+                                              #                   (mu[otU]-1)*
+                                              #                   (digamma(mu[otU])-
+                                              #                        digamma(mu[otU]+scale[!otU][otU]))-
+                                              #                   (scale[!otU][otU]-1)*
+                                              #                   (digamma(scale[!otU][otU])-
+                                              #                        digamma(mu[otU]+scale[!otU][otU]))),
+                                              # This is a normal approximation of the real entropy
+                                              # "dpois" = sum(0.5*log(2*pi*scale[!otU])+0.5),
+                                              # "dnbinom" = obsZero*(log(sqrt(2*pi)*scale[!otU])+0.5),
+                                              0
+            ));
         }
         return(CFValue);
     }
@@ -347,26 +353,26 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     # Prepare parameters
     if(is.null(B)){
         if(any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","dlogis"))){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals[subset])))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(residuals[otU])))$coefficients;
         }
         else if(any(distribution==c("dlaplace","dllaplace","dalaplace"))){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset])))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(residuals[otU])))$coefficients;
         }
         else if(any(distribution==c("ds","dls"))){
-            B <- .lm.fit(matrixXregScale,0.5*log(abs(residuals[subset])))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],0.5*log(abs(residuals[otU])))$coefficients;
         }
         else if(any(distribution==c("dgnorm","dlgnorm"))){
-            B <- .lm.fit(matrixXregScale,other+other*log(abs(residuals[subset])))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],other+other*log(abs(residuals[otU])))$coefficients;
         }
         else if(distribution=="dgamma"){
-            B <- .lm.fit(matrixXregScale,2*log(abs(residuals[subset]-1)))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(residuals[otU]-1)))$coefficients;
         }
         else if(distribution=="dinvgauss"){
-            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset]-1)^2/residuals[subset]))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(residuals[otU]-1)^2/residuals[otU]))$coefficients;
         }
         # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
         else{
-            B <- .lm.fit(matrixXregScale,log(abs(residuals[subset])))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(residuals[otU])))$coefficients;
         }
     }
     names(B) <- variablesNames;

@@ -1981,8 +1981,9 @@ alm <- function(formula, data, subset, na.action,
             scale <- do.call("scaler",list(scaleFormula, mf$data, mf$subset, mf$na.action,
                                            distribution, mu, y, errors,
                                            NULL, occurrence, ellipsis));
+            scale$call$data <- dataSubstitute;
+            scale$formula <- update.formula(scaleFormula,paste0(responseName,"~."));
         }
-        scale$formula <- update.formula(scaleFormula,paste0(responseName,"~."));
         nParam <- nParam + nparam(scale);
         logLik <- logLik(scale);
     }

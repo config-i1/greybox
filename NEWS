@@ -12,6 +12,7 @@ Changes:
 * vcov() now passes ellipsis to the alm() / sm() functions.
 * Renamed cbias() into asymmetry().
 * Introduced extremity() coefficient, based on hm. The name is not final.
+* scale model now works with occurrence.
 
 Bugfixes:
 * detectdst would not work correctly with half-hourly data.
