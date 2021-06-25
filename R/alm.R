@@ -889,14 +889,18 @@ alm <- function(formula, data, subset, na.action,
     occurrenceFormula <- NULL;
     # If occurrence is not provideded, then set it to "none"
     if(is.null(occurrence)){
+        occurrenceModel <- FALSE;
+        occurrenceProvided <- FALSE;
         occurrence <- "none";
     }
     else if(inherits(occurrence,"formula")){
-        occurrence <- "plogis";
+        occurrenceModel <- TRUE;
+        occurrenceProvided <- FALSE;
         occurrenceFormula <- occurrence;
+        occurrence <- "plogis";
     }
     # See if the occurrence model is provided, and whether we need to treat the data as intermittent
-    if(is.occurrence(occurrence)){
+    else if(is.occurrence(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
         occurrenceFormula <- formula(occurrence);
