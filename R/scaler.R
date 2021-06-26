@@ -220,6 +220,10 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         otU <- which(otU) == subset;
     }
 
+    if(any(residuals[otU]==0)){
+        otU <- otU & residuals[subset]!=0;
+    }
+
     # Prepare the data
     mf <- match.call(expand.dots = FALSE);
     m <- match(c("formula", "data", "subset", "na.action"), names(mf), 0L);
