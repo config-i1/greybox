@@ -245,7 +245,7 @@ legend("topright",legend=c("GN(0,1,2)","GN(0,1,1)","GN(0,1,0.5)","GN(0,1,100)"),
 
 The kurtosis of Generalised Normal distribution is determined by $\beta$ and is equal to $\frac{\Gamma(5/\beta)\Gamma(1/\beta)}{\Gamma(3/\beta)^2}$.
 
-`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $s$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the internal `qgnorm()` function from `greybox` package and use the connection between the scale and the variance:
+`alm()` function with `distribution="dgnorm"` returns $\mu_t$ in the same variables `mu` and `fitted.values`, $s$ in the `scale` variable and $\beta$ in `other$beta`. Note that if `beta` is not provided in the function, then it will estimate it. However, the estimates of $\beta$ are known not to be consistent and asymptotically normal if it is less than 2. **So, use with care!** As for the intervals, they are based on the `qgnorm()` function from `greybox` package and use the connection between the scale and the variance:
 \begin{equation} \label{eq:gnormalAlphaAndSigma}
     s = \left( \frac{\sigma^2 \Gamma(1/\beta)}{\Gamma(3/\beta)} \right) ^{\frac{1}{2}},
 \end{equation}

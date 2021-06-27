@@ -17,6 +17,9 @@
 #' \item \link[greybox]{outlierdummy} - Matrix with dummies for outliers.
 #' \item \link[greybox]{alm} - Advanced Linear Model - regression, estimated using
 #' likelihood with specified distribution (e.g. Laplace or Chi-Squared).
+#' \item \link[greybox]{sm} - Scale Model - Regression model for scale of distribution
+#' (e.g. for Variance of Normal distribution). Requires an \code{lm()} or \code{alm()}
+#' model.
 #' \item \link[greybox]{stepwise} - Stepwise based on information criteria and partial
 #' correlations. Efficient and fast.
 #' \item \link[greybox]{xregExpander} - Function that expands the provided data into
