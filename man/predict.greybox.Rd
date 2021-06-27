@@ -117,7 +117,7 @@ plot(forecast(ourModel,h=10,interval="p"))
 
 }
 \seealso{
-\link[stats]{predict.lm}, \link[forecast]{forecast}
+\link[stats]{predict.lm}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

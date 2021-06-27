@@ -3529,7 +3529,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' "predict.greybox" classes, with the same set of output variables.
 #'
 #' @template author
-#' @seealso \link[stats]{predict.lm}, \link[forecast]{forecast}
+#' @seealso \link[stats]{predict.lm}
 #' @keywords ts univar
 #' @examples
 #'
