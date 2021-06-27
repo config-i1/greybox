@@ -1,16 +1,17 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "19 May 2021"
+date: "27 June 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v0.7.0
+This is the release of the package ``greybox``, v1.0.0
 
 ## Test environments
-* local ubuntu 20.04.2, R 4.0.5
+* local ubuntu 20.04.2, R 4.1.0
 * win-builder (devel and release)
+* Github Actions with windows-latest, macOS-latest and ubuntu-20.04
 * rhub - see the comments below.
 
 ## R CMD check results
@@ -42,16 +43,7 @@ Something is wrong with Rhub.
 >* checking package dependencies ... NOTE
 >Package which this enhances but not available for checking: ‘vars’
 
-Similar to the previous comments. Not clear, why. Both are on CRAN.
-
-**Debian Linux, R-devel, GCC ASAN/UBSAN gives a PREPERROR**
-Not clear, what's happening, because the package installs succesfully, tests are done and the end of logs of this reads:
-> Finished: SUCCESS
-
-The only error that I can find in the logs is this:
-> Error: No such container: greybox_0.7.0.tar.gz-d93e849425864d32b37b2c31ce5bbab7-3
-
-But this looks like an issue with rhub rather than with the package.
+Not clear, why. `vars` package is on CRAN.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.

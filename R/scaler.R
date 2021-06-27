@@ -17,7 +17,7 @@
 #' @param parameters The parameters to use in the model. Only needed if you know the parameters
 #' in advance or want to test yours.
 #' @param ... Other parameters to pass to the method, including those explained in
-#' \link[greybox]{alm}.
+#' \link[greybox]{alm} (e.g. parameters for optimiser).
 #' @examples
 #'
 #' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))

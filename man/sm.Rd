@@ -28,7 +28,7 @@ then the one used in the \code{model} is used.}
 in advance or want to test yours.}
 
 \item{...}{Other parameters to pass to the method, including those explained in
-\link[greybox]{alm}.}
+\link[greybox]{alm} (e.g. parameters for optimiser).}
 }
 \description{
 This method produces a model for scale of distribution for the provided pre-estimated model.
