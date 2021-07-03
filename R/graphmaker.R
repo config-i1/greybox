@@ -324,7 +324,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 col <- grey(1-c(1:ncol(lower))/(ncol(lower)+1));
                 for(i in 1:length(lower)){
                     if(is.finite(lower[i])){
-                        points(lower[i],col=col[i],lwd=1+i,pch=4);
+                        points(lower[,i],col=col[i],lwd=1+i,pch=4);
                     }
                 }
             }
@@ -335,7 +335,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
                 for(i in 1:length(upper)){
                     if(is.finite(upper[i])){
-                        points(upper[i],col=col[i],lwd=1+i,pch=4);
+                        points(upper[,i],col=col[i],lwd=1+i,pch=4);
                     }
                 }
             }
