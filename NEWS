@@ -2,7 +2,8 @@ greybox v1.0.1 (Release data: 2021-07-03)
 ==============
 
 Bugfixes:
-* A fix for plot(predict.alm()) for several levels and h=1
+* A fix for plot(predict.alm()) for several levels and h=1.
+* Fixed a bug with OLS estimation of parameters in alm().
 
 
 greybox v1.0.0 (Release data: 2021-06-27)

@@ -1969,7 +1969,7 @@ alm <- function(formula, data, subset, na.action,
        (loss=="MAE" && any(distribution==c("dlaplace","dllaplace"))) ||
        (loss=="HAM" && any(distribution==c("ds","dls")))){
         logLik <- -CF(B, distribution, loss="likelihood", y,
-                      matrixXreg, recursiveModel, scaleModel, denominator);
+                      matrixXreg, recursiveModel, denominator);
     }
     else{
         logLik <- NA;
