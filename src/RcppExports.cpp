@@ -5,6 +5,11 @@
 
 using namespace Rcpp;
 
+#ifdef RCPP_USE_GLOBAL_ROSTREAM
+Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
+Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
+#endif
+
 // polyprod
 RcppExport SEXP polyprod(SEXP x, SEXP y);
 RcppExport SEXP _greybox_polyprod(SEXP xSEXP, SEXP ySEXP) {

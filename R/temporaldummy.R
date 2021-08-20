@@ -63,7 +63,6 @@
 #' temporaldummy(x, type="month", of="year", h=10)
 #'
 #' @rdname temporaldummy
-#' @importFrom Matrix sparse.model.matrix
 #' @export
 temporaldummy <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
                     of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0) UseMethod("temporaldummy")
@@ -98,7 +97,7 @@ temporaldummy.default <- function(object, type=c("month","quarter","week","day",
 
     if(!factors){
         # Do model matrix for sparse factors
-        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        temporaldummy <- model.matrix(~factorVariable-1);
         colnames(temporaldummy) <- paste0(type,c(1:dataFrequency),"of",of);
         return(temporaldummy);
     }
@@ -224,7 +223,7 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
 
     if(!factors){
         # Do model matrix for sparse factors
-        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        temporaldummy <- model.matrix(~factorVariable-1);
         colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
         return(temporaldummy);
     }
@@ -378,7 +377,7 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
 
     if(!factors){
         # Do model matrix for sparse factors
-        temporaldummy <- sparse.model.matrix(~factorVariable-1);
+        temporaldummy <- model.matrix(~factorVariable-1);
         colnames(temporaldummy) <- paste0(type,sort(unique(dateFinal)),"of",of);
         return(temporaldummy);
     }
