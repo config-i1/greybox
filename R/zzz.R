@@ -48,9 +48,9 @@ register_S3_method <- function(pkg, generic, class) {
 overwrite_S3_method <- function(pkg, generic){
   setHook(packageEvent(pkg, "onLoad"),
           function(...) {
-            do.call("unlockBinding",list(generic,asNamespace("forecast")));
+            do.call("unlockBinding",list(generic,asNamespace(pkg)));
             assign(generic, get(generic, asNamespace("greybox")), envir=asNamespace(pkg));
-            lockBinding(generic,asNamespace("forecast"));
+            lockBinding(generic,asNamespace(pkg));
           },action="append");
 }
 
