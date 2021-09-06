@@ -20,7 +20,8 @@
 #' \item sMSE - Scaled Mean Squared Error (Petropoulos & Kourentzes, 2015),
 #' \item sPIS- Scaled Periods-In-Stock (Wallstrom & Segerstedt, 2010),
 #' \item sCE - Scaled Cumulative Error,
-#' \item sMIS - Scaled Mean Interval Score.
+#' \item sMIS - Scaled Mean Interval Score,
+#' \item GMRAE - Geometric Mean Relative Absolute Error.
 #' }
 #'
 #' In case of \code{sMSE}, \code{scale} needs to be a squared value. Typical
@@ -103,6 +104,7 @@
 #' rMAE(y[91:100],testForecast2,testForecast)
 #' rRMSE(y[91:100],testForecast2,testForecast)
 #' rAME(y[91:100],testForecast2,testForecast)
+#' GMRAE(y[91:100],testForecast,mean(abs(y[1:90])))
 #'
 #' #### Measures for the prediction intervals
 #' # An example with mtcars data
@@ -510,6 +512,29 @@ sMIS <- function(holdout,lower,upper,scale,level=0.95){
     }
     else{
         return(MIS(holdout=holdout,lower=lower,upper=upper,level=level)/scale);
+    }
+}
+
+#' @rdname error-measures
+#' @export GMRAE
+#' @aliases GMRAE
+GMRAE <- function (holdout, forecast, benchmark, na.rm=TRUE){
+# This function calculates Geometric Mean Relative Absolute Error
+# holdout - holdout values,
+# forecast - forecasted values,
+# benchmark - benchmark forecasted values,
+# na.rm - remove NA from result (default TRUE).
+    if ((length(holdout) != length(forecast)) || (length(holdout) != length(benchmark))) {
+      message("The length of the provided data differs.")
+      message(paste0("Length of holdout: ", length(holdout)))
+      message(paste0("Length of forecast: ", length(forecast)))
+      message(paste0("Length of benchmark forecast: ", length(benchmark)))
+      stop("Cannot proceed.", call. = FALSE)
+    }
+    else {
+      error <- as.vector(holdout) - as.vector(forecast)
+      denominator <- as.vector(holdout) - as.vector(benchmark)
+      return(exp(mean(log(abs(error/denominator)), na.rm = na.rm)))
     }
 }
 
