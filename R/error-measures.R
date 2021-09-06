@@ -104,7 +104,7 @@
 #' rMAE(y[91:100],testForecast2,testForecast)
 #' rRMSE(y[91:100],testForecast2,testForecast)
 #' rAME(y[91:100],testForecast2,testForecast)
-#' GMRAE(y[91:100],testForecast,mean(abs(y[1:90])))
+#' GMRAE(y[91:100],testForecast2,testForecast)
 #'
 #' #### Measures for the prediction intervals
 #' # An example with mtcars data
