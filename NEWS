@@ -1,4 +1,4 @@
-greybox v1.0.1 (Release data: 2021-08-20)
+greybox v1.0.1 (Release data: 2021-09-21)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 Bugfixes:
 * A fix for plot(predict.alm()) for several levels and h=1.
 * Fixed a bug with OLS estimation of parameters in alm().
+* Fixes for the conflict with forecast and fableTools packages.
 
 
 greybox v1.0.0 (Release data: 2021-06-27)

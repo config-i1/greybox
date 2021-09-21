@@ -1,22 +1,36 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "27 June 2021"
+date: "21 September 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v1.0.0
+This is the release of the package ``greybox``, v1.0.1
 
 ## Test environments
-* local ubuntu 20.04.2, R 4.1.0
+* local ubuntu 20.04.2, R 4.1.1
+* github actions
 * win-builder (devel and release)
-* Github Actions with windows-latest, macOS-latest and ubuntu-20.04
-* rhub - see the comments below.
+* rhub with rhub::check_for_cran() command
 
 ## R CMD check results
-R CMD check results
-0 errors | 0 warnings | 0 note
+> checking installed package size ... NOTE
+>    installed size is  5.0Mb
+>    sub-directories of 1Mb or more:
+>      R      1.1Mb
+>      doc    2.5Mb
+>      libs   1.1Mb
+>
+>R CMD check results
+>0 errors | 0 warnings | 1 note
+
+## Github actions
+Successful checks for:
+
+- Windows latest release with R 4.1.1
+- MacOS latest macOS Catalina 10.15.7 with R 4.1.1
+- Ubuntu 20.04.3 with R 4.1.1
 
 ## win-builder
 >* checking package dependencies ... NOTE
@@ -33,17 +47,25 @@ This is expected, because doMC is not available for Windows.
 Not clear why. The paper is available, the url works.
 
 ## R-hub
-**Rhub, Windows Server 2008 R2 SP1, R-devel, 32/64 bit gives a PREPERROR:**
-> Error: Bioconductor does not yet build and check packages for R version 4.2;
-> Execution halted
+**Windows Server 2008 R2 SP1, R-devel, 32/64 bit:**
+> Package suggested but not available: 'doMC'
 
-Something is wrong with Rhub.
+This is expected, because doMC is not available for Windows.
+
+> Package which this enhances but not available for checking: 'vars'
+
+Not clear, why. `vars` package is on CRAN.
 
 **Rhub, Ubuntu Linux 20.04.1 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
 >* checking package dependencies ... NOTE
 >Package which this enhances but not available for checking: ‘vars’
 
 Not clear, why. `vars` package is on CRAN.
+
+### Debian Linux, R-devel, GCC ASAN/UBSAN
+> ERROR: dependency ‘httr’ is not available for package ‘texreg’
+
+Not clear why httr is not available. It is on CRAN.
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
