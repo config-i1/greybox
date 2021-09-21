@@ -15,62 +15,56 @@
 \alias{rRMSE}
 \alias{rAME}
 \alias{rMIS}
-\alias{RelMAE}
-\alias{RelRMSE}
-\alias{RelAME}
-\alias{RelMIS}
 \alias{sMSE}
 \alias{sPIS}
 \alias{sCE}
 \alias{sMIS}
+\alias{GMRAE}
 \title{Error measures}
 \usage{
-ME(holdout, forecast)
+ME(holdout, forecast, na.rm = TRUE)
 
-MAE(holdout, forecast)
+MAE(holdout, forecast, na.rm = TRUE)
 
-MSE(holdout, forecast)
+MSE(holdout, forecast, na.rm = TRUE)
 
-MRE(holdout, forecast)
+MRE(holdout, forecast, na.rm = TRUE)
 
-MIS(holdout, lower, upper, level = 0.95)
+MIS(holdout, lower, upper, level = 0.95, na.rm = TRUE)
 
-MPE(holdout, forecast)
+MPE(holdout, forecast, na.rm = TRUE)
 
-MAPE(holdout, forecast)
+MAPE(holdout, forecast, na.rm = TRUE)
 
-MASE(holdout, forecast, scale)
+MASE(holdout, forecast, scale, na.rm = TRUE)
 
-RMSSE(holdout, forecast, scale)
+RMSSE(holdout, forecast, scale, na.rm = TRUE)
 
-rMAE(holdout, forecast, benchmark)
+rMAE(holdout, forecast, benchmark, na.rm = TRUE)
 
-rRMSE(holdout, forecast, benchmark)
+rRMSE(holdout, forecast, benchmark, na.rm = TRUE)
 
-rAME(holdout, forecast, benchmark)
+rAME(holdout, forecast, benchmark, na.rm = TRUE)
 
-rMIS(holdout, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
+rMIS(holdout, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95,
+  na.rm = TRUE)
 
-RelMAE(holdout, forecast, benchmark)
+sMSE(holdout, forecast, scale, na.rm = TRUE)
 
-RelRMSE(holdout, forecast, benchmark)
+sPIS(holdout, forecast, scale, na.rm = TRUE)
 
-RelAME(holdout, forecast, benchmark)
+sCE(holdout, forecast, scale, na.rm = TRUE)
 
-RelMIS(holdout, lower, upper, benchmarkLower, benchmarkUpper, level = 0.95)
+sMIS(holdout, lower, upper, scale, level = 0.95, na.rm = TRUE)
 
-sMSE(holdout, forecast, scale)
-
-sPIS(holdout, forecast, scale)
-
-sCE(holdout, forecast, scale)
-
-sMIS(holdout, lower, upper, scale, level = 0.95)
+GMRAE(holdout, forecast, benchmark, na.rm = TRUE)
 }
 \arguments{
 \item{holdout}{The vector or matrix of holdout values.}
 
 \item{forecast}{The vector or matrix of forecasts values.}
+
+\item{na.rm}{Logical, defining whether to remove the NAs from the provided data or not.}
 
 \item{lower}{The lower bound of the prediction interval.}
 
@@ -115,7 +109,8 @@ the critique),
 \item sMSE - Scaled Mean Squared Error (Petropoulos & Kourentzes, 2015),
 \item sPIS- Scaled Periods-In-Stock (Wallstrom & Segerstedt, 2010),
 \item sCE - Scaled Cumulative Error,
-\item sMIS - Scaled Mean Interval Score.
+\item sMIS - Scaled Mean Interval Score,
+\item GMRAE - Geometric Mean Relative Absolute Error.
 }
 }
 \details{
@@ -154,6 +149,7 @@ testForecast2 <- rep(y[91],10)
 rMAE(y[91:100],testForecast2,testForecast)
 rRMSE(y[91:100],testForecast2,testForecast)
 rAME(y[91:100],testForecast2,testForecast)
+GMRAE(y[91:100],testForecast2,testForecast)
 
 #### Measures for the prediction intervals
 # An example with mtcars data

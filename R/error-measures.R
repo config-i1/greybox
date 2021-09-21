@@ -50,6 +50,7 @@
 #' @param benchmarkUpper The upper bound of the prediction interval of the
 #' benchmark model.
 #' @param level The confidence level of the constructed interval.
+#' @param na.rm Logical, defining whether to remove the NAs from the provided data or not.
 #' @return All the functions return the scalar value.
 #' @references \itemize{
 #' \item Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias
@@ -125,7 +126,7 @@
 #' @rdname error-measures
 #' @export ME
 #' @aliases ME
-ME <- function(holdout,forecast){
+ME <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean Error
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -136,14 +137,14 @@ ME <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(as.vector(holdout)-as.vector(forecast),na.rm=TRUE));
+        return(mean(as.vector(holdout)-as.vector(forecast),na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MAE
 #' @aliases MAE
-MAE <- function(holdout,forecast){
+MAE <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean Absolute Error
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -154,14 +155,14 @@ MAE <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE));
+        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MSE
 #' @aliases MSE
-MSE <- function(holdout,forecast){
+MSE <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean squared Error
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -172,14 +173,14 @@ MSE <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE));
+        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MRE
 #' @aliases MRE
-MRE <- function(holdout,forecast){
+MRE <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean squared Error
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -190,14 +191,14 @@ MRE <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(sqrt(as.complex(as.vector(holdout)-as.vector(forecast))),na.rm=TRUE));
+        return(mean(sqrt(as.complex(as.vector(holdout)-as.vector(forecast))),na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MIS
 #' @aliases MIS
-MIS <- function(holdout,lower,upper,level=0.95){
+MIS <- function(holdout, lower, upper, level=0.95, na.rm=TRUE){
 # This function calculates Mean Interval Score from Gneiting & Raftery, 2007
 # holdout - holdout values,
 # lower - the lower bound of the interval,
@@ -217,8 +218,8 @@ MIS <- function(holdout,lower,upper,level=0.95){
     else{
         h <- length(holdout);
         MISValue <- sum(as.vector(upper)-as.vector(lower)) +
-            2/alpha*(sum((as.vector(lower)-as.vector(holdout))*(as.vector(holdout)<as.vector(lower))) +
-                         sum((as.vector(holdout)-as.vector(upper))*(as.vector(holdout)>as.vector(upper))));
+            2/alpha*(sum((as.vector(lower)-as.vector(holdout))*(as.vector(holdout)<as.vector(lower)), na.rm=na.rm) +
+                         sum((as.vector(holdout)-as.vector(upper))*(as.vector(holdout)>as.vector(upper)), na.rm=na.rm));
         MISValue[] <- MISValue / h;
         return(MISValue);
     }
@@ -227,7 +228,7 @@ MIS <- function(holdout,lower,upper,level=0.95){
 #' @rdname error-measures
 #' @export MPE
 #' @aliases MPE
-MPE <- function(holdout,forecast){
+MPE <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean / Median Percentage Error
 # holdout - holdout values,
 # forecast - forecasted or fitted values.
@@ -238,14 +239,14 @@ MPE <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(holdout)-as.vector(forecast))/as.vector(holdout),na.rm=TRUE));
+        return(mean((as.vector(holdout)-as.vector(forecast))/as.vector(holdout),na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MAPE
 #' @aliases MAPE
-MAPE <- function(holdout,forecast){
+MAPE <- function(holdout, forecast, na.rm=TRUE){
 # This function calculates Mean Absolute Percentage Error
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -256,14 +257,14 @@ MAPE <- function(holdout,forecast){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs((as.vector(holdout)-as.vector(forecast))/as.vector(holdout)),na.rm=TRUE));
+        return(mean(abs((as.vector(holdout)-as.vector(forecast))/as.vector(holdout)),na.rm=na.rm));
     }
 }
 
 #' @rdname error-measures
 #' @export MASE
 #' @aliases MASE
-MASE <- function(holdout,forecast,scale){
+MASE <- function(holdout, forecast, scale, na.rm=TRUE){
 # This function calculates Mean Absolute Scaled Error as in Hyndman & Koehler, 2006
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -275,14 +276,14 @@ MASE <- function(holdout,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE)/scale);
+        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export RMSSE
 #' @aliases RMSSE
-RMSSE <- function(holdout,forecast,scale){
+RMSSE <- function(holdout, forecast, scale, na.rm=TRUE){
 # This function calculates Root Mean Squared Scaled Error from M5 competition
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -294,7 +295,7 @@ RMSSE <- function(holdout,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/scale));
+        return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale));
     }
 }
 
@@ -302,7 +303,7 @@ RMSSE <- function(holdout,forecast,scale){
 #' @rdname error-measures
 #' @export rMAE
 #' @aliases rMAE
-rMAE <-function(holdout,forecast,benchmark){
+rMAE <-function(holdout, forecast, benchmark, na.rm=TRUE){
 # This function calculates Average Relative MAE
 # holdout - holdout values,
 # forecast - forecasted or fitted values.
@@ -319,8 +320,8 @@ rMAE <-function(holdout,forecast,benchmark){
             return(1);
         }
         else{
-            return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=TRUE)/
-                             mean(abs(as.vector(holdout)-as.vector(benchmark)),na.rm=TRUE));
+            return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/
+                             mean(abs(as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm));
         }
     }
 }
@@ -328,7 +329,7 @@ rMAE <-function(holdout,forecast,benchmark){
 #' @rdname error-measures
 #' @export rRMSE
 #' @aliases rRMSE
-rRMSE <-function(holdout,forecast,benchmark){
+rRMSE <-function(holdout, forecast, benchmark, na.rm=TRUE){
     # This function calculates Relative MSE
     # holdout - holdout values,
     # forecast - forecasted or fitted values.
@@ -345,8 +346,8 @@ rRMSE <-function(holdout,forecast,benchmark){
             return(1);
         }
         else{
-            return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/
-                             mean((as.vector(holdout)-as.vector(benchmark))^2,na.rm=TRUE)));
+            return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/
+                             mean((as.vector(holdout)-as.vector(benchmark))^2,na.rm=na.rm)));
         }
     }
 }
@@ -354,7 +355,7 @@ rRMSE <-function(holdout,forecast,benchmark){
 #' @rdname error-measures
 #' @export rAME
 #' @aliases rAME
-rAME <-function(holdout,forecast,benchmark){
+rAME <-function(holdout, forecast, benchmark, na.rm=TRUE){
     # This function calculates Relative Absolute ME
     # holdout - holdout values,
     # forecast - forecasted or fitted values.
@@ -371,8 +372,8 @@ rAME <-function(holdout,forecast,benchmark){
             return(1);
         }
         else{
-            return(abs(mean((as.vector(holdout)-as.vector(forecast)),na.rm=TRUE))/
-                             abs(mean((as.vector(holdout)-as.vector(benchmark)),na.rm=TRUE)));
+            return(abs(mean((as.vector(holdout)-as.vector(forecast)),na.rm=na.rm))/
+                             abs(mean((as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm)));
         }
     }
 }
@@ -380,7 +381,7 @@ rAME <-function(holdout,forecast,benchmark){
 #' @rdname error-measures
 #' @export rMIS
 #' @aliases rMIS
-rMIS <-function(holdout,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
+rMIS <-function(holdout, lower, upper, benchmarkLower, benchmarkUpper, level=0.95, na.rm=TRUE){
 # This function calculates scaled MIS
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -395,48 +396,15 @@ rMIS <-function(holdout,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level) /
-                   MIS(holdout=holdout,lower=benchmarkLower,upper=benchmarkUpper,level=level));
+        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level,na.rm=na.rm) /
+                   MIS(holdout=holdout,lower=benchmarkLower,upper=benchmarkUpper,level=level,na.rm=na.rm));
     }
-}
-
-
-#' @rdname error-measures
-#' @export RelMAE
-#' @aliases rMAE
-RelMAE <- function(holdout,forecast,benchmark){
-    warning("This function is depricated. Please, use rMAE instead");
-    return(rMAE(holdout,forecast,benchmark));
-}
-
-#' @rdname error-measures
-#' @export RelRMSE
-#' @aliases rRMSE
-RelRMSE <- function(holdout,forecast,benchmark){
-    warning("This function is depricated. Please, use rRMSE instead");
-    return(rRMSE(holdout,forecast,benchmark));
-}
-
-#' @rdname error-measures
-#' @export RelAME
-#' @aliases rAME
-RelAME <- function(holdout,forecast,benchmark){
-    warning("This function is depricated. Please, use rAME instead");
-    return(rAME(holdout,forecast,benchmark));
-}
-
-#' @rdname error-measures
-#' @export RelMIS
-#' @aliases rMIS
-RelMIS <- function(holdout,lower,upper,benchmarkLower,benchmarkUpper,level=0.95){
-    warning("This function is depricated. Please, use rMIS instead");
-    return(rMIS(holdout,lower,upper,benchmarkLower,benchmarkUpper,level));
 }
 
 #' @rdname error-measures
 #' @export sMSE
 #' @aliases sMSE
-sMSE <- function(holdout,forecast,scale){
+sMSE <- function(holdout, forecast, scale, na.rm=TRUE){
 # This function calculates scaled Mean Squared Error.
 # Attention! Scale factor should be provided as squares of something!
 # holdout - holdout values,
@@ -449,14 +417,14 @@ sMSE <- function(holdout,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=TRUE)/scale);
+        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sPIS
 #' @aliases sPIS
-sPIS <- function(holdout,forecast,scale){
+sPIS <- function(holdout, forecast, scale, na.rm=TRUE){
 # This function calculates scaled Periods-In-Stock.
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -468,14 +436,14 @@ sPIS <- function(holdout,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(cumsum(as.vector(forecast)-as.vector(holdout)))/scale);
+        return(sum(cumsum(as.vector(forecast)-as.vector(holdout)), na.rm=na.rm)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sCE
 #' @aliases sCE
-sCE <- function(holdout,forecast,scale){
+sCE <- function(holdout, forecast, scale, na.rm=TRUE){
 # This function calculates scaled Cumulative Error.
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -487,14 +455,14 @@ sCE <- function(holdout,forecast,scale){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sum(as.vector(holdout)-as.vector(forecast))/scale);
+        return(sum(as.vector(holdout)-as.vector(forecast), na.rm=na.rm)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export sMIS
 #' @aliases sMIS
-sMIS <- function(holdout,lower,upper,scale,level=0.95){
+sMIS <- function(holdout, lower, upper, scale, level=0.95, na.rm=TRUE){
 # This function calculates scaled MIS
 # holdout - holdout values,
 # forecast - forecasted values.
@@ -511,14 +479,14 @@ sMIS <- function(holdout,lower,upper,scale,level=0.95){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level)/scale);
+        return(MIS(holdout=holdout,lower=lower,upper=upper,level=level,na.rm=na.rm)/scale);
     }
 }
 
 #' @rdname error-measures
 #' @export GMRAE
 #' @aliases GMRAE
-GMRAE <- function (holdout, forecast, benchmark, na.rm=TRUE){
+GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
 # This function calculates Geometric Mean Relative Absolute Error
 # holdout - holdout values,
 # forecast - forecasted values,
@@ -705,6 +673,7 @@ extremity <- function(x,C=mean(x),...){
 #' holdout).
 #' @param level The level of the prediction interval associated with the forecast.
 #' @param loss The type of loss to use. The number which corresponds to L1, L2 etc.
+#' @param na.rm Logical, defining whether to remove the NAs from the provided data or not.
 #' @return The function returns the scalar value.
 #' @examples
 #' # An example with mtcars data
@@ -722,7 +691,7 @@ extremity <- function(x,C=mean(x),...){
 #' pinball(mtcars$mpg[-c(1:30)],ourForecast$lower,level=0.025,loss=2)
 #'
 #' @export pinball
-pinball <- function(holdout, forecast, level, loss=1){
+pinball <- function(holdout, forecast, level, loss=1, na.rm=TRUE){
     # This function calculates pinball cost function for the bound of prediction interval
     if(length(holdout) != length(forecast)){
         message("The length of the provided data differs.");
@@ -731,8 +700,10 @@ pinball <- function(holdout, forecast, level, loss=1){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        result <- ((1-level)*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss * (as.vector(holdout)<=as.vector(forecast))) +
-                            level*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss * (as.vector(holdout)>as.vector(forecast))));
+        result <- ((1-level)*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss *
+                                     (as.vector(holdout)<=as.vector(forecast)), na.rm=na.rm) +
+                            level*sum(abs((as.vector(holdout)-as.vector(forecast)))^loss *
+                                          (as.vector(holdout)>as.vector(forecast)), na.rm=na.rm));
         return(result);
     }
 }

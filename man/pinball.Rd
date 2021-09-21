@@ -4,7 +4,7 @@
 \alias{pinball}
 \title{Pinball function}
 \usage{
-pinball(holdout, forecast, level, loss = 1)
+pinball(holdout, forecast, level, loss = 1, na.rm = TRUE)
 }
 \arguments{
 \item{holdout}{The vector or matrix of the holdout values.}
@@ -15,6 +15,8 @@ holdout).}
 \item{level}{The level of the prediction interval associated with the forecast.}
 
 \item{loss}{The type of loss to use. The number which corresponds to L1, L2 etc.}
+
+\item{na.rm}{Logical, defining whether to remove the NAs from the provided data or not.}
 }
 \value{
 The function returns the scalar value.

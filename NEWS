@@ -4,6 +4,7 @@ greybox v1.0.1 (Release data: 2021-09-21)
 Changes:
 * Trying to get rid of dependence on Matrix - it consumes a lot of memory.
 * GMRAE in error measures, introduced by Yves Sagaert.
+* na.rm parameter in error measures.
 
 Bugfixes:
 * A fix for plot(predict.alm()) for several levels and h=1.
