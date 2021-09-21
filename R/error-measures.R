@@ -524,17 +524,17 @@ GMRAE <- function (holdout, forecast, benchmark, na.rm=TRUE){
 # forecast - forecasted values,
 # benchmark - benchmark forecasted values,
 # na.rm - remove NA from result (default TRUE).
-    if ((length(holdout) != length(forecast)) || (length(holdout) != length(benchmark))) {
-      message("The length of the provided data differs.")
-      message(paste0("Length of holdout: ", length(holdout)))
-      message(paste0("Length of forecast: ", length(forecast)))
-      message(paste0("Length of benchmark forecast: ", length(benchmark)))
-      stop("Cannot proceed.", call. = FALSE)
+    if((length(holdout) != length(forecast)) || (length(holdout) != length(benchmark))){
+        message("The length of the provided data differs.")
+        message(paste0("Length of holdout: ", length(holdout)))
+        message(paste0("Length of forecast: ", length(forecast)))
+        message(paste0("Length of benchmark forecast: ", length(benchmark)))
+        stop("Cannot proceed.", call. = FALSE)
     }
-    else {
-      error <- as.vector(holdout) - as.vector(forecast)
-      denominator <- as.vector(holdout) - as.vector(benchmark)
-      return(exp(mean(log(abs(error/denominator)), na.rm = na.rm)))
+    else{
+        error <- as.vector(holdout) - as.vector(forecast)
+        denominator <- as.vector(holdout) - as.vector(benchmark)
+        return(exp(mean(log(abs(error/denominator)), na.rm = na.rm)))
     }
 }
 
