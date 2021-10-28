@@ -57,7 +57,7 @@ overwrite_S3_method <- function(pkg, generic){
 .onLoad <- function(...) {
   # Do things if fabletools is present in the installed packages
   if(length(find.package("fabletools", quiet=TRUE, verbose=FALSE))!=0){
-    overwrite_S3_method("fabletools","forecast");
+    # overwrite_S3_method("fabletools","forecast");
     register_S3_method("fabletools","forecast","greybox");
     register_S3_method("fabletools","forecast","alm");
   }
