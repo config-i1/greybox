@@ -1,3 +1,10 @@
+greybox v1.0.2 (Release data: 2021-11-25)
+==============
+
+Bugfixes:
+* spread() would not produce correct labels in cases of missing values in numerical variables.
+
+
 greybox v1.0.1 (Release data: 2021-09-21)
 ==============
 

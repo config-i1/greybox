@@ -119,7 +119,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                     }
                     else{
                         if(numericData[i]){
-                            midPoint <- (max(data[[i]])+min(data[[i]]))/2;
+                            midPoint <- (max(data[[i]], na.rm=TRUE)+min(data[[i]], na.rm=TRUE))/2;
                             plot(data[[i]], data[[i]], col="white", axes=FALSE);
                             text(midPoint,midPoint,variablesNames[i],cex=1.5);
                         }
