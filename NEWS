@@ -1,8 +1,9 @@
-greybox v1.0.2 (Release data: 2021-11-25)
+greybox v1.0.2 (Release data: 2021-11-30)
 ==============
 
 Changes:
 * Trying to resolve the long lasting issue with forecast generic again.
+* alm() now returns a proper formula if user asked for something like "variable~."
 
 Bugfixes:
 * spread() would not produce correct labels in cases of missing values in numerical variables.

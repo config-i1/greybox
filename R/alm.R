@@ -1072,6 +1072,7 @@ alm <- function(formula, data, subset, na.action,
 
     dataWork <- eval(mf, parent.frame());
     dataTerms <- terms(dataWork);
+    cl$formula <- formula(dataTerms);
     # Make this numeric, to address potential issues with zoo + data.table
     y <- as.numeric(dataWork[,1]);
 
