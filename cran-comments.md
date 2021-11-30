@@ -1,22 +1,22 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "21 September 2021"
+date: "01 December 2021"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v1.0.1
+This is the release of the package ``greybox``, v1.0.2
 
 ## Test environments
-* local ubuntu 20.04.2, R 4.1.1
+* local ubuntu 20.04.3, R 4.1.2
 * github actions
 * win-builder (devel and release)
 * rhub with rhub::check_for_cran() command
 
 ## R CMD check results
 > checking installed package size ... NOTE
->    installed size is  5.0Mb
+>    installed size is  5.1Mb
 >    sub-directories of 1Mb or more:
 >      R      1.1Mb
 >      doc    2.5Mb
@@ -30,7 +30,7 @@ Successful checks for:
 
 - Windows latest release with R 4.1.1
 - MacOS latest macOS Catalina 10.15.7 with R 4.1.1
-- Ubuntu 20.04.3 with R 4.1.1
+- Ubuntu 20.04.3 with R 4.1.2
 
 ## win-builder
 >* checking package dependencies ... NOTE
