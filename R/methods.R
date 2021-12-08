@@ -256,6 +256,7 @@ pointLik.alm <- function(object, ...){
                              "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
                              "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
                              "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
+                             "dexp" = dexp(y, rate=1/mu, log=TRUE),
                              "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
                              "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=TRUE),
                              "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
@@ -286,6 +287,7 @@ pointLik.alm <- function(object, ...){
                                    "dbcnorm" =,
                                    "dlogitnorm" =,
                                    "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                   "dexp" = 1,
                                    "dgnorm" =,
                                    "dlgnorm" = 1/object$other$shape -
                                        log(object$other$shape / (2*scale*gamma(1/object$other$shape))),
@@ -768,6 +770,9 @@ sigma.greybox <- function(object, all=FALSE, ...){
 sigma.alm <- function(object, ...){
     if(any(object$distribution==c("plogis","pnorm"))){
         return(extractScale(object));
+    }
+    else if(any(object$distribution==c("dinvgauss","dgamma","dexp"))){
+        return(sqrt(sum((residuals(object)-1)^2)/(nobs(object, ...)-nparam(object))));
     }
     else{
         return(sigma.greybox(object, ...));
@@ -1327,8 +1332,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         outliers <- outlierdummy(x, level=level, type=type);
         outliersID <- outliers$id;
         statistic <- outliers$statistic;
-        # Analyse stuff in logarithms if the distribution is dinvgauss / dgamma
-        if(any(x$distribution==c("dinvgauss","dgamma"))){
+        # Analyse stuff in logarithms if the distribution is dinvgauss / dgamma / dexp
+        if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
             ellipsis$y[] <- log(ellipsis$y);
             statistic[] <- log(statistic);
         }
@@ -1391,7 +1396,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(residuals(x));
-        if(any(x$distribution==c("dinvgauss","dgamma"))){
+        if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
             ellipsis$y[] <- log(ellipsis$y);
         }
         if(type=="abs"){
@@ -1485,6 +1490,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
             do.call(qqplot, ellipsis);
             qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
+        }
+        else if(x$distribution=="dexp"){
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Exponential distribution";
+            }
+            ellipsis$x <- qexp(ppoints(500), rate=1);
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qexp(p, rate=1));
         }
         else if(x$distribution=="dlogis"){
             if(!any(names(ellipsis)=="main")){
@@ -1661,7 +1675,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         outliersID <- outliers$id;
         statistic <- outliers$statistic;
         # Analyse stuff in logarithms if the distribution is dinvgauss
-        if(any(x$distribution==c("dinvgauss","dgamma"))){
+        if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
             ellipsis$x[] <- log(ellipsis$x);
             statistic[] <- log(statistic);
         }
@@ -1805,7 +1819,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(rstandard(x));
-        if(any(x$distribution==c("dinvgauss","dgamma"))){
+        if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
             ellipsis$y[] <- log(ellipsis$y);
         }
         if(type=="abs"){
@@ -2201,6 +2215,7 @@ print.summary.alm <- function(x, ...){
                       "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dgamma" = "Gamma",
+                      "dexp" = "Exponential",
                       "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
@@ -2280,6 +2295,7 @@ print.summary.scale <- function(x, ...){
                       "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dgamma" = "Gamma",
+                      "dexp" = "Exponential",
                       "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
@@ -2337,6 +2353,7 @@ print.summary.greybox <- function(x, ...){
                       "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dgamma" = "Gamma",
+                      "dexp" = "Exponential",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -2391,6 +2408,7 @@ print.summary.greyboxC <- function(x, ...){
                       "dlogitnorm" = "Logit Normal",
                       "dinvgauss" = "Inverse Gaussian",
                       "dgamma" = "Gamma",
+                      "dexp" = "Exponential",
                       "dchisq" = "Chi-Squared",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
@@ -2527,7 +2545,7 @@ rstandard.greybox <- function(model, ...){
         errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
                          (extractScale(model)^model$other$shape * obs / df)^{1/model$other$shape});
     }
-    else if(any(model$distribution==c("dinvgauss","dgamma"))){
+    else if(any(model$distribution==c("dinvgauss","dgamma","dexp"))){
         errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
     }
     else{
@@ -2602,7 +2620,7 @@ rstudent.greybox <- function(model, ...){
             rstudentised[i] <- errors[i] / (sqrt(sum(errors[-i]^2) / df) * sqrt(3) / pi);
         }
     }
-    else if(any(model$distribution==c("dinvgauss","dgamma"))){
+    else if(any(model$distribution==c("dinvgauss","dgamma","dexp"))){
         for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / mean(errors[-i]);
         }
@@ -2719,6 +2737,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                                               dispersion=extractScale(object) * nobs(object) /
                                                   (nobs(object)-nparam(object))),
                         "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
+                        "dexp"=qexp(c((1-level)/2, (1+level)/2), rate=1),
                         qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     outliersID <- which(errors>statistic[2] | errors<statistic[1]);
     outliersNumber <- length(outliersID);
@@ -3019,7 +3038,7 @@ setMethod("extract", signature=className("summary.greyboxC","greybox"), definiti
 #### Predictions and forecasts ####
 
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp
 #' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
@@ -3345,6 +3364,17 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
                                                                    scale=greyboxForecast$scale);
             greyboxForecast$upper[] <- greyboxForecast$mean*qgamma(levelUp, shape=1/greyboxForecast$scale,
                                                                    scale=greyboxForecast$scale);
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
+    }
+    else if(object$distribution=="dexp"){
+        greyboxForecast$mean <- exp(greyboxForecast$mean);
+        if(interval=="prediction"){
+            greyboxForecast$lower[] <- greyboxForecast$mean*qexp(levelLow, rate=1);
+            greyboxForecast$upper[] <- greyboxForecast$mean*qexp(levelUp, rate=1);
         }
         else if(interval=="confidence"){
             greyboxForecast$lower[] <- exp(greyboxForecast$lower);

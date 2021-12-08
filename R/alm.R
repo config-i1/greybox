@@ -21,6 +21,7 @@
 # \item \link[stats]{dchisq} - Chi-Squared Distribution,
 #' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 #' \item \link[stats]{dgamma} - Gamma distribution,
+#' \item \link[stats]{dexp} - Exponential distribution,
 #' \item \link[greybox]{dlogitnorm} - Logit-normal distribution,
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
@@ -256,7 +257,7 @@
 #' @importFrom pracma hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms model.matrix update.formula
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma dexp
 #' @importFrom stats plogis
 #' @importFrom statmod dinvgauss
 #' @importFrom stats arima
@@ -264,7 +265,7 @@
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-                               "dinvgauss","dgamma",
+                               "dinvgauss","dgamma","dexp",
                                "dpois","dnbinom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
@@ -429,6 +430,7 @@ alm <- function(formula, data, subset, na.action,
         mu[] <- switch(distribution,
                        "dinvgauss"=,
                        "dgamma"=,
+                       "dexp"=,
                        "dpois" =,
                        "dnbinom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
@@ -504,7 +506,9 @@ alm <- function(formula, data, subset, na.action,
                       "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                       # Here we use the proxy from Svetunkov & Boylan (2019)
                       "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) /
-                                                       (1 + exp(mu) * (2 - y) - y))^2))
+                                                       (1 + exp(mu) * (2 - y) - y))^2)),
+                      # 1 is the default and the value for the dexp
+                      1
         ));
     }
 
@@ -516,6 +520,7 @@ alm <- function(formula, data, subset, na.action,
                       "dgnorm" =,
                       "dinvgauss" =,
                       "dgamma" =,
+                      "dexp"=,
                       "dlaplace" =,
                       "dalaplace" =,
                       "dlogis" =,
@@ -551,7 +556,8 @@ alm <- function(formula, data, subset, na.action,
                       "dnbinom" =,
                       "dpois" = y - mu,
                       "dinvgauss" =,
-                      "dgamma" = y / mu,
+                      "dgamma" =,
+                      "dexp" = y / mu,
                       "dchisq" = sqrt(y) - sqrt(mu),
                       "dlnorm" =,
                       "dllaplace" =,
@@ -560,7 +566,7 @@ alm <- function(formula, data, subset, na.action,
                       "dbcnorm" = bcTransform(y,lambdaBC) - mu,
                       "dlogitnorm" = log(y/(1-y)) - mu,
                       "pnorm" = qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1),
-                      "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y))
+                      "plogis" = log((1 + y * (1 + exp(mu))) / (1 + exp(mu) * (2 - y) - y)),
                       # Here we use the proxy from Svetunkov & Boylan (2019)
         ));
     }
@@ -598,6 +604,7 @@ alm <- function(formula, data, subset, na.action,
                                                            dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
                                    "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
                                                      scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
+                                   "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
                                    "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
@@ -627,6 +634,8 @@ alm <- function(formula, data, subset, na.action,
                                               "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
                                                                   log(gamma(1/fitterReturn$scale)) +
                                                                   (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                                              # 1-ln(lambda), where lambda=1
+                                              "dexp" = obsZero,
                                               "dlaplace" =,
                                               "dllaplace" =,
                                               "ds" =,
@@ -1119,7 +1128,7 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(distribution==c("dfnorm","dlnorm","dllaplace","dls","dbcnorm","dchisq",
+    if(any(distribution==c("dfnorm","dexp","dlnorm","dllaplace","dls","dbcnorm","dchisq",
                            "dpois","dnbinom",
                            "dinvgauss","dgamma")) && any(y<0)){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
@@ -1327,7 +1336,7 @@ alm <- function(formula, data, subset, na.action,
 
             nVariables <- nVariables + arOrder;
             # Write down the values for the matrixXreg in the necessary transformations
-            if(any(distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom"))){
+            if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dpois","dnbinom"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
                     ariElements[] <- bcTransform(ariElements,0.01);
@@ -1367,8 +1376,8 @@ alm <- function(formula, data, subset, na.action,
         if(is.null(B)){
             #### I(0) initialisation ####
             if(iOrder==0){
-                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
-                                       "dinvgauss","dgamma"))){
+                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dnbinom",
+                                       "dinvgauss","dgamma","dexp"))){
                     if(any(y[otU]==0)){
                         # Use Box-Cox if there are zeroes
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
@@ -1376,6 +1385,11 @@ alm <- function(formula, data, subset, na.action,
                     else{
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
                     }
+                }
+                else if(any(distribution==c("dpois"))){
+                    # This is inspired by GLM estimation
+                    muInSample <- mean(y);
+                    B <- c(solve(t(matrixXreg) %*% matrixXreg * muInSample) %*% t(matrixXreg) %*% (y-muInSample));
                 }
                 else if(any(distribution==c("plogis","pnorm"))){
                     # Box-Cox transform in order to get meaningful initials
@@ -1458,7 +1472,7 @@ alm <- function(formula, data, subset, na.action,
                     matrixXregForDiffs[1,which(noVariability)+1] <- rnorm(sum(noVariability));
                 }
 
-                if(any(distribution==c("dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
+                if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
                                        "dinvgauss","dgamma"))){
                     B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
                 }
@@ -1831,6 +1845,18 @@ alm <- function(formula, data, subset, na.action,
     ### Error term in the transformed scale
     errors[] <- extractorResiduals(distribution, mu, yFitted);
 
+    # If for Exponential or Poisson the mean and variance are far, complain!
+    if(distribution=="dexp"){
+        if(sd(errors)>1.1){
+            warning("The distribution is overdispersed. Consider using another one.",
+                    call.=FALSE);
+        }
+        else if(sd(errors)<0.9){
+            warning("The distribution is underdispersed. Consider using another one.",
+                    call.=FALSE);
+        }
+    }
+
     # If this is the occurrence model, then set unobserved errors to zero
     if(occurrenceModel){
         errors[!otU] <- 0;
@@ -1842,7 +1868,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Parameters of the model. Scale part goes later
-    if(scaleModel){
+    if(scaleModel || any(distribution==c("dexp","dpois"))){
         nParam <- nVariables;
     }
     else{

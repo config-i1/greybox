@@ -1,3 +1,11 @@
+greybox v1.0.3 (Release data: 2021-12-08)
+==============
+
+Changes:
+* Fixed initialisation of Poisson in alm(), which should hopefully result in more accurate estimates of parameters.
+* New distribution in alm(): Exponential via "dexp".
+
+
 greybox v1.0.2 (Release data: 2021-12-01)
 ==============
 

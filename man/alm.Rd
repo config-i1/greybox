@@ -6,11 +6,11 @@
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
-  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
-  "dbeta", "dlogitnorm", "plogis", "pnorm"), loss = c("likelihood", "MSE",
-  "MAE", "HAM", "LASSO", "RIDGE"), occurrence = c("none", "plogis", "pnorm"),
-  scale = NULL, orders = c(0, 0, 0), parameters = NULL, fast = FALSE,
-  ...)
+  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dexp", "dpois",
+  "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
+  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
+  occurrence = c("none", "plogis", "pnorm"), scale = NULL, orders = c(0,
+  0, 0), parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -183,6 +183,7 @@ of several non-normal distributions. These include:
 \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 \item \link[stats]{dgamma} - Gamma distribution,
+\item \link[stats]{dexp} - Exponential distribution,
 \item \link[greybox]{dlogitnorm} - Logit-normal distribution,
 \item \link[stats]{dbeta} - Beta distribution,
 \item \link[stats]{dpois} - Poisson Distribution,
