@@ -56,16 +56,16 @@ overwrite_S3_method <- function(pkg, generic){
 
 .onLoad <- function(...) {
   # Do things if fabletools is present in the installed packages
-  if(length(find.package("fabletools", quiet=TRUE, verbose=FALSE))!=0){
-    # overwrite_S3_method("fabletools","forecast");
-    register_S3_method("fabletools","forecast","greybox");
-    register_S3_method("fabletools","forecast","alm");
-  }
-  # Do things if forecast is present in the installed packages
-  if(length(find.package("forecast", quiet=TRUE, verbose=FALSE))!=0){
-    overwrite_S3_method("forecast","forecast");
-    register_S3_method("forecast","forecast","greybox");
-    register_S3_method("forecast","forecast","alm");
-  }
-  invisible();
+  # if(length(find.package("fabletools", quiet=TRUE, verbose=FALSE))!=0){
+  #   # overwrite_S3_method("fabletools","forecast");
+  #   register_S3_method("fabletools","forecast","greybox");
+  #   register_S3_method("fabletools","forecast","alm");
+  # }
+  # # Do things if forecast is present in the installed packages
+  # if(length(find.package("forecast", quiet=TRUE, verbose=FALSE))!=0){
+  #   # overwrite_S3_method("forecast","forecast");
+  #   register_S3_method("forecast","forecast","greybox");
+  #   register_S3_method("forecast","forecast","alm");
+  # }
+  # invisible();
 }
