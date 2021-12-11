@@ -1,4 +1,4 @@
-greybox v1.0.3 (Release data: 2021-12-10)
+greybox v1.0.3 (Release data: 2021-12-11)
 ==============
 
 Changes:
@@ -7,6 +7,7 @@ Changes:
 
 Bugfixes:
 * Switched off all registration of methods from greybox in cases of forecast / fabletools packages.
+* A fix in spread() for variables that are not factors and not numeric.
 
 
 greybox v1.0.2 (Release data: 2021-12-01)

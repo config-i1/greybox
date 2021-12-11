@@ -75,6 +75,12 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 data[[i]] <- factor(data[[i]]);
             }
         }
+        else{
+            # If the variable is not a factor (e.g. character), make it.
+            if(!is.factor(data[[i]])){
+                data[[i]] <- factor(data[[i]]);
+            }
+        }
     }
 
     if(log){
