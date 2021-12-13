@@ -1491,15 +1491,6 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             do.call(qqplot, ellipsis);
             qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
         }
-        else if(x$distribution=="dexp"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Exponential distribution";
-            }
-            ellipsis$x <- qexp(ppoints(500), rate=1);
-
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qexp(p, rate=1));
-        }
         else if(x$distribution=="dlogis"){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Logistic distribution";
@@ -1550,6 +1541,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
             do.call(qqplot, ellipsis);
             qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
+        }
+        else if(x$distribution=="dexp"){
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Exponential distribution";
+            }
+            ellipsis$x <- qexp(ppoints(500), rate=x$scale);
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
         }
         else if(x$distribution=="dchisq"){
             message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
