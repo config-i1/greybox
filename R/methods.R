@@ -3587,7 +3587,6 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
     scaleModel <- is.scale(object$scale);
     parameters <- coef.greybox(object);
     parametersNames <- names(parameters);
-    ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
     levelLow <- levelUp <- vector("numeric",nLevels);
@@ -3692,6 +3691,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         vectorOfVariances <- NULL;
 
         if(interval!="none"){
+            ourVcov <- vcov(object, ...);
             # abs is needed for some cases, when the likelihood was not fully optimised
             vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
             yUpper <- yLower <- matrix(NA, h, nLevels);
@@ -3784,7 +3784,6 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     }
     nonariParametersNumber <- length(parameters);
     parametersNames <- names(parameters);
-    ourVcov <- vcov(object, ...);
 
     nLevels <- length(level);
     levelLow <- levelUp <- vector("numeric",nLevels);
@@ -3954,11 +3953,13 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
     else{
         ourForecast <- object$mu;
     }
-
-    # abs is needed for some cases, when the likelihoond was not fully optimised
-    vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
+    vectorOfVariances <- NULL;
 
     if(interval!="none"){
+        ourVcov <- vcov(object, ...);
+        # abs is needed for some cases, when the likelihoond was not fully optimised
+        vectorOfVariances <- abs(diag(matrixOfxreg %*% ourVcov %*% t(matrixOfxreg)));
+
         yUpper <- yLower <- matrix(NA, h, nLevels);
         if(interval=="confidence"){
             for(i in 1:nLevels){

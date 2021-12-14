@@ -1,9 +1,10 @@
-greybox v1.0.3 (Release data: 2021-12-11)
+greybox v1.0.3 (Release data: 2021-12-14)
 ==============
 
 Changes:
 * Fixed initialisation of Poisson in alm(), which should hopefully result in more accurate estimates of parameters.
 * New distribution in alm(): Exponential via "dexp".
+* From now on, predict.grybox() will not calculate vcov if interval="none".
 
 Bugfixes:
 * Switched off all registration of methods from greybox in cases of forecast / fabletools packages.
