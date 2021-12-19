@@ -372,7 +372,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
             B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],2*log(abs(residuals[otU]-1)))$coefficients;
         }
         else if(distribution=="dinvgauss"){
-            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],log(abs(residuals[otU]-1)^2/residuals[otU]))$coefficients;
+            B <- .lm.fit(matrixXregScale[otU,,drop=FALSE],log((residuals[otU]-1)^2/residuals[otU]))$coefficients;
         }
         # Other distributions: dt, dchisq, dnbinom, dpois, pnorm, plogis, dbeta
         else{

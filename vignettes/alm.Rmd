@@ -906,17 +906,18 @@ It will produce forecasts for each of the explanatory variables based on the ava
 
 
 # Scale model {#scaleModel}
-Finally, `alm()` supports scale model, estimating the scale of assumed distribution via the specified set of variables. This might be handy if you suspect that some variables cause heteroscedasticity. However, this can only be done if likelihood approach is used for the model estimation and is done via `scale` parameter, which can accept either previously estimated model (e.g. via `sm()` method) or a formula for the model. While the details will differ from one distribution to another, the main idea will be the same, so here we discuss this on example of [Normal distribution](#normal), for which the model becomes:
+Finally, `alm()` supports scale model, estimating the scale of assumed distribution via the specified set of variables (this is inspired by GAMLSS model). This might be handy if you suspect that some variables cause heteroscedasticity. However, this can only be done if likelihood approach is used for the model estimation and is done via `scale` parameter, which can accept either previously estimated model (e.g. via `sm()` method) or a formula for the model. While the details will differ from one distribution to another, the main idea will be the same, so here we discuss this on example of [Normal distribution](#normal), for which the model becomes:
 \begin{equation} \label{eq:scaleModel}
     y_t \sim \mathcal{N}\left(\mathbf{x}_t' \mathbf{b}, \exp\left(\mathbf{z}_t' \mathbf{c}\right) \right),
 \end{equation}
-where $\mathbf{x}_t$ and $\mathbf{B}$ are defined [as above](#normal), $\mathbf{z}_t$ is the vector of explanatory variables for the scale and $\mathbf{c}$ is the vector of parameters for this part of model. The exponent in the formula above is needed to make sure that the resulting values are always positive. The resulting value will be the variance of the residuals conditional on the values of explanatory variables. Given that the location and scale of distribution are independent, we can construct the complete model in two steps: first by estimating the parameters of location and then the parameters of scale. The parameters are initialised based on the residuals of the model and then are optimised via maximisation of likelihood of the specified probability density function. This is done using the generic method `sm()` after constructing a model. For example, you can estimate a model based on `lm()` and then construct scale model for it (`sm()` will assume Normal distribution in this case and will use likelihood):
+where $\mathbf{x}_t$ and $\mathbf{B}$ are defined [as above](#normal), $\mathbf{z}_t$ is the vector of explanatory variables for the scale and $\mathbf{c}$ is the vector of parameters for this part of model. The exponent in the formula above is needed to make sure that the resulting values are always positive. The resulting value $\hat{\sigma}_t^2 = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$ will be the variance of the residuals conditional on the values of explanatory variables. Given that the location and scale of distribution are independent, we can construct the complete model in two steps: first by estimating the parameters of location and then the parameters of scale. The parameters are initialised based on the residuals of the model and then are optimised via maximisation of likelihood of the specified probability density function. This is done using the generic method `sm()` after constructing a model. For example, you can estimate a model based on `lm()` and then construct scale model for it (`sm()` will assume Normal distribution in this case and will use likelihood):
 ```{r}
 locationModel <- lm(mpg~., mtcars)
 scaleModel <- sm(locationModel,~qsec+wt)
 ```
+In `sm()`, the estimation starts with a least squares of logarithms of squared residuals on the selected explanatory variables. The obtained parameters are then used in the optimiser (using `nloptr()` function) and are modified to maximise the likelihood function of the Normal distribution.
 
-The function returns the object of class `scale`, which contains several potentially useful variables, including the fitted value ($\hat{\sigma}_t = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$) and residuals. The formula for residuals would differ from one distribution to another. For normal distribution it is:
+The function returns the object of class `scale`, which contains several potentially useful variables, including the fitted value ($\hat{\sigma}^2_t = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$) and residuals. The formula for residuals would differ from one distribution to another. For normal distribution it is:
 \begin{equation} \label{eq:scaleModelResiduals}
     u_t = \frac{e_t^2}{\sigma^2_t} .
 \end{equation}
@@ -945,6 +946,16 @@ plot(predict(almModel,mtcars[1:3,],interval="p",level=0.95))
 ```
 
 If the prediction interval is required, the function would first produce forecasts of the scale, and then use them for the construction of interval via the standard procedure, depending on the assumed distribution.
+
+As mentioned earlier, depending on the distribution, we would have slight differences in the function `sm()`, with different transformations of residuals of the location model (needed for the initialisation) and transformations of scale depending on the used distribution. Here is the full list of these:
+
+1. [Normal](#normal), [Log Normal](#lnormal), [Boc-Cox Normal](#bcnormal), [Logit Normal](#logitnormal), [Folded Normal](#fnormal) and [Logistic distribution](#logis). Logarithms of squared residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
+2. [Laplace](#laplace), [Log Laplace](#llaplace) and [Asymmetric Laplace](#alaplace) distributions. Logarithms of absolute residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
+3. [S](#svetunkov) and [Log S](#lsvetunkov) distributions. Logarithms of square root absolute residuals are used in the initialisation, $\hat{\sigma}_t^2$ is used in the density function;
+4. [Generalised Normal](#gnormal) and [Log Generalised Normal](#lgnormal) distributions. Logarithms of absolute residuals in the power of $\beta$ are used in the initialisation, $\hat{\sigma}_t^{\frac{1}{\beta}}$ is used in the density function;
+5. [Gamma distribution](#gamma). Logarithms of squared residuals minus one ($\log(e_t-1)^2$) are used in the initialisation. This is needed in order to get to the estimate of the variance in the residuals, as the distribution assumes in `alm()` that $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function;
+6. Inverse Gaussian distribution. The residuals are transformed according to the formula: $\log\left(\frac{(e_t-1)^2}{e_t}\right)$, which (similarly to Gamma distribution) is motivated by the assumption of $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function.
+7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily has a good reason and is done for fail-safe purposes.
 
 Note that the scale model is currently a new experimental feature, so it might not produce perfect results.
 
