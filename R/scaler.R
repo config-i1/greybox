@@ -405,7 +405,8 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
     }
 
     scale <- fitterScale(B, distribution);
-    #### !!!! This needs to be double checked
+
+    # Extract the actual values from the model
     errors <- switch(distribution,
                      "dnorm"=,
                      "dlnorm"=,
@@ -447,7 +448,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
         matrixXregScale <- cbind(errors,matrixXregScale);
     }
     colnames(matrixXregScale)[1] <- "residuals";
-    errors[] <- errors / scale;
+    errors[] <- residuals[subset] / scale;
 
     # If formula does not have response variable, update it.
     # This is mainly needed for the proper plots and outputs

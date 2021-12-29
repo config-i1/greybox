@@ -2534,22 +2534,25 @@ rstandard.greybox <- function(model, ...){
         residsToGo <- rep(TRUE,obs);
     }
 
-    # The proper residuals with leverage are currently done only for normal-based distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
-        errors[] <- errors / (extractScale(model)*sqrt(1-hatvalues(model)));
-    }
-    else if(any(model$distribution==c("ds","dls"))){
-        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df)^2;
-    }
-    else if(any(model$distribution==c("dgnorm","dlgnorm"))){
-        errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
-                         (extractScale(model)^model$other$shape * obs / df)^{1/model$other$shape});
-    }
-    else if(any(model$distribution==c("dinvgauss","dgamma","dexp"))){
-        errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
-    }
-    else{
-        errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
+    # If it is scale model, there's no need to divide by scale anymore
+    if(!is.scale(model)){
+        # The proper residuals with leverage are currently done only for normal-based distributions
+        if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
+            errors[] <- errors / (extractScale(model)*sqrt(1-hatvalues(model)));
+        }
+        else if(any(model$distribution==c("ds","dls"))){
+            errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df)^2;
+        }
+        else if(any(model$distribution==c("dgnorm","dlgnorm"))){
+            errors[residsToGo] <- ((errors[residsToGo] - mean(errors[residsToGo])) /
+                                       (extractScale(model)^model$other$shape * obs / df)^{1/model$other$shape});
+        }
+        else if(any(model$distribution==c("dinvgauss","dgamma","dexp"))){
+            errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
+        }
+        else{
+            errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
+        }
     }
 
     # Fill in values with NAs if there is occurrence model

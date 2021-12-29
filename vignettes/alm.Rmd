@@ -910,18 +910,18 @@ Finally, `alm()` supports scale model, estimating the scale of assumed distribut
 \begin{equation} \label{eq:scaleModel}
     y_t \sim \mathcal{N}\left(\mathbf{x}_t' \mathbf{b}, \exp\left(\mathbf{z}_t' \mathbf{c}\right) \right),
 \end{equation}
-where $\mathbf{x}_t$ and $\mathbf{B}$ are defined [as above](#normal), $\mathbf{z}_t$ is the vector of explanatory variables for the scale and $\mathbf{c}$ is the vector of parameters for this part of model. The exponent in the formula above is needed to make sure that the resulting values are always positive. The resulting value $\hat{\sigma}_t^2 = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$ will be the variance of the residuals conditional on the values of explanatory variables. Given that the location and scale of distribution are independent, we can construct the complete model in two steps: first by estimating the parameters of location and then the parameters of scale. The parameters are initialised based on the residuals of the model and then are optimised via maximisation of likelihood of the specified probability density function. This is done using the generic method `sm()` after constructing a model. For example, you can estimate a model based on `lm()` and then construct scale model for it (`sm()` will assume Normal distribution in this case and will use likelihood):
+where $\mathbf{x}_t$ and $\mathbf{B}$ are defined [as above](#normal), $\mathbf{z}_t$ is the vector of explanatory variables for the scale and $\mathbf{c}$ is the vector of parameters for this part of model. The exponent in the formula above is needed to make sure that the resulting values are always positive. The resulting value $\hat{\sigma}_t^2 = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$ will be the variance of the residuals conditional on the values of explanatory variables. The same model can be rewritten as (in case of normal distribution):
+\begin{equation} \label{eq:scaleModel2}
+    y_t = \mathbf{x}_t' \mathbf{b} + \sqrt{\exp\left(\mathbf{z}_t' \mathbf{c}\right)} \epsilon_t,
+\end{equation}
+where $\epsilon_t \sim \mathcal{N}\left(0, 1 \right)$. Given that the location and scale of distribution are independent, we can construct the complete model in two steps: first by estimating the parameters of location and then the parameters of scale. The parameters are initialised based on the residuals of the model and then are optimised via maximisation of likelihood of the specified probability density function. This is done using the generic method `sm()` after constructing a model. For example, you can estimate a model based on `lm()` and then construct scale model for it (`sm()` will assume Normal distribution in this case and will use likelihood):
 ```{r}
 locationModel <- lm(mpg~., mtcars)
 scaleModel <- sm(locationModel,~qsec+wt)
 ```
 In `sm()`, the estimation starts with a least squares of logarithms of squared residuals on the selected explanatory variables. The obtained parameters are then used in the optimiser (using `nloptr()` function) and are modified to maximise the likelihood function of the Normal distribution.
 
-The function returns the object of class `scale`, which contains several potentially useful variables, including the fitted value ($\hat{\sigma}^2_t = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$) and residuals. The formula for residuals would differ from one distribution to another. For normal distribution it is:
-\begin{equation} \label{eq:scaleModelResiduals}
-    u_t = \frac{e_t^2}{\sigma^2_t} .
-\end{equation}
-They do not have any proper meaning or follow any specific distribution, but they might provide some idea about the performance of scale model. The resulting model supports several methods. Here is an example:
+The function returns the object of class `scale`, which contains several potentially useful variables, including the fitted value ($\hat{\sigma}^2_t = \exp\left(\mathbf{z}_t' \mathbf{c}\right)$) and residuals ($\epsilon_t$). The formula for residuals would differ from one distribution to another. The residuals can be used for model diagnostics to see if the potential problems of the location model have been resolved (e.g. heteroscedasticity removed). The resulting model supports several methods. Here is an example:
 ```{r}
 summary(scaleModel)
 ```
@@ -957,7 +957,7 @@ As mentioned earlier, depending on the distribution, we would have slight differ
 6. Inverse Gaussian distribution. The residuals are transformed according to the formula: $\log\left(\frac{(e_t-1)^2}{e_t}\right)$, which (similarly to Gamma distribution) is motivated by the assumption of $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function.
 7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily has a good reason and is done for fail-safe purposes.
 
-Note that the scale model is currently a new experimental feature, so it might not produce perfect results.
+Note that the scale model is currently a new experimental feature, so it might not produce perfect results. Let me know if you have ideas of how to improve it via [https://github.com/config-i1/greybox/issues](https://github.com/config-i1/greybox/issues).
 
 
 # Using different loss functions {#losses}
