@@ -10,6 +10,8 @@ Changes:
 Bugfixes:
 * Switched off all registration of methods from greybox in cases of forecast / fabletools packages.
 * A fix in spread() for variables that are not factors and not numeric.
+* Use match.call instead of list() to expand ellipsis in scaler() function in order not to evaluate the content.
+* Remove print_level from the call in vcov.alm() if it was used.
 
 
 greybox v1.0.2 (Release data: 2021-12-01)

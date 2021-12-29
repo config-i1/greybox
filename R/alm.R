@@ -721,6 +721,7 @@ alm <- function(formula, data, subset, na.action,
 
     #### Define the rest of parameters ####
     ellipsis <- list(...);
+    # ellipsis <- match.call(expand.dots = FALSE)$`...`;
     # If arima was provided in the old style
     if(orders[1]==0 && !is.null(ellipsis[["ar", exact=TRUE]])){
         orders[1] <- ellipsis[["ar", exact=TRUE]];

@@ -985,6 +985,8 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             newCall$occurrence <- object$occurrence;
             # Include bloody ellipsis
             newCall <- as.call(c(as.list(newCall),substitute(ellipsis)));
+            # Make sure that print_level is zero, not to print redundant things out
+            newCall$print_level <- 0;
 
             # Recall alm to get hessian
             FIMatrix <- eval(newCall)$FI;
@@ -1102,6 +1104,8 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
     newCall$FI <- TRUE;
     # Include bloody ellipsis
     newCall <- as.call(c(as.list(newCall),substitute(ellipsis)));
+    # Make sure that print_level is zero, not to print redundant things out
+    newCall$print_level <- 0;
 
     # Recall alm to get hessian
     FIMatrix <- eval(newCall)$FI;

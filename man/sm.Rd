@@ -42,7 +42,8 @@ for \code{lm} or \code{alm}.
 \examples{
 
 xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
-xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+sqrt(exp(0.8+0.2*xreg[,1]))*rnorm(100,0,1),
+              xreg,rnorm(100,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
 
 # Estimate the location model
