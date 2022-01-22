@@ -29,6 +29,7 @@ Although `alm()` supports various loss functions, the core of the function is th
 This vignette contains the following sections:
 
 - [Supported distributions](#distributions);
+- [Scale model](#scaleModel);
 - [Using different loss functions](#losses);
 - [Estimation process](#estimator).
 
