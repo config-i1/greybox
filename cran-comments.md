@@ -1,12 +1,15 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "22 January 2021"
+date: "22 January 2022"
 output: html_document
 ---
 
 ## Version
 This is the release of the package ``greybox``, v1.0.3
+
+
+## I've changed the month and day in the previous submission, but forgot to change the year. This is now fixed.
 
 
 ## Test environments
