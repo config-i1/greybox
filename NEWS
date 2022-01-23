@@ -4,13 +4,13 @@ greybox v1.0.3 (Release data: 2022-01-22)
 Changes:
 * Fixed initialisation of Poisson in alm(), which should hopefully result in more accurate estimates of parameters.
 * New distribution in alm(): Exponential via "dexp".
-* From now on, predict.grybox() will not calculate vcov if interval="none".
-* sm() now returns meaningful residuals (standardised ones.
+* From now on, predict.greybox() will not calculate vcov if interval="none".
+* sm() now returns meaningful residuals (standardised ones).
 
 Bugfixes:
 * Switched off all registration of methods from greybox in cases of forecast / fabletools packages.
 * A fix in spread() for variables that are not factors and not numeric.
-* Use match.call instead of list() to expand ellipsis in scaler() function in order not to evaluate the content.
+* Use match.call() instead of list() to expand ellipsis in scaler() function in order not to evaluate the content.
 * Remove print_level from the call in vcov.alm() if it was used.
 
 
