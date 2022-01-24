@@ -12,10 +12,10 @@
 #' \item \link[stats]{dlogis} - Logistic Distribution,
 #' \item \link[stats]{dt} - T-distribution,
 #' \item \link[greybox]{dalaplace} - Asymmetric Laplace distribution,
-#' \item \link[stats]{dlnorm} - Log normal distribution,
-#' \item dllaplace - Log Laplace distribution,
-#' \item dls - Log S-distribution,
-#' \item dlgnorm - Log Generalised Normal distribution,
+#' \item \link[stats]{dlnorm} - Log-Normal distribution,
+#' \item dllaplace - Log-Laplace distribution,
+#' \item dls - Log-S distribution,
+#' \item dlgnorm - Log-Generalised Normal distribution,
 #' \item \link[greybox]{dfnorm} - Folded normal distribution,
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 # \item \link[stats]{dchisq} - Chi-Squared Distribution,
@@ -197,7 +197,7 @@
 #'    gear <- factor(gear)
 #'    carb <- factor(carb)
 #' })
-#' # The standard model with Log Normal distribution
+#' # The standard model with Log-Normal distribution
 #' ourModel <- alm(mpg~., mtcars2[1:30,], distribution="dlnorm")
 #' summary(ourModel)
 #' \donttest{plot(ourModel)}

@@ -43,7 +43,7 @@ All the supported distributions have specific functions which form the following
 4. [Density functions of discrete distributions](#discrete),
 5. [Cumulative functions for binary variables](#cumulative).
 
-All of them rely on respective d- and p- functions in R. For example, Log Normal distribution uses `dlnorm()` function from `stats` package.
+All of them rely on respective d- and p- functions in R. For example, Log-Normal distribution uses `dlnorm()` function from `stats` package.
 
 The `alm()` function also supports `occurrence` parameter, which allows modelling non-zero values and the occurrence of non-zeroes as two different models. The combination of any distribution from (1) - (3) for the non-zero values and a distribution from (4) for the occurrence will result in a [mixture distribution model](#mixture), e.g. a mixture of Log-Normal and Cumulative Logistic or a Hurdle Poisson (with Cumulative Normal for the occurrence part).
 
@@ -327,20 +327,20 @@ plot(predict(ourModel,outSample))
 ## Density functions for continuous positive data {#continuousPlus}
 This group includes:
 
-1. [Log Normal distribution](#lnormal),
+1. [Log-Normal distribution](#lnormal),
 2. [Box-Cox Normal distribution](#bcnormal),
 3. [Inverse Gaussian distribution](#invgauss),
 4. [Gamma distribution](#gamma),
 5. [Exponential distribution](#exponential),
-6. [Log Laplace distribution](#llaplace),
-7. [Log S distribution](#lsvetunkov),
-8. [Log Generalised Normal distribution](#lgnormal),
+6. [Log-Laplace distribution](#llaplace),
+7. [Log-S distribution](#lsvetunkov),
+8. [Log-Generalised Normal distribution](#lgnormal),
 9. [Folded Normal distribution](#fnormal),
 
 Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
 
-### Log Normal distribution {#lnormal}
-Log Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathcal{N}(\mu, \sigma^2)$. The density function of Log Normal distribution is:
+### Log-Normal distribution {#lnormal}
+Log-Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathcal{N}(\mu, \sigma^2)$. The density function of Log-Normal distribution is:
 \begin{equation} \label{eq:LogNormal}
     f(y_t) = \frac{1}{y_t \sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\log y_t - \mu_t \right)^2}{2 \sigma^2} \right) ,
 \end{equation}
@@ -351,13 +351,13 @@ where the variance estimated using likelihood is:
 The PDF has the following shape:
 ```{r pdflognorm, echo=FALSE}
 plot(seq(0,5,0.01),dlnorm(seq(0,5,0.01),0,1),type="l",
-     xlab="y_t",ylab="Density",ylim=c(0,1.5),main="PDF of Log Normal distribution")
+     xlab="y_t",ylab="Density",ylim=c(0,1.5),main="PDF of Log-Normal distribution")
 lines(seq(0,5,0.01),dlnorm(seq(0,5,0.01),1,1), col="blue")
 lines(seq(0,5,0.01),dlnorm(seq(0,5,0.01),0,2), col="red")
 legend("topright",legend=c("logN(0,1)","logN(1,1)","logN(0,2)"), lwd=1, col=c("black","blue","red"))
 ```
 
-Estimating the model with Log Normal distribution is equivalent to estimating the parameters of log-linear model:
+Estimating the model with Log-Normal distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation} \label{eq:logLinearModel}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation}
@@ -366,7 +366,7 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
     y_t = \exp(\mu_t + \epsilon_t).
 \end{equation}
 
-`alm()` with `distribution="dlnorm"` does not transform the provided data and estimates the density directly using `dlnorm()` function with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogNormal}. If you need a log-log model, then you would need to take logarithms of the external variables. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Log Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
+`alm()` with `distribution="dlnorm"` does not transform the provided data and estimates the density directly using `dlnorm()` function with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogNormal}. If you need a log-log model, then you would need to take logarithms of the external variables. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Log-Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
 ### Box-Cox Normal distribution {#bcnormal}
@@ -496,19 +496,19 @@ legend("topright",legend=c("Exp(1), mu=1","Exp(0.5), mu=2","Exp(2), mu=0.5"),
 **NOTE** that if the assumption of $\mathrm{E}(\epsilon_t) = \mathrm{V}(\epsilon_t) = 1$ does not hold, the model will produce unreasonable quantiles.
 
 
-### Log Laplace distribution {#llaplace}
+### Log-Laplace distribution {#llaplace}
 This is based on the exponent of [Laplace distribution](#laplace), which means that the PDF in this case is:
 \begin{equation} \label{eq:lLaplace}
     f(y_t) = \frac{1}{2 s y_t} \exp \left( -\frac{\left| \log y_t - \mu_t \right|}{s} \right) .
 \end{equation}
-The model implemented in the package has similarity with [Log Normal distribution](#lnormal). The MLE scale is:
+The model implemented in the package has similarity with [Log-Normal distribution](#lnormal). The MLE scale is:
 \begin{equation} \label{eq:bLogLaplace}
     \hat{s} = \frac{1}{T} \sum_{t=1}^T \left|\log y_t - \mu_t \right| .
 \end{equation}
-The density function of Log Laplace has the following shapes:
+The density function of Log-Laplace has the following shapes:
 ```{r pdflogLaplace, echo=FALSE}
 plot(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),0,1)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
-     xlab="y_t",ylab="Density",main="PDF of Log Laplace distribution")
+     xlab="y_t",ylab="Density",main="PDF of Log-Laplace distribution")
 lines(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),0,2)/seq(0.01,5,0.01), col="blue")
 lines(seq(0.01,5,0.01),dlaplace(log(seq(0.01,5,0.01)),1,1)/seq(0.01,5,0.01), col="red")
 legend("topright",legend=c("logLaplace(0,1)","logLaplace(0,2)","logLaplace(1,1)"),
@@ -516,35 +516,35 @@ legend("topright",legend=c("logLaplace(0,1)","logLaplace(0,2)","logLaplace(1,1)"
 ```
 
 
-Estimating the model with Log Laplace distribution is equivalent to estimating the parameters of log-linear model:
+Estimating the model with Log-Laplace distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
-where $\epsilon_t \sim \mathcal{Laplace}(0, \sigma^2)$. This distribution might be useful if the data has a strong skewness (larger than in case of log normal distribution).
+where $\epsilon_t \sim \mathcal{Laplace}(0, \sigma^2)$. This distribution might be useful if the data has a strong skewness (larger than in case of Log-Normal distribution).
 
 `alm()` with `distribution="dllaplace"` uses `dlaplace()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
-### Log S distribution {#lsvetunkov}
+### Log-S distribution {#lsvetunkov}
 This is based on the exponent of [S distribution](#svetunkov), giving the PDF:
 \begin{equation} \label{eq:ls}
     f(y_t) = \frac{1}{4 y_t s^2} \exp \left( -\frac{\sqrt{|\log y_t - \mu_t|}}{s} \right) ,
 \end{equation}
-The model implemented in the package has similarity with [Log Normal](#lnormal) and [Log Laplace](#llaplace) distributions. The MLE scale is:
+The model implemented in the package has similarity with [Log-Normal](#lnormal) and [Log-Laplace](#llaplace) distributions. The MLE scale is:
 \begin{equation} \label{eq:bLogS}
     \hat{s} = \frac{1}{2T} \sum_{t=1}^T \sqrt{\left| \log(y_t) - \mu_t \right|} ,
 \end{equation}
-The shape of the density function of Log S is similar to Log Laplace but with even more extreme values:
+The shape of the density function of Log-S is similar to Log-Laplace but with even more extreme values:
 ```{r pdflogS, echo=FALSE}
 plot(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),0,1)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
-     xlab="y_t",ylab="Density",main="PDF of Log S distribution")
+     xlab="y_t",ylab="Density",main="PDF of Log-S distribution")
 lines(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),0,2)/seq(0.01,5,0.01), col="blue")
 lines(seq(0.01,5,0.01),ds(log(seq(0.01,5,0.01)),1,1)/seq(0.01,5,0.01), col="red")
 legend("topright",legend=c("logS(0,1)","logS(0,2)","logS(1,1)"),
        lwd=1, col=c("black","blue","red"))
 ```
 
-Estimating the model with Log S distribution is equivalent to estimating the parameters of log-linear model:
+Estimating the model with Log-S distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
@@ -553,19 +553,19 @@ where $\epsilon_t \sim \mathcal{S}(0, \sigma^2)$. This distribution can be used 
 `alm()` with `distribution="dls"` uses `ds()` function with the logarithm of actual values, estimated mean $\mu_t$ and the scale \eqref{eq:sigmaLogLaplace}. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
 
 
-### Log Generalised Normal distribution {#lgnormal}
+### Log-Generalised Normal distribution {#lgnormal}
 This is based on the exponent of [Generalised Normal distribution](#gnormal), giving the PDF:
 \begin{equation} \label{eq:lgnormal}
     f(y_t) = \frac{\beta}{2s \Gamma(1/\beta)y_t}\exp\left(-\left(\frac{|\log(y_t) - \mu|}{s}\right)^\beta\right),
 \end{equation}
-The model implemented in the package has similarity with [Log Normal](#lnormal), [Log Laplace](#llaplace) and [Log S](#lsvetunkov) distributions. The MLE scale is:
+The model implemented in the package has similarity with [Log-Normal](#lnormal), [Log-Laplace](#llaplace) and [Log-S](#lsvetunkov) distributions. The MLE scale is:
 \begin{equation} \label{eq:LogAlpha}
     \hat{s} = \sqrt[^\beta]{\frac{\beta}{T} \sum_{t=1}^T \left| \log(y_t) - \mu_t \right|^{\beta}} .
 \end{equation}
 The shapes of the distribution depend on the value of parameters, giving it in some cases very long right tail:
 ```{r pdflogGN, echo=FALSE}
 plot(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,2)/seq(0.01,5,0.01),type="l",ylim=c(0,1.5),
-     xlab="y_t",ylab="Density",main="PDF of Log Generalised Normal distribution")
+     xlab="y_t",ylab="Density",main="PDF of Log-Generalised Normal distribution")
 lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,1)/seq(0.01,5,0.01), col="blue")
 lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,0.5)/seq(0.01,5,0.01), col="red")
 lines(seq(0.01,5,0.01),dgnorm(log(seq(0.01,5,0.01)),0,1,100)/seq(0.01,5,0.01), col="purple")
@@ -573,7 +573,7 @@ legend("topright",legend=c("logGN(0,1,2)","logGN(0,1,1)","logGN(0,1,0.5)","logGN
        lwd=1, col=c("black","blue","red","purple"))
 ```
 
-Estimating the model with Log Generalised Normal distribution is equivalent to estimating the parameters of log-linear model:
+Estimating the model with Log-Generalised Normal distribution is equivalent to estimating the parameters of log-linear model:
 \begin{equation*}
     \log y_t = \mu_t + \epsilon_t,
 \end{equation*}
@@ -638,12 +638,12 @@ legend("topright",legend=c("logitN(0,1)","logitN(-1,1)","logitN(1,1)","logitN(0,
 ```
 Depending on the values of location and scale, the distribution can be either unimodal or bimodal and can be positively or negatively skewed. Because of its connection with normal distribution, the logit-normal has formulae for density, cumulative and quantile functions. However, the moment generation function does not have a closed form. 
 
-The scale of the distribution can be estimated via the maximisation of likelihood and has some similarities with the scale in [Log Normal](#lnormal) distribution:
+The scale of the distribution can be estimated via the maximisation of likelihood and has some similarities with the scale in [Log-Normal](#lnormal) distribution:
 \begin{equation} \label{eq:sigmaLogitNormal}
     \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\mathrm{logit}(y_t) - \mu_t \right)^2 .
 \end{equation}
 
-Estimating the model with Log Normal distribution is equivalent to estimating the parameters of logit-linear model:
+Estimating the model with Log-Normal distribution is equivalent to estimating the parameters of logit-linear model:
 \begin{equation} \label{eq:logitLinearModel}
     \mathrm{logit}(y_t) = \mu_t + \epsilon_t,
 \end{equation}
@@ -950,10 +950,10 @@ If the prediction interval is required, the function would first produce forecas
 
 As mentioned earlier, depending on the distribution, we would have slight differences in the function `sm()`, with different transformations of residuals of the location model (needed for the initialisation) and transformations of scale depending on the used distribution. Here is the full list of these:
 
-1. [Normal](#normal), [Log Normal](#lnormal), [Boc-Cox Normal](#bcnormal), [Logit Normal](#logitnormal), [Folded Normal](#fnormal) and [Logistic distribution](#logis). Logarithms of squared residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
-2. [Laplace](#laplace), [Log Laplace](#llaplace) and [Asymmetric Laplace](#alaplace) distributions. Logarithms of absolute residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
-3. [S](#svetunkov) and [Log S](#lsvetunkov) distributions. Logarithms of square root absolute residuals are used in the initialisation, $\hat{\sigma}_t^2$ is used in the density function;
-4. [Generalised Normal](#gnormal) and [Log Generalised Normal](#lgnormal) distributions. Logarithms of absolute residuals in the power of $\beta$ are used in the initialisation, $\hat{\sigma}_t^{\frac{1}{\beta}}$ is used in the density function;
+1. [Normal](#normal), [Log-Normal](#lnormal), [Boc-Cox Normal](#bcnormal), [Logit Normal](#logitnormal), [Folded Normal](#fnormal) and [Logistic distribution](#logis). Logarithms of squared residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
+2. [Laplace](#laplace), [Log-Laplace](#llaplace) and [Asymmetric Laplace](#alaplace) distributions. Logarithms of absolute residuals are used in the initialisation, $\hat{\sigma}_t$ is used in the density function;
+3. [S](#svetunkov) and [Log-S](#lsvetunkov) distributions. Logarithms of square root absolute residuals are used in the initialisation, $\hat{\sigma}_t^2$ is used in the density function;
+4. [Generalised Normal](#gnormal) and [Log-Generalised Normal](#lgnormal) distributions. Logarithms of absolute residuals in the power of $\beta$ are used in the initialisation, $\hat{\sigma}_t^{\frac{1}{\beta}}$ is used in the density function;
 5. [Gamma distribution](#gamma). Logarithms of squared residuals minus one ($\log(e_t-1)^2$) are used in the initialisation. This is needed in order to get to the estimate of the variance in the residuals, as the distribution assumes in `alm()` that $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function;
 6. Inverse Gaussian distribution. The residuals are transformed according to the formula: $\log\left(\frac{(e_t-1)^2}{e_t}\right)$, which (similarly to Gamma distribution) is motivated by the assumption of $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function.
 7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily has a good reason and is done for fail-safe purposes.
