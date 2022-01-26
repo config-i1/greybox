@@ -1,15 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "22 January 2022"
+date: "27 January 2022"
 output: html_document
 ---
 
 ## Version
 This is the release of the package ``greybox``, v1.0.3
 
-
-## I've changed the month and day in the previous submission, but forgot to change the year. This is now fixed.
+*I've resubmitted ``smooth`` package, which had issues because of changes in ``greybox``. Now revdep should be fine.*
 
 
 ## Test environments
@@ -24,7 +23,7 @@ This is the release of the package ``greybox``, v1.0.3
 >    installed size is  5.1Mb
 >    sub-directories of 1Mb or more:
 >      R      1.1Mb
->      doc    2.5Mb
+>      doc    2.6Mb
 >      libs   1.1Mb
 >
 >R CMD check results

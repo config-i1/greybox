@@ -7,22 +7,22 @@
 \alias{sm.alm}
 \title{Scale Model}
 \usage{
-sm(model, formula = NULL, data = NULL, parameters = NULL, ...)
+sm(object, formula = NULL, data = NULL, parameters = NULL, ...)
 
-\method{sm}{default}(model, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{default}(object, formula = NULL, data = NULL, parameters = NULL, ...)
 
-\method{sm}{lm}(model, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{lm}(object, formula = NULL, data = NULL, parameters = NULL, ...)
 
-\method{sm}{alm}(model, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{alm}(object, formula = NULL, data = NULL, parameters = NULL, ...)
 }
 \arguments{
-\item{model}{The pre-estimated \code{alm} or \code{lm} model.}
+\item{object}{The pre-estimated \code{alm} or \code{lm} model.}
 
 \item{formula}{The formula for scale. It should start with ~ and contain all variables
 that should impact the scale.}
 
 \item{data}{The data, on which the scale model needs to be estimated. If not provided,
-then the one used in the \code{model} is used.}
+then the one used in the \code{object} is used.}
 
 \item{parameters}{The parameters to use in the model. Only needed if you know the parameters
 in advance or want to test yours.}

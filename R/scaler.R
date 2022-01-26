@@ -9,11 +9,11 @@
 #'
 #' @template author
 #'
-#' @param model The pre-estimated \code{alm} or \code{lm} model.
+#' @param object The pre-estimated \code{alm} or \code{lm} model.
 #' @param formula The formula for scale. It should start with ~ and contain all variables
 #' that should impact the scale.
 #' @param data The data, on which the scale model needs to be estimated. If not provided,
-#' then the one used in the \code{model} is used.
+#' then the one used in the \code{object} is used.
 #' @param parameters The parameters to use in the model. Only needed if you know the parameters
 #' in advance or want to test yours.
 #' @param ... Other parameters to pass to the method, including those explained in
@@ -34,66 +34,66 @@
 #'
 #' @rdname sm
 #' @export
-sm <- function(model, formula=NULL, data=NULL, parameters=NULL, ...) UseMethod("sm")
+sm <- function(object, formula=NULL, data=NULL, parameters=NULL, ...) UseMethod("sm")
 
 #' @rdname sm
 #' @export
-sm.default <- function(model, formula=NULL, data=NULL, parameters=NULL, ...){
+sm.default <- function(object, formula=NULL, data=NULL, parameters=NULL, ...){
     # The function creates a scale model for the provided model
     distribution <- "dnorm";
     if(is.null(data)){
-        if(is.matrix(model$model)){
-            data <- model$model;
+        if(is.matrix(object$model)){
+            data <- object$model;
         }
-        else if(is.matrix(model$data)){
-            data <- model$data;
+        else if(is.matrix(object$data)){
+            data <- object$data;
         }
     }
     if(is.null(formula)){
-        formula <- formula(model);
+        formula <- formula(object);
         formula[[2]] <- NULL;
     }
-    return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
-                                 distribution, fitted(model), actuals(model), residuals(model),
-                                 parameters, cl=model$call, ...)));
+    return(do.call("scaler",list(formula, data, object$call$subset, object$call$na.action,
+                                 distribution, fitted(object), actuals(object), residuals(object),
+                                 parameters, cl=object$call, ...)));
 }
 
 #' @rdname sm
 #' @export
-sm.lm <- function(model, formula=NULL, data=NULL,
+sm.lm <- function(object, formula=NULL, data=NULL,
                   parameters=NULL, ...){
     # The function creates a scale model for the provided model
     distribution <- "dnorm";
     if(is.null(data)){
-        data <- model$model;
+        data <- object$model;
     }
     if(is.null(formula)){
-        formula <- formula(model);
+        formula <- formula(object);
         formula[[2]] <- NULL;
     }
-    return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
-                                 distribution, fitted(model), actuals(model), residuals(model),
-                                 parameters, cl=model$call, ...)));
+    return(do.call("scaler",list(formula, data, object$call$subset, object$call$na.action,
+                                 distribution, fitted(object), actuals(object), residuals(object),
+                                 parameters, cl=object$call, ...)));
 }
 
 #' @rdname sm
 #' @export
-sm.alm <- function(model, formula=NULL, data=NULL,
+sm.alm <- function(object, formula=NULL, data=NULL,
                    # orders=c(0,0,0),
                    parameters=NULL, ...){
     # The function creates a scale model for the provided model
-    distribution <- model$distribution;
-    cl <- model$call;
+    distribution <- object$distribution;
+    cl <- object$call;
     if(is.null(data)){
-        data <- model$call$data;
+        data <- object$call$data;
     }
     if(is.null(formula)){
-        formula <- formula(model);
+        formula <- formula(object);
         formula[[2]] <- NULL;
     }
-    return(do.call("scaler",list(formula, data, model$call$subset, model$call$na.action,
-                                 distribution, model$mu, actuals(model), residuals(model),
-                                 parameters, model$occurrence, model$other, cl=cl, ...)));
+    return(do.call("scaler",list(formula, data, object$call$subset, object$call$na.action,
+                                 distribution, object$mu, actuals(object), residuals(object),
+                                 parameters, object$occurrence, object$other, cl=cl, ...)));
 }
 
 scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu, y, residuals,

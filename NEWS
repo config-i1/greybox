@@ -1,4 +1,11 @@
-greybox v1.0.3 (Release data: 2022-01-22)
+greybox v1.0.4 (Release data: 2022-01-27)
+==============
+
+Changes:
+* Renamed variable "model" in "object" in sm() generic. This is needed for consistency with more complicated models (e.g. adam()), where "model" means something else.
+
+
+greybox v1.0.3 (Release data: 2022-01-27)
 ==============
 
 Changes:
