@@ -116,7 +116,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                         "dnbinom"=other$size,
                         "dchisq"=other$nu,
                         "dbcnorm"=other$lambdaBC,
-                        "dt"=other$df,
+                        "dt"=other$nu,
                         NULL);
     }
 
