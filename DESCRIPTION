@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 1.0.4.41001
-Date: 2022-01-27
+Version: 1.0.4.41002
+Date: 2022-02-01
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -23,6 +23,7 @@ Depends:
     R (>= 3.5.0)
 Imports:
     stats,
+    generics (>= 0.1.2),
     graphics,
     utils,
     lamW,

@@ -1,8 +1,9 @@
-greybox v1.0.4 (Release data: 2022-01-27)
+greybox v1.0.4 (Release data: 2022-02-01)
 ==============
 
 Changes:
 * Renamed variable "model" in "object" in sm() generic. This is needed for consistency with more complicated models (e.g. adam()), where "model" means something else.
+* We now import forecast method from generics package.
 
 
 greybox v1.0.3 (Release data: 2022-01-27)

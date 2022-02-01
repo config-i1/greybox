@@ -3,10 +3,9 @@
 \name{predict.alm}
 \alias{predict.alm}
 \alias{predict.greybox}
-\alias{forecast}
 \alias{forecast.greybox}
-\alias{predict.scale}
 \alias{forecast.alm}
+\alias{predict.scale}
 \title{Forecasting using greybox functions}
 \usage{
 \method{predict}{alm}(object, newdata = NULL, interval = c("none",

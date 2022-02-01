@@ -3525,7 +3525,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 #' \code{predict}, so you can provide parameters \code{interval}, \code{level} and
 #' \code{side} in the call for \code{forecast}.
 #'
-#' @aliases forecast forecast.greybox
+#' @aliases forecast.greybox forecast.alm
 #' @param object Time series model for which forecasts are required.
 #' @param newdata The new data needed in order to produce forecasts.
 #' @param interval Type of intervals to construct: either "confidence" or
@@ -4034,15 +4034,7 @@ predict.scale <- function(object, newdata=NULL, interval=c("none", "confidence",
     return(scalePredicted);
 }
 
-# @importFrom forecast forecast
-#' @export forecast
-forecast <- function(object, ...) UseMethod("forecast")
-
-#' @export
-forecast.default <- function(object, ...){
-    return(predict(object, ...));
-}
-
+#' @importFrom generics forecast
 #' @rdname predict.greybox
 #' @export
 forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){
