@@ -4035,6 +4035,9 @@ predict.scale <- function(object, newdata=NULL, interval=c("none", "confidence",
 }
 
 #' @importFrom generics forecast
+#' @export
+generics::forecast
+
 #' @rdname predict.greybox
 #' @export
 forecast.greybox <- function(object, newdata=NULL, h=NULL, ...){
