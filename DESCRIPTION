@@ -35,7 +35,7 @@ Imports:
     methods
 LinkingTo: Rcpp
 Suggests:
-    smooth (>= 3.1.6),
+    smooth (>= 3.1.0),
     doMC,
     doParallel,
     foreach,
