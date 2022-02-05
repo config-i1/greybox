@@ -1,14 +1,14 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "27 January 2022"
+date: "05 February 2022"
 output: html_document
 ---
 
 ## Version
-This is the release of the package ``greybox``, v1.0.3
+This is the release of the package `greybox`, v1.0.4
 
-*I've resubmitted ``smooth`` package, which had issues because of changes in ``greybox``. Now revdep should be fine.*
+The main reason to submit it is because now it uses `generics` package, importing `forecast` method. This will resolve conflicts with other package.
 
 
 ## Test environments

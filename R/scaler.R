@@ -423,7 +423,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                      "dls"=residuals[subset]^2,
                      "dgnorm"=,
                      "dlgnorm"=abs(residuals[subset])^{1/other},
-                     "dgamma"=abs(residuals[subset]),
+                     "dgamma"=,
                      "dinvgauss"=abs(residuals[subset]));
 
     #### Produce Fisher Information ####
