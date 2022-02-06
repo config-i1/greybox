@@ -790,8 +790,58 @@ sigma.varest <- function(object, ...){
     return(t(residuals(object)) %*% residuals(object) / (nobs(object)-nparam(object)+object$K));
 }
 
-# Function extracts the scale from the model
-extractScale <- function(object, ...){
+#' Functions to extract scale and standard error from a model
+#'
+#' Functions extract scale and the standard error of the residuals. Mainly needed for
+#' the work with the model estimated via \link[greybox]{sm}.
+#'
+#' In case of a simpler model, the functions will return the scalar using
+#' \code{sigma()} method. If the scale model was estimated, \code{extractScale()} and
+#' \code{extractSigma()} will return the conditional scale and the conditional
+#' standard error of the residuals respectively.
+#'
+#' @param object The model estimated using lm / alm / etc.
+#' @param ... Other parameters (currently nothing).
+#'
+#' @return One of the two is returned, depending on the type of estimated model:
+#' \itemize{
+#' \item Scalar from \code{sigma()} method if the variance is assumed to be constant.
+#' \item Vector of values if the scale model was estimated
+#' }
+#'
+#' @template author
+#' @template keywords
+#'
+#' @seealso \code{\link[greybox]{sm}}
+#'
+#' @examples
+#' # Generate the data
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+sqrt(exp(0.8+0.2*xreg[,1]))*rnorm(100,0,1),
+#'               xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' # Estimate the location and scale model
+#' ourModel <- alm(y~., xreg, scale=~x1+x2)
+#'
+#' # Extract scale
+#' extractScale(ourModel)
+#' # Extract standard error
+#' extractSigma(ourModel)
+#'
+#' @rdname extractScale
+#' @export
+extractScale <- function(object, ...) UseMethod("extractScale")
+
+#' @rdname extractScale
+#' @export
+extractScale.default <- function(object, ...){
+    return(sigma(object));
+}
+
+#' @rdname extractScale
+#' @export
+extractScale.greybox <- function(object, ...){
     if(is.scale(object$scale)){
         return(fitted(object$scale));
     }
@@ -805,8 +855,19 @@ extractScale <- function(object, ...){
     }
 }
 
-# Function extracts variance from the model. Needed for scaleModel
-extractSigma <- function(object, ...){
+#' @rdname extractScale
+#' @export
+extractSigma <- function(object, ...) UseMethod("extractSigma")
+
+#' @rdname extractScale
+#' @export
+extractSigma.default <- function(object, ...){
+    return(sigma(object));
+}
+
+#' @rdname extractScale
+#' @export
+extractSigma.greybox <- function(object, ...){
     if(is.scale(object$scale)){
         return(switch(object$distribution,
                       "dnorm"=,
@@ -2697,10 +2758,11 @@ cooks.distance.greybox <- function(model, ...){
 #' # Detect outliers
 #' xregOutlierDummy <- outlierdummy(ourModel)
 #'
+#' @rdname outlierdummy
 #' @export outlierdummy
-outlierdummy <-  function(object, level=0.999, type=c("rstandard","rstudent"),
-                          ...) UseMethod("outlierdummy")
+outlierdummy <-  function(object, ...) UseMethod("outlierdummy")
 
+#' @rdname outlierdummy
 #' @export
 outlierdummy.default <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
     # Function returns the matrix of dummies with outliers
@@ -2724,6 +2786,7 @@ outlierdummy.default <- function(object, level=0.999, type=c("rstandard","rstude
                      class="outlierdummy"));
 }
 
+#' @rdname outlierdummy
 #' @export
 outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
     # Function returns the matrix of dummies with outliers
