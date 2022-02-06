@@ -36,6 +36,7 @@
 #' set of observations ahead as well, binding them to the original matrix.
 #' @param factors If \code{TRUE}, the function will return the categorical variable
 #' instead of the matrix with dummies.
+#' @param ... Other parameters.
 #'
 #' @return One of the two is returned, depending on the value of \code{factors} variable:
 #' \itemize{
@@ -64,13 +65,12 @@
 #'
 #' @rdname temporaldummy
 #' @export
-temporaldummy <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                    of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0) UseMethod("temporaldummy")
+temporaldummy <- function(object, ...) UseMethod("temporaldummy")
 
 #' @rdname temporaldummy
 #' @export
 temporaldummy.default <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                            of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
+                            of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0, ...){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -107,9 +107,10 @@ temporaldummy.default <- function(object, type=c("month","quarter","week","day",
 
 }
 
+#' @rdname temporaldummy
 #' @export
 temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                             of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
+                             of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0, ...){
 
     # Define frequency (we don't know it in case of default class)
     dataFrequency <- frequency(object);
@@ -123,9 +124,10 @@ temporaldummy.ts <- function(object, type=c("month","quarter","week","day","hour
               start=start(object), frequency=dataFrequency));
 }
 
+#' @rdname temporaldummy
 #' @export
 temporaldummy.Date <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0, ...){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -232,9 +234,10 @@ temporaldummy.Date <- function(object, type=c("month","quarter","week","day","ho
     }
 }
 
+#' @rdname temporaldummy
 #' @export
 temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0, ...){
     type <- match.arg(type);
     of <- match.arg(of);
 
@@ -386,9 +389,10 @@ temporaldummy.POSIXt <- function(object, type=c("month","quarter","week","day","
     }
 }
 
+#' @rdname temporaldummy
 #' @export
 temporaldummy.zoo <- function(object, type=c("month","quarter","week","day","hour","halfhour","minute","second"),
-                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0){
+                         of=c("year","quarter","month","week","day","hour","minute"), factors=FALSE, h=0, ...){
     type <- match.arg(type);
     of <- match.arg(of);
 

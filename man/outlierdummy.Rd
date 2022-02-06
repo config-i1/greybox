@@ -2,19 +2,25 @@
 % Please edit documentation in R/methods.R
 \name{outlierdummy}
 \alias{outlierdummy}
+\alias{outlierdummy.default}
+\alias{outlierdummy.alm}
 \title{Outlier detection and matrix creation}
 \usage{
-outlierdummy(object, level = 0.999, type = c("rstandard", "rstudent"), ...)
+outlierdummy(object, ...)
+
+\method{outlierdummy}{default}(object, level = 0.999, type = c("rstandard", "rstudent"), ...)
+
+\method{outlierdummy}{alm}(object, level = 0.999, type = c("rstandard", "rstudent"), ...)
 }
 \arguments{
 \item{object}{Model estimated using one of the functions of smooth package.}
+
+\item{...}{Other parameters. Not used yet.}
 
 \item{level}{Confidence level to use. Everything that is outside the constructed
 bounds based on that is flagged as outliers.}
 
 \item{type}{Type of residuals to use: either standardised or studentised.}
-
-\item{...}{Other parameters. Not used yet.}
 }
 \value{
 The class "outlierdummy", which contains the list:

@@ -3,19 +3,39 @@
 \name{temporaldummy}
 \alias{temporaldummy}
 \alias{temporaldummy.default}
+\alias{temporaldummy.ts}
+\alias{temporaldummy.Date}
+\alias{temporaldummy.POSIXt}
+\alias{temporaldummy.zoo}
 \title{Dummy variables for provided seasonality type}
 \usage{
-temporaldummy(object, type = c("month", "quarter", "week", "day", "hour",
-  "halfhour", "minute", "second"), of = c("year", "quarter", "month", "week",
-  "day", "hour", "minute"), factors = FALSE, h = 0)
+temporaldummy(object, ...)
 
 \method{temporaldummy}{default}(object, type = c("month", "quarter", "week",
   "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
-  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0)
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0, ...)
+
+\method{temporaldummy}{ts}(object, type = c("month", "quarter", "week",
+  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0, ...)
+
+\method{temporaldummy}{Date}(object, type = c("month", "quarter", "week",
+  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0, ...)
+
+\method{temporaldummy}{POSIXt}(object, type = c("month", "quarter", "week",
+  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0, ...)
+
+\method{temporaldummy}{zoo}(object, type = c("month", "quarter", "week",
+  "day", "hour", "halfhour", "minute", "second"), of = c("year", "quarter",
+  "month", "week", "day", "hour", "minute"), factors = FALSE, h = 0, ...)
 }
 \arguments{
 \item{object}{Either a ts / msts / zoo / xts / tsibble object or a vector
 of dates.}
+
+\item{...}{Other parameters.}
 
 \item{type}{Specifies what type of frequency to produce. For example, if
 \code{type="month"}, then the matrix with dummies for months of the year will
