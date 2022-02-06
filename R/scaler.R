@@ -34,7 +34,7 @@
 #'
 #' @rdname sm
 #' @export
-sm <- function(object, formula=NULL, data=NULL, parameters=NULL, ...) UseMethod("sm")
+sm <- function(object, ...) UseMethod("sm")
 
 #' @rdname sm
 #' @export

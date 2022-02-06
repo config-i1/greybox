@@ -7,7 +7,7 @@
 \alias{sm.alm}
 \title{Scale Model}
 \usage{
-sm(object, formula = NULL, data = NULL, parameters = NULL, ...)
+sm(object, ...)
 
 \method{sm}{default}(object, formula = NULL, data = NULL, parameters = NULL, ...)
 
@@ -18,6 +18,9 @@ sm(object, formula = NULL, data = NULL, parameters = NULL, ...)
 \arguments{
 \item{object}{The pre-estimated \code{alm} or \code{lm} model.}
 
+\item{...}{Other parameters to pass to the method, including those explained in
+\link[greybox]{alm} (e.g. parameters for optimiser).}
+
 \item{formula}{The formula for scale. It should start with ~ and contain all variables
 that should impact the scale.}
 
@@ -26,9 +29,6 @@ then the one used in the \code{object} is used.}
 
 \item{parameters}{The parameters to use in the model. Only needed if you know the parameters
 in advance or want to test yours.}
-
-\item{...}{Other parameters to pass to the method, including those explained in
-\link[greybox]{alm} (e.g. parameters for optimiser).}
 }
 \description{
 This method produces a model for scale of distribution for the provided pre-estimated model.
