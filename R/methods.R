@@ -847,7 +847,8 @@ extractScale.greybox <- function(object, ...){
     }
     else{
         if(is.scale(object)){
-            return(fitted(object));
+            return(1);
+            # return(fitted(object));
         }
         else{
             return(object$scale);
