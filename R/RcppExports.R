@@ -19,7 +19,7 @@
 #'
 #' @examples
 #'
-#' polyprod(c(1,-2,-1),c(1,0.5,0.3))
+#' \dontrun{polyprod(c(1,-2,-1),c(1,0.5,0.3))}
 #'
 #' @useDynLib greybox
 #' @export
