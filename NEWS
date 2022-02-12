@@ -1,8 +1,9 @@
-greybox v1.0.5 (Release data: 2022-02-06)
+greybox v1.0.5 (Release data: 2022-02-11)
 ==============
 
 Changes:
 * Simplified the generics outlierdummy(), temporaldummy() and sm().
+* qs() and qlaplace() now use qgnorm() function. We no longer need to rely on lamW package in R.
 
 
 greybox v1.0.4 (Release data: 2022-02-05)

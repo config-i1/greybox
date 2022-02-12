@@ -76,54 +76,55 @@ ps <- function(q, mu=0, scale=1){
 
 #' @rdname SDistribution
 #' @export qs
-#' @importFrom lamW lambertWm1
 #' @aliases qs
 qs <- function(p, mu=0, scale=1){
+    # Square scale to get to the same scale as in GN
+    return(qgnorm(p, mu=mu, scale=scale^2, shape=0.5))
     # p <- unique(p);
     # mu <- unique(mu);
     # scale <- unique(scale);
-    lengthMax <- max(length(p),length(mu),length(scale));
-    # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
-    if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
-        svetReturn <- array(0,c(length(p),length(mu),length(scale)),
-                            dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
-        svetReturn[p==0.5,,] <- 1;
-        svetReturn[p==0,,] <- -Inf;
-        svetReturn[p==1,,] <- Inf;
-        probsToEstimate <- which(svetReturn[,1,1]==0);
-        svetReturn[svetReturn==1] <- 0;
-        if(length(probsToEstimate)!=0){
-            for(i in 1:length(probsToEstimate)){
-                j <- probsToEstimate[i];
-                for(k in 1:length(scale)){
-                    if(p[j]<0.5){
-                        svetReturn[j,,k] <- (-scale[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
-                                                 2*scale[k]^2*lambertWm1(-2*p[j]/exp(1))-scale[k]^2);
-                    }
-                    else{
-                        svetReturn[j,,k] <- (scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
-                                                 2*scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+scale[k]^2);
-                    }
-                }
-            }
-            svetReturn <- svetReturn + rep(mu,each=length(p));
-        }
-        # Drop the redundant dimensions
-        svetReturn <- svetReturn[,,];
-    }
-    else{
-        Ie <- (p < 0.5)*1;
-        svetReturn <- rep(0,max(length(p),length(mu),length(scale)));
-        svetReturn[] <- mu + ((-1)^Ie * scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))^2 +
-                                (-1)^Ie*2*scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))+(-1)^Ie*scale^2);
-        if(any(p==0)){
-            svetReturn[p==0] <- -Inf;
-        }
-        if(any(p==1)){
-            svetReturn[p==1] <- Inf;
-        }
-    }
-    return(svetReturn);
+    # lengthMax <- max(length(p),length(mu),length(scale));
+    # # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
+    # if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
+    #     svetReturn <- array(0,c(length(p),length(mu),length(scale)),
+    #                         dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
+    #     svetReturn[p==0.5,,] <- 1;
+    #     svetReturn[p==0,,] <- -Inf;
+    #     svetReturn[p==1,,] <- Inf;
+    #     probsToEstimate <- which(svetReturn[,1,1]==0);
+    #     svetReturn[svetReturn==1] <- 0;
+    #     if(length(probsToEstimate)!=0){
+    #         for(i in 1:length(probsToEstimate)){
+    #             j <- probsToEstimate[i];
+    #             for(k in 1:length(scale)){
+    #                 if(p[j]<0.5){
+    #                     svetReturn[j,,k] <- (-scale[k]^2*lambertWm1(-2*p[j]/exp(1))^2 -
+    #                                              2*scale[k]^2*lambertWm1(-2*p[j]/exp(1))-scale[k]^2);
+    #                 }
+    #                 else{
+    #                     svetReturn[j,,k] <- (scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))^2 +
+    #                                              2*scale[k]^2*lambertWm1(2*(p[j]-1)/exp(1))+scale[k]^2);
+    #                 }
+    #             }
+    #         }
+    #         svetReturn <- svetReturn + rep(mu,each=length(p));
+    #     }
+    #     # Drop the redundant dimensions
+    #     svetReturn <- svetReturn[,,];
+    # }
+    # else{
+    #     Ie <- (p < 0.5)*1;
+    #     svetReturn <- rep(0,max(length(p),length(mu),length(scale)));
+    #     svetReturn[] <- mu + ((-1)^Ie * scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))^2 +
+    #                             (-1)^Ie*2*scale^2*lambertWm1((-1)^Ie * 2*(p - 1 + Ie)/exp(1))+(-1)^Ie*scale^2);
+    #     if(any(p==0)){
+    #         svetReturn[p==0] <- -Inf;
+    #     }
+    #     if(any(p==1)){
+    #         svetReturn[p==1] <- Inf;
+    #     }
+    # }
+    # return(svetReturn);
 }
 
 #' @rdname SDistribution

@@ -80,31 +80,32 @@ plaplace <- function(q, mu=0, scale=1){
 #' @export qlaplace
 #' @aliases qlaplace
 qlaplace <- function(p, mu=0, scale=1){
+    return(qgnorm(p, mu=mu, scale=scale, shape=1))
     # p <- unique(p);
     # mu <- unique(mu);
     # scale <- unique(scale);
-    lengthMax <- max(length(p),length(mu),length(scale));
-    # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
-    if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
-        laplaceReturn <- array(0,c(length(p),length(mu),length(scale)),
-                               dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
-        laplaceReturn[p==0.5,,] <- 1;
-        laplaceReturn[p==0,,] <- -Inf;
-        laplaceReturn[p==1,,] <- Inf;
-        probsToEstimate <- which(laplaceReturn[,1,1]==0);
-        laplaceReturn[laplaceReturn==1] <- 0;
-        for(k in 1:length(scale)){
-            laplaceReturn[probsToEstimate,,k] <- (-scale[k] * sign(p[probsToEstimate]-0.5) *
-                                                      log(1-2*abs(p[probsToEstimate]-0.5)));
-        }
-        laplaceReturn <- laplaceReturn + rep(mu,each=length(p));
-        # Drop the redundant dimensions
-        laplaceReturn <- laplaceReturn[,,];
-    }
-    else{
-        laplaceReturn <- mu - scale * sign(p-0.5) * log(1-2*abs(p-0.5));
-    }
-    return(laplaceReturn);
+    # lengthMax <- max(length(p),length(mu),length(scale));
+    # # If length of p, mu and scale differs, then go difficult. Otherwise do simple stuff
+    # if(any(!c(length(p),length(mu),length(scale)) %in% c(lengthMax, 1))){
+    #     laplaceReturn <- array(0,c(length(p),length(mu),length(scale)),
+    #                            dimnames=list(paste0("p=",p),paste0("mu=",mu),paste0("scale=",scale)));
+    #     laplaceReturn[p==0.5,,] <- 1;
+    #     laplaceReturn[p==0,,] <- -Inf;
+    #     laplaceReturn[p==1,,] <- Inf;
+    #     probsToEstimate <- which(laplaceReturn[,1,1]==0);
+    #     laplaceReturn[laplaceReturn==1] <- 0;
+    #     for(k in 1:length(scale)){
+    #         laplaceReturn[probsToEstimate,,k] <- (-scale[k] * sign(p[probsToEstimate]-0.5) *
+    #                                                   log(1-2*abs(p[probsToEstimate]-0.5)));
+    #     }
+    #     laplaceReturn <- laplaceReturn + rep(mu,each=length(p));
+    #     # Drop the redundant dimensions
+    #     laplaceReturn <- laplaceReturn[,,];
+    # }
+    # else{
+    #     laplaceReturn <- mu - scale * sign(p-0.5) * log(1-2*abs(p-0.5));
+    # }
+    # return(laplaceReturn);
 }
 
 #' @rdname Laplace
