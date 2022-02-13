@@ -522,6 +522,7 @@ implant.alm <- function(location, scale, ...){
     location$df.residual <- obsInsample-nParam;
     location$df <- nParam;
     location$rank <- nParam;
+    location$call$scale <- formula(scale);
 
     return(location);
 }

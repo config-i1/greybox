@@ -927,7 +927,14 @@ The function returns the object of class `scale`, which contains several potenti
 summary(scaleModel)
 ```
 
-The diagnostic plots can be produced as well, but they do not make much sense yet.
+The diagnostic plots can be produced as well. The error term in this case would be standardised.
+
+If the scale model needs to be taken into account in forecasting, then the `implant()` method can be used to implant it into the previously estimated model. This only works with `alm()` function:
+```{r}
+locationModel <- alm(mpg~., mtcars)
+scaleModel <- sm(locationModel,~qsec+wt)
+locationModel <- implant(locationModel,scaleModel)
+```
 
 When it comes to `alm()`, the model can be estimated in the same function:
 
@@ -935,7 +942,7 @@ When it comes to `alm()`, the model can be estimated in the same function:
 almModel <- alm(mpg~., mtcars[-c(1:3),], scale=~qsec+wt)
 ```
 
-In this case, the summary of the model would differ - it would include the output for the scale model together with the location one:
+In this case, the summary of the model would differ from the basic call of `alm()` - it would include the output for the scale model together with the location one:
 
 ```{r}
 summary(almModel)
