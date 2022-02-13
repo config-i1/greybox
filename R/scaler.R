@@ -8,6 +8,7 @@
 #' for \code{lm} or \code{alm}.
 #'
 #' @template author
+#' @template keywords
 #'
 #' @param object The pre-estimated \code{alm} or \code{lm} model.
 #' @param formula The formula for scale. It should start with ~ and contain all variables
@@ -467,4 +468,60 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
                                  timeElapsed=Sys.time()-startTime),
                             class=c("scale","alm","greybox"));
     return(finalModel);
+}
+
+
+#' Implant the scale model in the location model
+#'
+#' The function implants the scale model into the location model. It currently works
+#' with \link[greybox]{alm} / \link[smooth]{adam()} and \code{sm()} method.
+#'
+#' The function is needed in order to treat the scale of model correctly in the methods
+#' like \code{forecast()}.
+#'
+#' @template author
+#' @template keywords
+#'
+#' @param location Model estimated using either \code{alm} or \code{adam}.
+#' @param scale The scale model, estimate with \code{sm} method.
+#' @param ... Currently nothing. Implemented for flexibility.
+#' @return The model of the same class as the location model, but with scale
+#' from the estimated model via \code{sm()}. This is needed to produce
+#' appropriate forecasts in case of scale model and to take  into account
+#' the correct number of estimated parameters.
+#' @seealso \link[greybox]{alm}, \link[smooth]{adam}, \link[greybox]{sm}
+#' @examples
+#'
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+sqrt(exp(0.8+0.2*xreg[,1]))*rnorm(100,0,1),
+#'               xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' # Estimate the location model
+#' ourModel <- alm(y~.,xreg)
+#' # Estimate the scale model
+#' ourScale <- sm(ourModel,formula=~x1+x2)
+#' # Implant scale into location
+#' ourModel <- implant(ourModel, ourScale)
+#'
+#' @rdname implant
+#' @export implant
+implant <- function(location, scale, ...) UseMethod("implant")
+
+#' @export
+implant.alm <- function(location, scale, ...){
+    if(!is.scale(scale)){
+        stop("sm is not a scale model. Cannot procede.",
+             call.=FALSE)
+    }
+    nParam <- nparam(location) + nparam(scale);
+    obsInsample <- nobs(location);
+
+    location$scale <- scale;
+    location$logLik <- logLik(scale);
+    location$df.residual <- obsInsample-nParam;
+    location$df <- nParam;
+    location$rank <- nParam;
+
+    return(location);
 }

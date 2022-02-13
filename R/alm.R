@@ -2010,6 +2010,7 @@ alm <- function(formula, data, subset, na.action,
                                            distribution, mu, y, errors,
                                            NULL, occurrence, ellipsis));
             scale$call$data <- dataSubstitute;
+            # Update the formula, which is needed for the proper plots and outputs
             scale$formula <- update.formula(scaleFormula,paste0(responseName,"~."));
         }
         nParam <- nParam + nparam(scale);

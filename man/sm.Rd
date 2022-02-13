@@ -57,3 +57,7 @@ summary(ourScale)
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }
+\keyword{models}
+\keyword{nonlinear}
+\keyword{regression}
+\keyword{ts}
