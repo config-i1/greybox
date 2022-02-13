@@ -474,7 +474,7 @@ scaler <- function(formula, data, subset=NULL, na.action=NULL, distribution, mu,
 #' Implant the scale model in the location model
 #'
 #' The function implants the scale model into the location model. It currently works
-#' with \link[greybox]{alm} / \link[smooth]{adam()} and \code{sm()} method.
+#' with \link[greybox]{alm} / \link[smooth]{adam} and \code{sm()} method.
 #'
 #' The function is needed in order to treat the scale of model correctly in the methods
 #' like \code{forecast()}.
