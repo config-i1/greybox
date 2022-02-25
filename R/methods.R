@@ -910,7 +910,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
     # Try the basic method, if not a bootstrap
     if(!bootstrap){
         # If the likelihood is not available, then this is a non-conventional loss
-        if(is.na(logLik(object))){
+        if(is.na(logLik(object)) && (object$loss!="MSE")){
             warning(paste0("You used the non-likelihood compatible loss, so the covariance matrix might be incorrect. ",
                            "It is recommended to use bootstrap=TRUE option in this case."),
                     call.=FALSE);
@@ -927,7 +927,9 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         }
 
         # Analytical values for vcov
-        if(iOrders==0 && maOrders==0 && any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))){
+        if(iOrders==0 && maOrders==0 &&
+           ((any(object$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm")) & object$loss=="likelihood") ||
+            object$loss=="MSE")){
             matrixXreg <- object$data;
             if(interceptIsNeeded){
                 matrixXreg[,1] <- 1;
