@@ -1,4 +1,4 @@
-greybox v1.0.5 (Release data: 2022-02-25)
+greybox v1.0.5 (Release data: 2022-03-15)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * qs() and qlaplace() now use qgnorm() function. We no longer need to rely on lamW package in R.
 * New method, implant() for implanting scale model into location one.
 * Use analytic vcov in case of loss="MSE".
+* New parameter, points, in tableplot. It specifies, whether to produce points in the categories. Helps in reading the plots.
 
 
 greybox v1.0.4 (Release data: 2022-02-05)

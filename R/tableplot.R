@@ -21,6 +21,8 @@
 #' @param labels Whether to print table labels inside the plot or not.
 #' @param legend If \code{TRUE}, then the legend for the tableplot is drawn. The plot is
 #' then produced on a separate canvas (new \code{par()}).
+#' @param points Whether to plot points in the areas. They help in understanding how
+#' many values lie in specific categories.
 #' @param ... Other parameters passed to the plot function.
 #'
 #' @return Function does not return anything. It just plots things.
@@ -33,7 +35,7 @@
 #'
 #' @importFrom utils head tail
 #' @export tableplot
-tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
+tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
     ellipsis <- list(...);
 
     if(is.null(y)){
@@ -72,8 +74,8 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
         yIsProvided <- TRUE;
     }
 
-    tableData <- table(x,y);
-    tableData <- tableData / sum(tableData);
+    tableData <- tableDataInitial <- table(x,y);
+    tableData[] <- tableData / sum(tableData);
 
     # An option - make the same density or make it changable
     # tableDataColours <- 1 - 0.75 * tableData / max(tableData);
@@ -158,6 +160,14 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, ...){
                     textCol <- "black";
                 }
                 text(xMid[i],yMid[j],labels=round(tableData[i,j],5),col=textCol);
+            }
+            if(points){
+                if(tableDataInitial[i,j]!=0){
+                    # points(rep(xCoord[i]+0.1,tableDataInitial[i,j]),
+                    #        yCoord[j]+0.1+c(1:tableDataInitial[i,j])/(tableDataInitial[i,j])*0.75)
+                    points(rep(xCoord[i]+0.2,tableDataInitial[i,j]),
+                           yCoord[j]+0.5+c(1:tableDataInitial[i,j]-0.5-tableDataInitial[i,j]/2)/(tableDataInitial[i,j])*0.75)
+                }
             }
         }
     }
