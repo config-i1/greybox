@@ -7,6 +7,8 @@ Changes:
 * New method, implant() for implanting scale model into location one.
 * Use analytic vcov in case of loss="MSE".
 * New parameter, points, in tableplot. It specifies, whether to produce points in the categories. Helps in reading the plots.
+* Order in which in plot.greybox() now matters.
+* Some plots in plot.greybox() will now produce plots for the scale model if it is estimated (which=c(2:6,8,9,13:14)).
 
 
 greybox v1.0.4 (Release data: 2022-02-05)

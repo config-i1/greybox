@@ -1303,6 +1303,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         on.exit(devAskNewPage(oask));
     }
 
+    # Warn if the diagnostis will be done for scale
+    if(is.scale(x$scale) && any(which %in% c(2:6,8,9,13:14))){
+        message("Note that residuals diagnostics plots are produced for scale model");
+    }
+
     # 1. Fitted vs Actuals values
     plot1 <- function(x, ...){
         ellipsis <- list(...);
@@ -1365,6 +1370,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     # 2 and 3: Standardised  / studentised residuals vs Fitted
     plot2 <- function(x, type="rstandard", ...){
         ellipsis <- list(...);
+
+        # Amend to do analysis of residuals of scale model
+        if(is.scale(x$scale)){
+            x <- x$scale;
+        }
 
         ellipsis$x <- as.vector(fitted(x));
         if(type=="rstandard"){
@@ -1462,6 +1472,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot3 <- function(x, type="abs", ...){
         ellipsis <- list(...);
 
+        # Amend to do analysis of residuals of scale model
+        if(is.scale(x$scale)){
+            x <- x$scale;
+        }
+
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(residuals(x));
         if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
@@ -1509,6 +1524,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     # 6. Q-Q with the specified distribution
     plot4 <- function(x, ...){
         ellipsis <- list(...);
+
+        # Amend to do analysis of residuals of scale model
+        if(is.scale(x$scale)){
+            x <- x$scale;
+        }
 
         ellipsis$y <- as.vector(residuals(x));
         if(is.occurrence(x$occurrence)){
@@ -1706,8 +1726,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
     # 8 and 9. Standardised / Studentised residuals vs time
     plot6 <- function(x, type="rstandard", ...){
-
         ellipsis <- list(...);
+
+        # Amend to do analysis of residuals of scale model
+        if(is.scale(x$scale)){
+            x <- x$scale;
+        }
+
         if(type=="rstandard"){
             ellipsis$x <- rstandard(x);
             yName <- "Standardised";
@@ -1885,6 +1910,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot9 <- function(x, type="abs", ...){
         ellipsis <- list(...);
 
+        # Amend to do analysis of residuals of scale model
+        if(is.scale(x$scale)){
+            x <- x$scale;
+        }
+
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(rstandard(x));
         if(any(x$distribution==c("dinvgauss","dgamma","dexp"))){
@@ -1929,61 +1959,51 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
-    if(any(which==1)){
-        plot1(x, ...);
+    for(i in which){
+        if(any(i==1)){
+            plot1(x, ...);
+        }
+        else if(any(i==2)){
+            plot2(x, ...);
+        }
+        else if(any(i==3)){
+            plot2(x, type="rstudent", ...);
+        }
+        else if(any(i==4)){
+            plot3(x, ...);
+        }
+        else if(any(i==5)){
+            plot3(x, type="squared", ...);
+        }
+        else if(any(i==6)){
+            plot4(x, ...);
+        }
+        else if(any(i==7)){
+            plot5(x, ...);
+        }
+        else if(any(i==8)){
+            plot6(x, ...);
+        }
+        else if(any(i==9)){
+            plot6(x, type="rstudent", ...);
+        }
+        else if(any(i==10)){
+            plot7(x, type="acf", ...);
+        }
+        else if(any(i==11)){
+            plot7(x, type="pacf", ...);
+        }
+        else if(any(i==12)){
+            plot8(x, ...);
+        }
+        else if(any(i==13)){
+            plot9(x, ...);
+        }
+        else if(any(i==14)){
+            plot9(x, type="squared", ...);
+        }
     }
 
-    if(any(which==2)){
-        plot2(x, ...);
-    }
-
-    if(any(which==3)){
-        plot2(x, type="rstudent", ...);
-    }
-
-    if(any(which==4)){
-        plot3(x, ...);
-    }
-
-    if(any(which==5)){
-        plot3(x, type="squared", ...);
-    }
-
-    if(any(which==6)){
-        plot4(x, ...);
-    }
-
-    if(any(which==7)){
-        plot5(x, ...);
-    }
-
-    if(any(which==8)){
-        plot6(x, ...);
-    }
-
-    if(any(which==9)){
-        plot6(x, type="rstudent", ...);
-    }
-
-    if(any(which==10)){
-        plot7(x, type="acf", ...);
-    }
-
-    if(any(which==11)){
-        plot7(x, type="pacf", ...);
-    }
-
-    if(any(which==12)){
-        plot8(x, ...);
-    }
-
-    if(any(which==13)){
-        plot9(x, ...);
-    }
-
-    if(any(which==14)){
-        plot9(x, type="squared", ...);
-    }
 }
 
 #' @export
