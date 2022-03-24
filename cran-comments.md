@@ -1,18 +1,16 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "05 February 2022"
+date: "24 March 2022"
 output: html_document
 ---
 
 ## Version
-This is the release of the package `greybox`, v1.0.4
-
-The main reason to submit it is because now it uses `generics` package, importing `forecast` method. This will resolve conflicts with other package.
+This is the release of the package `greybox`, v1.0.5
 
 
 ## Test environments
-* local ubuntu 20.04.3, R 4.1.2
+* local ubuntu 20.04.3, R 4.1.3
 * github actions
 * win-builder (devel and release)
 * rhub with rhub::check_for_cran() command
@@ -35,7 +33,7 @@ Successful checks for:
 
 - Windows latest release with R 4.1.1
 - MacOS latest macOS Catalina 10.15.7 with R 4.1.1
-- Ubuntu 20.04.3 with R 4.1.2
+- Ubuntu 20.04.3 with R 4.1.3
 
 
 ## win-builder
@@ -90,12 +88,6 @@ Not clear, why. `vars` package is on CRAN.
 >    Message: Forbidden
 
 Both URLs are valid, the papers are accessible.
-
-
-### Debian Linux, R-devel, GCC ASAN/UBSAN
-> ERROR: compilation failed for package ‘Rcpp’
-
-Not clear why compilation failed, but this has nothing to do with greybox.
 
 
 ## Downstream dependencies
