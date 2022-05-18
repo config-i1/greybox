@@ -31,7 +31,7 @@ xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,1
 colnames(xreg) <- c("y","x1","x2","Noise")
 modelForY <- stepwise(xreg)
 
-foldedData <- folder(y=xreg$Noise, xreg[,-c(1,4)], z=modelForY)
+foldedData <- folder(y=xreg[,4], xreg[,-c(1,4)], z=modelForY)
 
 }
 \author{

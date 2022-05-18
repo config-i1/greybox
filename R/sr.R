@@ -24,7 +24,7 @@
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #' modelForY <- stepwise(xreg)
 #'
-#' foldedData <- folder(y=xreg$Noise, xreg[,-c(1,4)], z=modelForY)
+#' foldedData <- folder(y=xreg[,4], xreg[,-c(1,4)], z=modelForY)
 #'
 #' @export
 folder <- function(...){
