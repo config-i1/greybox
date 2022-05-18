@@ -1,6 +1,32 @@
-# Create a dataset from the provided data and models
-#
-# @export
+#' Create a dataset from the provided data and models
+#'
+#' Function creates a data.frame from the objects provided to it. The objects
+#' include vector, matrix, data.frame and any model that supports the standard
+#' methods (such as fitted, vcov, predict, forecast). In the latter case,
+#' the function will extract fitted values and use them instead of the actual one.
+#'
+#' The function is needed as a first step in the estimation of a regression model
+#' with stochastic regressors.
+#'
+#' @template author
+#' @template keywords
+#'
+#' @param ... Objects that need to be merged in one dataset.
+#'
+#' @return Function returns \code{data} - the data.frame of the variables
+#' and \code{objects} - the list of all provided objects.
+#'
+#' @examples
+#'
+#' ### Simple example
+#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#' modelForY <- stepwise(xreg)
+#'
+#' foldedData <- folder(y=xreg$Noise, xreg[,-c(1,4)], z=modelForY)
+#'
+#' @export
 folder <- function(...){
     # Function creates a dataset from the provided objects and models
 
@@ -61,11 +87,17 @@ folder <- function(...){
             nVariablesLoop <- nvariate(ellipsis[[i]]);
             if(nVariablesLoop>1){
                 variablesNames[m+(1:nVariablesLoop)] <- colnames(actuals(ellipsis[[i]]));
+                variablesNames[m+(1:nVariablesLoop)] <- paste0(variablesNames[m+(1:nVariablesLoop)],"Fit");
             }
             else{
-                variablesNames[m+1] <- as.character(formula(ellipsis[[i]])[[2]])
+                if(!is.null(names(ellipsis)[i])){
+                    variablesNames[m+1] <- names(ellipsis)[i];
+                }
+                else{
+                    variablesNames[m+1] <- as.character(formula(ellipsis[[i]])[[2]]);
+                    variablesNames[m+(1:nVariablesLoop)] <- paste0(variablesNames[m+(1:nVariablesLoop)],"Fit");
+                }
             }
-            variablesNames[m+(1:nVariablesLoop)] <- paste0(variablesNames[m+(1:nVariablesLoop)],"Fit");
             dataCreated[1:nobs(ellipsis[[i]]),m+(1:nVariablesLoop)] <- fitted(ellipsis[[i]]);
         }
         m <- m + nVariablesLoop;
@@ -80,28 +112,30 @@ folder <- function(...){
 # #'
 # #' @export
 # srm <- function(formula, data, subset, na.action,
-#                 # distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-#                 #                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-#                 #                "dinvgauss","dgamma","dexp",
-#                 #                "dpois","dnbinom",
-#                 #                "dbeta","dlogitnorm",
-#                 #                "plogis","pnorm"),
-#                 # loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
-#                 # occurrence=c("none","plogis","pnorm"),
-#                 # scale=NULL,
-#                 # orders=c(0,0,0),
-#                 parameters=NULL, fast=FALSE, ...){
-#     # Function estimates the regression model based on the provided data
-#     # This one is analogous to alm(), but works with folder class
-#
-#     # Returned list:
-#     # 1. data
-#     # 2. formula
-#     # 3. coef
-#     # 4. folder - to generate point forecasts and variance
+#                 # # distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
+#                 # #                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
+#                 # #                "dinvgauss","dgamma","dexp",
+#                 # #                "dpois","dnbinom",
+#                 # #                "dbeta","dlogitnorm",
+#                 # #                "plogis","pnorm"),
+#                 # # loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
+#                 # # occurrence=c("none","plogis","pnorm"),
+#                 # # scale=NULL,
+#                 # # orders=c(0,0,0),
+#                 # parameters=NULL, fast=FALSE,
+#                 ...){
+#     # Function estimates the regression model based on the provided folder
+#     # The function calls for alm()
+
+
+    # Returned list:
+    # 1. data
+    # 2. formula
+    # 3. coef
+    # 4. folder - to generate point forecasts and variance
 #     return(structure(ourReturn,class=c("srm","alm","greybox")));
 # }
-#
+
 # #' @export
 # forecast.srm <- forecast(object, newdata=NULL, h=NULL, ...){
 #     # Function produces point forecasts and prediction intervals for SRM
@@ -116,15 +150,10 @@ print.folder <- function(x, ...){
 
 # #' @export
 # print.srm <- function(x, ...){}
-#
+
 
 #### These will be moved to isFunction.R
-# #' @rdname isFunctions
-# #' @export
-# is.folder <- function(x){
-#     return(inherits(x,"folder"))
-# }
-#
+
 # #' @rdname isFunctions
 # #' @export
 # is.srm <- function(x){

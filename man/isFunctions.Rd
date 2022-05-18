@@ -9,6 +9,7 @@
 \alias{is.rollingOrigin}
 \alias{is.rmc}
 \alias{is.scale}
+\alias{is.folder}
 \title{Greybox classes checkers}
 \usage{
 is.greybox(x)
@@ -26,6 +27,8 @@ is.rollingOrigin(x)
 is.rmc(x)
 
 is.scale(x)
+
+is.folder(x)
 }
 \arguments{
 \item{x}{The object to check.}
@@ -53,6 +56,8 @@ function;
 function;
 \item \code{is.scale()} tests if the object is of the class "scale" (produced by
 alm in case of heteroscedastic model);
+\item \code{is.folder()} test whether the object of the class "folder" (produced
+by \link[greybox]{folder} function);
 }
 }
 \examples{
