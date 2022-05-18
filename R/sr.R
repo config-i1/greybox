@@ -19,6 +19,29 @@ folder <- function(...){
     dataType[listMatrix] <- "matrix";
     dataType[listVector] <- "vector";
 
+    # Get the maximum number of observations
+    obs <- max(unlist(c(sapply(ellipsis[listDataFrame], nrow),
+                        sapply(ellipsis[listMatrix], nrow),
+                        sapply(ellipsis[listVector], length),
+                        sapply(ellipsis[listModel], nobs))))
+
+    nVariables <- sum(unlist(c(sapply(ellipsis[listDataFrame], ncol),
+                               sapply(ellipsis[listMatrix], ncol),
+                               sum(listVector),
+                               sapply(ellipsis[listModel], nvariate))));
+
+    variablesNames <- vector("character",nVariables);
+    variablesNumber <- vector("numeric",nVariables);
+
+    # for(i in 1:nVariables){
+    #     variablesNames[i]
+    # }
+
+    dataCreated <- as.data.frame(matrix(NA,obs,listLength));
+
+    for(i in 1:listLength){
+        dataCreated[,i]
+    }
     ourReturn <- list(dataType);
     # Returned list:
     # 1. data (combined fitted and actuals)
