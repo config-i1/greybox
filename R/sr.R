@@ -32,22 +32,48 @@ folder <- function(...){
 
     variablesNames <- vector("character",nVariables);
     variablesNumber <- vector("numeric",nVariables);
+    dataCreated <- as.data.frame(matrix(NA,obs,nVariables));
 
-    # for(i in 1:nVariables){
-    #     variablesNames[i]
-    # }
-
-    dataCreated <- as.data.frame(matrix(NA,obs,listLength));
-
+    # Form the design matrix
+    m <- 0;
     for(i in 1:listLength){
-        dataCreated[,i]
+        if(any(dataType[i]==c("data.frame","matrix"))){
+            nVariablesLoop <- ncol(ellipsis[[i]]);
+            if(!is.null(colnames(ellipsis[[i]]))){
+                variablesNames[m+(1:nVariablesLoop)] <- colnames(ellipsis[[i]]);
+            }
+            else{
+                variablesNames[m+(1:nVariablesLoop)] <- paste0("x",m+c(1:nVariablesLoop));
+            }
+            dataCreated[1:nrow(ellipsis[[i]]),m+(1:nVariablesLoop)] <- ellipsis[[i]];
+        }
+        else if(dataType[i]=="vector"){
+            nVariablesLoop <- 1;
+            if(is.null(names(ellipsis)[i])){
+                variablesNames[m+1] <- paste0("x",m+1);
+            }
+            else{
+                variablesNames[m+1] <- names(ellipsis)[i];
+            }
+            dataCreated[1:length(ellipsis[[i]]),m+1] <- ellipsis[[i]];
+        }
+        else{
+            nVariablesLoop <- nvariate(ellipsis[[i]]);
+            if(nVariablesLoop>1){
+                variablesNames[m+(1:nVariablesLoop)] <- colnames(actuals(ellipsis[[i]]));
+            }
+            else{
+                variablesNames[m+1] <- as.character(formula(ellipsis[[i]])[[2]])
+            }
+            variablesNames[m+(1:nVariablesLoop)] <- paste0(variablesNames[m+(1:nVariablesLoop)],"Fit");
+            dataCreated[1:nobs(ellipsis[[i]]),m+(1:nVariablesLoop)] <- fitted(ellipsis[[i]]);
+        }
+        m <- m + nVariablesLoop;
     }
-    ourReturn <- list(dataType);
-    # Returned list:
-    # 1. data (combined fitted and actuals)
-    # 2. list of objects
-    # ourReturn <- list(data=ourData, objects=ellipsis);
-    return(structure(ourReturn,class="folder"));
+    colnames(dataCreated) <- variablesNames;
+
+    return(structure(list(data=dataCreated, objects=ellipsis),
+                     class="folder"));
 }
 
 # #' Stochastic Regressors Model
@@ -81,11 +107,13 @@ folder <- function(...){
 #     # Function produces point forecasts and prediction intervals for SRM
 #
 # }
-#
-#
-# #' @export
-# print.folder <- function(x, ...){}
-#
+
+
+#' @export
+print.folder <- function(x, ...){
+    print(x$data);
+}
+
 # #' @export
 # print.srm <- function(x, ...){}
 #
