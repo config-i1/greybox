@@ -232,6 +232,11 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
 
     # Form the call for alm
     newCall <- object$call;
+    # Tuning for srm, to call alm() instead
+    if(is.srm(object)){
+        newCall[[1]] <- as.name("alm");
+        newCall$folder <- NULL;
+    }
     # This is based on the expanded data, so that we don't need to redo everything
     if(interceptIsNeeded){
         newCall$formula <- as.formula(paste0("`",colnames(object$data)[1],"`~."));
@@ -284,7 +289,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
     newCall$occurrence <- object$occurrence;
     # Only pre-initialise the parameters if non-normal stuff is used
     if(all(object$distribution!=c("dnorm","dlnorm","dlogitnorm"))){
-        newCall$B <- substitute(object$B);
+        newCall$B <- coef(object);
     }
     # If there is scale model, remove it
     if(is.scale(object$scale)){

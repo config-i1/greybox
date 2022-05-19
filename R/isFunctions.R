@@ -17,9 +17,11 @@
 #' \item \code{is.rollingOrigin()} tests if the object was produced by \code{ro()}
 #' function;
 #' \item \code{is.scale()} tests if the object is of the class "scale" (produced by
-#' alm in case of heteroscedastic model);
-#' \item \code{is.folder()} test whether the object of the class "folder" (produced
+#' \link[greybox]{alm} or \link[greybox]{sm} in case of heteroscedastic model);
+#' \item \code{is.folder()} tests whether the object of the class "folder" (produced
 #' by \link[greybox]{folder} function);
+#' \item \code{is.srm()} tests whether the object of the class "srm" (produced
+#' by \link[greybox]{srm} function);
 #' }
 #'
 #' @param x The object to check.
@@ -92,4 +94,10 @@ is.scale <- function(x){
 #' @export
 is.folder <- function(x){
     return(inherits(x,"folder"))
+}
+
+#' @rdname isFunctions
+#' @export
+is.srm <- function(x){
+    return(inherits(x,"srm"))
 }

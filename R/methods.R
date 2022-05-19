@@ -1007,6 +1007,11 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
         else{
             # Form the call for alm
             newCall <- object$call;
+            # Tuning for srm, to call alm() instead
+            if(is.srm(object)){
+                newCall[[1]] <- as.name("alm");
+                newCall$folder <- NULL;
+            }
             if(interceptIsNeeded){
                 newCall$formula <- as.formula(paste0("`",all.vars(newCall$formula)[1],"`~."));
             }
