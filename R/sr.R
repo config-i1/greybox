@@ -108,33 +108,72 @@ folder <- function(...){
                      class="folder"));
 }
 
-# #' Stochastic Regressors Model
-# #'
-# #' @export
-# srm <- function(formula, data, subset, na.action,
-#                 # # distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-#                 # #                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-#                 # #                "dinvgauss","dgamma","dexp",
-#                 # #                "dpois","dnbinom",
-#                 # #                "dbeta","dlogitnorm",
-#                 # #                "plogis","pnorm"),
-#                 # # loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
-#                 # # occurrence=c("none","plogis","pnorm"),
-#                 # # scale=NULL,
-#                 # # orders=c(0,0,0),
-#                 # parameters=NULL, fast=FALSE,
-#                 ...){
-#     # Function estimates the regression model based on the provided folder
-#     # The function calls for alm()
+#' Stochastic Regressors Model
+#'
+#' This function is a wrapper for \link[greybox]{alm}, which extracts the design matrix from
+#' the \link[greybox]{folder} object and calls for \code{alm()} to estimate the model on it.
+#'
+#' The function accepts all the parameters of \link[greybox]{alm}, so have a look at the
+#' documentation of that function.
+#'
+#' @template author
+#' @template keywords
+#'
+#' @param formula an object of class "formula" (or one that can be coerced to
+#' that class): a symbolic description of the model to be fitted. Can also include
+#' \code{trend}, which would add the global trend.
+#' @param folder the \link[greybox]{folder} object.
+#' @param subset an optional vector specifying a subset of observations to be
+#' used in the fitting process.
+#' @param na.action	a function which indicates what should happen when the
+#' data contain NAs. The default is set by the na.action setting of
+#' \link[base]{options}, and is \link[stats]{na.fail} if that is unset. The
+#' factory-fresh default is \link[stats]{na.omit}. Another possible value
+#' is NULL, no action. Value \link[stats]{na.exclude} can be useful.
+#' @param ... All the other parameters passed to \link[greybox]{alm}.
+#'
+#' @return Function returns exactly the same set of variables as
+#' \link[greybox]{alm} but with addition of \code{objects} list, containing
+#' all the objects used in the original \link[greybox]{folder} call.
+#'
+#' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine},
+#' \link[greybox]{alm}}.
+#'
+#' @examples
+#' xreg <- cbind(rnorm(100,10+0.5*c(1:100),3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' # Estimate the model for the variable x1
+#' modelForX1 <- alm(x1~trend, xreg)
+#'
+#' foldedData <- folder(xreg, z=modelForX1)
+#'
+#' srModel <- srm(y~x2+z, foldedData)
+#' summary(srModel)
+#'
+#' @export
+srm <- function(formula, folder, subset=NULL, na.action=NULL, ...){
+    # Function is a wrapper for alm(), estimating the model on the provided folder
+    clOriginal <- cl <- match.call();
 
-
-    # Returned list:
-    # 1. data
-    # 2. formula
-    # 3. coef
-    # 4. folder - to generate point forecasts and variance
-#     return(structure(ourReturn,class=c("srm","alm","greybox")));
-# }
+    if(is.folder(folder)){
+        cl[[1]] <- as.name("alm");
+        cl$folder <- NULL;
+        cl$data <- substitute(folder$data);
+        ourReturn <- eval(cl);
+        ourReturn$call <- clOriginal;
+        ourReturn$objects <- folder$objects;
+        return(structure(ourReturn,class=c("srm","alm","greybox")));
+    }
+    # If this is not folder object, then return basic alm estimate
+    else{
+        cl[[1]] <- as.name("alm");
+        cl$folder <- NULL;
+        cl$data <- substitute(folder);
+        return(eval(cl));
+    }
+}
 
 # #' @export
 # forecast.srm <- forecast(object, newdata=NULL, h=NULL, ...){
@@ -148,14 +187,3 @@ print.folder <- function(x, ...){
     print(x$data);
 }
 
-# #' @export
-# print.srm <- function(x, ...){}
-
-
-#### These will be moved to isFunction.R
-
-# #' @rdname isFunctions
-# #' @export
-# is.srm <- function(x){
-#     return(inherits(x,"srm"))
-# }
