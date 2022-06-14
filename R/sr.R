@@ -219,7 +219,7 @@ vcov.folder <- function(object, ...){
     ourData <- model.matrix(~.-1,data=ourData)
     ourData[] <- ourData - matrix(apply(ourData,2,mean), nrow(ourData), ncol(ourData), byrow=TRUE);
 
-    return((t(ourData) %*% ourData)/obsInsample);
+    return(crossprod(ourData)/obsInsample);
 }
 
 
