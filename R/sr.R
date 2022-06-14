@@ -13,8 +13,9 @@
 #'
 #' @param ... Objects that need to be merged in one dataset.
 #'
-#' @return Function returns \code{data} - the data.frame of the variables
-#' and \code{objects} - the list of all provided objects.
+#' @return Function returns \code{data} - the data.frame of the variables,
+#' \code{objects} - the list of all provided objects and \code{dataType} - vector
+#' with types of objects provided to folder.
 #'
 #' @examples
 #'
@@ -25,6 +26,7 @@
 #' modelForY <- stepwise(xreg)
 #'
 #' foldedData <- folder(y=xreg[,4], xreg[,-c(1,4)], z=modelForY)
+#' vcov(foldedData)
 #'
 #' @export
 folder <- function(...){
@@ -104,7 +106,7 @@ folder <- function(...){
     }
     colnames(dataCreated) <- variablesNames;
 
-    return(structure(list(data=dataCreated, objects=ellipsis),
+    return(structure(list(data=dataCreated, objects=ellipsis, dataType=dataType),
                      class="folder"));
 }
 
@@ -175,15 +177,56 @@ srm <- function(formula, folder, subset=NULL, na.action=NULL, ...){
     }
 }
 
+#' @export
+print.folder <- function(x, ...){
+    cat("Folder object\n");
+    print(x$data);
+}
+
+#' @importFrom utils head tail
+#' @export
+head.folder <- function(x, ...){
+    return(head(x$data, ...));
+}
+
+#' @export
+tail.folder <- function(x, ...){
+    return(tail(x$data, ...));
+}
+
+#' @export
+vcov.folder <- function(object, ...){
+    # Function returns covariance matrix fo folder object
+    ourData <- object$data;
+    dataType <- object$dataType;
+    obsInsample <- nrow(ourData[apply(!is.na(ourData),1,all),]);
+
+    m <- 0;
+    for(i in length(dataType)){
+        if(any(dataType[i]==c("data.frame","matrix"))){
+            nVariablesLoop <- ncol(object$objects[[i]]);
+        }
+        else if(dataType[i]=="vector"){
+            nVariablesLoop <- 1;
+        }
+        else{
+            nVariablesLoop <- nvariate(object$objects[[i]]);
+            ourData[1:nobs(object$objects[[i]]),m+(1:nVariablesLoop)] <- residuals(object$objects[[i]]);
+        }
+        m[] <- m + nVariablesLoop;
+    }
+
+    ourData <- model.matrix(~.-1,data=ourData)
+    ourData[] <- ourData - matrix(apply(ourData,2,mean), nrow(ourData), ncol(ourData), byrow=TRUE);
+
+    return((t(ourData) %*% ourData)/obsInsample);
+}
+
+
 # #' @export
-# forecast.srm <- forecast(object, newdata=NULL, h=NULL, ...){
+# predict.srm <- forecast(object, newdata=NULL, h=NULL, ...){
 #     # Function produces point forecasts and prediction intervals for SRM
 #
 # }
 
-
-#' @export
-print.folder <- function(x, ...){
-    print(x$data);
-}
 

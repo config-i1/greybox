@@ -1,9 +1,10 @@
-greybox v1.0.6 (Release data: 2022-05-19)
+greybox v1.0.6 (Release data: 2022-06-14)
 ==============
 
 Changes:
 * New function, folder() to merge several objects in one dataset.
 * New function, srm() to estimate alm() on the folder data.
+* vcov() method for folder() objects. Needed for the prediction intervals construction.
 
 Bugfixes:
 * Fixed a bug in coefbootstrap for the cases of additional parameters estimation (e.g. shape in GN distribution).

@@ -10,8 +10,9 @@ folder(...)
 \item{...}{Objects that need to be merged in one dataset.}
 }
 \value{
-Function returns \code{data} - the data.frame of the variables
-and \code{objects} - the list of all provided objects.
+Function returns \code{data} - the data.frame of the variables,
+\code{objects} - the list of all provided objects and \code{dataType} - vector
+with types of objects provided to folder.
 }
 \description{
 Function creates a data.frame from the objects provided to it. The objects
@@ -32,6 +33,7 @@ colnames(xreg) <- c("y","x1","x2","Noise")
 modelForY <- stepwise(xreg)
 
 foldedData <- folder(y=xreg[,4], xreg[,-c(1,4)], z=modelForY)
+vcov(foldedData)
 
 }
 \author{
