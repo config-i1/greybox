@@ -8,6 +8,7 @@ Changes:
 
 Bugfixes:
 * Fixed a bug in coefbootstrap for the cases of additional parameters estimation (e.g. shape in GN distribution).
+* cramer() would return NA if one of the rows/columns in contingency table contained zeroes. This is now fixed.
 
 
 greybox v1.0.5 (Release data: 2022-03-24)

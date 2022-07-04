@@ -92,6 +92,8 @@ cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all
     }
 
     dataTable <- table(x,y);
+    # Remove zero columns and zero rows
+    dataTable <- dataTable[!apply(dataTable==0,1,all),!apply(dataTable==0,2,all)];
     chiTest <- suppressWarnings(chisq.test(dataTable));
     cramerValue <- sqrt(chiTest$statistic/(min(dim(dataTable)-1)*sum(dataTable)));
 
