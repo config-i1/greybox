@@ -9,11 +9,14 @@
 \usage{
 sm(object, ...)
 
-\method{sm}{default}(object, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{default}(object, formula = NULL, data = NULL,
+  parameters = NULL, ...)
 
-\method{sm}{lm}(object, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{lm}(object, formula = NULL, data = NULL, parameters = NULL,
+  ...)
 
-\method{sm}{alm}(object, formula = NULL, data = NULL, parameters = NULL, ...)
+\method{sm}{alm}(object, formula = NULL, data = NULL, parameters = NULL,
+  ...)
 }
 \arguments{
 \item{object}{The pre-estimated \code{alm} or \code{lm} model.}

@@ -5,7 +5,7 @@
 \title{Calculate Cramer's V for categorical variables}
 \usage{
 cramer(x, y, use = c("na.or.complete", "complete.obs", "everything",
-  "all.obs"))
+  "all.obs"), unbiased = TRUE)
 }
 \arguments{
 \item{x}{First categorical variable.}
@@ -14,6 +14,9 @@ cramer(x, y, use = c("na.or.complete", "complete.obs", "everything",
 
 \item{use}{What observations to use. See \link[stats]{cor} function for details.
 The only option that is not available here is \code{"pairwise.complete.obs"}.}
+
+\item{unbiased}{Determines whether to calculate the biased version of Cramer's V or
+the one with the small sample correction.}
 }
 \value{
 The following list of values is returned:
@@ -39,6 +42,10 @@ See details in the vignette "Marketing analytics with greybox":
 
 cramer(mtcars$am, mtcars$gear)
 
+}
+\references{
+Wicher Bergsma (2013), A bias-correction for Cramér's V and Tschuprow's T. Journal
+of the Korean Statistical Society, 42, pp. 323-328. \doi{10.1016/j.jkss.2012.10.002}.
 }
 \seealso{
 \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},

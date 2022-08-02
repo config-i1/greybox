@@ -4,7 +4,8 @@
 \alias{mcor}
 \title{Multiple correlation}
 \usage{
-mcor(x, y, use = c("na.or.complete", "complete.obs", "everything", "all.obs"))
+mcor(x, y, use = c("na.or.complete", "complete.obs", "everything",
+  "all.obs"))
 }
 \arguments{
 \item{x}{Either data.frame or a matrix}

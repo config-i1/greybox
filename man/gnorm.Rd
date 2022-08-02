@@ -18,9 +18,11 @@ the exponential power distribution by Box and Tiao (1973). \cr \cr
 \usage{
 dgnorm(q, mu = 0, scale = 1, shape = 1, log = FALSE)
 
-pgnorm(q, mu = 0, scale = 1, shape = 1, lower.tail = TRUE, log.p = FALSE)
+pgnorm(q, mu = 0, scale = 1, shape = 1, lower.tail = TRUE,
+  log.p = FALSE)
 
-qgnorm(p, mu = 0, scale = 1, shape = 1, lower.tail = TRUE, log.p = FALSE)
+qgnorm(p, mu = 0, scale = 1, shape = 1, lower.tail = TRUE,
+  log.p = FALSE)
 
 rgnorm(n, mu = 0, scale = 1, shape = 1)
 }

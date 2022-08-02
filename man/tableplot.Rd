@@ -4,7 +4,8 @@
 \alias{tableplot}
 \title{Construct a plot for categorical variable}
 \usage{
-tableplot(x, y = NULL, labels = TRUE, legend = FALSE, points = TRUE, ...)
+tableplot(x, y = NULL, labels = TRUE, legend = FALSE, points = TRUE,
+  ...)
 }
 \arguments{
 \item{x}{First categorical variable. Can be either vector, factor, matrix or a data

@@ -8,9 +8,11 @@
 \usage{
 outlierdummy(object, ...)
 
-\method{outlierdummy}{default}(object, level = 0.999, type = c("rstandard", "rstudent"), ...)
+\method{outlierdummy}{default}(object, level = 0.999, type = c("rstandard",
+  "rstudent"), ...)
 
-\method{outlierdummy}{alm}(object, level = 0.999, type = c("rstandard", "rstudent"), ...)
+\method{outlierdummy}{alm}(object, level = 0.999, type = c("rstandard",
+  "rstudent"), ...)
 }
 \arguments{
 \item{object}{Model estimated using one of the functions of smooth package.}

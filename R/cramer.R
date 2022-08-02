@@ -16,6 +16,8 @@
 #' @param y Second categorical variable.
 #' @param use What observations to use. See \link[stats]{cor} function for details.
 #' The only option that is not available here is \code{"pairwise.complete.obs"}.
+#' @param unbiased Determines whether to calculate the biased version of Cramer's V or
+#' the one with the small sample correction.
 #'
 #' @return The following list of values is returned:
 #' \itemize{
@@ -28,13 +30,18 @@
 #' @seealso \code{\link[base]{table}, \link[greybox]{tableplot}, \link[greybox]{spread},
 #' \link[greybox]{mcor}, \link[greybox]{association}}
 #'
+#' @references
+#' Wicher Bergsma (2013), A bias-correction for Cramér's V and Tschuprow's T. Journal
+#' of the Korean Statistical Society, 42, pp. 323-328. \doi{10.1016/j.jkss.2012.10.002}.
+#'
 #' @examples
 #'
 #' cramer(mtcars$am, mtcars$gear)
 #'
 #' @importFrom stats chisq.test
 #' @export cramer
-cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.obs")){
+cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all.obs"),
+                   unbiased=TRUE){
 
     use <- match.arg(use);
 
@@ -95,7 +102,18 @@ cramer <- function(x, y, use=c("na.or.complete","complete.obs","everything","all
     # Remove zero columns and zero rows
     dataTable <- dataTable[!apply(dataTable==0,1,all),!apply(dataTable==0,2,all)];
     chiTest <- suppressWarnings(chisq.test(dataTable));
-    cramerValue <- sqrt(chiTest$statistic/(min(dim(dataTable)-1)*sum(dataTable)));
+    # Columns, rows and sample size
+    n <- sum(dataTable);
+    k <- ncol(dataTable);
+    r <- nrow(dataTable);
+    phi2 <- chiTest$statistic/n;
+    # phi^2 calculation and update of columns and rows
+    if(unbiased){
+        phi2[] <- max(phi2 - prod(k-1,r-1)/(n-1),0);
+        k[] <- k - (k-1)^2 / (n-1);
+        r[] <- r - (r-1)^2 / (n-1);
+    }
+    cramerValue <- sqrt(phi2/(min(k-1,r-1)));
 
     return(returner(0));
 }
