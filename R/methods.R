@@ -1654,13 +1654,14 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ-plot of Poisson distribution";
             }
-            ellipsis$x <- actuals(x)-qpois(ppoints(500), lambda=x$mu);
-            # ellipsis$x <- qpois(ppoints(500), lambda=x$mu);
-            # ellipsis$y[] <- actuals(x);
+            # ellipsis$x <- actuals(x)-qpois(ppoints(nobs(x)*100), lambda=x$mu);
+            ellipsis$x <- qpois(ppoints(nobs(x)*100), lambda=x$mu);
+            ellipsis$y[] <- actuals(x);
 
             do.call(qqplot, ellipsis);
-            # abline(a=0,b=1);
-            qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu)-actuals(x));
+            abline(a=0,b=1);
+            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu)-actuals(x));
+            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu));
             # message("Sorry, but we don't produce QQ plots for the Poisson distribution");
         }
         else if(x$distribution=="dnbinom"){
