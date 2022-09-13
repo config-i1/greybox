@@ -1271,6 +1271,8 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 #' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
 #' \item Absolute standardised residuals vs Fitted;
 #' \item Squared standardised residuals vs Fitted.
+#' \item ACF of the squared residuals;
+#' \item PACF of the squared residuals;
 #' }
 #' @param level Confidence level. Defines width of confidence interval. Used in plots (2), (3), (7),
 #' (8), (9), (10) and (11).
@@ -1822,15 +1824,25 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     # 10 and 11. ACF and PACF
-    plot7 <- function(x, type="acf", ...){
+    plot7 <- function(x, type="acf", squared=FALSE, ...){
         ellipsis <- list(...);
 
         if(!any(names(ellipsis)=="main")){
             if(type=="acf"){
-                ellipsis$main <- "Autocorrelation Function of Residuals";
+                if(squared){
+                    ellipsis$main <- "Autocorrelation Function of Squared Residuals";
+                }
+                else{
+                    ellipsis$main <- "Autocorrelation Function of Residuals";
+                }
             }
             else{
-                ellipsis$main <- "Partial Autocorrelation Function of Residuals";
+                if(squared){
+                    ellipsis$main <- "Partial Autocorrelation Function of Squared Residuals";
+                }
+                else{
+                    ellipsis$main <- "Partial Autocorrelation Function of Residuals";
+                }
             }
         }
 
@@ -1850,11 +1862,21 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylim <- c(-1,1);
         }
 
-        if(type=="acf"){
-            theValues <- acf(as.vector(residuals(x)), plot=FALSE)
+        if(squared){
+            if(type=="acf"){
+                theValues <- acf(as.vector(residuals(x)^2), plot=FALSE, na.action=na.pass)
+            }
+            else{
+                theValues <- pacf(as.vector(residuals(x)^2), plot=FALSE, na.action=na.pass);
+            }
         }
         else{
-            theValues <- pacf(as.vector(residuals(x)), plot=FALSE);
+            if(type=="acf"){
+                theValues <- acf(as.vector(residuals(x)), plot=FALSE, na.action=na.pass)
+            }
+            else{
+                theValues <- pacf(as.vector(residuals(x)), plot=FALSE, na.action=na.pass);
+            }
         }
         ellipsis$x <- theValues$acf[-1];
         statistic <- qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x)));
@@ -2007,6 +2029,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         else if(any(i==14)){
             plot9(x, type="squared", ...);
+        }
+        else if(any(i==15)){
+            plot7(x, type="acf", squared=TRUE, ...);
+        }
+        else if(any(i==16)){
+            plot7(x, type="pacf", squared=TRUE, ...);
         }
     }
 

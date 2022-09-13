@@ -1,4 +1,4 @@
-greybox v1.0.6 (Release data: 2022-08-03)
+greybox v1.0.6 (Release data: 2022-09-13)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * New function, srm() to estimate alm() on the folder data.
 * vcov() method for folder() objects. Needed for the prediction intervals construction.
 * cramer() now produces the unbiased estimates by default now (small sample correction).
+* New plots for greybox: ACF/PACF of squared residuals. Should be handy for GARCH diagnostics.
 
 Bugfixes:
 * Fixed a bug in coefbootstrap for the cases of additional parameters estimation (e.g. shape in GN distribution).
