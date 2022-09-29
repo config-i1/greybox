@@ -18,10 +18,6 @@
 #' function;
 #' \item \code{is.scale()} tests if the object is of the class "scale" (produced by
 #' \link[greybox]{alm} or \link[greybox]{sm} in case of heteroscedastic model);
-#' \item \code{is.folder()} tests whether the object of the class "folder" (produced
-#' by \link[greybox]{folder} function);
-#' \item \code{is.srm()} tests whether the object of the class "srm" (produced
-#' by \link[greybox]{srm} function);
 #' }
 #'
 #' @param x The object to check.
@@ -88,16 +84,4 @@ is.rmc <- function(x){
 #' @export
 is.scale <- function(x){
     return(inherits(x,"scale"))
-}
-
-#' @rdname isFunctions
-#' @export
-is.folder <- function(x){
-    return(inherits(x,"folder"))
-}
-
-#' @rdname isFunctions
-#' @export
-is.srm <- function(x){
-    return(inherits(x,"srm"))
 }
