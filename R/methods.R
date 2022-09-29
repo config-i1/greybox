@@ -1296,7 +1296,7 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 #' par(mfcol=c(4,4))
 #' plot(ourModel, c(1:14))
 #'
-#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess qf
+#' @importFrom stats ppoints qqline qqnorm qqplot acf pacf lowess qf na.pass
 #' @importFrom grDevices dev.interactive devAskNewPage grey
 #' @aliases plot.alm
 #' @export
