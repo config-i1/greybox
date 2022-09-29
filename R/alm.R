@@ -1039,7 +1039,7 @@ alm <- function(formula, data, subset, na.action,
         # If there are spaces in names, give a warning
         if(any(grepl("[^A-Za-z0-9,;._-]", all.vars(formula))) ||
            # If the names only contain numbers
-           any(grepl("^[-]{0,1}[0-9]{0,}.{0,1}[0-9]{1,}$", all.vars(formula)))){
+           any(suppressWarnings(!is.na(as.numeric(all.vars(formula)))))){
             warning("The names of your variables contain special characters ",
                     "(such as numbers, spaces, comas, brackets etc). alm() might not work properly. ",
                     "It is recommended to use `make.names()` function to fix the names of variables.",
