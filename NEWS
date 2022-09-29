@@ -1,4 +1,4 @@
-greybox v1.0.6 (Release data: 2022-09-13)
+greybox v1.0.6 (Release data: 2022-09-29)
 ==============
 
 Changes:
@@ -12,6 +12,7 @@ Bugfixes:
 * Fixed a bug in coefbootstrap for the cases of additional parameters estimation (e.g. shape in GN distribution).
 * cramer() would return NA if one of the rows/columns in contingency table contained zeroes. This is now fixed.
 * Tuned QQ plot for Poisson in alm().
+* Fix for alm() and names of variables that contain numbers only.
 
 
 greybox v1.0.5 (Release data: 2022-03-24)

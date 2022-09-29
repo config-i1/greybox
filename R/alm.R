@@ -1037,9 +1037,11 @@ alm <- function(formula, data, subset, na.action,
         }
 
         # If there are spaces in names, give a warning
-        if(any(grepl("[^A-Za-z0-9,;._-]", all.vars(formula)))){
+        if(any(grepl("[^A-Za-z0-9,;._-]", all.vars(formula))) ||
+           # If the names only contain numbers
+           any(grepl("^[-]{0,1}[0-9]{0,}.{0,1}[0-9]{1,}$", all.vars(formula)))){
             warning("The names of your variables contain special characters ",
-                    "(such as spaces, comas, brackets etc). alm() might not work properly. ",
+                    "(such as numbers, spaces, comas, brackets etc). alm() might not work properly. ",
                     "It is recommended to use `make.names()` function to fix the names of variables.",
                     call.=FALSE);
             formula <- as.formula(paste0(gsub(paste0("`",all.vars(formula)[1],"`"),
@@ -1051,7 +1053,7 @@ alm <- function(formula, data, subset, na.action,
                                                 collapse="+")));
             mf$formula <- formula;
         }
-        # Fix names of variables
+        # Fix names of variables. Switch this off to avoid conflicts between formula and data, when numbers are used
         colnames(mf$data) <- make.names(colnames(mf$data), unique=TRUE);
 
         # If the data is a matrix / data.frame, get the nrows
