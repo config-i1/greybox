@@ -305,10 +305,6 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    meanFast <- function(x){
-        return(sum(x) / length(x));
-    }
-
     # Function for the Box-Cox transform
     bcTransform <- function(y, lambdaBC){
         if(lambdaBC==0){
