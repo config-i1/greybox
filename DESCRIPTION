@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 1.0.6
-Date: 2022-09-30
+Version: 1.0.7.41001
+Date: 2022-10-10
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
                   comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -31,6 +31,7 @@ Imports:
     statmod,
     zoo,
     texreg,
+    xtable,
     methods
 LinkingTo: Rcpp
 Suggests:

@@ -4267,3 +4267,26 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
     }
     return(predict(object, newdata, ...));
 }
+
+#' @importFrom xtable xtable
+#' @export
+xtable::xtable
+
+#' @export
+xtable.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    greyboxSummary <- summary(x);
+    return(do.call("xtable", list(x=greyboxSummary,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}
+
+#' @export
+xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    # Substitute class with lm
+    class(x) <- "summary.lm";
+    return(do.call("xtable", list(x=x,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}

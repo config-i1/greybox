@@ -201,6 +201,8 @@
 #' ourModel <- alm(mpg~., mtcars2[1:30,], distribution="dlnorm")
 #' summary(ourModel)
 #' \donttest{plot(ourModel)}
+#' # Produce table based on the output for LaTeX
+#' xtable(summary(ourModel))
 #'
 #' # Produce predictions with the one sided interval (upper bound)
 #' predict(ourModel, mtcars2[-c(1:30),], interval="p", side="u")

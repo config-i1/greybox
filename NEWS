@@ -1,3 +1,10 @@
+greybox v1.0.7 (Release data: 2022-10-10)
+==============
+
+Changes:
+* xtable() methods for greybox class to produce LaTeX tables from greybox outputs.
+
+
 greybox v1.0.6 (Release data: 2022-09-29)
 ==============
 
