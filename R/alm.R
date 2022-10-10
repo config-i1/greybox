@@ -1086,11 +1086,12 @@ alm <- function(formula, data, subset, na.action,
     # Make this numeric, to address potential issues with zoo + data.table
     y <- as.numeric(dataWork[,1]);
 
-    interceptIsNeeded <- attr(terms(dataWork),"intercept")!=0;
+    interceptIsNeeded <- attr(dataTerms,"intercept")!=0;
     # Create a model from the provided stuff. This way we can work with factors
     dataWork <- model.matrix(dataWork,data=dataWork);
     obsInsample <- nrow(dataWork);
 
+    # matrixXreg should not contain 1 for the further checks
     if(interceptIsNeeded){
         variablesNames <- colnames(dataWork)[-1];
         matrixXreg <- as.matrix(dataWork[,-1,drop=FALSE]);
@@ -1257,7 +1258,7 @@ alm <- function(formula, data, subset, na.action,
         }
 
         #### Finish forming the matrix of exogenous variables ####
-        # Remove the redudant dummies, if there are any
+        # Remove the redundant dummies, if there are any
         varsToLeave <- apply(matrixXreg[otU,,drop=FALSE],2,var)!=0;
         matrixXreg <- matrixXreg[,varsToLeave,drop=FALSE];
         variablesNames <- variablesNames[varsToLeave];
