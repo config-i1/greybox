@@ -7,13 +7,13 @@
 \alias{extremity}
 \title{Half moment of a distribution and its derivatives.}
 \usage{
-hm(x, C = mean(x), ...)
+hm(x, C = mean(x, na.rm = TRUE), ...)
 
-ham(x, C = mean(x), ...)
+ham(x, C = mean(x, na.rm = TRUE), ...)
 
-asymmetry(x, C = mean(x), ...)
+asymmetry(x, C = mean(x, na.rm = TRUE), ...)
 
-extremity(x, C = mean(x), ...)
+extremity(x, C = mean(x, na.rm = TRUE), ...)
 }
 \arguments{
 \item{x}{A variable based on which HM is estimated.}

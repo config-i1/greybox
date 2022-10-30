@@ -632,7 +632,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 #'
 #' @export hm
 #' @rdname hm
-hm <- function(x,C=mean(x),...){
+hm <- function(x,C=mean(x, na.rm=TRUE),...){
     # This function calculates half moment
     return(mean(sqrt(as.complex(x[!is.na(x)]-C)),...));
 }
@@ -640,7 +640,7 @@ hm <- function(x,C=mean(x),...){
 #' @rdname hm
 #' @export ham
 #' @aliases ham
-ham <- function(x,C=mean(x),...){
+ham <- function(x,C=mean(x, na.rm=TRUE),...){
     # This function calculates half moment
     return(mean(sqrt(abs(x[!is.na(x)]-C)),...));
 }
@@ -648,7 +648,7 @@ ham <- function(x,C=mean(x),...){
 #' @rdname hm
 #' @export asymmetry
 #' @aliases asymmetry
-asymmetry <- function(x,C=mean(x),...){
+asymmetry <- function(x,C=mean(x, na.rm=TRUE),...){
     # This function calculates half moment
     return(1 - Arg(hm(x,C,...))/(pi/4));
 }
@@ -656,9 +656,9 @@ asymmetry <- function(x,C=mean(x),...){
 #' @rdname hm
 #' @export extremity
 #' @aliases extremity
-extremity <- function(x,C=mean(x),...){
+extremity <- function(x,C=mean(x, na.rm=TRUE),...){
     # This function calculates half moment
-    return(ham(x,C)/mean((x-C)^2)^0.25);
+    return(ham(x, C, ...)/mean((x-C)^2, ...)^0.25);
 }
 
 #' Pinball function
