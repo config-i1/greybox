@@ -9,12 +9,13 @@ pinball(holdout, forecast, level, loss = 1, na.rm = TRUE)
 \arguments{
 \item{holdout}{The vector or matrix of the holdout values.}
 
-\item{forecast}{The forecast of prediction interval (should be the same length as the
-holdout).}
+\item{forecast}{The forecast of a distribution (e.g. quantile or expectile).
+It should be the same length as the holdout.}
 
-\item{level}{The level of the prediction interval associated with the forecast.}
+\item{level}{The level associated with the forecast (e.g. level of quantile).}
 
-\item{loss}{The type of loss to use. The number which corresponds to L1, L2 etc.}
+\item{loss}{The type of loss to use. The number which corresponds to L1, L2 etc.
+L1 implies the loss for quantiles, while L2 is for the expectile.}
 
 \item{na.rm}{Logical, defining whether to remove the NAs from the provided data or not.}
 }
