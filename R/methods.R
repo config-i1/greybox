@@ -273,7 +273,8 @@ pointLik.alm <- function(object, ...){
                              "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                           plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                              "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE))
+                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                             0
     );
     if(any(distribution==c("dllaplace","dls","dlgnorm"))){
         likValues[otU] <- likValues[otU] - log(y);
@@ -2229,6 +2230,16 @@ print.greybox <- function(x, ...){
 }
 
 #' @export
+print.occurrence <- function(x, ...){
+    if(x$occurrence=="provided"){
+        cat("The values for occcurrence part were provided by user\n");
+    }
+    else{
+        print.greybox(x);
+    }
+}
+
+#' @export
 print.scale <- function(x, ...){
     cat("Formula:\n");
     print(formula(x));
@@ -2348,7 +2359,8 @@ print.summary.alm <- function(x, ...){
     if(is.occurrence(x$occurrence)){
         distribOccurrence <- switch(x$occurrence$distribution,
                                     "plogis" = "Cumulative logistic",
-                                    "pnorm" = "Cumulative normal"
+                                    "pnorm" = "Cumulative normal",
+                                    "Provided values"
         );
         distrib <- paste0("Mixture of ", distrib," and ", distribOccurrence);
     }
@@ -3164,12 +3176,15 @@ setMethod("extract", signature=className("summary.greyboxC","greybox"), definiti
 
 #### Predictions and forecasts ####
 
+#' @param occurrence If occurrence was provided, then a user can provide a vector of future
+#' values via this variable.
 #' @rdname predict.greybox
 #' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp
 #' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
-                            level=0.95, side=c("both","upper","lower"), ...){
+                            level=0.95, side=c("both","upper","lower"),
+                        occurrence=NULL, ...){
     if(is.null(newdata)){
         newdataProvided <- FALSE;
     }
@@ -3201,22 +3216,28 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     greyboxForecast$distribution <- object$distribution;
 
     # If there is an occurrence part of the model, use it
-    if(is.occurrence(object$occurrence)){
-        occurrence <- predict(object$occurrence, newdata, interval=interval, level=level, side=side, ...);
+    if(is.null(occurrence) && is.occurrence(object$occurrence) &&
+       (is.null(object$occurrence$occurrence) || object$occurrence$occurrence!="provided")){
+        occurrencePredict <- predict(object$occurrence, newdata, interval=interval, level=level, side=side, ...);
         # Reset horizon, just in case
-        h <- length(occurrence$mean);
+        h <- length(occurrencePredict$mean);
         # Create a matrix of levels for each horizon and level
         level <- matrix(level, h, nLevels, byrow=TRUE);
         # The probability of having zero should be subtracted from that thing...
         if(interval=="prediction"){
-            level[] <- (level - (1 - occurrence$mean)) / occurrence$mean;
+            level[] <- (level - (1 - occurrencePredict$mean)) / occurrencePredict$mean;
         }
         level[level<0] <- 0;
-        greyboxForecast$occurrence <- occurrence;
+        greyboxForecast$occurrence <- occurrencePredict;
     }
     else{
         # Create a matrix of levels for each horizon and level
         level <- matrix(level, h, nLevels, byrow=TRUE);
+        if(is.null(occurrence) && !is.null(object$occurrence$occurrence) &&
+           object$occurrence$occurrence=="provided"){
+            warning("occurrence is not provided for the new data. Using a vector of ones.", call.=FALSE);
+            occurrence <- rep(1, h);
+        }
     }
 
     scaleModel <- is.scale(object$scale);
@@ -3240,7 +3261,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     levelUp[levelUp<0] <- 0;
 
     if(object$distribution=="dnorm"){
-        if(is.occurrence(object$occurrence) & interval!="none"){
+        if(is.null(occurrence) && is.occurrence(object$occurrence) && interval!="none"){
             greyboxForecast$lower[] <- qnorm(levelLow,greyboxForecast$mean,greyboxForecast$scale);
             greyboxForecast$upper[] <- qnorm(levelUp,greyboxForecast$mean,greyboxForecast$scale);
         }
@@ -3598,12 +3619,21 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     }
 
     # If there is an occurrence part of the model, use it
-    if(is.occurrence(object$occurrence)){
-        greyboxForecast$mean <- greyboxForecast$mean * occurrence$mean;
+    if(is.null(occurrence) && is.occurrence(object$occurrence) &&
+           (is.null(object$occurrence$occurrence) || object$occurrence$occurrence!="provided")){
+        greyboxForecast$mean <- greyboxForecast$mean * greyboxForecast$occurrence$mean;
         #### This is weird and probably wrong. But I don't know yet what the confidence intervals mean in case of occurrence model.
         if(interval=="confidence"){
-            greyboxForecast$lower[] <- greyboxForecast$lower * occurrence$mean;
-            greyboxForecast$upper[] <- greyboxForecast$upper * occurrence$mean;
+            greyboxForecast$lower[] <- greyboxForecast$lower * greyboxForecast$occurrence$mean;
+            greyboxForecast$upper[] <- greyboxForecast$upper * greyboxForecast$occurrence$mean;
+        }
+    }
+    else{
+        # If occurrence was provided, modify everything
+        if(!is.null(occurrence)){
+            greyboxForecast$mean[] <- greyboxForecast$mean * occurrence;
+            greyboxForecast$lower[] <- greyboxForecast$lower * occurrence;
+            greyboxForecast$upper[] <- greyboxForecast$upper * occurrence;
         }
     }
 

@@ -913,11 +913,13 @@ alm <- function(formula, data, subset, na.action,
         occurrenceProvided <- TRUE;
         occurrenceFormula <- formula(occurrence);
     }
-    # else if(is.numeric(occurrence)){
-    #     occurrenceModel <- TRUE;
-    #     occurrenceProvided <- TRUE;
-    #     occurrence <- "provided";
-    # }
+    else if(is.numeric(occurrence)){
+        occurrenceModel <- TRUE;
+        occurrenceProvided <- TRUE;
+        occurrence <- list(occurrence="provided", fitted=occurrence,
+                           logLik=0, distribution="none", df=0);
+        class(occurrence) <- c("occurrence","alm","greybox");
+    }
     else{
         occurrence <- occurrence[1];
         occurrenceProvided <- FALSE;
@@ -1327,7 +1329,7 @@ alm <- function(formula, data, subset, na.action,
             colnames(ariElements) <- ariNames;
             variablesNamesAll <- c(variablesNames,ariNames);
 
-            # Non-zero sequencies for the recursion mechanism of ar
+            # Non-zero sequences for the recursion mechanism of ar
             if(occurrenceModel){
                 ariZeroes <- ariElements == 0;
                 ariZeroesLengths <- apply(ariZeroes, 2, sum);
@@ -1918,7 +1920,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Deal with the occurrence part of the model ####
-    if(occurrenceModel){
+    if(occurrenceModel && !is.null(occurrence$occurrence) && occurrence$occurrence!="provided"){
         mf$subset <- NULL;
 
         if(interceptIsNeeded){
@@ -1981,6 +1983,11 @@ alm <- function(formula, data, subset, na.action,
             variablesUsed <- variablesNamesAll;
         }
         colnames(dataWork) <- c(responseName, variablesUsed);
+        if(!is.null(occurrence$occurrence) && occurrence$occurrence=="provided"){
+            yFitted[] <- yFitted * ot;
+            occurrence$data <- dataWork[,1,drop=FALSE];
+            occurrence$data[,1] <- ot;
+        }
     }
 
     if(distribution=="dbeta"){

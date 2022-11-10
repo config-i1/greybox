@@ -10,7 +10,7 @@
 \usage{
 \method{predict}{alm}(object, newdata = NULL, interval = c("none",
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
-  "lower"), ...)
+  "lower"), occurrence = NULL, ...)
 
 \method{predict}{greybox}(object, newdata = NULL, interval = c("none",
   "confidence", "prediction"), level = 0.95, side = c("both", "upper",
@@ -40,6 +40,9 @@ lower and upper bounds of the interval, \code{"upper"} - upper only, \code{"lowe
 two parts: ((1-level)/2, (1+level)/2). When \code{"upper"} is specified, then
 the intervals for (0, level) are constructed Finally, with \code{"lower"} the interval
 for (1-level, 1) is returned.}
+
+\item{occurrence}{If occurrence was provided, then a user can provide a vector of future
+values via this variable.}
 
 \item{...}{Other arguments passed to \code{vcov} function (see \link[greybox]{coef.alm}
 for details).}

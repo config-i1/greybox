@@ -1,8 +1,9 @@
-greybox v1.0.7 (Release data: 2022-10-30)
+greybox v1.0.7 (Release data: 2022-11-10)
 ==============
 
 Changes:
 * xtable() methods for greybox class to produce LaTeX tables from greybox outputs.
+* alm() now accepts a vector of zeroes and ones in occurrence.
 
 Bugfixes:
 * na.rm in hm et al. functions to get rid of NAs by default.
