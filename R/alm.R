@@ -913,6 +913,11 @@ alm <- function(formula, data, subset, na.action,
         occurrenceProvided <- TRUE;
         occurrenceFormula <- formula(occurrence);
     }
+    # else if(is.numeric(occurrence)){
+    #     occurrenceModel <- TRUE;
+    #     occurrenceProvided <- TRUE;
+    #     occurrence <- "provided";
+    # }
     else{
         occurrence <- occurrence[1];
         occurrenceProvided <- FALSE;
