@@ -895,7 +895,8 @@ alm <- function(formula, data, subset, na.action,
 
     #### Occurrence part ####
     occurrenceFormula <- NULL;
-    # If occurrence is not provideded, then set it to "none"
+    occurrenceType <- "none";
+    # If occurrence is not provided, then set it to "none"
     if(is.null(occurrence)){
         occurrenceModel <- FALSE;
         occurrenceProvided <- FALSE;
@@ -906,12 +907,14 @@ alm <- function(formula, data, subset, na.action,
         occurrenceProvided <- FALSE;
         occurrenceFormula <- occurrence;
         occurrence <- "plogis";
+        occurrenceType <- "alm";
     }
     # See if the occurrence model is provided, and whether we need to treat the data as intermittent
     else if(is.occurrence(occurrence)){
         occurrenceModel <- TRUE;
         occurrenceProvided <- TRUE;
         occurrenceFormula <- formula(occurrence);
+        occurrenceType <- "model";
     }
     else if(is.numeric(occurrence)){
         occurrenceModel <- TRUE;
@@ -919,6 +922,7 @@ alm <- function(formula, data, subset, na.action,
         occurrence <- list(occurrence="provided", fitted=occurrence,
                            logLik=0, distribution="none", df=0);
         class(occurrence) <- c("occurrence","alm","greybox");
+        occurrenceType <- "provided";
     }
     else{
         occurrence <- occurrence[1];
@@ -931,6 +935,7 @@ alm <- function(formula, data, subset, na.action,
 
         if(any(occurrence==c("plogis","pnorm"))){
             occurrenceModel <- TRUE;
+            occurrenceType <- "alm";
         }
         else{
             occurrenceModel <- FALSE;
@@ -1920,7 +1925,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     #### Deal with the occurrence part of the model ####
-    if(occurrenceModel && !is.null(occurrence$occurrence) && occurrence$occurrence!="provided"){
+    if(occurrenceModel && occurrenceType!="provided"){
         mf$subset <- NULL;
 
         if(interceptIsNeeded){
@@ -1983,7 +1988,7 @@ alm <- function(formula, data, subset, na.action,
             variablesUsed <- variablesNamesAll;
         }
         colnames(dataWork) <- c(responseName, variablesUsed);
-        if(!is.null(occurrence$occurrence) && occurrence$occurrence=="provided"){
+        if(occurrenceType=="provided"){
             yFitted[] <- yFitted * ot;
             occurrence$data <- dataWork[,1,drop=FALSE];
             occurrence$data[,1] <- ot;
