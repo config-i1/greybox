@@ -3250,6 +3250,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
     # If there is an occurrence part of the model, use it
     if(is.null(occurrence) && is.occurrence(object$occurrence) &&
+       is.list(object$occurrence) &&
        (is.null(object$occurrence$occurrence) || object$occurrence$occurrence!="provided")){
         occurrencePredict <- predict(object$occurrence, newdata, interval=interval, level=level, side=side, ...);
         # Reset horizon, just in case
@@ -3266,7 +3267,9 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
     else{
         # Create a matrix of levels for each horizon and level
         level <- matrix(level, h, nLevels, byrow=TRUE);
-        if(is.null(occurrence) && !is.null(object$occurrence$occurrence) &&
+        if(is.null(occurrence) &&
+           is.list(object$occurrence) &&
+           !is.null(object$occurrence$occurrence) &&
            object$occurrence$occurrence=="provided"){
             warning("occurrence is not provided for the new data. Using a vector of ones.", call.=FALSE);
             occurrence <- rep(1, h);
@@ -3673,7 +3676,8 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
 
     # If there is an occurrence part of the model, use it
     if(is.null(occurrence) && is.occurrence(object$occurrence) &&
-           (is.null(object$occurrence$occurrence) || object$occurrence$occurrence!="provided")){
+       is.list(object$occurrence) &&
+       (is.null(object$occurrence$occurrence) || object$occurrence$occurrence!="provided")){
         greyboxForecast$mean <- greyboxForecast$mean * greyboxForecast$occurrence$mean;
         #### This is weird and probably wrong. But I don't know yet what the confidence intervals mean in case of occurrence model.
         if(interval=="confidence"){
