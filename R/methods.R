@@ -254,6 +254,7 @@ pointLik.alm <- function(object, ...){
                              "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
                              "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
                              "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
+                             "drectnorm" = drectnorm(y, mu=mu, sigma=scale, log=TRUE),
                              "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
                              "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
                              "dexp" = dexp(y, rate=1/mu, log=TRUE),
@@ -877,6 +878,7 @@ extractSigma.greybox <- function(object, ...){
                       "dlogitnorm"=,
                       "dbcnorm"=,
                       "dfnorm"=,
+                      "drectnorm"=,
                       "dinvgauss"=,
                       "dgamma"=extractScale(object),
                       "dlaplace"=,
@@ -1041,7 +1043,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
             else if(object$distribution=="dalaplace"){
                 newCall$alpha <- object$other$alpha;
             }
-            else if(object$distribution=="dfnorm"){
+            else if(any(object$distribution==c("dfnorm","drectnorm"))){
                 newCall$sigma <- object$other$sigma;
             }
             else if(object$distribution=="dbcnorm"){
@@ -1550,13 +1552,35 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Actual Quantile";
         }
 
-        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","dfnorm","plogis","pnorm"))){
+        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","plogis","pnorm"))){
             if(!any(names(ellipsis)=="main")){
                 ellipsis$main <- "QQ plot of normal distribution";
             }
 
             do.call(qqnorm, ellipsis);
             qqline(ellipsis$y);
+        }
+        else if(x$distribution=="dfnorm"){
+            # Standardise residuals
+            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Folded Normal distribution";
+            }
+            ellipsis$x <- qfnorm(ppoints(500), mu=0, sigma=extractScale(x));
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
+        }
+        else if(x$distribution=="drectnorm"){
+            # Standardise residuals
+            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "QQ-plot of Rectified Normal distribution";
+            }
+            ellipsis$x <- qrectnorm(ppoints(500), mu=0, sigma=extractScale(x));
+
+            do.call(qqplot, ellipsis);
+            qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
         }
         else if(any(x$distribution==c("dgnorm","dlgnorm"))){
             # Standardise residuals
@@ -2343,6 +2367,7 @@ print.summary.alm <- function(x, ...){
                       "ds" = "S",
                       "dls" = "Log-S",
                       "dfnorm" = "Folded Normal",
+                      "drectnorm" = "Rectified Normal",
                       "dlnorm" = "Log-Normal",
                       "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
                       "dlogitnorm" = "Logit Normal",
@@ -2424,6 +2449,7 @@ print.summary.scale <- function(x, ...){
                       "ds" = "S",
                       "dls" = "Log-S",
                       "dfnorm" = "Folded Normal",
+                      "drectnorm" = "Rectified Normal",
                       "dlnorm" = "Log-Normal",
                       "dbcnorm" = paste0("Box-Cox Normal with lambda=",round(x$other$lambdaBC,digits)),
                       "dlogitnorm" = "Logit Normal",
@@ -2482,6 +2508,7 @@ print.summary.greybox <- function(x, ...){
                       "ds" = "S",
                       "ds" = "Log-S",
                       "dfnorm" = "Folded Normal",
+                      "drectnorm" = "Rectified Normal",
                       "dlnorm" = "Log-Normal",
                       "dbcnorm" = "Box-Cox Normal",
                       "dlogitnorm" = "Logit Normal",
@@ -2537,6 +2564,7 @@ print.summary.greyboxC <- function(x, ...){
                       "ds" = "S",
                       "dls" = "Log-S",
                       "dfnorm" = "Folded Normal",
+                      "drectnorm" = "Rectified Normal",
                       "dlnorm" = "Log-Normal",
                       "dbcnorm" = "Box-Cox Normal",
                       "dlogitnorm" = "Logit Normal",
@@ -2683,6 +2711,9 @@ rstandard.greybox <- function(model, ...){
         }
         else if(any(model$distribution==c("dinvgauss","dgamma","dexp"))){
             errors[residsToGo] <- errors[residsToGo] / mean(errors[residsToGo]);
+        }
+        else if(any(model$distribution==c("dfnorm","drectnorm"))){
+            errors[residsToGo] <- (errors[residsToGo]) / sqrt(extractScale(model)^2 * obs / df);
         }
         else{
             errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
@@ -2877,6 +2908,8 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                                                   (nobs(object)-nparam(object))),
                         "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
                         "dexp"=qexp(c((1-level)/2, (1+level)/2), rate=1),
+                        "dfnorm"=qfnorm(c((1-level)/2, (1+level)/2), 0, 1),
+                        "drectnorm"=qrectnorm(c((1-level)/2, (1+level)/2), 0, 1),
                         qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     outliersID <- which(errors>statistic[2] | errors<statistic[1]);
     outliersNumber <- length(outliersID);
@@ -3402,6 +3435,26 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
                     call.=FALSE)
         }
     }
+    else if(object$distribution=="drectnorm"){
+        if(interval=="prediction"){
+            for(i in 1:nLevels){
+                greyboxForecast$lower[,i] <- qrectnorm(levelLow[,i],greyboxForecast$mean,sqrt(greyboxForecast$variances));
+                greyboxForecast$upper[,i] <- qrectnorm(levelUp[,i],greyboxForecast$mean,sqrt(greyboxForecast$variances));
+            }
+        }
+        if(interval!="none"){
+            # Correct the mean value
+            greyboxForecast$mean <- greyboxForecast$mean *
+                                        (1-pnorm(0, greyboxForecast$mean, sqrt(greyboxForecast$variances))) +
+                                    sqrt(greyboxForecast$variances) *
+                                        dnorm(0, greyboxForecast$mean, sqrt(greyboxForecast$variances));
+        }
+        else{
+            warning("The mean of Folded Normal distribution was not corrected. ",
+                    "We only do that, when interval!='none'.",
+                    call.=FALSE)
+        }
+    }
     else if(object$distribution=="dchisq"){
         greyboxForecast$mean <- greyboxForecast$mean^2;
         if(interval=="prediction"){
@@ -3867,7 +3920,8 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
                                             "dlnorm"=,
                                             "dbcnorm"=,
                                             "dlogitnorm"=,
-                                            "dfnorm"=sigmaValues^2,
+                                            "dfnorm"=,
+                                            "drectnorm"=sigmaValues^2,
                                             "dlaplace"=,
                                             "dllaplace"=2*sigmaValues^2,
                                             "dalaplace"=sigmaValues^2*
@@ -4162,25 +4216,26 @@ predict.scale <- function(object, newdata=NULL, interval=c("none", "confidence",
     # Fix the predicted scale
     scalePredicted$mean[] <- exp(scalePredicted$mean);
     scalePredicted$mean[] <- switch(object$distribution,
-                                           "dnorm"=,
-                                           "dlnorm"=,
-                                           "dbcnorm"=,
-                                           "dlogitnorm"=,
-                                           "dfnorm"=,
-                                           "dlogis"=sqrt(scalePredicted$mean),
-                                           "dlaplace"=,
-                                           "dllaplace"=,
-                                           "dalaplace"=scalePredicted$mean,
-                                           "ds"=,
-                                           "dls"=scalePredicted$mean^2,
-                                           "dgnorm"=,
-                                           "dlgnorm"=scalePredicted$mean^{1/object$other},
-                                           "dgamma"=sqrt(scalePredicted$mean)+1,
-                                           # This is based on polynomial from y = (x-1)^2/x
-                                           "dinvgauss"=(scalePredicted$mean+2+
-                                                            sqrt(scalePredicted$mean^2+
-                                                                     4*scalePredicted$mean))/2,
-                                           scalePredicted$mean);
+                                    "dnorm"=,
+                                    "dlnorm"=,
+                                    "dbcnorm"=,
+                                    "dlogitnorm"=,
+                                    "dfnorm"=,
+                                    "drectnorm"=,
+                                    "dlogis"=sqrt(scalePredicted$mean),
+                                    "dlaplace"=,
+                                    "dllaplace"=,
+                                    "dalaplace"=scalePredicted$mean,
+                                    "ds"=,
+                                    "dls"=scalePredicted$mean^2,
+                                    "dgnorm"=,
+                                    "dlgnorm"=scalePredicted$mean^{1/object$other},
+                                    "dgamma"=sqrt(scalePredicted$mean)+1,
+                                    # This is based on polynomial from y = (x-1)^2/x
+                                    "dinvgauss"=(scalePredicted$mean+2+
+                                                     sqrt(scalePredicted$mean^2+
+                                                              4*scalePredicted$mean))/2,
+                                    scalePredicted$mean);
     return(scalePredicted);
 }
 

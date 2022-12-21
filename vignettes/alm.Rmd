@@ -38,10 +38,11 @@ This vignette contains the following sections:
 All the supported distributions have specific functions which form the following four groups for the `distribution` parameter in `alm()`:
 
 1. [Density functions of continuous distributions](#continuous),
-2. [Density functions for continuous positive data](#continuousPlus),
-3. [Continuous distributions on a specific interval](#continuousInterval),
-4. [Density functions of discrete distributions](#discrete),
-5. [Cumulative functions for binary variables](#cumulative).
+2. [Density functions for continuous non-negative data](#continuousNonNegative)
+3. [Density functions for continuous positive data](#continuousPlus),
+4. [Continuous distributions on a specific interval](#continuousInterval),
+5. [Density functions of discrete distributions](#discrete),
+6. [Cumulative functions for binary variables](#cumulative).
 
 All of them rely on respective d- and p- functions in R. For example, Log-Normal distribution uses `dlnorm()` function from `stats` package.
 
@@ -324,20 +325,126 @@ plot(predict(ourModel,outSample))
 ```
 
 
+## Density functions for continuous non-negative data {#continuousNonNegative}
+There are currently three distributions in this group:
+
+1. [Box-Cox Normal distribution](#bcnormal),
+2. [Folded Normal distribution](#fnormal),
+3. [Rectified Normal distribution](#rectnormal)
+
+They allow the response variable to be positive or zero. Note however that the PDF of the Box-Cox Normal distribution is equal to zero in case of $y_t=0$, which might cause some issues in the estimation.
+
+
+### Box-Cox Normal distribution {#bcnormal}
+Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformation. This means that if $x=\frac{y^\lambda+1}{\lambda}$ and $x \sim \mathcal{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathcal{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
+\begin{equation} \label{eq:BCNormal}
+    f(y_t) = \frac{y_t^{\lambda-1}} {\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2}{2 \sigma^2} \right) ,
+\end{equation}
+where the variance estimated using likelihood is:
+\begin{equation} \label{eq:sigmaBCNormal}
+    \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2 .
+\end{equation}
+Depending on the value of $\lambda$, we will get different shapes of the density function:
+```{r pdfBCNorm, echo=FALSE}
+plot(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,1),type="l",ylim=c(0,1),
+     xlab="y_t",ylab="Density",main="PDF of Box-Cox Normal distribution")
+lines(seq(0.01,5,0.01),dbcnorm(seq(0.01,5,0.01),0,1,0.5), col="blue")
+lines(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,2), col="red")
+lines(seq(0,5,0.01),dbcnorm(seq(0,5,0.01),0,1,0.01), col="purple")
+legend("topright",legend=c("BCN(0,1,1)","BCN(0,1,0.5)","BCN(0,1,2)","BCN(0,1,0.01)"),
+       lwd=1, col=c("black","blue","red","purple"))
+```
+
+When $\lambda=0$ the distribution transforms to the [Log-Normal](#lnormal) one.
+
+Estimating the model with Box-Cox Normal distribution is equivalent to estimating the parameters of a linear model after the Box-Cox transform:
+\begin{equation} \label{eq:BCLinearModel}
+    \frac{y_t^{\lambda}-1}{\lambda} = \mu_t + \epsilon_t,
+\end{equation}
+where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
+\begin{equation} \label{eq:BCLinearModelExp}
+    y_t = \left((\mu_t + \epsilon_t) \lambda +1 \right)^{\frac{1}{\lambda}}.
+\end{equation}
+
+`alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$. The $lambda$ parameter can be provided by the user via the `lambdaBC` in ellipsis.
+
+
+### Folded Normal distribution {#fnormal}
+Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{Fold}\mathcal{N}(\mu, \sigma^2)$. The density function is:
+\begin{equation} \label{eq:foldedNormal}
+    f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
+\end{equation}
+which can be graphically represented as:
+```{r pdfFnorm, echo=FALSE}
+plot(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),0,1),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of Folded Normal distribution")
+lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-1,1), col="blue")
+lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-2,1), col="red")
+legend("topright",legend=c("FN(0,1)","FN(-1,1)","FN(-2,1)"),
+       lwd=1, col=c("black","blue","red"))
+```
+
+Conditional mean and variance of Folded Normal are estimated in `alm()` (with `distribution="dfnorm"`) similarly to how this is done for Normal distribution. They are returned in the variables `mu` and `scale` respectively. In order to produce the fitted value (which is returned in `fitted.values`), the following correction is done:
+\begin{equation} \label{eq:foldedNormalFitted}
+    \hat{y_t} = \sqrt{\frac{2}{\pi}} \sigma \exp \left( -\frac{\mu_t^2}{2 \sigma^2} \right) + \mu_t \left(1 - 2 \Phi \left(-\frac{\mu_t}{\sigma} \right) \right),
+\end{equation}
+where $\Phi(\cdot)$ is the CDF of Normal distribution.
+
+The model that is assumed in the case of Folded Normal distribution can be summarised as:
+\begin{equation} \label{eq:foldedNormalModel}
+    y_t = \left| \mu_t + \epsilon_t \right|.
+\end{equation}
+
+The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
+
+
+### Rectified Normal distribution {#rectnormal}
+Rectified Normal distribution is obtained when all the negative values of normally distributed variable are set to zero: if $x \sim \mathcal{N}(\mu, \sigma)$, then $y = \max(0, x) \sim \text{Rect}\mathcal{N}(\mu, \sigma)$. The density function is:
+
+\begin{equation} \label{eq:rectnormal}
+    f(y_t) = I(y_t = 0) \Phi_x(0, \mu, \sigma) + I(y_t > 0) \phi_x(y_t, \mu, \sigma),
+\end{equation}
+where $\Phi_x(0, \mu, \sigma)$ is the CDF and $\phi_x(y_t, \mu, \sigma)$ is the PDF of the Normal distribution. This can be graphically represented as:
+```{r pdfRectnormal, echo=FALSE}
+plot(seq(0,5,0.01),drectnorm(seq(0,5,0.01),0,1),type="l",ylim=c(0,1.5),
+     xlab="y_t",ylab="Density",main="PDF of REctified Normal distribution",
+     xlim=c(0,2))
+points(0,drectnorm(0,0,1),col="black")
+lines(seq(0,5,0.001),drectnorm(seq(0,5,0.001),1,1), col="blue")
+points(0,drectnorm(0,1,1),col="blue")
+lines(seq(0,5,0.01),drectnorm(seq(0,5,0.01),-1,1), col="red")
+points(0,drectnorm(0,-1,1),col="red")
+legend("topright",legend=c("RectN(0,1)","RectN(1,1)","RectN(-1,1)"),
+       lwd=1, col=c("black","blue","red"))
+```
+
+This distribution can be useful in modelling intermittent demand, when the demand sizes are not integer.
+
+Conditional location and scale of Rectified Normal are estimated in `alm()` (with `distribution="drectnorm"`) similarly to how this is done for Normal distribution. They are returned in the variables `mu` and `scale` respectively. In order to produce the fitted value (which is returned in `fitted.values`), the following formula is used:
+\begin{equation} \label{eq:rectNormalFitted}
+    \hat{y_t} = \mu_t (1-\Phi_x(0, \mu, \sigma)) + \sigma * \phi_x(0, \mu, \sigma) .
+\end{equation}
+
+The model that is assumed in the case of Rectified Normal distribution is:
+\begin{equation} \label{eq:rectifiedNormalModel}
+    y_t = \max(\mu_t + \epsilon_t, 0).
+\end{equation}
+
+The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qrectnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
+
+
 ## Density functions for continuous positive data {#continuousPlus}
 This group includes:
 
 1. [Log-Normal distribution](#lnormal),
-2. [Box-Cox Normal distribution](#bcnormal),
-3. [Inverse Gaussian distribution](#invgauss),
-4. [Gamma distribution](#gamma),
-5. [Exponential distribution](#exponential),
-6. [Log-Laplace distribution](#llaplace),
-7. [Log-S distribution](#lsvetunkov),
-8. [Log-Generalised Normal distribution](#lgnormal),
-9. [Folded Normal distribution](#fnormal),
+2. [Inverse Gaussian distribution](#invgauss),
+3. [Gamma distribution](#gamma),
+4. [Exponential distribution](#exponential),
+5. [Log-Laplace distribution](#llaplace),
+6. [Log-S distribution](#lsvetunkov),
+7. [Log-Generalised Normal distribution](#lgnormal),
 
-Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data.
+<!-- Although (2) and (3) in theory allow having zeroes in data, given that the density function is equal to zero in any specific point, it will be zero in these cases as well. So the `alm()` will return some solutions for these distributions, but don't expect anything good. As for (1), it supports strictly positive data. -->
 
 ### Log-Normal distribution {#lnormal}
 Log-Normal distribution appears when a normally distributed variable is exponentiated. This means that if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $\exp x \sim \text{log}\mathcal{N}(\mu, \sigma^2)$. The density function of Log-Normal distribution is:
@@ -367,38 +474,6 @@ where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
 \end{equation}
 
 `alm()` with `distribution="dlnorm"` does not transform the provided data and estimates the density directly using `dlnorm()` function with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaLogNormal}. If you need a log-log model, then you would need to take logarithms of the external variables. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Log-Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
-
-
-### Box-Cox Normal distribution {#bcnormal}
-Box-Cox Normal distribution used in the `greybox` package is defined as a distribution that becomes normal after the Box-Cox transformations. This means that if $x=\frac{y^\lambda+1}{\lambda}$, $x \sim \mathcal{N}(\mu, \sigma^2)$, then $y \sim \text{BC}\mathcal{N}(\mu, \sigma^2)$. The density function of the Box-Cox Normal distribution in this case is:
-\begin{equation} \label{eq:BCNormal}
-    f(y_t) = \frac{y_t^{\lambda-1}} {\sqrt{2 \pi \sigma^2}} \exp \left( -\frac{\left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2}{2 \sigma^2} \right) ,
-\end{equation}
-where the variance estimated using likelihood is:
-\begin{equation} \label{eq:sigmaBCNormal}
-    \hat{\sigma}^2 = \frac{1}{T} \sum_{t=1}^T \left(\frac{y_t^{\lambda}-1}{\lambda} - \mu_t \right)^2 .
-\end{equation}
-Depending on the value of $\lambda$, we will get different shapes of the density function:
-```{r pdfBCNorm, echo=FALSE}
-plot(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,1),type="l",ylim=c(0,1),
-     xlab="y_t",ylab="Density",main="PDF of Box-Cox Normal distribution")
-lines(seq(0.01,5,0.01),dbcnorm(seq(0.01,5,0.01),0,1,0.5), col="blue")
-lines(seq(0,5,0.1),dbcnorm(seq(0,5,0.1),0,1,2), col="red")
-lines(seq(0,5,0.01),dbcnorm(seq(0,5,0.01),0,1,0.01), col="purple")
-legend("topright",legend=c("BCN(0,1,1)","BCN(0,1,0.5)","BCN(0,1,2)","BCN(0,1,0.01)"),
-       lwd=1, col=c("black","blue","red","purple"))
-```
-
-Estimating the model with Box-Cox Normal distribution is equivalent to estimating the parameters of a linear model after the Box-Cox transform:
-\begin{equation} \label{eq:BCLinearModel}
-    \frac{y_t^{\lambda}-1}{\lambda} = \mu_t + \epsilon_t,
-\end{equation}
-where $\epsilon_t \sim \mathcal{N}(0, \sigma^2)$ or:
-\begin{equation} \label{eq:BCLinearModelExp}
-    y_t = \left((\mu_t + \epsilon_t) \lambda +1 \right)^{\frac{1}{\lambda}}.
-\end{equation}
-
-`alm()` with `distribution="dbcnorm"` does not transform the provided data and estimates the density directly using `dbcnorm()` function from `greybox` with the estimated mean $\mu_t$ and the variance \eqref{eq:sigmaBCNormal}. The $\mu_t$ is returned in the variable `mu`, the $\sigma^2$ is in the variable `scale`, while the `fitted.values` contains the exponent of $\mu_t$, which, given the connection between the Normal and Box-Cox Normal distributions, corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \frac{y_t^{\lambda}-1}{\lambda} - \mu_t$. The $lambda$ parameter can be provided by the user via the `lambdaBC` in ellipsis.
 
 
 ### Inverse Gaussian distribution {#invgauss}
@@ -580,35 +655,6 @@ Estimating the model with Log-Generalised Normal distribution is equivalent to e
 where $\epsilon_t \sim \mathcal{GN}(0, s, \beta)$.
 
 `alm()` with `distribution="dlgnorm"` uses the `dgnorm()` function from `greybox` package with the logarithm of actual values, estimated mean $\mu_t$, the scale \eqref{eq:sigmaLogLaplace} and either provided or estimated shape parameter $\beta$. The $\mu_t$ is returned in the variable `mu`, the $s$ is in the variable `scale` and $\beta$ is in `other$beta`, while the `fitted.values` contains the exponent of $\mu_t$, which corresponds to median of distribution rather than mean. Finally, `resid()` method returns $e_t = \log y_t - \mu_t$.
-
-
-### Folded Normal distribution {#fnormal}
-Folded Normal distribution is obtained when the absolute value of normally distributed variable is taken: if $x \sim \mathcal{N}(\mu, \sigma^2)$, then $|x| \sim \text{folded }\mathcal{N}(\mu, \sigma^2)$. The density function is:
-\begin{equation} \label{eq:foldedNormal}
-    f(y_t) = \frac{1}{\sqrt{2 \pi \sigma^2}} \left( \exp \left( -\frac{\left(y_t - \mu_t \right)^2}{2 \sigma^2} \right) + \exp \left( -\frac{\left(y_t + \mu_t \right)^2}{2 \sigma^2} \right) \right),
-\end{equation}
-which can be graphically represented as:
-```{r pdfFnorm, echo=FALSE}
-plot(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),0,1),type="l",ylim=c(0,1.5),
-     xlab="y_t",ylab="Density",main="PDF of Folded Normal distribution")
-lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-1,1), col="blue")
-lines(seq(0.01,5,0.01),dfnorm(seq(0.01,5,0.01),-2,1), col="red")
-legend("topright",legend=c("FN(0,1)","FN(-1,1)","FN(-2,1)"),
-       lwd=1, col=c("black","blue","red"))
-```
-
-Conditional mean and variance of Folded Normal are estimated in `alm()` (with `distribution="dfnorm"`) similarly to how this is done for Normal distribution. They are returned in the variables `mu` and `scale` respectively. In order to produce the fitted value (which is returned in `fitted.values`), the following correction is done:
-\begin{equation} \label{eq:foldedNormalFitted}
-    \hat{y_t} = \sqrt{\frac{2}{\pi}} \sigma \exp \left( -\frac{\mu_t^2}{2 \sigma^2} \right) + \mu_t \left(1 - 2 \Phi \left(-\frac{\mu_t}{\sigma} \right) \right),
-\end{equation}
-where $\Phi(\cdot)$ is the CDF of Normal distribution.
-
-The model that is assumed in the case of Folded Normal distribution can be summarised as:
-\begin{equation} \label{eq:foldedNormalModel}
-    y_t = \left| \mu_t + \epsilon_t \right|.
-\end{equation}
-
-The conditional variance of the forecasts is calculated based on the elements of `vcov()` (as in all the other functions), the predicted values are corrected in the same way as the fitted values \eqref{eq:foldNormalFitted}, and the prediction intervals are generated from the `qfnorm()` function of `greybox` package. As for the residuals, `resid()` method returns $e_t = y_t - \mu_t$.
 
 
 ## Continuous distributions on a specific interval {#continuousInterval}

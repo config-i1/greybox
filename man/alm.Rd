@@ -6,8 +6,8 @@
 \usage{
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
-  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dexp", "dpois",
-  "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
+  "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
+  "dpois", "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
   loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
   occurrence = c("none", "plogis", "pnorm"), scale = NULL, orders = c(0,
   0, 0), parameters = NULL, fast = FALSE, ...)
@@ -180,6 +180,7 @@ of several non-normal distributions. These include:
 \item dls - Log-S distribution,
 \item dlgnorm - Log-Generalised Normal distribution,
 \item \link[greybox]{dfnorm} - Folded normal distribution,
+\item \link[greybox]{drectnorm} - Rectified normal distribution,
 \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
 \item \link[stats]{dgamma} - Gamma distribution,

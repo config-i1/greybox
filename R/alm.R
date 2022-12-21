@@ -17,6 +17,7 @@
 #' \item dls - Log-S distribution,
 #' \item dlgnorm - Log-Generalised Normal distribution,
 #' \item \link[greybox]{dfnorm} - Folded normal distribution,
+#' \item \link[greybox]{drectnorm} - Rectified normal distribution,
 #' \item \link[greybox]{dbcnorm} - Box-Cox normal distribution,
 # \item \link[stats]{dchisq} - Chi-Squared Distribution,
 #' \item \link[statmod]{dinvgauss} - Inverse Gaussian distribution,
@@ -266,8 +267,9 @@
 #' @export alm
 alm <- function(formula, data, subset, na.action,
                 distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                               "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
+                               "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
                                "dinvgauss","dgamma","dexp",
+                               "dfnorm","drectnorm",
                                "dpois","dnbinom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
@@ -362,7 +364,7 @@ alm <- function(formula, data, subset, na.action,
                 other <- nu;
             }
         }
-        else if(distribution=="dfnorm"){
+        else if(any(distribution==c("dfnorm","drectnorm"))){
             if(!aParameterProvided){
                 other <- B[1];
                 B <- B[-1];
@@ -445,8 +447,9 @@ alm <- function(formula, data, subset, na.action,
                        "dllaplace" =,
                        "dls" =,
                        "dlgnorm" =,
-                       "dbcnorm"=,
+                       "dbcnorm" =,
                        "dfnorm" =,
+                       "drectnorm" =,
                        "pnorm" =,
                        "plogis" = matrixXreg %*% B
         );
@@ -496,8 +499,9 @@ alm <- function(formula, data, subset, na.action,
                       "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
                       "dgamma" = sum((y[otU]/mu[otU]-1)^2)/obsInsample,
                       "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/obsInsample),
-                      "dfnorm" = abs(other),
-                      "dt" = ,
+                      "dfnorm" =,
+                      "drectnorm" =,
+                      "dt" =,
                       "dchisq" =,
                       "dnbinom" = abs(other),
                       "dpois" = mu[otU],
@@ -514,6 +518,7 @@ alm <- function(formula, data, subset, na.action,
     extractorFitted <- function(distribution, mu, scale){
         return(switch(distribution,
                       "dfnorm" = sqrt(2/pi)*scale*exp(-mu^2/(2*scale^2))+mu*(1-2*pnorm(-mu/scale)),
+                      "drectnorm" = mu*(1-pnorm(0, mu, scale)) + scale * dnorm(0, mu, scale),
                       "dnorm" =,
                       "dgnorm" =,
                       "dinvgauss" =,
@@ -544,6 +549,7 @@ alm <- function(formula, data, subset, na.action,
         return(switch(distribution,
                       "dbeta" = y - yFitted,
                       "dfnorm" =,
+                      "drectnorm" =,
                       "dnorm" =,
                       "dlaplace" =,
                       "ds" =,
@@ -595,9 +601,12 @@ alm <- function(formula, data, subset, na.action,
                                    "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
                                    "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
                                                       shape=fitterReturn$other, log=TRUE)-log(y[otU]),
-                                   "dbcnorm" = dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                       lambda=fitterReturn$other, log=TRUE),
+                                   # Use ifelse() to remove densities for y=0, which result in -Inf
+                                   # This is just a fix! It has no good reason behind it!
+                                   "dbcnorm" = ifelse(y[otU]!=0,dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                                   lambda=fitterReturn$other, log=TRUE),0),
                                    "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                   "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
                                                            dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
                                    "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
@@ -761,6 +770,15 @@ alm <- function(formula, data, subset, na.action,
         }
     }
     else if(distribution=="dfnorm"){
+        if(is.null(ellipsis$sigma)){
+            aParameterProvided <- FALSE;
+        }
+        else{
+            sigma <- ellipsis$sigma;
+            aParameterProvided <- TRUE;
+        }
+    }
+    else if(distribution=="drectnorm"){
         if(is.null(ellipsis$sigma)){
             aParameterProvided <- FALSE;
         }
@@ -1142,7 +1160,8 @@ alm <- function(formula, data, subset, na.action,
     errors <- vector("numeric", obsInsample);
     ot <- vector("logical", obsInsample);
 
-    if(any(distribution==c("dfnorm","dexp","dlnorm","dllaplace","dls","dbcnorm","dchisq",
+    if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dbcnorm","dchisq",
+                           "dfnorm","drectnorm",
                            "dpois","dnbinom",
                            "dinvgauss","dgamma")) && any(y<0)){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
@@ -1566,7 +1585,7 @@ alm <- function(formula, data, subset, na.action,
                     BUpper <- rep(Inf,length(B));
                 }
             }
-            else if(distribution=="dfnorm"){
+            else if(any(distribution==c("dfnorm","drectnorm"))){
                 B <- c(sd(y),B);
                 BLower <- c(0,rep(-Inf,length(B)-1));
                 BUpper <- rep(Inf,length(B));
@@ -1794,7 +1813,7 @@ alm <- function(formula, data, subset, na.action,
             }
             names(parameters) <- c(variablesNames);
         }
-        else if(distribution=="dfnorm"){
+        else if(any(distribution==c("dfnorm","drectnorm"))){
             if(!aParameterProvided){
                 ellipsis$sigma <- sigma <- abs(parameters[1]);
                 parameters <- parameters[-1];
@@ -1890,7 +1909,8 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Amend the number of parameters, depending on the type of distribution
-    if(any(distribution==c("dnbinom","dchisq","dt","dfnorm","dbcnorm","dgnorm","dlgnorm","dalaplace"))){
+    if(any(distribution==c("dnbinom","dchisq","dt",
+                           "dbcnorm","dgnorm","dlgnorm","dalaplace"))){
         if(!aParameterProvided){
             nParam <- nParam + 1;
         }
