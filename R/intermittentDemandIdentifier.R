@@ -1,4 +1,6 @@
-idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
+idi <- function(y, ic=c("AIC","AICc","BIC","BICc"),
+                distribution1="drectnorm", distribution2="dbcnorm",
+                distribution2Occurrence="plogis"){
 
     # Select IC
     ic <- match.arg(ic);
@@ -19,12 +21,12 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     xreg2Occurrence$x[] <- lowess(xreg2Occurrence$y)$y;
 
     # First model with rectified normal distribution
-    model1 <- suppressWarnings(alm(y~., xreg1, distribution="drectnorm"));
+    model1 <- suppressWarnings(alm(y~., xreg1, distribution=distribution1));
 
     # Model for demand occurrence
-    model2Occurrence <- suppressWarnings(alm(y~., xreg2Occurrence, distribution="plogis"));
+    model2Occurrence <- suppressWarnings(alm(y~., xreg2Occurrence, distribution=distribution2Occurrence));
     # The second model: mixture of Box-Cox Normal and Logistic
-    model2 <- suppressWarnings(alm(y~., xreg2Sizes, distribution="dbcnorm", occurrence=model2Occurrence));
+    model2 <- suppressWarnings(alm(y~., xreg2Sizes, distribution=distribution2, occurrence=model2Occurrence));
 
     # Fix the number of estimated parameters to include occurrence part
     # model2$df <- model2$df + nparam(model2$occurrence)
