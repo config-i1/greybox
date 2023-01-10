@@ -27,6 +27,12 @@
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
 #' WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
 #' or \code{doParallel} are needed in order to run the function in parallel.
+#' @param lowess Logical defining, whether LOWESS should be used to smooth the
+#' dynamic weights. By default it is \code{TRUE}.
+#' @param f the smoother span for LOWESS. This gives the proportion of points in
+#' the plot which influence the smooth at each value. Larger values give more
+#' smoothness. If \code{NULL} the parameter will be optimised by minimising
+#' \code{ic}.
 #' @param ... Other parameters passed to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
@@ -73,6 +79,7 @@
 #' predict(ourModel,outSample)
 #' plot(predict(ourModel,outSample))
 #'
+#' @importFrom stats lowess
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
                       distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
@@ -81,7 +88,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                      "dpois","dnbinom",
                                      "dlogitnorm",
                                      "plogis","pnorm"),
-                      parallel=FALSE, ...){
+                      parallel=FALSE, lowess=TRUE, f=NULL, ...){
     # Function combines linear regression models and produces the combined lm object.
 
     # Start measuring the time of calculations
@@ -195,7 +202,8 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
 
     # Define the function of IC
     ic <- match.arg(ic);
-    IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
+    # IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
+    IC <- switch(ic,"AIC"=pAIC,"BIC"=pBIC,"BICc"=pBICc,pAICc);
 
     # Define what function to use in the estimation
     if(useALM){
@@ -511,6 +519,41 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     # Calculate IC weights
     pICWeights <- pICs - apply(pICs,1,min);
     pICWeights <- exp(-0.5*pICWeights) / apply(exp(-0.5*pICWeights),1,sum)
+
+    if(lowess){
+            # Logit transform of weights
+        pICWeightsLog <- log(pICWeights/(1-pICWeights));
+        # Optimis f if it is not provided
+        if(is.null(f)){
+            pICWeightsSmooth <- pICWeightsLog;
+            fFinder <- function(f){
+            # Smooth weights via LOWESS
+                pICWeightsSmooth[] <- sapply(apply(pICWeightsLog, 2, lowess, f=f),"[[","y");
+
+                # Inverse logit transform
+                pICWeightsSmooth[] <- exp(pICWeightsSmooth)/(1+exp(pICWeightsSmooth));
+                # Normalisation
+                pICWeightsSmooth[] <- pICWeightsSmooth/apply(pICWeightsSmooth, 1, sum);
+
+                # Dynamic weighted mean pAIC
+                #### !!!! This needs to be amended to take correct number of df into account ####
+                ICValue <- mean(apply(pICWeightsSmooth * pICs,1,sum));
+                return(ICValue);
+            }
+
+            fValue <- optimise(fFinder, c(0,1));
+            f <- fValue$minimum;
+        }
+
+        # Smooth weights via LOWESS
+        pICWeightsLogSmooth <- sapply(apply(pICWeightsLog, 2, lowess, f=f),"[[","y");
+
+        # Inverse logit transform
+        pICWeights[] <- exp(pICWeightsLogSmooth)/(1+exp(pICWeightsLogSmooth));
+        # Normalisation
+        pICWeights[] <- pICWeights/apply(pICWeights, 1, sum);
+    }
+
     pICWeightsMean <- apply(pICWeights,2,mean);
 
     # Calculate weighted parameters
@@ -686,7 +729,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                  ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                                  call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                                  coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                                 weights=pICWeights, other=other,
+                                 weights=pICWeights, other=other, f=f,
                                  timeElapsed=Sys.time()-startTime),
                             class=c("greyboxD","alm","greybox"));
 

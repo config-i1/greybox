@@ -8,7 +8,7 @@ lmDynamic(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteforce = FALSE,
   silent = TRUE, distribution = c("dnorm", "dlaplace", "ds", "dgnorm",
   "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls", "dlgnorm",
   "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom", "dlogitnorm",
-  "plogis", "pnorm"), parallel = FALSE, ...)
+  "plogis", "pnorm"), parallel = FALSE, lowess = TRUE, f = NULL, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -29,6 +29,14 @@ for details.}
 \item{parallel}{If \code{TRUE}, then the model fitting is done in parallel.
 WARNING! Packages \code{foreach} and either \code{doMC} (Linux and Mac only)
 or \code{doParallel} are needed in order to run the function in parallel.}
+
+\item{lowess}{Logical defining, whether LOWESS should be used to smooth the
+dynamic weights. By default it is \code{TRUE}.}
+
+\item{f}{the smoother span for LOWESS. This gives the proportion of points in
+the plot which influence the smooth at each value. Larger values give more
+smoothness. If \code{NULL} the parameter will be optimised by minimising
+\code{ic}.}
 
 \item{...}{Other parameters passed to \code{alm()}.}
 }

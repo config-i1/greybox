@@ -1,3 +1,10 @@
+greybox v1.0.8 (Release data: 2023-01-10)
+==============
+
+Changes:
+* Smooth dynamic weights via LOWESS in lmDynamic.
+
+
 greybox v1.0.7 (Release data: 2022-12-22)
 ==============
 
