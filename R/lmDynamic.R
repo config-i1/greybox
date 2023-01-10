@@ -541,11 +541,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                 return(ICValue);
             }
 
-<<<<<<< HEAD
-            fValue <- optimise(fFinder, c(0,1));
-=======
             fValue <- optimize(fFinder, c(0,1));
->>>>>>> d6b25ed (Smooth dynamic weights via LOWESS in lmDynamic())
             f <- fValue$minimum;
         }
 
