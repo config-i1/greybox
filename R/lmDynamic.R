@@ -523,6 +523,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     if(lowess){
             # Logit transform of weights
         pICWeightsLog <- log(pICWeights/(1-pICWeights));
+        ICsMean <- apply(pICs,2,mean);
         # Optimis f if it is not provided
         if(is.null(f)){
             pICWeightsSmooth <- pICWeightsLog;
@@ -536,13 +537,16 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                 pICWeightsSmooth[] <- pICWeightsSmooth/apply(pICWeightsSmooth, 1, sum);
 
                 # Dynamic weighted mean pAIC
-                #### !!!! This needs to be amended to take correct number of df into account ####
-                ICValue <- mean(apply(pICWeightsSmooth * pICs,1,sum));
+                # This is a proxy for the true one based on logLik
+                ICValue <- sum(apply(pICWeightsSmooth,2,mean) * ICsMean);
                 return(ICValue);
             }
 
-            fValue <- optimize(fFinder, c(0,1));
-            f <- fValue$minimum;
+            fValue <- nloptr(0.9, fFinder, lb=0, ub=1,
+                             opts=list(algorithm="NLOPT_LN_SBPLX", xtol_rel=1E-6,
+                                       maxeval=100, print_level=0, xtol_abs=1E-8,
+                                       ftol_rel=1E-4, ftol_abs=0));
+            f <- fValue$solution;
         }
 
         # Smooth weights via LOWESS
