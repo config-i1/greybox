@@ -1,11 +1,14 @@
 #' Combine regressions based on point information criteria
 #'
 #' Function combines parameters of linear regressions of the first variable
-#' on all the other provided data using pAIC weights
+#' on all the other provided data using pAIC weights. This is an extension of the
+#' \link[greybox]{lmCombine} function, which relies upon the idea that the combination
+#' weights might change over time.
 #'
 #' The algorithm uses alm() to fit different models and then combines the models
-#' based on the selected point IC. This is a dynamic counterpart of
-#' \link[greybox]{lmCombine} function.
+#' based on the selected point IC. The combination weights are calculated for each
+#' observation based on the point IC and then smoothed via LOWESS if the respective
+#' parameter (\code{lowess}) is set to TRUE.
 #'
 #' Some details and examples of application are also given in the vignette
 #' "Greybox": \code{vignette("greybox","greybox")}
