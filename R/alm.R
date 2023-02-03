@@ -1317,6 +1317,18 @@ alm <- function(formula, data, subset, na.action,
     # The number of exogenous variables (no ARI elements)
     nVariablesExo <- nVariables;
 
+    if(any(loss==c("LASSO","RIDGE"))){
+        denominator <- apply(matrixXreg, 2, sd);
+        # No variability, substitute by 1
+        denominator[is.infinite(denominator)] <- 1;
+        # # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
+        # denominator[abs(denominator)<1] <- 1;
+        yDenominator <- max(sd(diff(y)),1);
+    }
+    else{
+        denominator <- NULL;
+    }
+
     #### Estimate parameters of the model ####
     if(is.null(parameters)){
         #### Add AR and I elements in the regression ####
@@ -1625,18 +1637,6 @@ alm <- function(formula, data, subset, na.action,
         print_level_hidden <- print_level;
         if(print_level==41){
             print_level[] <- 0;
-        }
-
-        if(any(loss==c("LASSO","RIDGE"))){
-            denominator <- apply(matrixXreg, 2, sd);
-            # No variability, substitute by 1
-            denominator[is.infinite(denominator)] <- 1;
-            # # If it is lower than 1, then we are probably dealing with (0, 1). No need to normalise
-            # denominator[abs(denominator)<1] <- 1;
-            yDenominator <- max(sd(diff(y)),1);
-        }
-        else{
-            denominator <- NULL;
         }
 
         #### Define what to do with the maxeval ####

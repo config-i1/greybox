@@ -1,8 +1,11 @@
-greybox v1.0.8 (Release data: 2023-01-10)
+greybox v1.0.8 (Release data: 2023-02-03)
 ==============
 
 Changes:
 * Smooth dynamic weights via LOWESS in lmDynamic.
+
+Bugfixes:
+* Fix in alm() with provided parameters and LASSO loss. Previously, yDenominator was not defined for these cases.
 
 
 greybox v1.0.7 (Release data: 2022-12-22)
