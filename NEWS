@@ -1,8 +1,9 @@
-greybox v1.0.8 (Release data: 2023-02-03)
+greybox v1.0.8 (Release data: 2023-02-09)
 ==============
 
 Changes:
 * Smooth dynamic weights via LOWESS in lmDynamic.
+* RIDGE is now properly implemented as in James et al. Introduction to Statistical Learning. LASSO's next.
 
 Bugfixes:
 * Fix in alm() with provided parameters and LASSO loss. Previously, yDenominator was not defined for these cases.
