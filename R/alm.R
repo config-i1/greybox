@@ -1650,7 +1650,6 @@ alm <- function(formula, data, subset, na.action,
             }
             # LASSO / RIDGE need more iterations to converge
             if(any(loss==c("LASSO"))){
-                # maxeval <- 1000;
                 maxeval <- length(B) * 80;
             }
             else if(loss=="RIDGE"){
@@ -1659,19 +1658,20 @@ alm <- function(formula, data, subset, na.action,
                 matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
                                           obsInsample, nVariables-1, byrow=TRUE);
                 matrixXregModified <- matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans;
+                yMean <- meanFast(y[otU]);
                         #%*% diag(1/denominator[-1])
                 # RIDGE has closed form for its parameters. No need to do estimation
                 if(lambda!=1){
                     B[2:length(B)] <- solve(t(matrixXregModified) %*%
                                                 (matrixXregModified) +
                                                 lambdaNew * diag(length(B)-1)) %*%
-                        t(matrixXregModified) %*% (y[otU] - meanFast(y[otU]));
+                                      t(matrixXregModified) %*% (y[otU] - yMean);
                 }
                 else{
                     # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
                     B[2:length(B)] <- 0;
                 }
-                B[1] <- meanFast(y[otU]) - sum(matrixXregMeans[1,] %*% B[-1]);
+                B[1] <- yMean - sum(matrixXregMeans[1,] %*% B[-1]);
                 maxeval <- 1;
             }
         }
