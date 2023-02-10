@@ -825,9 +825,7 @@ alm <- function(formula, data, subset, na.action,
             aParameterProvided <- TRUE;
     }
     # LASSO loss
-    if(loss=="LASSO"){
-        warning(paste0("Please, keep in mind that loss='",loss,
-                       "' is an experimental option. It might not work correctly."), call.=FALSE);
+    if(any(loss==c("LASSO","RIDGE"))){
         if(is.null(ellipsis$lambda)){
             warning("You have not provided lambda parameter. We will set it to zero.", call.=FALSE);
             lambda <- 0;
@@ -1658,17 +1656,22 @@ alm <- function(formula, data, subset, na.action,
             else if(loss=="RIDGE"){
                 # Transform lambda into the classical RIDGE one
                 lambdaNew <- lambda/(1-lambda);
+                matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
+                                          obsInsample, nVariables-1, byrow=TRUE);
+                matrixXregModified <- matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans;
+                        #%*% diag(1/denominator[-1])
                 # RIDGE has closed form for its parameters. No need to do estimation
-                B[1] <- meanFast(y[otU]);
                 if(lambda!=1){
-                    B[2:length(B)] <- solve(t(matrixXreg[otU,-1, drop=FALSE]) %*% matrixXreg[otU,-1, drop=FALSE] +
+                    B[2:length(B)] <- solve(t(matrixXregModified) %*%
+                                                (matrixXregModified) +
                                                 lambdaNew * diag(length(B)-1)) %*%
-                        t(matrixXreg[otU,-1, drop=FALSE]) %*% y[otU];
+                        t(matrixXregModified) %*% (y[otU] - meanFast(y[otU]));
                 }
                 else{
                     # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
                     B[2:length(B)] <- 0;
                 }
+                B[1] <- meanFast(y[otU]) - sum(matrixXregMeans[1,] %*% B[-1]);
                 maxeval <- 1;
             }
         }
