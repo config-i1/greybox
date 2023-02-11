@@ -1651,25 +1651,29 @@ alm <- function(formula, data, subset, na.action,
             # LASSO / RIDGE need more iterations to converge
             if(any(loss==c("LASSO"))){
                 maxeval <- length(B) * 80;
+                # matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
+                #                           obsInsample, nVariables-1, byrow=TRUE);
+                # matrixXregModified <- (matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans) %*% diag(1/denominator[-1]);
+                # yMean <- meanFast(y[otU]);
             }
             else if(loss=="RIDGE"){
                 # Transform lambda into the classical RIDGE one
                 lambdaNew <- lambda/(1-lambda);
                 matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
                                           obsInsample, nVariables-1, byrow=TRUE);
-                matrixXregModified <- matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans;
+                matrixXregModified <- (matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans) %*% diag(1/denominator[-1]);
                 yMean <- meanFast(y[otU]);
-                        #%*% diag(1/denominator[-1])
                 # RIDGE has closed form for its parameters. No need to do estimation
                 if(lambda!=1){
-                    B[2:length(B)] <- solve(t(matrixXregModified) %*%
+                    B[-1] <- solve(t(matrixXregModified) %*%
                                                 (matrixXregModified) +
                                                 lambdaNew * diag(length(B)-1)) %*%
                                       t(matrixXregModified) %*% (y[otU] - yMean);
+                    B[-1] <- B[-1]/denominator[-1];
                 }
                 else{
                     # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
-                    B[2:length(B)] <- 0;
+                    B[-1] <- 0;
                 }
                 B[1] <- yMean - sum(matrixXregMeans[1,] %*% B[-1]);
                 maxeval <- 1;
