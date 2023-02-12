@@ -1657,7 +1657,7 @@ alm <- function(formula, data, subset, na.action,
                 B <- B[-1];
                 B[] <- 0;
             }
-            # Upper bound is ten times of RIDGE estimates of parameters
+            # Upper bound is thousand times of RIDGE estimates of parameters
             BUpper <- abs(B)*1000 + 1e-5;
             BLower <- -BUpper - 1e-5;
         }
