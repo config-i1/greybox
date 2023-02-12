@@ -1634,10 +1634,6 @@ alm <- function(formula, data, subset, na.action,
         # Preparations for LASSO/RIDGE
         if(loss=="LASSO"){
             if(interceptIsNeeded){
-                # Remove intercept
-                B <- B[-1]
-                BLower <- rep(-Inf,length(B));
-                BUpper <- rep(Inf,length(B));
                 # Prepare matrices for the CF
                 matrixXregMeans <- colMeans(matrixXreg[otU, -1, drop=FALSE]);
                 matrixXreg <- (matrixXreg[, -1, drop=FALSE] -
@@ -1652,14 +1648,18 @@ alm <- function(formula, data, subset, na.action,
             }
             # Change the initial estimate to RIDGE... It is closer to optimal than OLS
             if(lambda!=1){
-                B[] <- solve(t(matrixXreg[otU,,drop=FALSE]) %*%
+                B <- solve(t(matrixXreg[otU,,drop=FALSE]) %*%
                                  (matrixXreg[otU,,drop=FALSE]) +
-                                 lambda/(1-lambda) * diag(length(B))) %*%
+                                 lambda/(1-lambda) * diag(length(B)-1)) %*%
                     t(matrixXreg[otU,,drop=FALSE]) %*% y[otU];
             }
             else{
+                B <- B[-1];
                 B[] <- 0;
             }
+            # Upper bound is ten times of RIDGE estimates of parameters
+            BUpper <- abs(B)*1000 + 1e-5;
+            BLower <- -BUpper - 1e-5;
         }
         else if(loss=="RIDGE"){
             if(interceptIsNeeded){
@@ -1734,6 +1734,9 @@ alm <- function(formula, data, subset, na.action,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel, denominator=denominator);
         if(recursiveModel){
+            if(print_level_hidden>0){
+                print(res);
+            }
             res2 <- nloptr(res$solution, CF,
                            opts=list(algorithm=algorithm, xtol_rel=xtol_rel, maxeval=maxeval, print_level=print_level,
                                 maxtime=maxtime, xtol_abs=xtol_abs, ftol_rel=ftol_rel, ftol_abs=ftol_abs),
