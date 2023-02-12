@@ -455,7 +455,8 @@ alm <- function(formula, data, subset, na.action,
         );
 
         # Get the scale value
-        scale <- scalerInternal(B, distribution, y, matrixXreg, mu, other);
+        # Suppress warnings for LASSO/RIDGE
+        scale <- suppressWarnings(scalerInternal(B, distribution, y, matrixXreg, mu, other));
 
         return(list(mu=mu,scale=scale,other=other,poly1=poly1));
     }
@@ -682,18 +683,7 @@ alm <- function(formula, data, subset, na.action,
                 CFValue <- meanFast(sqrt(abs(y-yFitted)));
             }
             else if(loss=="LASSO"){
-                B[] <- B * denominator;
-
-                if(interceptIsNeeded){
-                    CFValue <- (1-lambda) * meanFast((y-yFitted)^2) + lambda * sum(abs(B[-1]))
-                }
-                else{
-                    CFValue <- (1-lambda) * meanFast((y-yFitted)^2) + lambda * sum(abs(B))
-                }
-                # This is a hack. If lambda=1, then we only need the mean of the data
-                if(lambda==1){
-                    CFValue <- meanFast((y-yFitted)^2);
-                }
+                CFValue <- (1-lambda) * meanFast((y-yFitted)^2) + lambda * sum(abs(B));
             }
             else if(loss=="RIDGE"){
                 B[] <- B * denominator;
@@ -858,12 +848,7 @@ alm <- function(formula, data, subset, na.action,
         xtol_rel <- ellipsis$xtol_rel;
     }
     if(is.null(ellipsis$algorithm)){
-        # if(recursiveModel){
-        # algorithm <- "NLOPT_LN_BOBYQA";
-        # }
-        # else{
         algorithm <- "NLOPT_LN_SBPLX";
-        # }
     }
     else{
         algorithm <- ellipsis$algorithm;
@@ -1634,6 +1619,88 @@ alm <- function(formula, data, subset, na.action,
             print_level[] <- 0;
         }
 
+        # LASSO / RIDGE estimation
+        # Modify response to get correct initial estimates of parameters
+        if(any(loss==c("LASSO","RIDGE"))){
+            y[] <- switch(distribution,
+                          "dlnorm" =,
+                          "dllaplace" =,
+                          "dls" =,
+                          "dlgnorm"=log(y),
+                          "dlogitnorm"=log(y/(1-y)),
+                          "dbcnorm" = bcTransform(y,lambdaBC),
+                          y);
+        }
+        # Preparations for LASSO/RIDGE
+        if(loss=="LASSO"){
+            if(interceptIsNeeded){
+                # Remove intercept
+                B <- B[-1]
+                BLower <- rep(-Inf,length(B));
+                BUpper <- rep(Inf,length(B));
+                # Prepare matrices for the CF
+                matrixXregMeans <- colMeans(matrixXreg[otU, -1, drop=FALSE]);
+                matrixXreg <- (matrixXreg[, -1, drop=FALSE] -
+                                   matrix(matrixXregMeans,
+                                          obsInsample, nVariables-1, byrow=TRUE)) %*% diag(1/denominator[-1]);
+                yMean <- meanFast(y[otU]);
+                # Centre the response variable
+                y[] <- y - yMean;
+            }
+            else{
+                matrixXreg <- matrixXreg %*% diag(1/denominator);
+            }
+            # Change the initial estimate to RIDGE... It is closer to optimal than OLS
+            if(lambda!=1){
+                B[] <- solve(t(matrixXreg[otU,,drop=FALSE]) %*%
+                                 (matrixXreg[otU,,drop=FALSE]) +
+                                 lambda/(1-lambda) * diag(length(B))) %*%
+                    t(matrixXreg[otU,,drop=FALSE]) %*% y[otU];
+            }
+            else{
+                B[] <- 0;
+            }
+        }
+        else if(loss=="RIDGE"){
+            if(interceptIsNeeded){
+                # Prepare matrices for RIDGE
+                matrixXregMeans <- colMeans(matrixXreg[otU, -1, drop=FALSE]);
+                matrixXregModified <- (matrixXreg[otU, -1, drop=FALSE] -
+                                           matrix(matrixXregMeans,
+                                                  obsInsample, nVariables-1, byrow=TRUE)) %*% diag(1/denominator[-1]);
+                yMean <- meanFast(y[otU]);
+                # RIDGE has closed form for its parameters. No need to do estimation
+                if(lambda!=1){
+                    B[-1] <- solve(t(matrixXregModified) %*%
+                                       (matrixXregModified) +
+                                       lambda/(1-lambda) * diag(length(B)-1)) %*%
+                        t(matrixXregModified) %*% (y[otU] - yMean);
+                    B[-1] <- B[-1]/denominator[-1];
+                }
+                else{
+                    # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
+                    B[-1] <- 0;
+                }
+                B[1] <- yMean - sum(matrixXregMeans %*% B[-1]);
+            }
+            else{
+                matrixXregModified <- matrixXreg[otU, , drop=FALSE] %*% diag(1/denominator);
+                # RIDGE has closed form for its parameters. No need to do estimation
+                if(lambda!=1){
+                    B[] <- solve(t(matrixXregModified) %*%
+                                       (matrixXregModified) +
+                                       lambda/(1-lambda) * diag(length(B))) %*%
+                        t(matrixXregModified) %*% y[otU];
+                    B[] <- B[]/denominator[];
+                }
+                else{
+                    # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
+                    B[] <- 0;
+                }
+            }
+            maxeval <- 1;
+        }
+
         #### Define what to do with the maxeval ####
         if(is.null(ellipsis$maxeval)){
             if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
@@ -1648,35 +1715,11 @@ alm <- function(formula, data, subset, na.action,
             else{
                 maxeval <- length(B) * 40;
             }
-            # LASSO / RIDGE need more iterations to converge
-            if(any(loss==c("LASSO"))){
-                maxeval <- length(B) * 80;
-                # matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
-                #                           obsInsample, nVariables-1, byrow=TRUE);
-                # matrixXregModified <- (matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans) %*% diag(1/denominator[-1]);
-                # yMean <- meanFast(y[otU]);
-            }
-            else if(loss=="RIDGE"){
-                # Transform lambda into the classical RIDGE one
-                lambdaNew <- lambda/(1-lambda);
-                matrixXregMeans <- matrix(colMeans(matrixXreg[otU, -1, drop=FALSE]),
-                                          obsInsample, nVariables-1, byrow=TRUE);
-                matrixXregModified <- (matrixXreg[otU, -1, drop=FALSE] - matrixXregMeans) %*% diag(1/denominator[-1]);
-                yMean <- meanFast(y[otU]);
-                # RIDGE has closed form for its parameters. No need to do estimation
-                if(lambda!=1){
-                    B[-1] <- solve(t(matrixXregModified) %*%
-                                                (matrixXregModified) +
-                                                lambdaNew * diag(length(B)-1)) %*%
-                                      t(matrixXregModified) %*% (y[otU] - yMean);
-                    B[-1] <- B[-1]/denominator[-1];
+            if(any(loss==c("LASSO","RIDGE"))){
+                maxeval <- length(B) * 200;
+                if(lambda==1 || loss=="RIDGE"){
+                    maxeval <- 1;
                 }
-                else{
-                    # If lambda was equal to 1, we shrink everything to zero, RSS is ignored
-                    B[-1] <- 0;
-                }
-                B[1] <- yMean - sum(matrixXregMeans[1,] %*% B[-1]);
-                maxeval <- 1;
             }
         }
         else{
@@ -1704,9 +1747,35 @@ alm <- function(formula, data, subset, na.action,
         B[] <- res$solution;
         CFValue <- res$objective;
 
-        # A hack for LASSO / RIDGE, lambda==1 and intercept
-        if(any(loss==c("LASSO","RIDGE")) && lambda==1 && interceptIsNeeded){
-            B[-1] <- 0;
+        # Fixes for LASSO, reverting to the original variables
+        if(loss=="LASSO"){
+            if(lambda==1){
+                B[] <- 0;
+            }
+            else{
+                B[] <- B / denominator[-1];
+            }
+            if(interceptIsNeeded){
+                y[] <- y + yMean;
+                B <- c(yMean - sum(matrixXregMeans %*% B), B);
+                matrixXreg <- cbind(1,(matrixXreg %*% diag(denominator[-1])) +
+                                        matrix(matrixXregMeans, obsInsample, nVariables-1, byrow=TRUE));
+            }
+            else{
+                matrixXreg <- matrixXreg %*% diag(denominator);
+            }
+        }
+
+        # Return the response variable to the original value
+        if(any(loss==c("LASSO","RIDGE"))){
+            y[] <- switch(distribution,
+                          "dlnorm" =,
+                          "dllaplace" =,
+                          "dls" =,
+                          "dlgnorm"=exp(y),
+                          "dlogitnorm"=exp(y)/(1-exp(y)),
+                          "dbcnorm" = bcTransformInv(y,lambdaBC),
+                          y);
         }
 
         if(print_level_hidden>0){
