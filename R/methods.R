@@ -1903,7 +1903,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 theValues <- pacf(as.vector(residuals(x)), plot=FALSE, na.action=na.pass);
             }
         }
-        ellipsis$x <- theValues$acf[-1];
+        ellipsis$x <- switch(type,
+                             "acf"=theValues$acf[-1],
+                             "pacf"=theValues$acf);
         statistic <- qnorm(c((1-level)/2, (1+level)/2),0,sqrt(1/nobs(x)));
 
         ellipsis$type <- "h"
