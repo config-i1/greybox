@@ -1733,6 +1733,12 @@ alm <- function(formula, data, subset, na.action,
                       lb=BLower, ub=BUpper,
                       distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
                       recursiveModel=recursiveModel, denominator=denominator);
+        # res <- ccd(B, BUpper, BLower, CF, opts=list(algorithm=algorithm, xtol_rel=xtol_rel,
+        #                                             maxeval=maxeval, print_level=print_level,
+        #                                             maxtime=maxtime, xtol_abs=xtol_abs,
+        #                                             ftol_rel=ftol_rel, ftol_abs=ftol_abs),
+        #            distribution=distribution, loss=loss, y=y, matrixXreg=matrixXreg,
+        #            recursiveModel=recursiveModel, denominator=denominator);
         if(recursiveModel){
             if(print_level_hidden>0){
                 print(res);
