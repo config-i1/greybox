@@ -5,11 +5,12 @@
 \title{Stepwise selection of regressors}
 \usage{
 stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
-  df = NULL, method = c("pearson", "kendall", "spearman"),
-  distribution = c("dnorm", "dlaplace", "ds", "dgnorm", "dlogis", "dt",
-  "dalaplace", "dlnorm", "dllaplace", "dls", "dlgnorm", "dbcnorm", "dfnorm",
-  "dinvgauss", "dgamma", "dpois", "dnbinom", "dlogitnorm", "plogis", "pnorm"),
-  occurrence = c("none", "plogis", "pnorm"), ...)
+  df = NULL, formula = NULL, subset = NULL, method = c("pearson",
+  "kendall", "spearman"), distribution = c("dnorm", "dlaplace", "ds",
+  "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
+  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
+  "dlogitnorm", "plogis", "pnorm"), occurrence = c("none", "plogis",
+  "pnorm"), ...)
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and
@@ -22,6 +23,12 @@ printed out. \code{silent=TRUE} means that nothing is produced.}
 
 \item{df}{Number of degrees of freedom to add (should be used if stepwise is
 used on residuals).}
+
+\item{formula}{If provided, then the selection will be done from the listed
+variables in the formula after all the necessary transformations.}
+
+\item{subset}{an optional vector specifying a subset of observations to be
+used in the fitting process.}
 
 \item{method}{Method of correlations calculation. The default is Pearson's
 correlation, which should be applicable to a wide range of data in different scales.}

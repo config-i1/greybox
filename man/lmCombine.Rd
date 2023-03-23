@@ -5,10 +5,11 @@
 \title{Combine regressions based on information criteria}
 \usage{
 lmCombine(data, ic = c("AICc", "AIC", "BIC", "BICc"), bruteforce = FALSE,
-  silent = TRUE, distribution = c("dnorm", "dlaplace", "ds", "dgnorm",
-  "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls", "dlgnorm",
-  "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom", "dlogitnorm",
-  "plogis", "pnorm"), parallel = FALSE, ...)
+  silent = TRUE, formula = NULL, subset = NULL,
+  distribution = c("dnorm", "dlaplace", "ds", "dgnorm", "dlogis", "dt",
+  "dalaplace", "dlnorm", "dllaplace", "dls", "dlgnorm", "dbcnorm", "dfnorm",
+  "dinvgauss", "dgamma", "dpois", "dnbinom", "dlogitnorm", "plogis", "pnorm"),
+  parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data frame containing dependent variable in the first column and
@@ -22,6 +23,12 @@ one are produced and then combined.}
 
 \item{silent}{If \code{FALSE}, then nothing is silent, everything is printed
 out. \code{TRUE} means that nothing is produced.}
+
+\item{formula}{If provided, then the selection will be done from the listed
+variables in the formula after all the necessary transformations.}
+
+\item{subset}{an optional vector specifying a subset of observations to be
+used in the fitting process.}
 
 \item{distribution}{Distribution to pass to \code{alm()}. See \link[greybox]{alm}
 for details.}

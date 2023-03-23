@@ -1,10 +1,12 @@
-greybox v1.0.8 (Release data: 2023-02-22)
+greybox v1.0.8 (Release data: 2023-03-23)
 ==============
 
 Changes:
 * Smooth dynamic weights via LOWESS in lmDynamic.
 * RIDGE is now properly implemented as in James et al. Introduction to Statistical Learning.
 * LASSO works well now. The only issue is in doing estimation in small number of iterations. Currently ~2000 are needed to converge.
+* Introduced parameter formula in stepwise(), lmCombine() and lmDynamic() to allow user to specify transformation of variables and the largest model to choose from.
+* Also, subset is now available in stepwise(), lmCombine() and lmDynamic().
 
 Bugfixes:
 * PACF in plot.greybox() dropped lag 1 because of a typo.
