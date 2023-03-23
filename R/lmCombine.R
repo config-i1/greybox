@@ -124,13 +124,13 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         mf <- match.call(expand.dots = FALSE);
         mf <- mf[c(1L, match(c("formula", "data", "subset"), names(mf), 0L))];
         mf$drop.unused.levels <- TRUE;
-        mf[[1L]] <- quote(model.frame);
+        mf[[1L]] <- quote(stats::model.frame);
 
         if(!is.data.frame(data)){
             mf$data <- as.data.frame(data);
         }
         # Evaluate data frame to do transformations of variables
-        data <- eval(mf);
+        data <- eval(mf, parent.frame());
         responseName <- colnames(data)[1];
 
         # Remove variables that have "-x" in the formula
