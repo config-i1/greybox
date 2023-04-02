@@ -60,7 +60,7 @@
 #' @template author
 #' @keywords distribution
 #'
-#' @seealso \code{\link[stats]{Distributions}}
+#' @seealso \code{\link[stats]{Distributions}} from the stats package.
 #'
 NULL
 
