@@ -86,6 +86,9 @@ Distribution Applications in Hydrology. Water Resources Research,
 6(2), 505–515. \doi{10.1029/WR006i002p00505}
 }
 }
+\seealso{
+\code{\link[greybox]{Distributions}}
+}
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }

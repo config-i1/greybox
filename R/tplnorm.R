@@ -61,6 +61,8 @@
 #' 6(2), 505–515. \doi{10.1029/WR006i002p00505}
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname TPLNormal
 #' @importFrom stats plnorm qlnorm rlnorm
 #' @aliases TPLNormal dtplnorm

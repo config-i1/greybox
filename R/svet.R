@@ -42,6 +42,8 @@
 #' or an array.
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @examples
 #' x <- ds(c(-1000:1000)/10, 0, 1)
 #' plot(x, type="l")

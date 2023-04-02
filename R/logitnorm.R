@@ -59,6 +59,8 @@
 #' Biometrics, 21 (3), 721–732. doi: 10.2307/2528553
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname LogitNormal
 #' @importFrom stats dnorm pnorm qnorm rnorm
 #' @aliases LogitNormal dlogitnorm

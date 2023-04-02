@@ -87,6 +87,9 @@ Journal of the Royal Statistical Society. Series B (Methodological),
 26(2), 211–252. Retrieved from https://www.jstor.org/stable/2984418
 }
 }
+\seealso{
+\code{\link[greybox]{Distributions}}
+}
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }

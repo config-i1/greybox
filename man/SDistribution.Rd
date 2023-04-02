@@ -77,6 +77,9 @@ x <- rs(1000, 0, 1)
 hist(x)
 
 }
+\seealso{
+\code{\link[greybox]{Distributions}}
+}
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
 }

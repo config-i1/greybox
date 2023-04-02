@@ -57,6 +57,8 @@
 #' \url{https://en.wikipedia.org/wiki/Laplace_distribution}.
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname Laplace
 #' @export dlaplace
 #' @aliases Laplace dlaplace

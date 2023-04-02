@@ -72,6 +72,8 @@
 #' \doi{10.1080/03610920500199018}
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname ALaplace
 #' @export dalaplace
 #' @aliases ALaplace dalaplace

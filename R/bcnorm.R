@@ -62,6 +62,8 @@
 #' 26(2), 211–252. Retrieved from https://www.jstor.org/stable/2984418
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname BCNormal
 #' @importFrom stats dnorm pnorm qnorm rnorm
 #' @aliases BCNormal dbcnorm
