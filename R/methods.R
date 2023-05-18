@@ -3209,6 +3209,29 @@ setMethod("extract", signature=className("summary.alm","greybox"), definition=ex
 setMethod("extract", signature=className("summary.greybox","greybox"), definition=extract.summary.greybox)
 setMethod("extract", signature=className("summary.greyboxC","greybox"), definition=extract.summary.greybox)
 
+#' @importFrom xtable xtable
+#' @export
+xtable::xtable
+
+#' @export
+xtable.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    greyboxSummary <- summary(x);
+    return(do.call("xtable", list(x=greyboxSummary,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}
+
+#' @export
+xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    # Substitute class with lm
+    class(x) <- "summary.lm";
+    return(do.call("xtable", list(x=x,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}
+
 #### Predictions and forecasts ####
 
 #' @param occurrence If occurrence was provided, then a user can provide a vector of future
@@ -4357,27 +4380,4 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
         }
     }
     return(predict(object, newdata, ...));
-}
-
-#' @importFrom xtable xtable
-#' @export
-xtable::xtable
-
-#' @export
-xtable.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
-                           display = NULL, auto = FALSE, ...){
-    greyboxSummary <- summary(x);
-    return(do.call("xtable", list(x=greyboxSummary,
-                                  caption=caption, label=label, align=align, digits=digits,
-                                  display=display, auto=auto, ...)));
-}
-
-#' @export
-xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
-                           display = NULL, auto = FALSE, ...){
-    # Substitute class with lm
-    class(x) <- "summary.lm";
-    return(do.call("xtable", list(x=x,
-                                  caption=caption, label=label, align=align, digits=digits,
-                                  display=display, auto=auto, ...)));
 }
