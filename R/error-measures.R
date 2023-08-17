@@ -608,10 +608,11 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 
 #' Half moment of a distribution and its derivatives.
 #'
-#' \code{hm} function estimates half moment from some predefined constant
-#' \code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
-#' function returns asymmetry coefficient, while \code{extremity}
-#' returns the coefficient of excess, both based on \code{hm}.
+#' \code{hm()} function estimates half moment from some predefined constant
+#' \code{C}. \code{ham()} estimates the Half Absolute Moment. \code{asymmetry()}
+#' function returns Asymmetry coefficient, while \code{extremity()}
+#' returns the coefficient of Extremity, both based on \code{hm()}. Finally,
+#' \code{cextremity()} returns the Complex Extremity coefficient, based on \code{hm()}.
 #'
 #' \code{NA} values of \code{x} are excluded on the first step of calculation.
 #'
@@ -621,14 +622,22 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 #' @param x A variable based on which HM is estimated.
 #' @param C Centring parameter.
 #' @param ...  Other parameters passed to mean function.
-#' @return A complex variable is returned for \code{hm} function and real values
-#' are returned for \code{asymmetry} and \code{ham}.
+#' @return A complex variable is returned for the \code{hm()} and \code{cextremity()}
+#' functions, and real values are returned for \code{ham()},
+#' \code{asymmetry()} and \code{extremity()}.
+#' @references
+#' \itemize{
+#' \item Svetunkov I., Kourentzes N., Svetunkov S. "Half Central Moment for Data Analysis".
+#' Working Paper of Department of Management Science, Lancaster University, 2023:3, 1–21.
+#' }
 #' @examples
 #'
 #' x <- rnorm(100,0,1)
 #' hm(x)
 #' ham(x)
 #' asymmetry(x)
+#' extremity(x)
+#' cextremity(x)
 #'
 #' @export hm
 #' @rdname hm
@@ -657,8 +666,18 @@ asymmetry <- function(x,C=mean(x, na.rm=TRUE),...){
 #' @export extremity
 #' @aliases extremity
 extremity <- function(x,C=mean(x, na.rm=TRUE),...){
-    # This function calculates half moment
-    return(ham(x, C, ...)/mean((x-C)^2, ...)^0.25);
+    # This function calculates the Extremity coefficient
+    return(2*(ham(x, C, ...)/mean((x-C)^2, ...)^0.25)^{log(0.5)/log(2*3^{-0.75})}-1);
+}
+
+#' @rdname hm
+#' @export cextremity
+#' @aliases cextremity
+cextremity <- function(x,C=mean(x, na.rm=TRUE),...){
+    # This function calculates the Complex Extremity coefficient
+    CH <- hm(x, C, ...)/mean((x-C)^2, ...)^0.25;
+    return(complex(real=2*(Re(CH)*2)^{log(0.5)/log(2*3^{-0.75})}-1,
+                   imaginary=2*(Im(CH)*2)^{log(0.5)/log(2*3^{-0.75})}-1));
 }
 
 #' Pinball function

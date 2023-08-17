@@ -5,6 +5,7 @@
 \alias{ham}
 \alias{asymmetry}
 \alias{extremity}
+\alias{cextremity}
 \title{Half moment of a distribution and its derivatives.}
 \usage{
 hm(x, C = mean(x, na.rm = TRUE), ...)
@@ -14,6 +15,8 @@ ham(x, C = mean(x, na.rm = TRUE), ...)
 asymmetry(x, C = mean(x, na.rm = TRUE), ...)
 
 extremity(x, C = mean(x, na.rm = TRUE), ...)
+
+cextremity(x, C = mean(x, na.rm = TRUE), ...)
 }
 \arguments{
 \item{x}{A variable based on which HM is estimated.}
@@ -23,14 +26,16 @@ extremity(x, C = mean(x, na.rm = TRUE), ...)
 \item{...}{Other parameters passed to mean function.}
 }
 \value{
-A complex variable is returned for \code{hm} function and real values
-are returned for \code{asymmetry} and \code{ham}.
+A complex variable is returned for the \code{hm()} and \code{cextremity()}
+functions, and real values are returned for \code{ham()},
+\code{asymmetry()} and \code{extremity()}.
 }
 \description{
-\code{hm} function estimates half moment from some predefined constant
-\code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
-function returns asymmetry coefficient, while \code{extremity}
-returns the coefficient of excess, both based on \code{hm}.
+\code{hm()} function estimates half moment from some predefined constant
+\code{C}. \code{ham()} estimates the Half Absolute Moment. \code{asymmetry()}
+function returns Asymmetry coefficient, while \code{extremity()}
+returns the coefficient of Extremity, both based on \code{hm()}. Finally,
+\code{cextremity()} returns the Complex Extremity coefficient, based on \code{hm()}.
 }
 \details{
 \code{NA} values of \code{x} are excluded on the first step of calculation.
@@ -41,7 +46,15 @@ x <- rnorm(100,0,1)
 hm(x)
 ham(x)
 asymmetry(x)
+extremity(x)
+cextremity(x)
 
+}
+\references{
+\itemize{
+\item Svetunkov I., Kourentzes N., Svetunkov S. "Half Central Moment for Data Analysis".
+Working Paper of Department of Management Science, Lancaster University, 2023:3, 1–21.
+}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}

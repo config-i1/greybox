@@ -3,8 +3,8 @@
 \docType{import}
 \name{reexports}
 \alias{reexports}
-\alias{forecast}
 \alias{xtable}
+\alias{forecast}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{

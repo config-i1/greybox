@@ -60,7 +60,7 @@ Distribution Applications in Hydrology. Water Resources Research,
 }
 }
 \seealso{
-\code{\link[stats]{Distributions}}
+\code{\link[stats]{Distributions}} from the stats package.
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
