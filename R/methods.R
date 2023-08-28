@@ -4388,7 +4388,6 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
     return(predict(object, newdata, ...));
 }
 
-#' @rdname accuracy
 #' @importFrom generics accuracy
 #' @export
 generics::accuracy

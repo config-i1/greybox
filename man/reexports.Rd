@@ -5,6 +5,7 @@
 \alias{reexports}
 \alias{xtable}
 \alias{forecast}
+\alias{accuracy}
 \title{Objects exported from other packages}
 \keyword{internal}
 \description{
@@ -12,7 +13,7 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{forecast}}}
+  \item{generics}{\code{\link[generics]{accuracy}}, \code{\link[generics]{forecast}}}
 
   \item{xtable}{\code{\link[xtable]{xtable}}}
 }}
