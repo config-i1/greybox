@@ -4388,6 +4388,10 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
     return(predict(object, newdata, ...));
 }
 
+#' @rdname accuracy
+#' @importFrom generics accuracy
+#' @export
+generics::accuracy
 
 #' Error measures for an estimated model
 #'
@@ -4401,7 +4405,7 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
 #'
 #' @template author
 #'
-#' @param object The estimate model or a forecast from the estimated model generated via
+#' @param object The estimated model or a forecast from the estimated model generated via
 #' either \code{predict()} or \code{forecast()} functions.
 #' @param holdout The vector of values of the response variable in the holdout (test) set.
 #' If not provided, then the function will return the in-sample error measures.
@@ -4415,12 +4419,7 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
 #' ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
 #' predict(ourModel,xreg[-c(1:80),]) |>
 #'    accuracy(xreg[-c(1:80),"y"])
-#'
 #' @rdname accuracy
-#' @importFrom generics accuracy
-#' @export
-generics::accuracy
-
 #' @export
 accuracy.greybox <- function(object, holdout=NULL, ...){
     if(is.null(holdout)){
@@ -4432,10 +4431,11 @@ accuracy.greybox <- function(object, holdout=NULL, ...){
     }
 }
 
+#' @rdname accuracy
 #' @export
 accuracy.predict.greybox <- function(object, holdout=NULL, ...){
     if(is.null(holdout)){
-        return(measures(actuals(object), object$mean, actuals(object)));
+        return(accuracy(object$model));
     }
     else{
         return(measures(holdout, object$mean, actuals(object)));
