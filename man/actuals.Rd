@@ -5,6 +5,7 @@
 \alias{actuals.default}
 \alias{actuals.lm}
 \alias{actuals.alm}
+\alias{actuals.predict.greybox}
 \title{Function extracts the actual values from the function}
 \usage{
 actuals(object, all = TRUE, ...)
@@ -14,6 +15,8 @@ actuals(object, all = TRUE, ...)
 \method{actuals}{lm}(object, all = TRUE, ...)
 
 \method{actuals}{alm}(object, all = TRUE, ...)
+
+\method{actuals}{predict.greybox}(object, all = TRUE, ...)
 }
 \arguments{
 \item{object}{Model estimated using one of the functions of smooth package.}

@@ -4,6 +4,8 @@ greybox v1.0.9 (Release data: 2023-08-17)
 Changes:
 * Documentation for distributions of greybox
 * Extremity and Complex Extremity introduced, aligning them with the HAM paper.
+* actuals() now also extracts actuals from the predict.greybox objects.
+* accuracy() method for greybox classes.
 
 
 greybox v1.0.8 (Release data: 2023-04-02)

@@ -462,6 +462,12 @@ actuals.alm <- function(object, all=TRUE, ...){
     }
 }
 
+#' @rdname actuals
+#' @export
+actuals.predict.greybox <- function(object, all=TRUE, ...){
+    return(actuals(object$model, all=all, ...));
+}
+
 #' @export
 formula.alm <- function(x, ...){
     return(x$call$formula);
@@ -4380,4 +4386,58 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
         }
     }
     return(predict(object, newdata, ...));
+}
+
+
+#' Error measures for an estimated model
+#'
+#' Function produces error measures for the provided object and the holdout values of the
+#' response variable. Note that instead of parameters \code{x}, \code{test}, the function
+#' accepts the vector of values in \code{holdout}. Also, the parameters \code{d} and \code{D}
+#' are not supported - MASE is always calculated via division by first differences.
+#'
+#' The function is a wrapper for the \link[greybox]{measures} function and is implemented
+#' for convenience.
+#'
+#' @template author
+#'
+#' @param object The estimate model or a forecast from the estimated model generated via
+#' either \code{predict()} or \code{forecast()} functions.
+#' @param holdout The vector of values of the response variable in the holdout (test) set.
+#' If not provided, then the function will return the in-sample error measures.
+#' @param ... Other variables passed to the \code{forecast()} function (e.g. \code{newdata}).
+#' @examples
+#'
+#' xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
+#' predict(ourModel,xreg[-c(1:80),]) |>
+#'    accuracy(xreg[-c(1:80),"y"])
+#'
+#' @rdname accuracy
+#' @importFrom generics accuracy
+#' @export
+generics::accuracy
+
+#' @export
+accuracy.greybox <- function(object, holdout=NULL, ...){
+    if(is.null(holdout)){
+        return(measures(actuals(object), fitted(object), actuals(object)));
+    }
+    else{
+        h <- length(holdout);
+        return(measures(holdout, forecast(object, h=h, ...)$mean, actuals(object)));
+    }
+}
+
+#' @export
+accuracy.predict.greybox <- function(object, holdout=NULL, ...){
+    if(is.null(holdout)){
+        return(measures(actuals(object), object$mean, actuals(object)));
+    }
+    else{
+        return(measures(holdout, object$mean, actuals(object)));
+    }
 }
