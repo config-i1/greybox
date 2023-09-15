@@ -1,16 +1,16 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "02 April 2023"
+date: "15 September 2023"
 output: html_document
 ---
 
 ## Version
-This is the release of the package `greybox`, v1.0.8
+This is the release of the package `greybox`, v2.0.0
 
 
 ## Test environments
-* local Ubuntu 22.04.2, R 4.2.3
+* local Ubuntu 22.04.3, R 4.3.1
 * github actions
 * win-builder (devel and release)
 * rhub with rhub::check_for_cran() command
@@ -44,12 +44,6 @@ This is expected, because doMC is not available for Windows.
 
 
 ## R-hub
-
-**Rhub, Ubuntu Linux 20.04.1 LTS, R-release, GCC; Fedora Linux, R-devel, clang, gfortran:**
->* checking package dependencies ... NOTE
->Package which this enhances but not available for checking: ‘vars’
-
-Not clear, why. `vars` package is on CRAN.
 
 
 ## Downstream dependencies
