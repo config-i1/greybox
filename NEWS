@@ -1,3 +1,9 @@
+greybox v2.0.1 (Release data: 2023-11-07)
+
+Changes:
+* Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
+
+
 greybox v2.0.0 (Release data: 2023-09-15)
 ==============
 

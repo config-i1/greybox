@@ -179,7 +179,19 @@ logLik.alm <- function(object, ...){
         return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
     }
     else{
-        return(structure(object$logLik,nobs=nobs(object),df=nparam(object),class="logLik"));
+        # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+        correction <- switch(object$loss,
+                             "MSE"=switch(object$distribution,
+                                          "dnorm"=1,
+                                          0),
+                             "MAE"=switch(object$distribution,
+                                          "dlaplace"=1,
+                                          0),
+                             "HAM"=switch(object$distribution,
+                                          "ds"=1,
+                                          0),
+                             0)
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+correction,class="logLik"));
     }
 }
 
