@@ -775,7 +775,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                  ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                                  call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                                  coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                                 weights=pICWeights, other=other, f=f,
+                                 weights=pICWeights, other=other, f=f, loss=loss,
                                  timeElapsed=Sys.time()-startTime),
                             class=c("greyboxD","alm","greybox"));
 

@@ -739,7 +739,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                  residuals=as.vector(errors), distribution=distribution, logLik=logLikCombined, IC=ICValue,
                                  ICType=ic, df.residual=df, df=sum(importance)+1, importance=importance,
                                  call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
-                                 combination=variablesCombinations, other=other,
+                                 combination=variablesCombinations, other=other, loss=loss,
                                  timeElapsed=Sys.time()-startTime),
                             class=c("greyboxC","alm","greybox"));
 
