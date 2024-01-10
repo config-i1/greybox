@@ -1,10 +1,11 @@
-greybox v2.0.1 (Release data: 2023-11-13)
+greybox v2.0.1 (Release data: 2024-01-10)
 
 Changes:
 * Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
 
 Bugfixes:
 * lmCombine() and lmDynamic() now return loss parameter.
+* Fixed a weird bug in vcov.alm(), where instead of inverting Fisher Information, the function would return it as is. This did not apply to all cases, but could have appeared in some situations, when Choleski decomposition would fail.
 
 
 greybox v2.0.0 (Release data: 2023-09-15)
