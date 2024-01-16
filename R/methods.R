@@ -1099,7 +1099,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                     vcov <- diag(1e+100,nVariables);
                 }
                 else{
-                    vcov <- FIMatrix;
+                    vcov <- vcovMatrixTry;
                 }
             }
             else{
@@ -4097,8 +4097,6 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
-    h <- nrow(matrixOfxreg);
-
     if(object$distribution=="dbeta"){
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
@@ -4116,8 +4114,8 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
     if(!is.matrix(matrixOfxreg)){
         matrixOfxreg <- matrix(matrixOfxreg,ncol=1);
-        h <- nrow(matrixOfxreg);
     }
+    h <- nrow(matrixOfxreg);
 
     if(h==1){
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
