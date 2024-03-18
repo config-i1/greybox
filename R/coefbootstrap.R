@@ -417,7 +417,7 @@ timeboot <- function(y, nsim=100, scale=NULL,
         }
     }
 
-    # Heurstic: strong trend -> scale ~ 0; no trend -> scale ~ 2
+    # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 2
     if(is.null(scale)){
         scale <- (1-abs(mean(diff(y)))/mean(abs(diff(y))))*2;
     }
@@ -428,32 +428,31 @@ timeboot <- function(y, nsim=100, scale=NULL,
     ySorted <- sort(y);
     # Intermediate points are done via a sensitive lowess
     # This is because the sorted values have "trend"
-    yIntermediate <- lowess(ySorted, f=f)$y
+    yIntermediate <- lowess(ySorted, f=f)$y;
 
     if(type=="multiplicative"){
         ySorted[] <- log(ySorted);
         yIntermediate[] <- log(yIntermediate);
     }
+
+    # Prepare differences
     yDiffs <- sort(diff(ySorted));
-
-    # Intervals for the uniform densities
-    # yMean <- mean(abs(diff(y)), trim=trim);
-    # yIntermediate <- c(ySorted[1] - yMean,
-    #                    (ySorted[-1] + ySorted[-obsInsample])/2,
-    #                    ySorted[obsInsample] + yMean);
-    # yIntermediate <- (ySorted[-1] + ySorted[-obsInsample])/2;
-
     yDiffsTable <- cumsum(table(yDiffs)/(obsInsample-1));
     yDiffsUnique <- unique(yDiffs);
 
-    yRandom <- runif(obsInsample, 0, 1);
-    yDiffsNew <- yDiffsUnique[findInterval(yRandom,yDiffsTable)+1];
+    # Random probabilities to select differences
+    # yRandom <- runif(obsInsample, 0, 1);
+    # yDiffsNew <- sample(c(-1,1), size=obsInsample, replace=TRUE) * yDiffsUnique[findInterval(yRandom,yDiffsTable)+1];
 
-    yNew <- y;
+    # yNew <- y;
     # Sample introduces +-1 to not just add but also subtract
-    yNew[yOrder] <- yIntermediate + scale*sample(c(-1,1), size=obsInsample, replace=TRUE)*yDiffsNew;
-    # yNew[yOrder] <- c(yIntermediate[1]-scale*yDiffsNew[1],
-    #                   yIntermediate + scale*sample(c(-1,1), size=obsInsample-1, replace=TRUE)*yDiffsNew[-1]);
+    # yNew[yOrder] <- yIntermediate + scale*yDiffsNew;
+
+    yRandom <- runif(obsInsample*nsim, 0, 1);
+    yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+                            yDiffsUnique[findInterval(yRandom,yDiffsTable)+1], obsInsample, nsim);
+    yNew <- matrix(NA, obsInsample, nsim);
+    yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
