@@ -5,7 +5,7 @@
 \title{Time series bootstrap}
 \usage{
 timeboot(y, nsim = 100, scale = NULL, type = c("auto", "multiplicative",
-  "additive"), f = 0.002)
+  "additive"))
 }
 \arguments{
 \item{y}{The original time series}
@@ -20,9 +20,6 @@ If the two are difference, the data does not have a trend and the larger scaling
 \item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
 added, while \code{"multiplicative"} implies the multiplication. By default the function
 will try using the latter, unless the data has non-positive values.}
-
-\item{f}{The smoother span parameter for LOWESS (see \link[stats]{lowess}). Small value
-should be used to capture the trend in the sorted data correctly.}
 }
 \value{
 The function returns the matrix with the new series in columns and observations
@@ -34,18 +31,19 @@ The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
 \details{
 The function implements the following algorithm:
 
-1. Sort the original data, recording the original order of elements;
-2. Smooth the sorted data using LOWESS to get intermediate points;
-3. Take first differences of the sorted series and sort them;
-4. Create contingency table based on the differences and take the cumulative sum
+1. Sort the original data in the ascending order, recording the original order of elements;
+2. Take first differences of the sorted series and sort them;
+3. Create contingency table based on the differences and take the cumulative sum
 of it. This way we end up with an empirical CDF of differences;
-5. Generate random numbers from the uniform distribution between 0 and 1;
-6. Get the differences that correspond to the random number (randomly extract
-empirical quantiles);
-7. Add the random differences to the smooth series from (2) to get new series;
+4. Generate random numbers from the uniform distribution between 0 and 1;
+5. Get the differences that correspond to the random numbers (randomly extract
+empirical quantiles). This way we take the empirical density into account when
+select the differences;
+6. Add the random differences to the sorted series from (1) to get a new time series;
+7. Sort the new time series in the ascending order;
 8. Reorder (7) based on the initial order of series.
 
-If the multiplicative bootstrap is used then logarithms of the sorted series and LOWESS
+If the multiplicative bootstrap is used then logarithms of the sorted series
 are used and at the very end, the exponent of the resulting data is taken. This way the
 discrepancies in the data have similar scale no matter what the level of the original
 series is. In case of the additive bootstrap, the trended series will be noisier when
@@ -59,9 +57,6 @@ timeboot(AirPassengers) |> lines(col="blue")
 \references{
 Vinod HD, López-de-Lacalle J (2009). "Maximum Entropy Bootstrap for Time Series:
 The meboot R Package." Journal of Statistical Software, 29(5), 1–19. \doi{doi:10.18637/jss.v029.i05}.
-}
-\seealso{
-\code{\link[stats]{lowess}}
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
