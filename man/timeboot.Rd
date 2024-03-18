@@ -12,7 +12,10 @@ timeboot(y, nsim = 100, scale = NULL, type = c("auto", "multiplicative",
 
 \item{nsim}{Number of iterations (simulations) to run.}
 
-\item{scale}{Parameter that defines how to scale the variability around the data.}
+\item{scale}{Parameter that defines how to scale the variability around the data. By
+default this is based on the ratio of absolute mean differences and mean absolute differences
+in sample. If the two are the same, the data has a strong trend and no scaling is required.
+If the two are difference, the data does not have a trend and the larger scaling is needed.}
 
 \item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
 added, while \code{"multiplicative"} implies the multiplication. By default the function
