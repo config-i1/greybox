@@ -18,6 +18,10 @@ sample size.
 \item \link[greybox]{pointLik} - point likelihood of the function.
 \item \link[greybox]{pAIC}, \link[greybox]{pAICc}, \link[greybox]{pBIC},
 \link[greybox]{pBICc} - point versions of respective information criteria.
+\item \link[greybox]{coefbootstrap} - Method that uses a simple implementation of the
+case resampling to get bootstrapped estimates of parameters of the model.
+\item \link[greybox]{timeboot} - Bootstrap inspired by the meboot package, that creates
+bootstraped series based on the provided one.
 \item \link[greybox]{determination} - Coefficients of determination between different
 exogenous variables.
 \item \link[greybox]{temporaldummy} - Matrix with seasonal dummy variables.
