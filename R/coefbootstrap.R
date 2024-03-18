@@ -352,3 +352,112 @@ print.bootstrap <- function(x, ...){
     cat(paste0("Bootstrap for the ", x$model, " model with nsim=",x$nsim," and size=",x$size,"\n"))
     cat(paste0("Time elapsed: ",round(as.numeric(x$timeElapsed,units="secs"),2)," seconds\n"));
 }
+
+
+#' Time series bootstrap
+#'
+#' The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
+#'
+#' The function implements the following algorithm:
+#'
+#' 1. Sort the original data, recording the original order of elements;
+#' 2. Smooth the sorted data using LOWESS to get intermediate points;
+#' 3. Take first differences of the sorted series and sort them;
+#' 4. Create contingency table based on the differences and take the cumulative sum
+#' of it. This way we end up with an empirical CDF of differences;
+#' 5. Generate random numbers from the uniform distribution between 0 and 1;
+#' 6. Get the differences that correspond to the random number (randomly extract
+#' empirical quantiles);
+#' 7. Add the random differences to the smooth series from (2) to get new series;
+#' 8. Reorder (7) based on the initial order of series.
+#'
+#' If the multiplicative bootstrap is used then logarithms of the sorted series and LOWESS
+#' are used and at the very end, the exponent of the resulting data is taken. This way the
+#' discrepancies in the data have similar scale no matter what the level of the original
+#' series is. In case of the additive bootstrap, the trended series will be noisier when
+#' the level of series is low.
+#'
+#' @param y The original time series
+#' @param nsim Number of iterations (simulations) to run.
+#' @param scale Parameter that defines how to scale the variability around the data.
+#' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
+#' added, while \code{"multiplicative"} implies the multiplication. By default the function
+#' will try using the latter, unless the data has non-positive values.
+#' @param f The smoother span parameter for LOWESS (see \link[stats]{lowess}). Small value
+#' should be used to capture the trend in the sorted data correctly.
+#'
+#' @return The function returns the matrix with the new series in columns and observations
+#' in rows.
+#'
+#' @template author
+#' @template keywords
+#'
+#' @seealso \code{\link[stats]{lowess}}
+#'
+#' @references Vinod HD, López-de-Lacalle J (2009). "Maximum Entropy Bootstrap for Time Series:
+#' The meboot R Package." Journal of Statistical Software, 29(5), 1–19. \doi{doi:10.18637/jss.v029.i05}.
+#'
+#' @examples
+#' plot(AirPassengers, type="l")
+#' timeboot(AirPassengers) |> lines(col="blue")
+#'
+#' @rdname timeboot
+#' @export
+timeboot <- function(y, nsim=100, scale=NULL,
+                     type=c("auto","multiplicative","additive"),
+                     f=0.002){
+    type <- match.arg(type);
+
+    if(type=="auto"){
+        if(any(y<=0)){
+            type[] <- "additive";
+        }
+        else{
+            type[] <- "multiplicative";
+        }
+    }
+
+    # Heurstic: strong trend -> scale ~ 0; no trend -> scale ~ 2
+    if(is.null(scale)){
+        scale <- (1-abs(mean(diff(y)))/mean(abs(diff(y))))*2;
+    }
+
+    # Sample size and ordered values
+    obsInsample <- length(y);
+    yOrder <- order(y);
+    ySorted <- sort(y);
+    # Intermediate points are done via a sensitive lowess
+    # This is because the sorted values have "trend"
+    yIntermediate <- lowess(ySorted, f=f)$y
+
+    if(type=="multiplicative"){
+        ySorted[] <- log(ySorted);
+        yIntermediate[] <- log(yIntermediate);
+    }
+    yDiffs <- sort(diff(ySorted));
+
+    # Intervals for the uniform densities
+    # yMean <- mean(abs(diff(y)), trim=trim);
+    # yIntermediate <- c(ySorted[1] - yMean,
+    #                    (ySorted[-1] + ySorted[-obsInsample])/2,
+    #                    ySorted[obsInsample] + yMean);
+    # yIntermediate <- (ySorted[-1] + ySorted[-obsInsample])/2;
+
+    yDiffsTable <- cumsum(table(yDiffs)/(obsInsample-1));
+    yDiffsUnique <- unique(yDiffs);
+
+    yRandom <- runif(obsInsample, 0, 1);
+    yDiffsNew <- yDiffsUnique[findInterval(yRandom,yDiffsTable)+1];
+
+    yNew <- y;
+    # Sample introduces +-1 to not just add but also subtract
+    yNew[yOrder] <- yIntermediate + scale*sample(c(-1,1), size=obsInsample, replace=TRUE)*yDiffsNew;
+    # yNew[yOrder] <- c(yIntermediate[1]-scale*yDiffsNew[1],
+    #                   yIntermediate + scale*sample(c(-1,1), size=obsInsample-1, replace=TRUE)*yDiffsNew[-1]);
+
+    if(type=="multiplicative"){
+        yNew[] <- exp(yNew);
+    }
+
+    return(yNew);
+}

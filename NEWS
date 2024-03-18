@@ -1,7 +1,8 @@
-greybox v2.0.1 (Release data: 2024-01-10)
+greybox v2.0.1 (Release data: 2024-03-18)
 
 Changes:
 * Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
+* New function for time series bootstrap, timeboot(), inspired by Maximum Entropy Bootstrap from meboot package.
 
 Bugfixes:
 * lmCombine() and lmDynamic() now return loss parameter.
