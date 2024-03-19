@@ -437,7 +437,9 @@ timeboot <- function(y, nsim=100, scale=NULL,
 
     # Prepare differences
     yDiffs <- sort(diff(ySorted));
-    yDiffsTable <- cumsum(table(yDiffs)/(obsInsample-1));
+    #### !!! Remove potential outliers ####
+    # yDiffs <- yDiffs[yDiffs<sd(yDiffs)*2];
+    yDiffsTable <- cumsum(table(yDiffs)/(length(yDiffs)));
     yDiffsUnique <- unique(yDiffs);
 
     # Random probabilities to select differences
