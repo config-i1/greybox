@@ -440,8 +440,13 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     # Prepare differences
     yDiffs <- sort(diff(ySorted));
     yDiffsLength <- length(yDiffs);
-    #### !!! Remove potential outliers ####
+    # Remove potential outliers
     yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
+    # Remove NaNs if they exist
+    yDiffs <- yDiffs[!is.nan(yDiffs)];
+    # Leave only finite values
+    yDiffs <- yDiffs[is.finite(yDiffs)];
+    # Create a contingency table
     yDiffsLength[] <- length(yDiffs);
     yDiffsTable <- cumsum(table(yDiffs)/(yDiffsLength));
     yDiffsUnique <- unique(yDiffs);
