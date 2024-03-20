@@ -4,8 +4,8 @@
 \alias{timeboot}
 \title{Time series bootstrap}
 \usage{
-timeboot(y, nsim = 100, scale = NULL, type = c("auto", "multiplicative",
-  "additive"))
+timeboot(y, nsim = 100, scale = NULL, trim = 0.05, type = c("auto",
+  "multiplicative", "additive"))
 }
 \arguments{
 \item{y}{The original time series}
@@ -15,7 +15,10 @@ timeboot(y, nsim = 100, scale = NULL, type = c("auto", "multiplicative",
 \item{scale}{Parameter that defines how to scale the variability around the data. By
 default this is based on the ratio of absolute mean differences and mean absolute differences
 in sample. If the two are the same, the data has a strong trend and no scaling is required.
-If the two are difference, the data does not have a trend and the larger scaling is needed.}
+If the two are different, the data does not have a trend and the larger scaling is needed.}
+
+\item{trim}{Defines the trimming in the calculation of means and in removing the sorted
+differences (outlier treatment).}
 
 \item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
 added, while \code{"multiplicative"} implies the multiplication. By default the function

@@ -383,7 +383,9 @@ print.bootstrap <- function(x, ...){
 #' @param scale Parameter that defines how to scale the variability around the data. By
 #' default this is based on the ratio of absolute mean differences and mean absolute differences
 #' in sample. If the two are the same, the data has a strong trend and no scaling is required.
-#' If the two are difference, the data does not have a trend and the larger scaling is needed.
+#' If the two are different, the data does not have a trend and the larger scaling is needed.
+#' @param trim Defines the trimming in the calculation of means and in removing the sorted
+#' differences (outlier treatment).
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
@@ -403,7 +405,7 @@ print.bootstrap <- function(x, ...){
 #'
 #' @rdname timeboot
 #' @export
-timeboot <- function(y, nsim=100, scale=NULL,
+timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
                      type=c("auto","multiplicative","additive")){
     type <- match.arg(type);
 
@@ -418,7 +420,7 @@ timeboot <- function(y, nsim=100, scale=NULL,
 
     # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 5
     if(is.null(scale)){
-        scale <- (1-abs(mean(diff(y)))/mean(abs(diff(y))))*5;
+        scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
     }
 
     # Sample size and ordered values
@@ -437,9 +439,11 @@ timeboot <- function(y, nsim=100, scale=NULL,
 
     # Prepare differences
     yDiffs <- sort(diff(ySorted));
+    yDiffsLength <- length(yDiffs);
     #### !!! Remove potential outliers ####
-    # yDiffs <- yDiffs[yDiffs<sd(yDiffs)*2];
-    yDiffsTable <- cumsum(table(yDiffs)/(length(yDiffs)));
+    yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
+    yDiffsLength[] <- length(yDiffs);
+    yDiffsTable <- cumsum(table(yDiffs)/(yDiffsLength));
     yDiffsUnique <- unique(yDiffs);
 
     # Random probabilities to select differences
