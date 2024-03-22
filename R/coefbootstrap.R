@@ -420,7 +420,8 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
 
     # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 10
     if(is.null(scale)){
-        scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
+        scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
+        # scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
     }
 
     # Sample size and ordered values
@@ -452,18 +453,10 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     yDiffsUnique <- unique(yDiffs);
 
     # Random probabilities to select differences
-    # yRandom <- runif(obsInsample, 0, 1);
-    # yDiffsNew <- sample(c(-1,1), size=obsInsample, replace=TRUE) * yDiffsUnique[findInterval(yRandom,yDiffsTable)+1];
-
-    # yNew <- y;
-    # Sample introduces +-1 to not just add but also subtract
-    # yNew[yOrder] <- yIntermediate + scale*yDiffsNew;
-
     yRandom <- runif(obsInsample*nsim, 0, 1);
     yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
                             yDiffsUnique[findInterval(yRandom,yDiffsTable)+1], obsInsample, nsim);
     yNew <- matrix(NA, obsInsample, nsim);
-    # yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
     yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
 
     if(type=="multiplicative"){
