@@ -34,14 +34,14 @@ The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
 \details{
 The function implements the following algorithm:
 
-1. Sort the original data in the ascending order, recording the original order of elements;
+1. Sort the data in the ascending order, recording the original order of elements;
 2. Take first differences of the sorted series and sort them;
 3. Create contingency table based on the differences and take the cumulative sum
 of it. This way we end up with an empirical CDF of differences;
 4. Generate random numbers from the uniform distribution between 0 and 1;
 5. Get the differences that correspond to the random numbers (randomly extract
 empirical quantiles). This way we take the empirical density into account when
-select the differences;
+selecting the differences;
 6. Add the random differences to the sorted series from (1) to get a new time series;
 7. Sort the new time series in the ascending order;
 8. Reorder (7) based on the initial order of series.

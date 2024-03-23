@@ -418,9 +418,12 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
         }
     }
 
+    # This also needs to take sample size into account!!!
     # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 10
     if(is.null(scale)){
-        scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
+        scale <- sd(diff(y));
+        # scale <- sqrt(mean(diff(y)^2));
+        # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
         # scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
     }
 
