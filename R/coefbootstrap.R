@@ -458,7 +458,9 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     # Random probabilities to select differences
     yRandom <- runif(obsInsample*nsim, 0, 1);
     yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-                            yDiffsUnique[findInterval(yRandom,yDiffsTable)+1], obsInsample, nsim);
+                            yDiffsUnique[findInterval(yRandom,yDiffsTable)+1],
+                        obsInsample, nsim);
+    # yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, sd(yDiffs)), obsInsample, nsim);
     yNew <- matrix(NA, obsInsample, nsim);
     yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
 
