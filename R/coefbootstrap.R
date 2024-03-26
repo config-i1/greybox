@@ -421,7 +421,14 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     # This also needs to take sample size into account!!!
     # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 10
     if(is.null(scale)){
-        scale <- sd(diff(y));
+        if(type=="multiplicative"){
+            scale <- mean(abs(diff(log(y))));
+            # scale <- sd(diff(log(y)));
+        }
+        else{
+            # scale <- sd(diff(y));
+            scale <- mean(abs(diff(y)));
+        }
         # scale <- sqrt(mean(diff(y)^2));
         # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
         # scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
@@ -455,15 +462,17 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     yDiffsTable <- cumsum(table(yDiffs)/(yDiffsLength));
     yDiffsUnique <- unique(yDiffs);
 
-    # Random probabilities to select differences
-    yRandom <- runif(obsInsample*nsim, 0, 1);
-    yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-                            yDiffsUnique[findInterval(yRandom,yDiffsTable)+1],
-                        obsInsample, nsim);
-    # yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, sd(yDiffs)), obsInsample, nsim);
     yNew <- matrix(NA, obsInsample, nsim);
+    # Random probabilities to select differences
+    # yRandom <- runif(obsInsample*nsim, 0, 1);
+    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+    #                         yDiffsUnique[findInterval(yRandom,yDiffsTable)+1],
+    #                     obsInsample, nsim);
     # yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
-    yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
+    # yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
+
+    yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
+    yNew[yOrder,] <- yIntermediate + yDiffsNew;
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
