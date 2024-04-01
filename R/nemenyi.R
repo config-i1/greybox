@@ -513,12 +513,12 @@ nemenyi <- function(data, level=0.95, sort=TRUE,
                      class="nemenyi"))
 }
 
-# @export
+#' @export
 summary.nemenyi <- function(object,...){
     print(object)
 }
 
-# @export
+#' @export
 print.nemenyi <- function(x,...){
     writeLines("Friedman and Nemenyi Tests")
     writeLines(paste0("The significance level is ", (1-x$level)*100, "%"))

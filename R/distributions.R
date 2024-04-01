@@ -34,7 +34,6 @@
 #' }
 #'
 #' @name Distributions
-#' @docType package
 #' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
 #'
 #' @references

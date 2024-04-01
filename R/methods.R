@@ -3283,7 +3283,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
     }
     else{
-        greyboxForecast <- predict.almari(object, newdata, interval, level, side=side, ...);
+        greyboxForecast <- predict_almari(object, newdata, interval, level, side=side, ...);
     }
     greyboxForecast$location <- greyboxForecast$mean;
     if(interval!="none"){
@@ -4016,7 +4016,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 }
 
 # The internal function for the predictions from the model with ARI
-predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+predict_almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
     interval <- match.arg(interval);
     side <- match.arg(side);

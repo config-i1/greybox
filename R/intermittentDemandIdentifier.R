@@ -42,11 +42,11 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc"),
                      class="idi"));
 }
 
-print.idi <- function(x, ...){
-    if(x$intermittent){
-        cat("Data is intermittent\n");
-    }
-    else{
-        cat("Data is not intermittent\n");
-    }
-}
+# print.idi <- function(x, ...){
+#     if(x$intermittent){
+#         cat("Data is intermittent\n");
+#     }
+#     else{
+#         cat("Data is not intermittent\n");
+#     }
+# }

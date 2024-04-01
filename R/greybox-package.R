@@ -45,7 +45,6 @@
 #' }
 #'
 #' @name greybox
-#' @docType package
 #' @aliases greybox-package
 #' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
 #'
