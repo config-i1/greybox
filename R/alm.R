@@ -630,8 +630,8 @@ alm <- function(formula, data, subset, na.action,
                                               "dnorm" =,
                                               "dfnorm" =,
                                               "dbcnorm" =,
-                                              "dlogitnorm" =,
-                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
                                               "dgnorm" =,
                                               "dlgnorm" =obsZero*(1/fitterReturn$other-
                                                                       log(fitterReturn$other /
