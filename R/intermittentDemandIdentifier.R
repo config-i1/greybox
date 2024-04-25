@@ -51,9 +51,10 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     dataIsInteger <- all(y==trunc(y));
 
     # List for models
-    nModels <- 8
+    nModels <- 4
     idModels <- vector("list", nModels);
     idICs <- vector("numeric", nModels);
+    idICs[] <- Inf;
 
     # Types of data
     idType <- "regular";
@@ -72,60 +73,59 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     #### Regular demand ####
     # If model 1 is better, we have regular demand
     if(IC(idModels[[1]]) < IC(idModels[[2]])){
+
+        names(idModels)[3] <- c("regular count");
         if(dataIsInteger){
             # model 3 is count data: Negative Binomial distribution
             idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
 
-            # model 4 is count data: Poisson distribution
-            idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dpois"));
+            idICs[3] <- IC(idModels[[3]]);
 
-            names(idModels)[3:4] <- c("count Negbin","count Poisson");
-
-            idICs[3:4] <- sapply(idModels[3:4], IC);
-
-            if(idICs[3]<idICs[1] || idICs[4]<idICs[1]){
-                idType[] <- "count";
-                if(idICs[3]<idICs[4]){
-                    idSubtype[] <- "NegBin";
-                }
-                else{
-                    idSubtype[] <- "Poisson";
-                }
+            if(idICs[3]<idICs[1]){
+                idSubtype[] <- "count";
             }
+
+            # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
+            idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
+            names(idModels)[4] <- c("intermittent count");
+            idICs[4] <- IC(idModels[[4]]);
+            if(idICs[4]<min(idICs[1:3])){
+                idType[] <- "intermittent";
+            }
+        }
+        else{
+            idICs <- idICs[1:3];
+            idModels[[4]] <- NULL;
         }
     }
     #### Intermittent demand is here ####
     else{
         idType[] <- "intermittent";
+        idSubtype[] <- "lumpy";
+
+        names(idModels)[3] <- c("intermittent count");
 
         if(dataIsInteger){
             # model 3 is zero-inflated count data: Negative Binomial distribution + Bernoulli
             idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
 
-            # model 4 is zero-inflated count data: Poisson distribution + Bernoulli
-            idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dpois", occurrence=modelOccurrence));
 
-            names(idModels)[3:4] <- c("zero inflated Negbin","zero inflated Poisson");
-
-            idICs[3:4] <- sapply(idModels[3:4], IC);
-
-            if(idICs[3]<idICs[2] || idICs[4]<idICs[2]){
-                idType[] <- "count";
-                if(idICs[3]<idICs[4]){
-                    idSubtype[] <- "NegBin";
-                }
-                else{
-                    idSubtype[] <- "Poisson";
-                }
+            idICs[3] <- IC(idModels[[3]]);
+            if(idICs[3]<idICs[2]){
+                idSubtype[] <- "count";
             }
         }
 
         # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
-        idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence));
+        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence));
 
-        names(idModels)[5] <- "intermittent fract"
+        names(idModels)[4] <- "intermittent slow";
 
-        idICs[5] <- IC(idModels[[5]]);
+        idICs[4] <- IC(idModels[[4]]);
+
+        if(idICs[4]<idICs[2]){
+            idSubtype[] <- "slow";
+        }
     }
 
     names(idICs) <- names(idModels);
@@ -135,65 +135,65 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
                      class="idi"));
 
 
-    # model 3 is count data: Negative Binomial distribution
-    idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
-
-    # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-    idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
-
-    # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
-    modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
-    idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
-
-    # model 6 is lumpy non-seasonal: Normal + Bernoulli(p<0.5)
-    modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
-    idModels[[6]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
-
-    # model 7 is lumpy seasonal: Box-Cox + Bernoulli; pt is seasonal; detect seasonality!
+    # # model 3 is count data: Negative Binomial distribution
+    # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
+    #
+    # # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
+    # idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
+    #
+    # # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
     # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
-    # idModels[[7]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
-
-    # model 8 is the demand building up: Box-Cox + Bernoulli; pt increases over time
+    # idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
+    #
+    # # model 6 is lumpy non-seasonal: Normal + Bernoulli(p<0.5)
     # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
-    # idModels[[8]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
+    # idModels[[6]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
+    #
+    # # model 7 is lumpy seasonal: Box-Cox + Bernoulli; pt is seasonal; detect seasonality!
+    # # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
+    # # idModels[[7]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
+    #
+    # # model 8 is the demand building up: Box-Cox + Bernoulli; pt increases over time
+    # # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
+    # # idModels[[8]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
+    #
+    # # # model 9 is the demand obsolescence: Box-Cox + Bernoulli; pt declines over time
+    # # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
+    # # idModels[[9]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
+    #
+    # idICs <- sapply(idModels, IC);
+    # idICBest <- which.min(idICs)[1];
+    #
+    # idType <- switch(idICBest,
+    #                  "1"="regular",
+    #                  "2"="erratic",
+    #                  "3"="count",
+    #                  "4"="count zi",
+    #                  "5"="slow & fractional",
+    #                  "6"="lumpy");
+    #
+    # idSubtype <- "none";
+    # # if(idType=="slow & fractional"){
+    # #     if(xregDataOccurrence$x)
+    # #     idSubtype <- fitted(idModels[[idICBest]]$occurrence);
+    # # }
+    #
+    # return(structure(list(models=idModels, ICs=idICs, type=idType,
+    #                       subtype=idSubtype),
+    #                  class="idi"));
 
-    # # model 9 is the demand obsolescence: Box-Cox + Bernoulli; pt declines over time
-    # modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
-    # idModels[[9]] <- suppressWarnings(alm(y~., xregData, distribution="dbcnorm", occurrence=modelOccurrence));
-
-    idICs <- sapply(idModels, IC);
-    idICBest <- which.min(idICs)[1];
-
-    idType <- switch(idICBest,
-                     "1"="regular",
-                     "2"="erratic",
-                     "3"="count",
-                     "4"="count zi",
-                     "5"="slow & fractional",
-                     "6"="lumpy");
-
-    idSubtype <- "none";
-    # if(idType=="slow & fractional"){
-    #     if(xregDataOccurrence$x)
-    #     idSubtype <- fitted(idModels[[idICBest]]$occurrence);
-    # }
-
-    return(structure(list(models=idModels, ICs=idICs, type=idType,
-                          subtype=idSubtype),
-                     class="idi"));
-
-#     ### This is slow mover with fractional values
-#     # First model with rectified normal distribution
-#     model1 <- suppressWarnings(alm(y~., xregData, distribution="drectnorm"));
-#
-#     ### Erratic demand (low volume with stockouts)
-#     # Model for demand occurrence
-#     model2Occurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution=distribution2Occurrence));
-#     # The second model: mixture of Box-Cox Normal and Logistic
-#     model2 <- suppressWarnings(alm(y~., xregDataSizes, distribution=distribution2, occurrence=model2Occurrence));
-#
-#     ### Regular demand
-#     model3 <- suppressWarnings(alm(y~., xregData, distribution=distribution3));
+    # ### This is slow mover with fractional values
+    # # First model with rectified normal distribution
+    # model1 <- suppressWarnings(alm(y~., xregData, distribution="drectnorm"));
+    #
+    # ### Erratic demand (low volume with stockouts)
+    # # Model for demand occurrence
+    # model2Occurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution=distribution2Occurrence));
+    # # The second model: mixture of Box-Cox Normal and Logistic
+    # model2 <- suppressWarnings(alm(y~., xregDataSizes, distribution=distribution2, occurrence=model2Occurrence));
+    #
+    # ### Regular demand
+    # model3 <- suppressWarnings(alm(y~., xregData, distribution=distribution3));
 
     # Fix the number of estimated parameters to include occurrence part
     # model2$df <- model2$df + nparam(model2$occurrence)
@@ -204,6 +204,6 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
 }
 
 print.idi <- function(x, ...){
-    print(x$ICs);
+    # print(x$ICs);
     cat(x$type, x$subtype);
 }
