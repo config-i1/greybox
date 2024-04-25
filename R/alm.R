@@ -636,12 +636,16 @@ alm <- function(formula, data, subset, na.action,
                                               "dlgnorm" =obsZero*(1/fitterReturn$other-
                                                                       log(fitterReturn$other /
                                                                               (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
-                                              # "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
-                                              #                                 sum(log(fitterReturn$mu[!otU]))),
-                                              "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
-                                              "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
-                                                                  log(gamma(1/fitterReturn$scale)) +
-                                                                  (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                                              "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                                                                              sum(log(fitterReturn$mu[!otU]))),
+                                              # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                                              # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                                              #                     log(gamma(1/fitterReturn$scale)) +
+                                              #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                                              "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
+                                                              (1 - fitterReturn$scale* fitterReturn$mu) *
+                                                              digamma(fitterReturn$scale* fitterReturn$mu) +
+                                                              fitterReturn$scale* fitterReturn$mu),
                                               # 1-ln(lambda), where lambda=1
                                               "dexp" = obsZero,
                                               "dlaplace" =,
