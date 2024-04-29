@@ -302,6 +302,7 @@ Kurtosis of Student t distribution depends on the value of $\nu$, and for the ca
 
 In order to see how this works, we will create the following data:
 ```{r normalDistributionData}
+set.seed(41, kind="L'Ecuyer-CMRG")
 xreg <- cbind(rnorm(200,10,3),rnorm(200,50,5))
 xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(200,0,3),xreg,rnorm(200,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
@@ -907,6 +908,10 @@ Finally, mixture distribution models can be used in `alm()` by defining `distrib
 
 As an example of mixture model, let's generate some data:
 ```{r mixtureExampleData}
+set.seed(42, kind="L'Ecuyer-CMRG")
+xreg <- cbind(rnorm(200,10,3),rnorm(200,50,5))
+xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(200,0,3),xreg,rnorm(200,300,10))
+colnames(xreg) <- c("y","x1","x2","Noise")
 xreg[,1] <- round(exp(xreg[,1]-400) / (1 + exp(xreg[,1]-400)),0) * xreg[,1]
 # Sometimes the generated data contains huge values
 xreg[is.nan(xreg[,1]),1] <- 0;
