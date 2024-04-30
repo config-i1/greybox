@@ -1,4 +1,35 @@
-idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
+#' Automatic Demand Identifier
+#'
+#' The function applies several models on the provided time series and identifies what
+#' type of demand it is based on an information criterion.
+#'
+#' The function creates explanatory variables based on LOWESS of the original data, then
+#' applies Normal, Normal + Bernoulli, Negative Binomial and Negative Binomial + Bernoulli
+#' models and selects the one that has the lowest IC. Based on that, it decides what type
+#' of demand the data corresponds to: regular non-count, intermittent non-count,
+#' regular count, or intermittent count.
+#'
+#' @param y The vector of the data.
+#' @param ic Information criterion to use.
+#'
+#' @return Class "adi" is returned, which contains:
+#' \itemize{
+#' \item models - All fitted models;
+#' \item ICs - Values of information criteria;
+#' \item type - The type of the identified demand.
+#' }
+#'
+#' @template author
+#' @template keywords
+#'
+#' @examples
+#' # Data from Poisson distribution
+#' y <- rpois(120, 0.7)
+#' adi(y)
+#'
+#' @importFrom stats lowess approx
+#' @export
+adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     # Intermittent demand identifier
 
     # Select IC
@@ -9,7 +40,7 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
         message("The data does not contain any zeroes. It must be regular.",
                 call.=FALSE);
         return(structure(list(models=NA, ICs=NA, type="regular"),
-                     class="idi"))
+                     class="adi"))
     }
 
     # The original data
@@ -52,9 +83,9 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     dataIsInteger <- all(y==trunc(y));
 
     # List for models
-    nModels <- 5
+    nModels <- 4
     idModels <- vector("list", nModels);
-    names(idModels) <- c("regular","intermittent","regular count","intermittent count","intermittent slow");
+    names(idModels) <- c("regular non-count","intermittent non-count","regular count","intermittent count"); #,"intermittent slow");
 
     # model 1 is the regular demand
     idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm"));
@@ -71,21 +102,22 @@ idi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     }
 
     # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
-    idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence));
+    # idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence));
 
     # Remove redundant models
     idModels <- idModels[!sapply(idModels, is.null)]
     # Calculate ICs
-    idICs <- sapply(idModels, IC);
+    adiCs <- sapply(idModels, IC);
     # Find the best one
-    idICsBest <- which.min(idICs);
+    adiCsBest <- which.min(adiCs);
     # Get its name
-    idType <- names(idICs)[idICsBest];
+    idType <- names(adiCs)[adiCsBest];
 
-    return(structure(list(models=idModels, ICs=idICs, type=idType),
-                     class="idi"));
+    return(structure(list(models=idModels, ICs=adiCs, type=idType),
+                     class="adi"));
 }
 
-print.idi <- function(x, ...){
+#' @export
+print.adi <- function(x, ...){
     cat("The provided time series is", x$type, "\n");
 }
