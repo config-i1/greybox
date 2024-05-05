@@ -1642,7 +1642,9 @@ alm <- function(formula, data, subset, na.action,
                 matrixXregMeans <- colMeans(matrixXreg[otU, -1, drop=FALSE]);
                 matrixXreg <- (matrixXreg[, -1, drop=FALSE] -
                                    matrix(matrixXregMeans,
-                                          obsInsample, nVariables-1, byrow=TRUE)) %*% diag(1/denominator[-1]);
+                                          obsInsample, nVariables-1, byrow=TRUE)) %*% diag(1/denominator[-1],
+                                                                                           nrow=nVariables-1,
+                                                                                           ncol=nVariables-1);
                 yMean <- meanFast(y[otU]);
                 # Centre the response variable
                 y[] <- y - yMean;
@@ -1771,7 +1773,9 @@ alm <- function(formula, data, subset, na.action,
             if(interceptIsNeeded){
                 y[] <- y + yMean;
                 B <- c(yMean - sum(matrixXregMeans %*% B), B);
-                matrixXreg <- cbind(1,(matrixXreg %*% diag(denominator[-1])) +
+                matrixXreg <- cbind(1,(matrixXreg %*% diag(1/denominator[-1],
+                                                           nrow=nVariables-1,
+                                                           ncol=nVariables-1)) +
                                         matrix(matrixXregMeans, obsInsample, nVariables-1, byrow=TRUE));
             }
             else{
