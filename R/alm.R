@@ -484,22 +484,29 @@ alm <- function(formula, data, subset, na.action,
 
     # Function for scale calculation
     scalerInternal <- function(B, distribution, y, matrixXreg, mu, other){
+        # If this is ARIMA with occurrence, the likelihood is different
+        if(recursiveModel && occurrenceModel){
+            df <- obsInsample;
+        }
+        else{
+            df <- obsNonZero;
+        }
         return(switch(distribution,
                       "dbeta" = exp(matrixXreg %*% B[-c(1:(length(B)/2))]),
-                      "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample),
-                      "dlaplace" = sum(abs(y[otU]-mu[otU]))/obsInsample,
-                      "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (obsInsample*2),
-                      "dgnorm" = (other*sum(abs(y[otU]-mu[otU])^other)/obsInsample)^{1/other},
-                      "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/obsInsample * 3 / pi^2),
-                      "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/obsInsample,
-                      "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/obsInsample),
-                      "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/obsInsample,
-                      "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (obsInsample*2),
-                      "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/obsInsample)^{1/other},
-                      "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/obsInsample),
-                      "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/obsInsample,
-                      "dgamma" = sum((y[otU]/mu[otU]-1)^2)/obsInsample,
-                      "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/obsInsample),
+                      "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/df),
+                      "dlaplace" = sum(abs(y[otU]-mu[otU]))/df,
+                      "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (df*2),
+                      "dgnorm" = (other*sum(abs(y[otU]-mu[otU])^other)/df)^{1/other},
+                      "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/df * 3 / pi^2),
+                      "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/df,
+                      "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/df),
+                      "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/df,
+                      "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (df*2),
+                      "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/df)^{1/other},
+                      "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/df),
+                      "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/df,
+                      "dgamma" = sum((y[otU]/mu[otU]-1)^2)/df,
+                      "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/df),
                       "dfnorm" =,
                       "drectnorm" =,
                       "dt" =,
@@ -625,7 +632,7 @@ alm <- function(formula, data, subset, na.action,
             ));
 
             # The differential entropy for the models with the missing data
-            if(occurrenceModel){
+            if(recursiveModel && occurrenceModel){
                 CFValue[] <- CFValue + switch(distribution,
                                               "dnorm" =,
                                               "dfnorm" =,
