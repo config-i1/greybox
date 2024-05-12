@@ -88,21 +88,21 @@ adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     names(idModels) <- c("regular non-count","intermittent non-count","regular count","intermittent count"); #,"intermittent slow");
 
     # model 1 is the regular demand
-    # idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm"));
-    idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
+    idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm"));
+    # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
     # model 2 is the intermittent demand (mixture model)
-    # idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
-    idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
+    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
+    # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
 
     if(dataIsInteger){
         # model 3 is count data: Negative Binomial distribution
-        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
-        idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
+        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
+        # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
 
         # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-        # idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
-        idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
+        # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
     }
 
     # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
