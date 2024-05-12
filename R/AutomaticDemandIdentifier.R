@@ -60,6 +60,11 @@ adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
         xregData$x[] <- xregDataSizes$x;
     }
 
+    # Drop x if it does not have much variability (almost constant)
+    if(all(round(xregData$x,10)==1)){
+        xregData$x <- NULL;
+    }
+
     # Data for demand occurrence
     xregDataOccurrence <- data.frame(y=y, x=y)
     xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
@@ -97,11 +102,12 @@ adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
 
     if(dataIsInteger){
         # model 3 is count data: Negative Binomial distribution
-        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom"));
+        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dpois", maxeval=1000));
+        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=200));
         # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
 
         # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence));
+        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=200));
         # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
     }
 
