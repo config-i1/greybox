@@ -390,8 +390,12 @@ print.bootstrap <- function(x, ...){
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
 #'
-#' @return The function returns the matrix with the new series in columns and observations
-#' in rows.
+#' @return The function returns:
+#' \itemize{
+#' \item \code{call} - the call that was used originally;
+#' \item \code{data} - the original data used in the function;
+#' \item \code{boot} - the matrix with the new series in columns and observations in rows.
+#' \item \code{type} - type of the bootstrap used.}
 #'
 #' @template author
 #' @template keywords
@@ -408,6 +412,7 @@ print.bootstrap <- function(x, ...){
 timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
                      type=c("auto","multiplicative","additive")){
     type <- match.arg(type);
+    cl <- match.call();
 
     if(type=="auto"){
         if(any(y<=0)){
@@ -422,12 +427,16 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 10
     if(is.null(scale)){
         if(type=="multiplicative"){
+            # This gives robust estimate of scale
             scale <- mean(abs(diff(log(y))));
+            # This is one sensitive to outliers
             # scale <- sd(diff(log(y)));
         }
         else{
-            # scale <- sd(diff(y));
+            # This gives robust estimate of scale
             scale <- mean(abs(diff(y)));
+            # This is one sensitive to outliers
+            # scale <- sd(diff(y));
         }
         # scale <- sqrt(mean(diff(y)^2));
         # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
@@ -448,6 +457,7 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
         yIntermediate[] <- log(yIntermediate);
     }
 
+    #### Differences are needed only for the non-parametric approach ####
     # Prepare differences
     yDiffs <- sort(diff(ySorted));
     yDiffsLength <- length(yDiffs);
@@ -459,24 +469,94 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     yDiffs <- yDiffs[is.finite(yDiffs)];
     # Create a contingency table
     yDiffsLength[] <- length(yDiffs);
-    yDiffsTable <- cumsum(table(yDiffs)/(yDiffsLength));
+    yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
     yDiffsUnique <- unique(yDiffs);
 
-    yNew <- matrix(NA, obsInsample, nsim);
+    yNew <- ts(matrix(NA, obsInsample, nsim),
+               frequency=frequency(y), start=start(y));
+
+    #### Uniform selection of differences ####
+    # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
+    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+    #                         yDiffsUnique[yRandom],
+    #                     obsInsample, nsim);
+
     # Random probabilities to select differences
     # yRandom <- runif(obsInsample*nsim, 0, 1);
+
+    #### Select differences based on histogram ####
     # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-    #                         yDiffsUnique[findInterval(yRandom,yDiffsTable)+1],
+    #                         yDiffsUnique[findInterval(yRandom,yDiffsCumulative)+1],
     #                     obsInsample, nsim);
-    # yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
+
+    #### Differences based on interpolated cumulative values ####
+    # ySplined <- spline(yDiffsCumulative, yDiffsUnique, n=1000);
+    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+    #                         ySplined$y[findInterval(yRandom,ySplined$x)+1],
+    #                     obsInsample, nsim);
+
+    # Don't do sorting (wrong!)
     # yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
 
+    # Sort the final values
+    # yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
+
+    #### An alternative with the Normal distribution ####
     yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
-    yNew[yOrder,] <- yIntermediate + yDiffsNew;
+
+    # Don't do sorting (wrong!)
+    # yNew[yOrder,] <- yIntermediate + yDiffsNew;
+
+    # Sort values to make sure that we have similar structure in the end
+    yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+
+    # Centre the points around the original data
+    yNew[] <- yNew - apply(yNew, 1, mean) + switch(type,
+                                                   "multiplicative"=log(y),
+                                                   y);
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
     }
 
-    return(yNew);
+    return(structure(list(call=cl, data=y, boot=yNew, type=type), class="timeboot"));
+}
+
+#' @export
+print.timeboot <- function(x, ...){
+    cat("Bootstrapped", ncol(x$boot), "series,", x$type, "type.\n");
+}
+
+#' @export
+plot.timeboot <- function(x, sorted=FALSE, ...){
+    nsim <- ncol(x$boot);
+    ellipsis <- list(...);
+    if(sorted){
+        ellipsis$x <- sort(x$data);
+        yOrder <- order(x$data);
+    }
+    else{
+        ellipsis$x <- x$data;
+    }
+
+    if(is.null(ellipsis$ylim)){
+        ellipsis$ylim <- range(c(ellipsis$x,x$boot));
+    }
+
+    if(is.null(ellipsis$ylab)){
+        ellipsis$ylab <- as.character(x$call[[2]]);
+    }
+
+    do.call("plot", ellipsis)
+    if(sorted){
+        for(i in 1:nsim){
+            lines(x$boot[yOrder,i], col="lightgrey");
+        }
+    }
+    else{
+        for(i in 1:nsim){
+            lines(x$boot[,i], col="lightgrey");
+        }
+    }
+    lines(ellipsis$x, lwd=2)
 }

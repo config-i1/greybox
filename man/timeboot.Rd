@@ -25,8 +25,12 @@ added, while \code{"multiplicative"} implies the multiplication. By default the 
 will try using the latter, unless the data has non-positive values.}
 }
 \value{
-The function returns the matrix with the new series in columns and observations
-in rows.
+The function returns:
+\itemize{
+\item \code{call} - the call that was used originally;
+\item \code{data} - the original data used in the function;
+\item \code{boot} - the matrix with the new series in columns and observations in rows.
+\item \code{type} - type of the bootstrap used.}
 }
 \description{
 The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
