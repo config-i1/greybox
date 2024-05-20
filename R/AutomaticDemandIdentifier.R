@@ -29,7 +29,7 @@
 #'
 #' @importFrom stats lowess approx
 #' @export
-adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
+adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     # Intermittent demand identifier
 
     # Select IC
@@ -99,6 +99,11 @@ adi <- function(y, ic=c("AIC","AICc","BIC","BICc")){
     # model 2 is the intermittent demand (mixture model)
     idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
     # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
+
+    # If the scale is zero then there must be no variability in demand sizes. Switch them off.
+    if(round(idModels[[2]]$scale,10)==0){
+        idModels[[2]]$logLik <- idModels[[2]]$occurrence$logLik;
+    }
 
     if(dataIsInteger){
         # model 3 is count data: Negative Binomial distribution
