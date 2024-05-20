@@ -389,6 +389,8 @@ print.bootstrap <- function(x, ...){
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
+#' @param lag The lag to use in the calculation of differences. Should be 1 for non-seasonal
+#' data.
 #'
 #' @return The function returns:
 #' \itemize{
@@ -408,7 +410,7 @@ print.bootstrap <- function(x, ...){
 #'
 #' @rdname timeboot
 #' @export
-timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
+timeboot <- function(y, nsim=100, scale=NULL, trim=0.05, lag=frequency(y),
                      type=c("auto","multiplicative","additive")){
     type <- match.arg(type);
     cl <- match.call();
@@ -427,13 +429,13 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     if(is.null(scale)){
         if(type=="multiplicative"){
             # This gives robust estimate of scale
-            scale <- mean(abs(diff(log(y))));
+            scale <- mean(abs(diff(log(y),lag=lag)));
             # This is one sensitive to outliers
             # scale <- sd(diff(log(y)));
         }
         else{
             # This gives robust estimate of scale
-            scale <- mean(abs(diff(y)));
+            scale <- mean(abs(diff(y,lag=lag)));
             # This is one sensitive to outliers
             # scale <- sd(diff(y));
         }
@@ -456,23 +458,23 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
         yIntermediate[] <- log(yIntermediate);
     }
 
-    #### Differences are needed only for the non-parametric approach ####
-    # Prepare differences
-    yDiffs <- sort(diff(ySorted));
-    yDiffsLength <- length(yDiffs);
-    # Remove potential outliers
-    yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
-    # Remove NaNs if they exist
-    yDiffs <- yDiffs[!is.nan(yDiffs)];
-    # Leave only finite values
-    yDiffs <- yDiffs[is.finite(yDiffs)];
-    # Create a contingency table
-    yDiffsLength[] <- length(yDiffs);
-    yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
-    yDiffsUnique <- unique(yDiffs);
-
     yNew <- ts(matrix(NA, obsInsample, nsim),
                frequency=frequency(y), start=start(y));
+
+    #### Differences are needed only for the non-parametric approach ####
+    # Prepare differences
+    # yDiffs <- sort(diff(ySorted));
+    # yDiffsLength <- length(yDiffs);
+    # # Remove potential outliers
+    # yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
+    # # Remove NaNs if they exist
+    # yDiffs <- yDiffs[!is.nan(yDiffs)];
+    # # Leave only finite values
+    # yDiffs <- yDiffs[is.finite(yDiffs)];
+    # # Create a contingency table
+    # yDiffsLength[] <- length(yDiffs);
+    # yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
+    # yDiffsUnique <- unique(yDiffs);
 
     #### Uniform selection of differences ####
     # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
@@ -494,17 +496,11 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05,
     #                         ySplined$y[findInterval(yRandom,ySplined$x)+1],
     #                     obsInsample, nsim);
 
-    # Don't do sorting (wrong!)
-    # yNew[yOrder,] <- yIntermediate + scale*yDiffsNew;
-
     # Sort the final values
     # yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
 
-    #### An alternative with the Normal distribution ####
+    #### Normal distribution randomness ####
     yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
-
-    # Don't do sorting (wrong!)
-    # yNew[yOrder,] <- yIntermediate + yDiffsNew;
 
     # Sort values to make sure that we have similar structure in the end
     yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
