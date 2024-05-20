@@ -404,8 +404,7 @@ print.bootstrap <- function(x, ...){
 #' The meboot R Package." Journal of Statistical Software, 29(5), 1–19. \doi{doi:10.18637/jss.v029.i05}.
 #'
 #' @examples
-#' plot(AirPassengers, type="l")
-#' timeboot(AirPassengers) |> lines(col="blue")
+#' timeboot(AirPassengers) |> plot()
 #'
 #' @rdname timeboot
 #' @export

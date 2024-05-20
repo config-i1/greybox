@@ -57,8 +57,7 @@ series is. In case of the additive bootstrap, the trended series will be noisier
 the level of series is low.
 }
 \examples{
-plot(AirPassengers, type="l")
-timeboot(AirPassengers) |> lines(col="blue")
+timeboot(AirPassengers) |> plot()
 
 }
 \references{

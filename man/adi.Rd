@@ -4,7 +4,7 @@
 \alias{adi}
 \title{Automatic Demand Identifier}
 \usage{
-adi(y, ic = c("AICc", "AIC", "BICc", "BIC"))
+adi(y, ic = c("AIC", "AICc", "BIC", "BICc"))
 }
 \arguments{
 \item{y}{The vector of the data.}
