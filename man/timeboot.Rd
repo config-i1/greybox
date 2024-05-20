@@ -4,25 +4,28 @@
 \alias{timeboot}
 \title{Time series bootstrap}
 \usage{
-timeboot(y, nsim = 100, scale = NULL, lag = frequency(y),
-  type = c("auto", "multiplicative", "additive"))
+timeboot(y, nsim = 100, type = c("auto", "multiplicative", "additive"),
+  kind = c("nonparametric", "semiparametric"), lag = frequency(y),
+  scale = NULL)
 }
 \arguments{
 \item{y}{The original time series}
 
 \item{nsim}{Number of iterations (simulations) to run.}
 
-\item{scale}{Parameter that defines how to scale the variability around the data. By
-default this is based on the ratio of absolute mean differences and mean absolute differences
-in sample. If the two are the same, the data has a strong trend and no scaling is required.
-If the two are different, the data does not have a trend and the larger scaling is needed.}
+\item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
+added, while \code{"multiplicative"} implies the multiplication. By default the function
+will try using the latter, unless the data has non-positive values.}
+
+\item{kind}{A kind of the bootstrap to do: nonparametric or semiparametric. The latter
+relies on the normal distribution, while the former uses the empirical distribution of
+differences of the data.}
 
 \item{lag}{The lag to use in the calculation of differences. Should be 1 for non-seasonal
 data.}
 
-\item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
-added, while \code{"multiplicative"} implies the multiplication. By default the function
-will try using the latter, unless the data has non-positive values.}
+\item{scale}{Scale (sd) to use in the normal distribution. Estimated as mean absolute
+differences of the data if omitted.}
 }
 \value{
 The function returns:

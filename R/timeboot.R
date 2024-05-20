@@ -24,15 +24,16 @@
 #'
 #' @param y The original time series
 #' @param nsim Number of iterations (simulations) to run.
-#' @param scale Parameter that defines how to scale the variability around the data. By
-#' default this is based on the ratio of absolute mean differences and mean absolute differences
-#' in sample. If the two are the same, the data has a strong trend and no scaling is required.
-#' If the two are different, the data does not have a trend and the larger scaling is needed.
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
+#' @param kind A kind of the bootstrap to do: nonparametric or semiparametric. The latter
+#' relies on the normal distribution, while the former uses the empirical distribution of
+#' differences of the data.
 #' @param lag The lag to use in the calculation of differences. Should be 1 for non-seasonal
 #' data.
+#' @param scale Scale (sd) to use in the normal distribution. Estimated as mean absolute
+#' differences of the data if omitted.
 #'
 #' @return The function returns:
 #' \itemize{
@@ -53,10 +54,14 @@
 #' @rdname timeboot
 #' @importFrom stats supsmu
 #' @export
-timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
-                     type=c("auto","multiplicative","additive")){
-    type <- match.arg(type);
+timeboot <- function(y, nsim=100,
+                     type=c("auto","multiplicative","additive"),
+                     kind=c("nonparametric","semiparametric"),
+                     lag=frequency(y), scale=NULL){
     cl <- match.call();
+
+    type <- match.arg(type);
+    kind <- match.arg(kind);
 
     if(type=="auto"){
         if(any(y<=0)){
@@ -65,26 +70,6 @@ timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
         else{
             type[] <- "multiplicative";
         }
-    }
-
-    # This also needs to take sample size into account!!!
-    # Heuristic: strong trend -> scale ~ 0; no trend -> scale ~ 10
-    if(is.null(scale)){
-        if(type=="multiplicative"){
-            # This gives robust estimate of scale
-            scale <- mean(abs(diff(log(y),lag=lag)));
-            # This is one sensitive to outliers
-            # scale <- sd(diff(log(y)));
-        }
-        else{
-            # This gives robust estimate of scale
-            scale <- mean(abs(diff(y,lag=lag)));
-            # This is one sensitive to outliers
-            # scale <- sd(diff(y));
-        }
-        # scale <- sqrt(mean(diff(y)^2));
-        # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
-        # scale <- (1-abs(mean(diff(y), trim=trim))/mean(abs(diff(y)),trim=trim))*10;
     }
 
     # Sample size and ordered values
@@ -96,7 +81,9 @@ timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
     # yIntermediate <- lowess(ySorted, f=0.02)$y;
     yIntermediate <- ySorted;
 
+    yTransformed <- y;
     if(type=="multiplicative"){
+        yTransformed[] <- log(y);
         ySorted[] <- log(ySorted);
         yIntermediate[] <- log(yIntermediate);
     }
@@ -107,54 +94,71 @@ timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
     yNew <- ts(matrix(NA, obsInsample, nsim),
                frequency=frequency(y), start=start(y));
 
-    #### Differences are needed only for the non-parametric approach ####
-    # Prepare differences
-    # yDiffs <- sort(diff(ySorted));
-    # yDiffsLength <- length(yDiffs);
-    # # Remove potential outliers
-    # yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
-    # # Remove NaNs if they exist
-    # yDiffs <- yDiffs[!is.nan(yDiffs)];
-    # # Leave only finite values
-    # yDiffs <- yDiffs[is.finite(yDiffs)];
-    # # Create a contingency table
-    # yDiffsLength[] <- length(yDiffs);
-    # yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
-    # yDiffsUnique <- unique(yDiffs);
+    if(kind=="nonparametric"){
+        #### Differences are needed only for the non-parametric approach ####
+        # Prepare differences
+        # yDiffs <- sort(diff(ySorted));
+        yDiffs <- sort(diff(yTransformed));
+        yDiffsLength <- length(yDiffs);
+        # Remove potential outliers
+        # yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
+        # Remove NaNs if they exist
+        yDiffs <- yDiffs[!is.nan(yDiffs)];
+        # Leave only finite values
+        yDiffs <- yDiffs[is.finite(yDiffs)];
+        # Create a contingency table
+        yDiffsLength[] <- length(yDiffs);
+        # yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
+        # Form vector larger than yDifsLength to "take care" of tails
+        yDiffsCumulative <- seq(0,1,length.out=yDiffsLength+2)[-c(1,yDiffsLength+2)];
+        # smooth the original differences
+        ySplined <- supsmu(yDiffsCumulative, yDiffs);
 
-    #### Uniform selection of differences ####
-    # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
-    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-    #                         yDiffsUnique[yRandom],
-    #                     obsInsample, nsim);
+        #### Uniform selection of differences ####
+        # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
+        # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+        #                         yDiffs[yRandom],
+        #                     obsInsample, nsim);
 
-    # Random probabilities to select differences
-    # yRandom <- runif(obsInsample*nsim, 0, 1);
+        # Random probabilities to select differences
+        yRandom <- runif(obsInsample*nsim, 0, 1);
 
-    #### Select differences based on histogram ####
-    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-    #                         yDiffsUnique[findInterval(yRandom,yDiffsCumulative)+1],
-    #                     obsInsample, nsim);
+        #### Select differences based on histogram ####
+        # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+        #                         yDiffs[findInterval(yRandom,yDiffsCumulative)+1],
+        #                     obsInsample, nsim);
 
-    #### Differences based on interpolated cumulative values ####
-    # ySplined <- spline(yDiffsCumulative, yDiffsUnique, n=1000);
-    # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-    #                         ySplined$y[findInterval(yRandom,ySplined$x)+1],
-    #                     obsInsample, nsim);
+        #### Differences based on interpolated cumulative values ####
+        # Generate the new ones
+        # yDiffsNew <- matrix(ySplined$y[findInterval(yRandom,ySplined$x)+1],
+        #                     obsInsample, nsim);
 
-    # Sort the final values
-    # yNew[yOrder,] <- apply(yIntermediate + scale*yDiffsNew, 2, sort);
+        # Generate the new ones
+        # approx uses linear approximation to get values
+        yDiffsNew <- matrix(approx(ySplined$x, ySplined$y, xout=yRandom, rule=2)$y,
+                            obsInsample, nsim);
 
-    #### Normal distribution randomness ####
-    yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
+        # Sort the final values
+        yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+    }
+    else{
+        # Calculate scale if it is not provided
+        if(is.null(scale)){
+            # This gives robust estimate of scale
+            scale <- mean(abs(diff(yTransformed,lag=lag)));
+            # This is one sensitive to outliers
+            # scale <- sd(diff(yTransformed,lag=lag));
+        }
 
-    # Sort values to make sure that we have similar structure in the end
-    yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+        #### Normal distribution randomness ####
+        yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
+
+        # Sort values to make sure that we have similar structure in the end
+        yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+    }
 
     # Centre the points around the original data
-    yNew[] <- yNew - apply(yNew, 1, mean) + switch(type,
-                                                   "multiplicative"=log(y),
-                                                   y);
+    yNew[] <- yNew - apply(yNew, 1, mean) + yTransformed;
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
@@ -173,7 +177,8 @@ plot.timeboot <- function(x, sorted=FALSE, ...){
     nsim <- ncol(x$boot);
     ellipsis <- list(...);
     if(sorted){
-        ellipsis$x <- sort(x$data);
+        ellipsis$x <- seq(0,1,length.out=length(x$data));
+        ellipsis$y <- sort(x$data);
         yOrder <- order(x$data);
     }
     else{
@@ -181,7 +186,11 @@ plot.timeboot <- function(x, sorted=FALSE, ...){
     }
 
     if(is.null(ellipsis$ylim)){
-        ellipsis$ylim <- range(c(ellipsis$x,x$boot));
+        ellipsis$ylim <- range(x$boot);
+    }
+
+    if(is.null(ellipsis$xlab)){
+        ellipsis$xlab <- "Probability";
     }
 
     if(is.null(ellipsis$ylab)){
@@ -191,13 +200,14 @@ plot.timeboot <- function(x, sorted=FALSE, ...){
     do.call("plot", ellipsis)
     if(sorted){
         for(i in 1:nsim){
-            lines(x$boot[yOrder,i], col="lightgrey");
+            lines(ellipsis$x,x$boot[yOrder,i], col="lightgrey");
         }
+        lines(ellipsis$x, ellipsis$y, lwd=2)
     }
     else{
         for(i in 1:nsim){
             lines(x$boot[,i], col="lightgrey");
         }
+        lines(ellipsis$x, lwd=2)
     }
-    lines(ellipsis$x, lwd=2)
 }
