@@ -121,7 +121,7 @@ timeboot <- function(y, nsim=100,
         #                     obsInsample, nsim);
 
         # Random probabilities to select differences
-        yRandom <- runif(obsInsample*nsim, 0, 1);
+        # yRandom <- runif(obsInsample*nsim, 0, 1);
 
         #### Select differences based on histogram ####
         # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
@@ -134,8 +134,10 @@ timeboot <- function(y, nsim=100,
         #                     obsInsample, nsim);
 
         # Generate the new ones
-        # approx uses linear approximation to get values
-        yDiffsNew <- matrix(approx(ySplined$x, ySplined$y, xout=yRandom, rule=2)$y,
+        # approx uses linear approximation to interpolate values
+        yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+                            approx(ySplined$x, ySplined$y, xout=runif(obsInsample*nsim, 0, 1),
+                                   rule=2)$y,
                             obsInsample, nsim);
 
         # Sort the final values
