@@ -72,15 +72,15 @@ timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
     if(is.null(scale)){
         if(type=="multiplicative"){
             # This gives robust estimate of scale
-            # scale <- mean(abs(diff(log(y),lag=lag)));
+            scale <- mean(abs(diff(log(y),lag=lag)));
             # This is one sensitive to outliers
-            scale <- sd(diff(log(y)));
+            # scale <- sd(diff(log(y)));
         }
         else{
             # This gives robust estimate of scale
-            # scale <- mean(abs(diff(y,lag=lag)));
+            scale <- mean(abs(diff(y,lag=lag)));
             # This is one sensitive to outliers
-            scale <- sd(diff(y));
+            # scale <- sd(diff(y));
         }
         # scale <- sqrt(mean(diff(y)^2));
         # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
