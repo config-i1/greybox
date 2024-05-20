@@ -27,7 +27,7 @@
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
-#' @param kind A kind of the bootstrap to do: nonparametric or semiparametric. The latter
+#' @param kind A kind of the bootstrap to do: nonparametric or parametric. The latter
 #' relies on the normal distribution, while the former uses the empirical distribution of
 #' differences of the data.
 #' @param lag The lag to use in the calculation of differences. Should be 1 for non-seasonal
@@ -56,7 +56,7 @@
 #' @export
 timeboot <- function(y, nsim=100,
                      type=c("auto","multiplicative","additive"),
-                     kind=c("nonparametric","semiparametric"),
+                     kind=c("nonparametric","parametric"),
                      lag=frequency(y), scale=NULL){
     cl <- match.call();
 
