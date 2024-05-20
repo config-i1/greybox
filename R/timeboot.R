@@ -28,8 +28,6 @@
 #' default this is based on the ratio of absolute mean differences and mean absolute differences
 #' in sample. If the two are the same, the data has a strong trend and no scaling is required.
 #' If the two are different, the data does not have a trend and the larger scaling is needed.
-#' @param trim Defines the trimming in the calculation of means and in removing the sorted
-#' differences (outlier treatment).
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
@@ -53,8 +51,9 @@
 #' timeboot(AirPassengers) |> plot()
 #'
 #' @rdname timeboot
+#' @importFrom stats supsmu
 #' @export
-timeboot <- function(y, nsim=100, scale=NULL, trim=0.05, lag=frequency(y),
+timeboot <- function(y, nsim=100, scale=NULL, lag=frequency(y),
                      type=c("auto","multiplicative","additive")){
     type <- match.arg(type);
     cl <- match.call();
@@ -73,15 +72,15 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05, lag=frequency(y),
     if(is.null(scale)){
         if(type=="multiplicative"){
             # This gives robust estimate of scale
-            scale <- mean(abs(diff(log(y),lag=lag)));
+            # scale <- mean(abs(diff(log(y),lag=lag)));
             # This is one sensitive to outliers
-            # scale <- sd(diff(log(y)));
+            scale <- sd(diff(log(y)));
         }
         else{
             # This gives robust estimate of scale
-            scale <- mean(abs(diff(y,lag=lag)));
+            # scale <- mean(abs(diff(y,lag=lag)));
             # This is one sensitive to outliers
-            # scale <- sd(diff(y));
+            scale <- sd(diff(y));
         }
         # scale <- sqrt(mean(diff(y)^2));
         # scale <- (1-mean(diff(y), trim=trim)^2 / mean(diff(y)^2, trim=trim))*5;
@@ -101,6 +100,9 @@ timeboot <- function(y, nsim=100, scale=NULL, trim=0.05, lag=frequency(y),
         ySorted[] <- log(ySorted);
         yIntermediate[] <- log(yIntermediate);
     }
+
+    # Smooth the sorted series. This reduces impact of outliers and is just cool to do
+    yIntermediate <- supsmu(x=1:length(yIntermediate), yIntermediate)$y;
 
     yNew <- ts(matrix(NA, obsInsample, nsim),
                frequency=frequency(y), start=start(y));
