@@ -138,7 +138,7 @@
 #' should correspond to the explanatory variables. If formula for scale was provided,
 #' the parameters for that part should follow the parameters for location;
 #' \item \code{algorithm} - the algorithm to use in optimisation
-#' (\code{"NLOPT_LN_SBPLX"} by default);
+#' (\code{"NLOPT_LN_NELDERMEAD"} by default);
 #' \item \code{maxeval} - maximum number of evaluations to carry out. Default is 40 per
 #' estimated parameter. In case of LASSO / RIDGE the default is 80 per estimated parameter;
 #' \item \code{maxtime} - stop, when the optimisation time (in seconds) exceeds this;
@@ -859,7 +859,7 @@ alm <- function(formula, data, subset, na.action,
         xtol_rel <- ellipsis$xtol_rel;
     }
     if(is.null(ellipsis$algorithm)){
-        algorithm <- "NLOPT_LN_SBPLX";
+        algorithm <- "NLOPT_LN_NELDERMEAD";
     }
     else{
         algorithm <- ellipsis$algorithm;
