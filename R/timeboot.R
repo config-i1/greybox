@@ -26,8 +26,7 @@
 #' @param nsim Number of iterations (simulations) to run.
 #' @param intermittent Whether to treat the demand as intermittent or not.
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
-#' added, while \code{"multiplicative"} implies the multiplication. By default the function
-#' will try using the latter, unless the data has non-positive values.
+#' added, while \code{"multiplicative"} implies the multiplication.
 #' @param kind A kind of the bootstrap to do: nonparametric or parametric. The latter
 #' relies on the normal distribution, while the former uses the empirical distribution of
 #' differences of the data.
@@ -56,7 +55,7 @@
 #' @importFrom stats supsmu
 #' @export
 timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
-                     type=c("auto","multiplicative","additive"),
+                     type=c("additive","multiplicative"),
                      kind=c("nonparametric","parametric"),
                      lag=frequency(y), scale=NULL){
     cl <- match.call();
@@ -71,7 +70,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
     # If we have intermittent demand, do timeboot for demand sizes and intervals
     if((intermittent=="yes") && any(y==0)){
-        otU[] <- y!=0;
+        otU <- y!=0;
         obsNonZero <- sum(otU);
         ySizes <- y[otU];
         yIsInteger <- all(ySizes==trunc(ySizes));
@@ -112,13 +111,13 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
                          class="timeboot"));
     }
 
-    if(type=="auto"){
-        if(any(y<0)){
-            type[] <- "additive";
-        }
-        else{
-            type[] <- "multiplicative";
-        }
+    if(any(y<=0) && type=="multiplicative"){
+        type[] <- "additive";
+        warning("Data has non-positive values. Switching bootstrap type to 'additive'.",
+                call.=FALSE);
+    }
+    else{
+        type[] <- "multiplicative";
     }
 
     # The matrix for the new data

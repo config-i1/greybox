@@ -4,9 +4,9 @@
 \alias{timeboot}
 \title{Time series bootstrap}
 \usage{
-timeboot(y, nsim = 100, intermittent = c("yes", "no"), type = c("auto",
-  "multiplicative", "additive"), kind = c("nonparametric", "parametric"),
-  lag = frequency(y), scale = NULL)
+timeboot(y, nsim = 100, intermittent = c("yes", "no"),
+  type = c("additive", "multiplicative"), kind = c("nonparametric",
+  "parametric"), lag = frequency(y), scale = NULL)
 }
 \arguments{
 \item{y}{The original time series}
@@ -16,8 +16,7 @@ timeboot(y, nsim = 100, intermittent = c("yes", "no"), type = c("auto",
 \item{intermittent}{Whether to treat the demand as intermittent or not.}
 
 \item{type}{Type of bootstrap to use. \code{"additive"} means that the randomness is
-added, while \code{"multiplicative"} implies the multiplication. By default the function
-will try using the latter, unless the data has non-positive values.}
+added, while \code{"multiplicative"} implies the multiplication.}
 
 \item{kind}{A kind of the bootstrap to do: nonparametric or parametric. The latter
 relies on the normal distribution, while the former uses the empirical distribution of
