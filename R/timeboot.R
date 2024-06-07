@@ -24,6 +24,7 @@
 #'
 #' @param y The original time series
 #' @param nsim Number of iterations (simulations) to run.
+#' @param intermittent Whether to treat the demand as intermittent or not.
 #' @param type Type of bootstrap to use. \code{"additive"} means that the randomness is
 #' added, while \code{"multiplicative"} implies the multiplication. By default the function
 #' will try using the latter, unless the data has non-positive values.
@@ -54,7 +55,7 @@
 #' @rdname timeboot
 #' @importFrom stats supsmu
 #' @export
-timeboot <- function(y, nsim=100,
+timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
                      type=c("auto","multiplicative","additive"),
                      kind=c("nonparametric","parametric"),
                      lag=frequency(y), scale=NULL){
@@ -62,9 +63,57 @@ timeboot <- function(y, nsim=100,
 
     type <- match.arg(type);
     kind <- match.arg(kind);
+    intermittent <- match.arg(intermittent);
+
+
+    # Sample size and new data
+    obsInsample <- length(y);
+
+    # If we have intermittent demand, do timeboot for demand sizes and intervals
+    if((intermittent=="yes") && any(y==0)){
+        otU[] <- y!=0;
+        obsNonZero <- sum(otU);
+        ySizes <- y[otU];
+        yIsInteger <- all(ySizes==trunc(ySizes));
+        yIntervals <- diff(c(0,which(otU)));
+
+        # Bootstrap the demand sizes
+        ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent="no",
+                               type=type, kind=kind, lag=1, scale=scale);
+
+        # Round up sizes if they are integer in the original data
+        if(yIsInteger){
+            ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
+        }
+
+        # Make sure that we don't have negative values if there are no in the original data
+        if(all(ySizes>0)){
+            ySizesBoot$boot[] <- abs(ySizesBoot$boot);
+        }
+
+        # Bootstrap the interval sizes
+        yIntervalsBoot <- timeboot(yIntervals, nsim=nsim, intermittent="no",
+                                   type=type, kind=kind, lag=1, scale=scale);
+
+        # Round up intervals
+        yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot));
+        yIndices <- apply(yIntervalsBoot$boot, 2, cumsum);
+
+        # Form a bigger matrix
+        yNew <- matrix(0, max(c(yIndices, obsInsample)), nsim);
+        # Insert demand sizes
+        yNew[cbind(as.vector(yIndices), rep(1:nsim, each=obsNonZero))] <- ySizesBoot$boot;
+
+        return(structure(list(call=cl, data=y,
+                              # Trim the data to return the same sample size
+                              boot=ts(yNew[1:obsInsample,], frequency=frequency(y), start=start(y)),
+                              type=type,
+                              sizes=ySizesBoot, intervals=yIntervalsBoot),
+                         class="timeboot"));
+    }
 
     if(type=="auto"){
-        if(any(y<=0)){
+        if(any(y<0)){
             type[] <- "additive";
         }
         else{
@@ -72,8 +121,10 @@ timeboot <- function(y, nsim=100,
         }
     }
 
-    # Sample size and ordered values
-    obsInsample <- length(y);
+    # The matrix for the new data
+    yNew <- ts(matrix(NA, obsInsample, nsim),
+               frequency=frequency(y), start=start(y));
+    # Ordered values
     yOrder <- order(y);
     ySorted <- sort(y);
     # Intermediate points are done via a sensitive lowess
@@ -90,9 +141,6 @@ timeboot <- function(y, nsim=100,
 
     # Smooth the sorted series. This reduces impact of outliers and is just cool to do
     yIntermediate <- supsmu(x=1:length(yIntermediate), yIntermediate)$y;
-
-    yNew <- ts(matrix(NA, obsInsample, nsim),
-               frequency=frequency(y), start=start(y));
 
     if(kind=="nonparametric"){
         #### Differences are needed only for the non-parametric approach ####
