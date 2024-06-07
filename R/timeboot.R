@@ -81,14 +81,14 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
         ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent="no",
                                type=type, kind=kind, lag=1, scale=scale);
 
-        # Round up sizes if they are integer in the original data
-        if(yIsInteger){
-            ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
-        }
-
         # Make sure that we don't have negative values if there are no in the original data
         if(all(ySizes>0)){
             ySizesBoot$boot[] <- abs(ySizesBoot$boot);
+        }
+
+        # Round up sizes if they are integer in the original data
+        if(yIsInteger){
+            ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
         }
 
         # Bootstrap the interval sizes
