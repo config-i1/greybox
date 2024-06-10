@@ -71,10 +71,11 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
                      formula=NULL, subset=NULL,
                      method=c("pearson","kendall","spearman"),
                      distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                                    "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-                                    "dinvgauss","dgamma",
+                                    "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
+                                    "dinvgauss","dgamma","dexp",
+                                    "dfnorm","drectnorm",
                                     "dpois","dnbinom",
-                                    "dlogitnorm",
+                                    "dbeta","dlogitnorm",
                                     "plogis","pnorm"),
                      occurrence=c("none","plogis","pnorm"), ...){
     ##### Function that selects variables based on IC and using partial correlations

@@ -8,9 +8,9 @@ stepwise(data, ic = c("AICc", "AIC", "BIC", "BICc"), silent = TRUE,
   df = NULL, formula = NULL, subset = NULL, method = c("pearson",
   "kendall", "spearman"), distribution = c("dnorm", "dlaplace", "ds",
   "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
-  "dlgnorm", "dbcnorm", "dfnorm", "dinvgauss", "dgamma", "dpois", "dnbinom",
-  "dlogitnorm", "plogis", "pnorm"), occurrence = c("none", "plogis",
-  "pnorm"), ...)
+  "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
+  "dpois", "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
+  occurrence = c("none", "plogis", "pnorm"), ...)
 }
 \arguments{
 \item{data}{Data frame containing dependant variable in the first column and

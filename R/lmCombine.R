@@ -92,10 +92,11 @@
 lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
                       formula=NULL, subset=NULL,
                       distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                                     "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-                                     "dinvgauss","dgamma",
+                                     "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
+                                     "dinvgauss","dgamma","dexp",
+                                     "dfnorm","drectnorm",
                                      "dpois","dnbinom",
-                                     "dlogitnorm",
+                                     "dbeta","dlogitnorm",
                                      "plogis","pnorm"),
                       parallel=FALSE, ...){
     # Function combines linear regression models and produces the combined lm object.
