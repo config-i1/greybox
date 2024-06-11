@@ -7,8 +7,8 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
   "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
-  "dpois", "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
-  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
+  "dpois", "dnbinom", "dgeom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
+  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE", "ROLE"),
   occurrence = c("none", "plogis", "pnorm"), scale = NULL, orders = c(0,
   0, 0), parameters = NULL, fast = FALSE, ...)
 }
@@ -37,13 +37,16 @@ names of distribution functions in R. For example, see \link[stats]{dnorm}.}
 \item{loss}{The type of Loss Function used in optimization. \code{loss} can
 be:
 \itemize{
-\item \code{likelihood} - the model is estimated via the maximisation of the
+\item \code{"likelihood"} - the model is estimated via the maximisation of the
 likelihood of the function specified in \code{distribution};
-\item \code{MSE} (Mean Squared Error),
-\item \code{MAE} (Mean Absolute Error),
-\item \code{HAM} (Half Absolute Moment),
-\item \code{LASSO} - use LASSO to shrink the parameters of the model;
-\item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
+\item \code{"MSE"} (Mean Squared Error),
+\item \code{"MAE"} (Mean Absolute Error),
+\item \code{"HAM"} (Half Absolute Moment),
+\item \code{"LASSO"} - use LASSO to shrink the parameters of the model;
+\item \code{"RIDGE"} - use RIDGE to shrink the parameters of the model;
+\item \code{"ROLE"} - "RObust Likelihood Estimation", which uses trimmed mean in the
+calculation of scale and likelihood. A separate parameter \code{trim} can be provided
+in ellipsis. If not provided, the default value is 0.05;
 }
 In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
 but the parameters are divided by the standard deviations of explanatory variables
@@ -141,9 +144,9 @@ Function returns \code{model} - the final model of the class
 \item scale - the estimated scale parameter of the distribution. If a formula was provided for
 scale, then an object of class "scale" will be returned.
 \item distribution - distribution used in the estimation,
-\item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
-and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
-distribution="dnorm"),
+\item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"} or
+\code{loss="ROLE"} and in several special cases of distribution and loss
+combinations (e.g. \code{loss="MSE"}, distribution="dnorm"),
 \item loss - the type of the loss function used in the estimation,
 \item lossFunction - the loss function, if the custom is provided by the user,
 \item lossValue - the value of the loss function,

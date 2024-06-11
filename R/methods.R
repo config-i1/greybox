@@ -555,7 +555,15 @@ nvariate.default <- function(object, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, all=FALSE, ...){
-    return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
+    if(object$loss=="ROLE"){
+        return(sqrt(meanFast(residuals(object)^2,
+                             # df=nobs(object, all=all)-nparam(object),
+                             trim=object$other$trim,
+                             side="both")));
+    }
+    else{
+        return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
+    }
 }
 
 #' @export

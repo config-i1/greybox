@@ -1,4 +1,4 @@
-greybox v2.0.1 (Release data: 2024-05-28)
+greybox v2.0.1 (Release data: 2024-06-11)
 
 Changes:
 * Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
@@ -6,6 +6,8 @@ Changes:
 * New function for time series bootstrap, timeboot(), inspired by Maximum Entropy Bootstrap from meboot package.
 * adi() function to identify type of demand under consideration.
 * Likelihood for occurrence model is now calculated differently, depending on whether there are ARIMA elements or not. In the former case, it includes the differential entropy, while in the latter it doesn't.
+* New loss function in alm(): "ROLE" - Robust Likelihood Estimator, which uses trimming for the scale parameters and the likelihood to avoid the impact of outliers on the estimates.
+* New distribution in alm(): "dgeom" - Geometric distribution. This can be used for a model for demand intervals.
 
 Bugfixes:
 * lmCombine() and lmDynamic() now return loss parameter.

@@ -68,13 +68,16 @@
 #' @param loss The type of Loss Function used in optimization. \code{loss} can
 #' be:
 #' \itemize{
-#' \item \code{likelihood} - the model is estimated via the maximisation of the
+#' \item \code{"likelihood"} - the model is estimated via the maximisation of the
 #' likelihood of the function specified in \code{distribution};
-#' \item \code{MSE} (Mean Squared Error),
-#' \item \code{MAE} (Mean Absolute Error),
-#' \item \code{HAM} (Half Absolute Moment),
-#' \item \code{LASSO} - use LASSO to shrink the parameters of the model;
-#' \item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
+#' \item \code{"MSE"} (Mean Squared Error),
+#' \item \code{"MAE"} (Mean Absolute Error),
+#' \item \code{"HAM"} (Half Absolute Moment),
+#' \item \code{"LASSO"} - use LASSO to shrink the parameters of the model;
+#' \item \code{"RIDGE"} - use RIDGE to shrink the parameters of the model;
+#' \item \code{"ROLE"} - "RObust Likelihood Estimator", which uses trimmed mean in the
+#' calculation of scale and likelihood. A separate parameter \code{trim} can be provided
+#' in ellipsis. If not provided, the default value is 0.05;
 #' }
 #' In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
 #' but the parameters are divided by the standard deviations of explanatory variables
@@ -165,9 +168,9 @@
 #' \item scale - the estimated scale parameter of the distribution. If a formula was provided for
 #' scale, then an object of class "scale" will be returned.
 #' \item distribution - distribution used in the estimation,
-#' \item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
-#' and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
-#' distribution="dnorm"),
+#' \item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"} or
+#' \code{loss="ROLE"} and in several special cases of distribution and loss
+#' combinations (e.g. \code{loss="MSE"}, distribution="dnorm"),
 #' \item loss - the type of the loss function used in the estimation,
 #' \item lossFunction - the loss function, if the custom is provided by the user,
 #' \item lossValue - the value of the loss function,
@@ -260,7 +263,7 @@
 #' @importFrom pracma hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms model.matrix update.formula
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma dexp
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma dexp dgeom
 #' @importFrom stats plogis
 #' @importFrom statmod dinvgauss
 #' @importFrom stats arima
@@ -270,10 +273,10 @@ alm <- function(formula, data, subset, na.action,
                                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
                                "dinvgauss","dgamma","dexp",
                                "dfnorm","drectnorm",
-                               "dpois","dnbinom",
+                               "dpois","dnbinom","dgeom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
-                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE"),
+                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE","ROLE"),
                 occurrence=c("none","plogis","pnorm"),
                 scale=NULL,
                 orders=c(0,0,0),
@@ -327,11 +330,6 @@ alm <- function(formula, data, subset, na.action,
         else{
             return((y*lambdaBC+1)^{1/lambdaBC});
         }
-    }
-
-    # Function that calculates mean. Works faster than mean()
-    meanFast <- function(x){
-        return(sum(x) / length(x));
     }
 
     # Basic fitter for non-dynamic models
@@ -433,6 +431,8 @@ alm <- function(formula, data, subset, na.action,
                        "dexp"=,
                        "dpois" =,
                        "dnbinom" = exp(matrixXreg %*% B),
+                       # +1 is needed to make sure that probability lies between 0 and 1
+                       "dgeom" = exp(matrixXreg %*% B) + 1,
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dlogitnorm"=,
@@ -467,6 +467,7 @@ alm <- function(formula, data, subset, na.action,
         # Fill in the first ariOrder elements with fitted values
         for(i in 1:ariOrder){
             matrixXreg[ariZeroes[,i],nVariablesExo+i] <- switch(distribution,
+                                                                "dgeom"=,
                                                                 "dnbinom" =,
                                                                 "dpois" =,
                                                                 "dbeta" = log(fitterReturn$mu),
@@ -493,31 +494,47 @@ alm <- function(formula, data, subset, na.action,
         }
         return(switch(distribution,
                       "dbeta" = exp(matrixXreg %*% B[-c(1:(length(B)/2))]),
-                      "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/df),
-                      "dlaplace" = sum(abs(y[otU]-mu[otU]))/df,
-                      "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (df*2),
-                      "dgnorm" = (other*sum(abs(y[otU]-mu[otU])^other)/df)^{1/other},
-                      "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/df * 3 / pi^2),
-                      "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/df,
-                      "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/df),
-                      "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/df,
-                      "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (df*2),
-                      "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/df)^{1/other},
-                      "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/df),
-                      "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/df,
-                      "dgamma" = sum((y[otU]/mu[otU]-1)^2)/df,
-                      "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/df),
+                      "dnorm" = sqrt(meanFast((y[otU]-mu[otU])^2, df, trim, side="both")),
+                      "dlaplace" = meanFast(abs(y[otU]-mu[otU]), df, trim, side="both"),
+                      "ds" = meanFast(sqrt(abs(y[otU]-mu[otU])), df*2, trim, side="both"),
+                      "dgnorm" = (other*meanFast(abs(y[otU]-mu[otU])^other, df, trim, side="both"))^{1/other},
+                      "dlogis" = sqrt(meanFast((y[otU]-mu[otU])^2, df, trim, side="both") * 3 / pi^2),
+                      "dalaplace" = meanFast((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1), df, trim),
+                      "dlnorm" = sqrt(meanFast((log(y[otU])-mu[otU])^2, df, trim, side="both")),
+                      "dllaplace" = meanFast(abs(log(y[otU])-mu[otU]), df, trim, side="both"),
+                      "dls" = meanFast(sqrt(abs(log(y[otU])-mu[otU])), df*2, trim, side="both"),
+                      "dlgnorm" = (other*meanFast(abs(log(y[otU])-mu[otU])^other, df, trim, side="both"))^{1/other},
+                      "dbcnorm" = sqrt(meanFast((bcTransform(y[otU],other)-mu[otU])^2, df, trim, side="both")),
+                      "dinvgauss" = meanFast((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]), df, trim, side="both"),
+                      "dgamma" = meanFast((y[otU]/mu[otU]-1)^2, df, trim, side="both"),
+                      "dlogitnorm" = sqrt(meanFast((log(y[otU]/(1-y[otU]))-mu[otU])^2, df, trim, side="both")),
+                      # "dnorm" = sqrt(sum((y[otU]-mu[otU])^2)/df),
+                      # "dlaplace" = sum(abs(y[otU]-mu[otU]))/df,
+                      # "ds" = sum(sqrt(abs(y[otU]-mu[otU]))) / (df*2),
+                      # "dgnorm" = (other*sum(abs(y[otU]-mu[otU])^other)/df)^{1/other},
+                      # "dlogis" = sqrt(sum((y[otU]-mu[otU])^2)/df * 3 / pi^2),
+                      # "dalaplace" = sum((y[otU]-mu[otU]) * (other - (y[otU]<=mu[otU])*1))/df,
+                      # "dlnorm" = sqrt(sum((log(y[otU])-mu[otU])^2)/df),
+                      # "dllaplace" = sum(abs(log(y[otU])-mu[otU]))/df,
+                      # "dls" = sum(sqrt(abs(log(y[otU])-mu[otU]))) / (df*2),
+                      # "dlgnorm" = (other*sum(abs(log(y[otU])-mu[otU])^other)/df)^{1/other},
+                      # "dbcnorm" = sqrt(sum((bcTransform(y[otU],other)-mu[otU])^2)/df),
+                      # "dinvgauss" = sum((y[otU]/mu[otU]-1)^2 / (y[otU]/mu[otU]))/df,
+                      # "dgamma" = sum((y[otU]/mu[otU]-1)^2)/df,
+                      # "dlogitnorm" = sqrt(sum((log(y[otU]/(1-y[otU]))-mu[otU])^2)/df),
                       "dfnorm" =,
                       "drectnorm" =,
                       "dt" =,
                       "dchisq" =,
                       "dnbinom" = abs(other),
+                      # This is the variance of the Geometric distribution... not scale!
+                      # "dgeom" = (mu[otU])^2-mu[otU],
                       "dpois" = mu[otU],
                       "pnorm" = sqrt(meanFast(qnorm((y - pnorm(mu, 0, 1) + 1) / 2, 0, 1)^2)),
                       # Here we use the proxy from Svetunkov & Boylan (2019)
                       "plogis" = sqrt(meanFast(log((1 + y * (1 + exp(mu))) /
                                                        (1 + exp(mu) * (2 - y) - y))^2)),
-                      # 1 is the default and the value for the dexp
+                      # 1 is the default and the value for the dexp and dgeom
                       1
         ));
     }
@@ -537,6 +554,7 @@ alm <- function(formula, data, subset, na.action,
                       "dlogis" =,
                       "dt" =,
                       "ds" =,
+                      "dgeom" =,
                       "dpois" =,
                       "dnbinom" = mu,
                       "dchisq" = mu + nu,
@@ -565,6 +583,7 @@ alm <- function(formula, data, subset, na.action,
                       "dalaplace" =,
                       "dlogis" =,
                       "dt" =,
+                      "dgeom" =,
                       "dnbinom" =,
                       "dpois" = y - mu,
                       "dinvgauss" =,
@@ -621,6 +640,7 @@ alm <- function(formula, data, subset, na.action,
                                                      scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
                                    "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
                                    "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+                                   "dgeom" = dgeom(y[otU], prob=1/fitterReturn$mu[otU], log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
                                    "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
@@ -654,6 +674,104 @@ alm <- function(formula, data, subset, na.action,
                                                               digamma(fitterReturn$scale* fitterReturn$mu) +
                                                               fitterReturn$scale* fitterReturn$mu),
                                               # 1-ln(lambda), where lambda=1
+                                              "dexp" = obsZero,
+                                              # Entropy of Geometric distribution needs to be added here
+                                              # "dgeom" =,
+                                              "dlaplace" =,
+                                              "dllaplace" =,
+                                              "ds" =,
+                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
+                                              "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+                                              "dlogis" = obsZero*2,
+                                              "dt" = obsZero*((fitterReturn$scale+1)/2 *
+                                                                  (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
+                                                                  log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
+                                              "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
+                                                                      (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
+                                                                      fitterReturn$scale/2),
+                                              "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
+                                                                (fitterReturn$mu[otU]-1)*
+                                                                (digamma(fitterReturn$mu[otU])-
+                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
+                                                                (fitterReturn$scale[otU]-1)*
+                                                                (digamma(fitterReturn$scale[otU])-
+                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
+                                              # This is a normal approximation of the real entropy
+                                              # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                                              # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              0
+                );
+            }
+        }
+        else
+        if(loss=="ROLE"){
+            # The original log-likelilhood
+            CFValue <- -meanFast(switch(distribution,
+                                        "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
+                                        "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                        "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                        "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                          shape=fitterReturn$other, log=TRUE),
+                                        "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                                        "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
+                                        "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                                alpha=fitterReturn$other, log=TRUE),
+                                        "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+                                        "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
+                                                               scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                                        "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                                        "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                                           shape=fitterReturn$other, log=TRUE)-log(y[otU]),
+                                        # Use ifelse() to remove densities for y=0, which result in -Inf
+                                        # This is just a fix! It has no good reason behind it!
+                                        "dbcnorm" = ifelse(y[otU]!=0,dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                                             lambda=fitterReturn$other, log=TRUE),0),
+                                        "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                        "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                        "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+                                                                dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+                                        "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
+                                                          scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
+                                        "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
+                                        "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+                                        "dgeom" = dgeom(y[otU], prob=1/fitterReturn$mu[otU], log=TRUE),
+                                        "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
+                                        "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                                        "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                                        "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
+                                        "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+                                                    pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                                        "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+                                                     plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+            ), trim=trim);
+
+            CFValue[] <- CFValue*obsInsample;
+
+            # The differential entropy for the models with the missing data
+            if(recursiveModel && occurrenceModel){
+                CFValue[] <- CFValue + switch(distribution,
+                                              "dnorm" =,
+                                              "dfnorm" =,
+                                              "dbcnorm" =,
+                                              "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
+                                              "dgnorm" =,
+                                              "dlgnorm" =obsZero*(1/fitterReturn$other-
+                                                                      log(fitterReturn$other /
+                                                                              (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
+                                              "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                                                                              sum(log(fitterReturn$mu[!otU]))),
+                                              # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                                              # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                                              #                     log(gamma(1/fitterReturn$scale)) +
+                                              #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                                              "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
+                                                              (1 - fitterReturn$scale* fitterReturn$mu) *
+                                                              digamma(fitterReturn$scale* fitterReturn$mu) +
+                                                              fitterReturn$scale* fitterReturn$mu),
+                                              # 1-ln(lambda), where lambda=1
+                                              # Entropy of Geometric distribution needs to be added here
+                                              # "dgeom" =,
                                               "dexp" = obsZero,
                                               "dlaplace" =,
                                               "dllaplace" =,
@@ -818,7 +936,7 @@ alm <- function(formula, data, subset, na.action,
     else{
         aParameterProvided <- TRUE;
     }
-    if(!aParameterProvided && loss!="likelihood"){
+    if(!aParameterProvided && all(loss!=c("likelihood","ROLE"))){
         warning("The chosen loss function does not allow optimisation of additional parameters ",
                 "for the distribution=\"",distribution,"\". Use likelihood instead. We will use 0.5.",
                 call.=FALSE);
@@ -833,6 +951,16 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             lambda <- ellipsis$lambda;
+        }
+    }
+    trim <- 0;
+    # Robust likelihood
+    if(any(loss==c("ROLE"))){
+        if(is.null(ellipsis$trim)){
+            trim[] <- 0.05;
+        }
+        else{
+            trim[] <- ellipsis$trim;
         }
     }
 
@@ -972,7 +1100,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Make sure that scaleModel is done with likelihood
-    if(scaleModel && loss!="likelihood"){
+    if(scaleModel && all(loss!=c("likelihood","ROLE"))){
         warning("Scale model can only be estimated via likelihood, your loss won't work. Switching to likelihood.",
                 call.=FALSE);
         loss <- "likelihood";
@@ -1156,7 +1284,7 @@ alm <- function(formula, data, subset, na.action,
 
     if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dbcnorm","dchisq",
                            "dfnorm","drectnorm",
-                           "dpois","dnbinom",
+                           "dgeom","dpois","dnbinom",
                            "dinvgauss","dgamma")) && any(y<0)){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
@@ -1167,7 +1295,7 @@ alm <- function(formula, data, subset, na.action,
              call.=FALSE);
     }
 
-    if(any(distribution==c("dpois","dnbinom")) && any(y!=trunc(y))){
+    if(any(distribution==c("dpois","dnbinom","dgeom")) && any(y!=trunc(y))){
         stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
                     "Maybe you should try some other distribution?"),
              call.=FALSE);
@@ -1372,7 +1500,7 @@ alm <- function(formula, data, subset, na.action,
 
             nVariables <- nVariables + arOrder;
             # Write down the values for the matrixXreg in the necessary transformations
-            if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dpois","dnbinom"))){
+            if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dgeom","dpois","dnbinom"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
                     ariElements[] <- bcTransform(ariElements,0.01);
@@ -1421,6 +1549,9 @@ alm <- function(formula, data, subset, na.action,
                     else{
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
                     }
+                }
+                else if(distribution=="dgeom"){
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]+any(y==0)*1))$coefficients;
                 }
                 else if(any(distribution==c("dpois"))){
                     # This is inspired by GLM estimation
@@ -1508,7 +1639,7 @@ alm <- function(formula, data, subset, na.action,
                     matrixXregForDiffs[1,which(noVariability)+1] <- rnorm(sum(noVariability));
                 }
 
-                if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dlgnorm","dpois","dnbinom",
+                if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dlgnorm","dgeom","dpois","dnbinom",
                                        "dinvgauss","dgamma"))){
                     B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
                 }
@@ -1716,7 +1847,7 @@ alm <- function(formula, data, subset, na.action,
 
         #### Define what to do with the maxeval ####
         if(is.null(ellipsis$maxeval)){
-            if(any(distribution==c("dchisq","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
+            if(any(distribution==c("dchisq","dgeom","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
                 # maxeval <- 500;
                 maxeval <- length(B) * 40;
             }
@@ -1984,6 +2115,9 @@ alm <- function(formula, data, subset, na.action,
     if(any(loss==c("LASSO","RIDGE"))){
         ellipsis$lambda <- lambda;
     }
+    else if(loss=="ROLE"){
+        ellipsis$trim <- trim;
+    }
 
     ### Fitted values in the scale of the original variable
     yFitted[] <- extractorFitted(distribution, mu, scale);
@@ -2014,11 +2148,11 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Parameters of the model. Scale part goes later
-    if(scaleModel || any(distribution==c("dexp","dpois"))){
+    if(scaleModel || any(distribution==c("dexp","dpois","dgeom"))){
         nParam <- nVariables;
     }
     else{
-        nParam <- nVariables + (loss=="likelihood")*1;
+        nParam <- nVariables + any(loss==c("likelihood","ROLE"))*1;
     }
 
     # Amend the number of parameters, depending on the type of distribution
@@ -2141,7 +2275,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Return LogLik, depending on the used loss
-    if(loss=="likelihood"){
+    if(any(loss==c("likelihood","ROLE"))){
         logLik <- -CFValue;
     }
     else if((loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))) ||
@@ -2183,4 +2317,23 @@ alm <- function(formula, data, subset, na.action,
     }
 
     return(finalModel);
+}
+
+
+# Internal function that calculates mean. Works faster than mean()
+meanFast <- function(x, df=length(x), trim=0, side="lower"){
+    # side can be "lower", "upper" or "both"
+    # If trimming is required. This is a one-sided trimming!
+    if(trim!=0){
+        if(side=="both"){
+            return(mean(x, trim=trim));
+        }
+        else{
+            x[] <- sort(x, decreasing=(side=="lower"));
+        }
+        return(meanFast(x[1:floor(length(x)*(1-trim))]));
+    }
+    else{
+        return(sum(x) / df);
+    }
 }
