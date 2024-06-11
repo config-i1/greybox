@@ -46,6 +46,16 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     xregData <- data.frame(y=y, x=y)
     xregData$x <- lowess(y)$y;
 
+    #### Stockouts ####
+    # Demand intervals to identify stockouts/new/old products
+    # 0 is for the new products, length(y) is to track obsolescence
+    yIntervals <- diff(c(0,which(y!=0),length(y)+1));
+    xregDataIntervals <- data.frame(y=yIntervals, x=lowess(yIntervals)$y);
+
+    # Apply Geometric distribution model to check for stockouts
+    testModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
+    # return(testModel)
+
     # Data for demand sizes
     xregDataSizes <- data.frame(y=y, x=y)
     xregDataSizes$x[] <- 0;
@@ -87,9 +97,10 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     dataIsInteger <- all(y==trunc(y));
 
     # List for models
-    nModels <- 4
+    nModels <- 2
     idModels <- vector("list", nModels);
-    names(idModels) <- c("regular non-count","intermittent non-count","regular count","intermittent count"); #,"intermittent slow");
+    names(idModels) <- c("regular","intermittent")#,"regular count","intermittent count");
+    #,"intermittent slow");
 
     # model 1 is the regular demand
     idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm"));
@@ -105,13 +116,14 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     }
 
     if(dataIsInteger){
+        names(idModels) <- c("count","intermittent count");
         # model 3 is count data: Negative Binomial distribution
         # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dpois", maxeval=1000));
-        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=200));
+        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=200));
         # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
 
         # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=200));
+        # idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=200));
         # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
     }
 
