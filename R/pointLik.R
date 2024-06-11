@@ -81,6 +81,7 @@ pointLik.alm <- function(object, ...){
                              "dt" = dt(y-mu, df=scale, log=TRUE),
                              "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
                              "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
+                             "dgeom" = dgeom(y, prob=1/mu, log=TRUE),
                              "dpois" = dpois(y, lambda=mu, log=TRUE),
                              "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
                              "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
