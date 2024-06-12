@@ -1120,17 +1120,6 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     # Plots for the count data
-    # # Fitted vs log(Probability)
-    # plot(fitted(test2),pointLik(test2), xlab="Fitted", ylab="Probability")
-    # abline(h=log(0.05), col="red", lwd=2, lty=2)
-    #
-    # # Theoretical quantiles, QQ-plot
-    # yQuant <- matrix(qgeom(seq(0.01,0.99,0.01), rep(1/fitted(test2), each=99)), 99, nobs(test2),
-    #                  dimnames=list(seq(0.01,0.99,0.01), NULL))
-    # yProb <- apply(matrix(actuals(test2), 99, nobs(test2), byrow=T) <= yQuant, 1, sum)
-    # plot(seq(0.01,0.99,0.01), yProb/nobs(test2), xlim=c(0,1), ylim=c(0,1),
-    #      xlab="Theoretical probability", ylab="Empirical probability")
-    # abline(a=0, b=1, lwd=2, lty=2, col="grey")
     #
     # # Probability over time
     # plot(exp(pointLik(test2)),
@@ -1397,154 +1386,189 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Actual Quantile";
         }
 
-        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","plogis","pnorm"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ plot of normal distribution";
+        # For count distribution, we do manual construction
+        if(countDistribution){
+            if(!any(names(ellipsis)=="xlim")){
+                ellipsis$xlim <- c(0,1);
             }
-
-            do.call(qqnorm, ellipsis);
-            qqline(ellipsis$y);
-        }
-        else if(x$distribution=="dfnorm"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Folded Normal distribution";
+            if(!any(names(ellipsis)=="ylim")){
+                ellipsis$ylim <- c(0,1);
             }
-            ellipsis$x <- qfnorm(ppoints(500), mu=0, sigma=extractScale(x));
+            ellipsis$x <- seq(0.01,0.99,0.01);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
-        }
-        else if(x$distribution=="drectnorm"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Rectified Normal distribution";
+            if(x$distribution=="dpois"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Poisson distribution";
+                }
+                # ellipsis$x <- actuals(x)-qpois(ppoints(nobs(x)*100), lambda=x$mu);
+                # ellipsis$x <- qpois(ppoints(nobs(x)*100), lambda=x$mu);
+                # ellipsis$y[] <- actuals(x);
+
+                # Produce matrix of quantiles
+                yQuant <- matrix(qpois(seq(0.01,0.99,0.01), lambda=rep(x$mu, each=99)),
+                                 nrow=99, ncol=nobs(x),
+                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
             }
-            ellipsis$x <- qrectnorm(ppoints(500), mu=0, sigma=extractScale(x));
+            else if(x$distribution=="dnbinom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Negative Binomial distribution";
+                }
+                # ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=extractScale(x));
+                #
+                # do.call(qqplot, ellipsis);
+                # qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
-        }
-        else if(any(x$distribution==c("dgnorm","dlgnorm"))){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Generalised Normal distribution";
+
+                # Produce matrix of quantiles
+                yQuant <- matrix(qnbinom(seq(0.01,0.99,0.01), mu=rep(x$mu, each=99),
+                                         size=rep(extractScale(x), each=99)),
+                                 nrow=99, ncol=nobs(x),
+                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
+                # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
             }
-            ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=extractScale(x), shape=x$other$shape);
+            else if(x$distribution=="dgeom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Geometric distribution";
+                }
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
-        }
-        else if(any(x$distribution==c("dlaplace","dllaplace"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Laplace distribution";
+                # Produce matrix of quantiles
+                yQuant <- matrix(qgeom(seq(0.01,0.99,0.01), prob=rep(1/fitted(x), each=99)),
+                                 nrow=99, ncol=nobs(x),
+                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
             }
-            ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=extractScale(x));
+            # Get empirical probabilities
+            ellipsis$y <- apply(matrix(actuals(x), 99, nobs(x), byrow=T) <= yQuant, 1, sum) / nobs(x);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
+            do.call(plot, ellipsis);
+            abline(a=0, b=1);
         }
-        else if(x$distribution=="dalaplace"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
+        # For the others, it is just a qqplot
+        else{
+            if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","plogis","pnorm"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ plot of normal distribution";
+                }
+
+                do.call(qqnorm, ellipsis);
+                qqline(ellipsis$y);
             }
-            ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=extractScale(x), alpha=x$other$alpha);
+            else if(x$distribution=="dfnorm"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Folded Normal distribution";
+                }
+                ellipsis$x <- qfnorm(ppoints(500), mu=0, sigma=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
-        }
-        else if(x$distribution=="dlogis"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Logistic distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
             }
-            ellipsis$x <- qlogis(ppoints(500), location=0, scale=extractScale(x));
+            else if(x$distribution=="drectnorm"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Rectified Normal distribution";
+                }
+                ellipsis$x <- qrectnorm(ppoints(500), mu=0, sigma=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
-        }
-        else if(any(x$distribution==c("ds","dls"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of S distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
             }
-            ellipsis$x <- qs(ppoints(500), mu=0, scale=extractScale(x));
+            else if(any(x$distribution==c("dgnorm","dlgnorm"))){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Generalised Normal distribution";
+                }
+                ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=extractScale(x), shape=x$other$shape);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
-        }
-        else if(x$distribution=="dt"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Student's distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
             }
-            ellipsis$x <- qt(ppoints(500), df=extractScale(x));
+            else if(any(x$distribution==c("dlaplace","dllaplace"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Laplace distribution";
+                }
+                ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
-        }
-        else if(x$distribution=="dinvgauss"){
-            # Transform residuals for something meaningful
-            # This is not 100% accurate, because the dispersion should change as well as mean...
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
             }
-            ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=extractScale(x));
+            else if(x$distribution=="dalaplace"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
+                }
+                ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=extractScale(x), alpha=x$other$alpha);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
-        }
-        else if(x$distribution=="dgamma"){
-            # Transform residuals for something meaningful
-            # This is not 100% accurate, because the scale should change together with mean...
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Gamma distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
             }
-            ellipsis$x <- qgamma(ppoints(500), shape=1/extractScale(x), scale=extractScale(x));
+            else if(x$distribution=="dlogis"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Logistic distribution";
+                }
+                ellipsis$x <- qlogis(ppoints(500), location=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
-        }
-        else if(x$distribution=="dexp"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Exponential distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
             }
-            ellipsis$x <- qexp(ppoints(500), rate=x$scale);
+            else if(any(x$distribution==c("ds","dls"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of S distribution";
+                }
+                ellipsis$x <- qs(ppoints(500), mu=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
-        }
-        else if(x$distribution=="dchisq"){
-            message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
-        }
-        else if(x$distribution=="dbeta"){
-            message("Sorry, but we don't produce QQ plots for the Beta distribution");
-        }
-        else if(x$distribution=="dpois"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Poisson distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
             }
-            # ellipsis$x <- actuals(x)-qpois(ppoints(nobs(x)*100), lambda=x$mu);
-            ellipsis$x <- qpois(ppoints(nobs(x)*100), lambda=x$mu);
-            ellipsis$y[] <- actuals(x);
+            else if(x$distribution=="dt"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Student's distribution";
+                }
+                ellipsis$x <- qt(ppoints(500), df=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            abline(a=0,b=1);
-            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu)-actuals(x));
-            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu));
-            # message("Sorry, but we don't produce QQ plots for the Poisson distribution");
-        }
-        else if(x$distribution=="dnbinom"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Negative Binomial distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
             }
-            ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=extractScale(x));
+            else if(x$distribution=="dinvgauss"){
+                # Transform residuals for something meaningful
+                # This is not 100% accurate, because the dispersion should change as well as mean...
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
+                }
+                ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
-            # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
+            }
+            else if(x$distribution=="dgamma"){
+                # Transform residuals for something meaningful
+                # This is not 100% accurate, because the scale should change together with mean...
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Gamma distribution";
+                }
+                ellipsis$x <- qgamma(ppoints(500), shape=1/extractScale(x), scale=extractScale(x));
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
+            }
+            else if(x$distribution=="dexp"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Exponential distribution";
+                }
+                ellipsis$x <- qexp(ppoints(500), rate=x$scale);
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
+            }
+            else if(x$distribution=="dchisq"){
+                message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
+            }
+            else if(x$distribution=="dbeta"){
+                message("Sorry, but we don't produce QQ plots for the Beta distribution");
+            }
         }
     }
 
