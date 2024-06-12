@@ -1111,23 +1111,81 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         on.exit(devAskNewPage(oask));
     }
 
+    # Special treatment for count distributions
+    countDistribution <- any(x$distribution==c("dpois","dnbinom","dgeom"));
+
     # Warn if the diagnostis will be done for scale
     if(is.scale(x$scale) && any(which %in% c(2:6,8,9,13:14))){
         message("Note that residuals diagnostics plots are produced for scale model");
     }
 
+    # Plots for the count data
+    # # Fitted vs log(Probability)
+    # plot(fitted(test2),pointLik(test2), xlab="Fitted", ylab="Probability")
+    # abline(h=log(0.05), col="red", lwd=2, lty=2)
+    #
+    # # Theoretical quantiles, QQ-plot
+    # yQuant <- matrix(qgeom(seq(0.01,0.99,0.01), rep(1/fitted(test2), each=99)), 99, nobs(test2),
+    #                  dimnames=list(seq(0.01,0.99,0.01), NULL))
+    # yProb <- apply(matrix(actuals(test2), 99, nobs(test2), byrow=T) <= yQuant, 1, sum)
+    # plot(seq(0.01,0.99,0.01), yProb/nobs(test2), xlim=c(0,1), ylim=c(0,1),
+    #      xlab="Theoretical probability", ylab="Empirical probability")
+    # abline(a=0, b=1, lwd=2, lty=2, col="grey")
+    #
+    # # Probability over time
+    # plot(exp(pointLik(test2)),
+    #      xlab="Time", ylab="Observed probability", type="l")
+    #
+    # # ACF/PACF
+    # acf(exp(pointLik(test2))); pacf(exp(pointLik(test2)));
+
+
     # 1. Fitted vs Actuals values
     plot1 <- function(x, ...){
         ellipsis <- list(...);
 
-        # Get the actuals and the fitted values
-        ellipsis$y <- as.vector(actuals(x));
-        if(is.occurrence(x)){
-            if(any(x$distribution==c("plogis","pnorm"))){
-                ellipsis$y <- (ellipsis$y!=0)*1;
+        if(countDistribution){
+            # Get the actuals and the fitted values
+            ellipsis$y <- as.vector(exp(pointLik(x)));
+            if(is.occurrence(x)){
+                if(any(x$distribution==c("plogis","pnorm"))){
+                    ellipsis$y <- (ellipsis$y!=0)*1;
+                }
+            }
+            ellipsis$x <- as.vector(1/fitted(x));
+
+            # Title
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "Probability vs Likelihood";
+            }
+            if(!any(names(ellipsis)=="ylab")){
+                ellipsis$ylab <- paste0("Likelihood of ",all.vars(x$call$formula)[1]);
+            }
+            if(!any(names(ellipsis)=="xlab")){
+                ellipsis$xlab <- "Probability";
             }
         }
-        ellipsis$x <- as.vector(fitted(x));
+        else{
+            # Get the actuals and the fitted values
+            ellipsis$y <- as.vector(actuals(x));
+            if(is.occurrence(x)){
+                if(any(x$distribution==c("plogis","pnorm"))){
+                    ellipsis$y <- (ellipsis$y!=0)*1;
+                }
+            }
+            ellipsis$x <- as.vector(fitted(x));
+
+            # Title
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "Actuals vs Fitted";
+            }
+            if(!any(names(ellipsis)=="ylab")){
+                ellipsis$ylab <- paste0("Actual ",all.vars(x$call$formula)[1]);
+            }
+            if(!any(names(ellipsis)=="xlab")){
+                ellipsis$xlab <- "Fitted";
+            }
+        }
 
         # If this is a mixture model, remove zeroes
         if(is.occurrence(x$occurrence)){
@@ -1144,20 +1202,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$x <- ellipsis$x[!is.na(ellipsis$y)];
             ellipsis$y <- ellipsis$y[!is.na(ellipsis$y)];
         }
-
-        # Title
-        if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Actuals vs Fitted";
-        }
         # If type and ylab are not provided, set them...
         if(!any(names(ellipsis)=="type")){
             ellipsis$type <- "p";
-        }
-        if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- paste0("Actual ",all.vars(x$call$formula)[1]);
-        }
-        if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Fitted";
         }
         # xlim and ylim
         # if(!any(names(ellipsis)=="xlim")){
@@ -1812,15 +1859,143 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
+    # Plot of probability vs fitted for count distributions
+    plot10 <- function(x, type="likelihood", ...){
+        ellipsis <- list(...);
+
+        ellipsis$x <- as.vector(fitted(x));
+        ellipsis$y <- as.vector(switch(type,
+                                       "likelihood"=1-exp(pointLik(x)),
+                                       "log-likelihood"=pointLik(x)));
+
+        yName <- switch(type,
+                        "likelihood"="Likelihood",
+                        "log-likelihood"="Log-Likelihood");
+
+        if(!any(names(ellipsis)=="main")){
+            ellipsis$main <- paste0(yName," vs Fitted");
+        }
+
+        if(!any(names(ellipsis)=="xlab")){
+            ellipsis$xlab <- "Fitted";
+        }
+        if(!any(names(ellipsis)=="ylab")){
+            ellipsis$ylab <- yName;
+        }
+
+        if(legend){
+            if(ellipsis$x[length(ellipsis$x)]>mean(ellipsis$x)){
+                legendPosition <- "bottomright";
+            }
+            else{
+                legendPosition <- "topright";
+            }
+        }
+
+        # Get the IDs of outliers and statistic
+        outliers <- outlierdummy(x, level=level, type="rstandard");
+        outliersID <- outliers$id;
+        statistic <- outliers$statistic;
+        if(type=="log-likelihood"){
+            statistic[] <- log(statistic);
+        }
+        # Substitute zeroes with NAs if there was an occurrence
+        if(is.occurrence(x$occurrence)){
+            ellipsis$x[actuals(x$occurrence)==0] <- NA;
+        }
+
+        if(!any(names(ellipsis)=="ylim")){
+            if(type=="likelihood"){
+                ellipsis$ylim <- c(0,1)*1.2;
+            }
+            else{
+                ellipsis$ylim <- range(c(ellipsis$y,statistic,0))*1.2;
+            }
+            if(legend){
+                if(legendPosition=="bottomright"){
+                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+                }
+                else{
+                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
+                }
+            }
+        }
+
+        xRange <- range(ellipsis$x, na.rm=TRUE);
+        xRange[1] <- xRange[1] - sd(ellipsis$x, na.rm=TRUE);
+        xRange[2] <- xRange[2] + sd(ellipsis$x, na.rm=TRUE);
+
+        # Don't produce axes, we need to modify y-axis
+        ellipsis$axes <- FALSE;
+
+        do.call(plot,ellipsis);
+        axis(side=1);
+        if(type=="likelihood"){
+            axis(side=2, at=seq(0,1,0.2), labels=seq(1,0,-0.2));
+        }
+        else{
+            axis(side=2);
+        }
+        box()
+        abline(h=0, col="grey", lty=2);
+        if(type=="likelihood"){
+            polygon(c(xRange,rev(xRange)),c(1-statistic,1-statistic,0,0),
+                    col="lightgrey", border=NA, density=10);
+            abline(h=1-statistic, col="red", lty=2);
+        }
+        else{
+            polygon(c(xRange,rev(xRange)),c(statistic,statistic,0,0),
+                    col="lightgrey", border=NA, density=10);
+            abline(h=statistic, col="red", lty=2);
+        }
+
+        if(length(outliersID)>0){
+            points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
+            text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$y[outliersID]>0)*2+1);
+        }
+        if(lowess){
+            # Remove NAs
+            if(any(is.na(ellipsis$x))){
+                ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
+                ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
+            }
+            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+        }
+
+        if(legend){
+            if(lowess){
+                legend(legendPosition,
+                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds","LOWESS line"),
+                       col=c("red", "black","red"), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
+            }
+            else{
+                legend(legendPosition,
+                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
+                       col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
+            }
+        }
+
+    }
+
     for(i in which){
         if(any(i==1)){
             plot1(x, ...);
         }
         else if(any(i==2)){
-            plot2(x, ...);
+            if(countDistribution){
+                plot10(x, type="likelihood", ...);
+            }
+            else{
+                plot2(x, ...);
+            }
         }
         else if(any(i==3)){
-            plot2(x, type="rstudent", ...);
+            if(countDistribution){
+                plot10(x, type="log-likelihood", ...);
+            }
+            else{
+                plot2(x, type="rstudent", ...);
+            }
         }
         else if(any(i==4)){
             plot3(x, ...);
