@@ -71,7 +71,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
     type <- match.arg(type);
     countDistribution <- any(object$distribution==c("dpois","dnbinom","dgeom"));
     if(countDistribution){
-        errors <- exp(pointLik(object));
+        errors <- pointLik(object, log=FALSE);
         type <- "probability";
     }
     else{

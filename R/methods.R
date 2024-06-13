@@ -1135,7 +1135,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         if(countDistribution){
             # Get the actuals and the fitted values
-            ellipsis$y <- as.vector(exp(pointLik(x)));
+            ellipsis$y <- as.vector(pointLik(x, log=FALSE));
             if(is.occurrence(x)){
                 if(any(x$distribution==c("plogis","pnorm"))){
                     ellipsis$y <- (ellipsis$y!=0)*1;
@@ -1896,7 +1896,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(switch(type,
-                                       "likelihood"=1-exp(pointLik(x)),
+                                       "likelihood"=1-pointLik(x, log=FALSE),
                                        "log-likelihood"=pointLik(x)));
 
         yName <- switch(type,
@@ -3126,7 +3126,7 @@ xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL
 #' @param occurrence If occurrence was provided, then a user can provide a vector of future
 #' values via this variable.
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp qgeom
 #' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),

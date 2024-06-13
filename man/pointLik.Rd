@@ -4,10 +4,12 @@
 \alias{pointLik}
 \title{Point likelihood values}
 \usage{
-pointLik(object, ...)
+pointLik(object, log = TRUE, ...)
 }
 \arguments{
 \item{object}{Time series model.}
+
+\item{log}{Whether to take logarithm of likelihoods.}
 
 \item{...}{Some stuff.}
 }

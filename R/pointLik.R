@@ -12,6 +12,7 @@
 #'
 #' @aliases pointLik
 #' @param object Time series model.
+#' @param log Whether to take logarithm of likelihoods.
 #' @param ...  Some stuff.
 #' @return This function returns a vector.
 #' @template author
@@ -36,17 +37,17 @@
 #' log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
 #'
 #' @export pointLik
-pointLik <- function(object, ...) UseMethod("pointLik")
+pointLik <- function(object, log=TRUE, ...) UseMethod("pointLik")
 
 #' @export
-pointLik.default <- function(object, ...){
-    likValues <- dnorm(residuals(object), mean=0, sd=sigma(object), log=TRUE);
+pointLik.default <- function(object, log=TRUE, ...){
+    likValues <- dnorm(residuals(object), mean=0, sd=sigma(object), log=log);
 
     return(likValues);
 }
 
 #' @export
-pointLik.alm <- function(object, ...){
+pointLik.alm <- function(object, log=TRUE, ...){
     distribution <- object$distribution;
     y <- actuals(object);
     ot <- y!=0;
@@ -63,29 +64,29 @@ pointLik.alm <- function(object, ...){
 
     likValues <- vector("numeric",nobs(object));
     likValues[otU] <- switch(distribution,
-                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                             "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                             "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "drectnorm" = drectnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
-                             "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "dexp" = dexp(y, rate=1/mu, log=TRUE),
-                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
-                             "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=TRUE),
-                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
-                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
-                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                             "dt" = dt(y-mu, df=scale, log=TRUE),
-                             "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                             "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
-                             "dgeom" = dgeom(y, prob=1/mu, log=TRUE),
-                             "dpois" = dpois(y, lambda=mu, log=TRUE),
-                             "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                             "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
-                             "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
+                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=log),
+                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=log),
+                             "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=log),
+                             "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=log),
+                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=log),
+                             "drectnorm" = drectnorm(y, mu=mu, sigma=scale, log=log),
+                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=log),
+                             "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=log),
+                             "dexp" = dexp(y, rate=1/mu, log=log),
+                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=log),
+                             "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=log),
+                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=log),
+                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=log),
+                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=log),
+                             "dlogis" = dlogis(y, location=mu, scale=scale, log=log),
+                             "dt" = dt(y-mu, df=scale, log=log),
+                             "ds" = ds(y, mu=mu, scale=scale, log=log),
+                             "dls" = ds(log(y), mu=mu, scale=scale, log=log),
+                             "dgeom" = dgeom(y, prob=1/mu, log=log),
+                             "dpois" = dpois(y, lambda=mu, log=log),
+                             "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=log),
+                             "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=log),
+                             "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=log),
                              "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
                                           plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
                              "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),

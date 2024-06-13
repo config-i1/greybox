@@ -44,7 +44,7 @@ likelihood of the function specified in \code{distribution};
 \item \code{"HAM"} (Half Absolute Moment),
 \item \code{"LASSO"} - use LASSO to shrink the parameters of the model;
 \item \code{"RIDGE"} - use RIDGE to shrink the parameters of the model;
-\item \code{"ROLE"} - "RObust Likelihood Estimation", which uses trimmed mean in the
+\item \code{"ROLE"} - "RObust Likelihood Estimator", which uses trimmed mean in the
 calculation of scale and likelihood. A separate parameter \code{trim} can be provided
 in ellipsis. If not provided, the default value is 0.05;
 }
