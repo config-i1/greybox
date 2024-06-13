@@ -1386,6 +1386,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Actual Quantile";
         }
 
+        # Number of points for pp-plots
+        nsim <- 200;
+
         # For count distribution, we do manual construction
         if(countDistribution){
             if(!any(names(ellipsis)=="xlim")){
@@ -1394,7 +1397,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(!any(names(ellipsis)=="ylim")){
                 ellipsis$ylim <- c(0,1);
             }
-            ellipsis$x <- seq(0.01,0.99,0.01);
+            ellipsis$x <- ppoints(nsim);
 
             if(x$distribution=="dpois"){
                 if(!any(names(ellipsis)=="main")){
@@ -1405,25 +1408,25 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 # ellipsis$y[] <- actuals(x);
 
                 # Produce matrix of quantiles
-                yQuant <- matrix(qpois(seq(0.01,0.99,0.01), lambda=rep(x$mu, each=99)),
-                                 nrow=99, ncol=nobs(x),
-                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
+                yQuant <- matrix(qpois(ppoints(nsim), lambda=rep(x$mu, each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
             else if(x$distribution=="dnbinom"){
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Negative Binomial distribution";
                 }
-                # ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=extractScale(x));
+                # ellipsis$x <- actuals(x)-qnbinom(ppoints(nsim), mu=x$mu, size=extractScale(x));
                 #
                 # do.call(qqplot, ellipsis);
                 # qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
 
 
                 # Produce matrix of quantiles
-                yQuant <- matrix(qnbinom(seq(0.01,0.99,0.01), mu=rep(x$mu, each=99),
-                                         size=rep(extractScale(x), each=99)),
-                                 nrow=99, ncol=nobs(x),
-                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
+                yQuant <- matrix(qnbinom(ppoints(nsim), mu=rep(x$mu, each=nsim),
+                                         size=rep(extractScale(x), each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
                 # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
             }
             else if(x$distribution=="dgeom"){
@@ -1432,12 +1435,16 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 }
 
                 # Produce matrix of quantiles
-                yQuant <- matrix(qgeom(seq(0.01,0.99,0.01), prob=rep(1/fitted(x), each=99)),
-                                 nrow=99, ncol=nobs(x),
-                                 dimnames=list(seq(0.01,0.99,0.01), NULL));
+                yQuant <- matrix(qgeom(ppoints(nsim), prob=rep(1/fitted(x), each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
             # Get empirical probabilities
-            ellipsis$y <- apply(matrix(actuals(x), 99, nobs(x), byrow=T) <= yQuant, 1, sum) / nobs(x);
+            ellipsis$y <- apply(matrix(actuals(x), nsim, nobs(x), byrow=T) <= yQuant, 1, sum) / nobs(x);
+
+            # Remove zeroes not to contaminate the plot
+            ellipsis$x <- ellipsis$x[ellipsis$y>mean(actuals(x)==0)];
+            ellipsis$y <- ellipsis$y[ellipsis$y>mean(actuals(x)==0)];
 
             do.call(plot, ellipsis);
             abline(a=0, b=1);
@@ -1458,7 +1465,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Folded Normal distribution";
                 }
-                ellipsis$x <- qfnorm(ppoints(500), mu=0, sigma=extractScale(x));
+                ellipsis$x <- qfnorm(ppoints(nsim), mu=0, sigma=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
@@ -1469,7 +1476,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Rectified Normal distribution";
                 }
-                ellipsis$x <- qrectnorm(ppoints(500), mu=0, sigma=extractScale(x));
+                ellipsis$x <- qrectnorm(ppoints(nsim), mu=0, sigma=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
@@ -1480,7 +1487,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Generalised Normal distribution";
                 }
-                ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=extractScale(x), shape=x$other$shape);
+                ellipsis$x <- qgnorm(ppoints(nsim), mu=0, scale=extractScale(x), shape=x$other$shape);
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
@@ -1489,7 +1496,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Laplace distribution";
                 }
-                ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=extractScale(x));
+                ellipsis$x <- qlaplace(ppoints(nsim), mu=0, scale=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
@@ -1498,7 +1505,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
                 }
-                ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=extractScale(x), alpha=x$other$alpha);
+                ellipsis$x <- qalaplace(ppoints(nsim), mu=0, scale=extractScale(x), alpha=x$other$alpha);
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
@@ -1507,7 +1514,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Logistic distribution";
                 }
-                ellipsis$x <- qlogis(ppoints(500), location=0, scale=extractScale(x));
+                ellipsis$x <- qlogis(ppoints(nsim), location=0, scale=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
@@ -1516,7 +1523,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of S distribution";
                 }
-                ellipsis$x <- qs(ppoints(500), mu=0, scale=extractScale(x));
+                ellipsis$x <- qs(ppoints(nsim), mu=0, scale=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
@@ -1527,7 +1534,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Student's distribution";
                 }
-                ellipsis$x <- qt(ppoints(500), df=extractScale(x));
+                ellipsis$x <- qt(ppoints(nsim), df=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
@@ -1538,7 +1545,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
                 }
-                ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=extractScale(x));
+                ellipsis$x <- qinvgauss(ppoints(nsim), mean=1, dispersion=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
@@ -1549,7 +1556,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Gamma distribution";
                 }
-                ellipsis$x <- qgamma(ppoints(500), shape=1/extractScale(x), scale=extractScale(x));
+                ellipsis$x <- qgamma(ppoints(nsim), shape=1/extractScale(x), scale=extractScale(x));
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
@@ -1558,7 +1565,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 if(!any(names(ellipsis)=="main")){
                     ellipsis$main <- "QQ-plot of Exponential distribution";
                 }
-                ellipsis$x <- qexp(ppoints(500), rate=x$scale);
+                ellipsis$x <- qexp(ppoints(nsim), rate=x$scale);
 
                 do.call(qqplot, ellipsis);
                 qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
