@@ -1065,11 +1065,11 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 #' \item Squared residuals vs Fitted;
 #' \item Q-Q plot with the specified distribution;
 #' \item Fitted over time;
-#' \item Standardised residuals vs Time;
-#' \item Studentised residuals vs Time;
+#' \item Standardised residuals over observations;
+#' \item Studentised residuals over observations;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals;
-#' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+#' \item Cook's distance over observations with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
 #' \item Absolute standardised residuals vs Fitted;
 #' \item Squared standardised residuals vs Fitted;
 #' \item ACF of the squared residuals;
@@ -1657,11 +1657,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- paste0(yName," Residuals vs Time");
+            ellipsis$main <- paste0(yName," Residuals over observations");
         }
 
         if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Time";
+            ellipsis$xlab <- "Observations";
         }
         if(!any(names(ellipsis)=="ylab")){
             ellipsis$ylab <- paste0(yName," Residuals");
@@ -1800,7 +1800,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot8 <- function(x, ...){
         ellipsis <- list(...);
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Cook's distance over Time";
+            ellipsis$main <- "Cook's distance over observations";
         }
 
         # If type and ylab are not provided, set them...
@@ -1811,7 +1811,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Cook's distance";
         }
         if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Time";
+            ellipsis$xlab <- "Observation";
         }
 
         # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
@@ -1821,6 +1821,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         thresholdsLty <- c(3,2,5)
         thresholdsLwd <- c(1,1,2)
         outliers <- which(ellipsis$x>=thresholdsF[2]);
+
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- range(c(ellipsis$x, thresholdsF));
+        }
 
         # Start plotting
         do.call(plot,ellipsis);

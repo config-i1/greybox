@@ -21,11 +21,11 @@
 \item Squared residuals vs Fitted;
 \item Q-Q plot with the specified distribution;
 \item Fitted over time;
-\item Standardised residuals vs Time;
-\item Studentised residuals vs Time;
+\item Standardised residuals over observations;
+\item Studentised residuals over observations;
 \item ACF of the residuals;
 \item PACF of the residuals;
-\item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+\item Cook's distance over observations with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
 \item Absolute standardised residuals vs Fitted;
 \item Squared standardised residuals vs Fitted;
 \item ACF of the squared residuals;
