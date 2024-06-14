@@ -53,8 +53,21 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     xregDataIntervals <- data.frame(y=yIntervals, x=lowess(yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
+    testModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
     testModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
-    # return(testModel)
+
+    if(IC(testModelIntercept)<IC(testModel)){
+        testModel <- testModelIntercept;
+    }
+
+    testModelOutliers <- outlierdummy(testModel, level=0.95);
+    # testModelOutliers <- cooks.distance(testModel)
+
+    if(length(testModelOutliers$id)>0){
+        message("There are ",length(testModelOutliers$id)," potential stockouts in the data.");
+    }
+
+
 
     # Data for demand sizes
     xregDataSizes <- data.frame(y=y, x=y)
