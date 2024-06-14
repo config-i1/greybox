@@ -11,7 +11,8 @@
 #' @param object Model estimated using one of the functions of smooth package.
 #' @param level Confidence level to use. Everything that is outside the constructed
 #' bounds based on that is flagged as outliers.
-#' @param type Type of residuals to use: either standardised or studentised.
+#' @param type Type of residuals to use: either standardised or studentised. Ignored
+#' if count distributions used.
 #' @param ... Other parameters. Not used yet.
 #' @return The class "outlierdummy", which contains the list:
 #' \itemize{
@@ -19,7 +20,9 @@
 #' \item statistic - the value of the statistic for the normalised variable;
 #' \item id - the ids of the outliers (which observations have them);
 #' \item level - the confidence level used in the process;
-#' \item type - the type of the residuals used.
+#' \item type - the type of the residuals used;
+#' \item errors - the errors used in the detection. In case of count distributions,
+#' probabilities are returned.
 #' }
 #'
 #' @seealso \link[stats]{influence.measures}
@@ -121,7 +124,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
     }
 
     return(structure(list(outliers=outliers, statistic=statistic, id=outliersID,
-                          level=level, type=type),
+                          level=level, type=type, errors=errors),
                      class="outlierdummy"));
 }
 

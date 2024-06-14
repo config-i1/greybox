@@ -22,7 +22,8 @@ outlierdummy(object, ...)
 \item{level}{Confidence level to use. Everything that is outside the constructed
 bounds based on that is flagged as outliers.}
 
-\item{type}{Type of residuals to use: either standardised or studentised.}
+\item{type}{Type of residuals to use: either standardised or studentised. Ignored
+if count distributions used.}
 }
 \value{
 The class "outlierdummy", which contains the list:
@@ -31,7 +32,9 @@ The class "outlierdummy", which contains the list:
 \item statistic - the value of the statistic for the normalised variable;
 \item id - the ids of the outliers (which observations have them);
 \item level - the confidence level used in the process;
-\item type - the type of the residuals used.
+\item type - the type of the residuals used;
+\item errors - the errors used in the detection. In case of count distributions,
+probabilities are returned.
 }
 }
 \description{
