@@ -71,7 +71,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
     type <- match.arg(type);
     countDistribution <- any(object$distribution==c("dpois","dnbinom","dgeom"));
     if(countDistribution){
-        errors <- pointLik(object, log=FALSE);
+        errors <- pointLikCumulative(object, ...);
         type <- "probability";
     }
     else{
@@ -98,10 +98,10 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                         # For count distributions, we do likelihoods instead of standardised stuff
                         "dgeom"=,
                         "dpois"=,
-                        "dnbinom"=1-level,
+                        "dnbinom"=level,
                         qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     if(countDistribution){
-        outliersID <- which(errors<statistic);
+        outliersID <- which(errors>statistic);
     }
     else{
         outliersID <- which(errors>statistic[2] | errors<statistic[1]);

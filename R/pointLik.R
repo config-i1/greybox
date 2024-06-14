@@ -143,7 +143,7 @@ pointLik.alm <- function(object, log=TRUE, ...){
 }
 
 #' @export
-pointLik.ets <- function(object, ...){
+pointLik.ets <- function(object, log=TRUE, ...){
 
     likValues <- pointLik.default(object);
     if(errorType(object)=="M"){
@@ -153,6 +153,13 @@ pointLik.ets <- function(object, ...){
     likValues[] <- likValues + 0.5 * (log(2 * pi) + 1 - log(nobs(object)));
 
     return(likValues);
+}
+
+pointLikCumulative <- function(object, ...){
+    return(switch(object$distribution,
+                  "dgeom"=pgeom(actuals(object), 1/object$mu),
+                  "dpois"=ppois(y, lambda=object$mu),
+                  "dnbinom"=pnbinom(y, mu=object$mu, size=object$other$size)));
 }
 
 #' Point AIC

@@ -1891,17 +1891,17 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     # Plot of probability vs fitted for count distributions
-    plot10 <- function(x, type="likelihood", ...){
+    plot10 <- function(x, type="prob", ...){
         ellipsis <- list(...);
 
         ellipsis$x <- as.vector(fitted(x));
         ellipsis$y <- as.vector(switch(type,
-                                       "likelihood"=1-pointLik(x, log=FALSE),
-                                       "log-likelihood"=pointLik(x)));
+                                       "prob"=pointLikCumulative(x),
+                                       "log-prob"=log(1-pointLikCumulative(x))));
 
         yName <- switch(type,
-                        "likelihood"="Likelihood",
-                        "log-likelihood"="Log-Likelihood");
+                        "prob"="Probability",
+                        "log-prob"="Log(1-Probability)");
 
         if(!any(names(ellipsis)=="main")){
             ellipsis$main <- paste0(yName," vs Fitted");
@@ -1927,8 +1927,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         outliers <- outlierdummy(x, level=level, type="rstandard");
         outliersID <- outliers$id;
         statistic <- outliers$statistic;
-        if(type=="log-likelihood"){
-            statistic[] <- log(statistic);
+        if(type=="log-prob"){
+            statistic[] <- log(1-statistic);
         }
         # Substitute zeroes with NAs if there was an occurrence
         if(is.occurrence(x$occurrence)){
@@ -1936,7 +1936,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="ylim")){
-            if(type=="likelihood"){
+            if(type=="prob"){
                 ellipsis$ylim <- c(0,1)*1.2;
             }
             else{
@@ -1961,18 +1961,20 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         do.call(plot,ellipsis);
         axis(side=1);
-        if(type=="likelihood"){
-            axis(side=2, at=seq(0,1,0.2), labels=seq(1,0,-0.2));
+        if(type=="prob"){
+            axis(side=2, at=seq(0,1,0.2), labels=seq(0,1,0.2));
         }
         else{
-            axis(side=2);
+            axis(side=2)
+            # axis(side=2, at=seq(floor(ellipsis$ylim[1]),floor(ellipsis$ylim[2]),1),
+            #      labels=seq(floor(ellipsis$ylim[2]),floor(ellipsis$ylim[1]),-1));
         }
         box()
         abline(h=0, col="grey", lty=2);
-        if(type=="likelihood"){
-            polygon(c(xRange,rev(xRange)),c(1-statistic,1-statistic,0,0),
+        if(type=="prob"){
+            polygon(c(xRange,rev(xRange)),c(statistic,statistic,0,0),
                     col="lightgrey", border=NA, density=10);
-            abline(h=1-statistic, col="red", lty=2);
+            abline(h=statistic, col="red", lty=2);
         }
         else{
             polygon(c(xRange,rev(xRange)),c(statistic,statistic,0,0),
@@ -2014,7 +2016,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         else if(any(i==2)){
             if(countDistribution){
-                plot10(x, type="likelihood", ...);
+                plot10(x, type="prob", ...);
             }
             else{
                 plot2(x, ...);
@@ -2022,7 +2024,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         else if(any(i==3)){
             if(countDistribution){
-                plot10(x, type="log-likelihood", ...);
+                plot10(x, type="log-prob", ...);
             }
             else{
                 plot2(x, type="rstudent", ...);
