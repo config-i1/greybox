@@ -1435,7 +1435,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 }
 
                 # Produce matrix of quantiles
-                yQuant <- matrix(qgeom(ppoints(nsim), prob=rep(1/fitted(x), each=nsim)),
+                yQuant <- matrix(qgeom(ppoints(nsim), prob=rep(1/x$mu, each=nsim)),
                                  nrow=nsim, ncol=nobs(x),
                                  dimnames=list(ppoints(nsim), NULL));
             }
