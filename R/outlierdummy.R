@@ -101,6 +101,9 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                         "dnbinom"=level,
                         qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     if(countDistribution){
+        # Add condition not to consider cases, when p>=level, because we flag zeroes in that case...
+        # This is how to do that for Geometric distribution
+        # outliersID <- which(errors>statistic & errors>1/object$mu);
         outliersID <- which(errors>statistic);
     }
     else{
