@@ -199,7 +199,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
 #' @export
 print.adi <- function(x, ...){
     if(length(x$stockouts$start)>1){
-        cat("There are",length(x$stockouts),"potential stockouts in the data.\n");
+        cat("There are",length(x$stockouts$start),"potential stockouts in the data.\n");
     }
     else if(length(x$stockouts$start)>0){
         cat("There is 1 potential stockout in the data\n");
