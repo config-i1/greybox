@@ -19,6 +19,7 @@
 #'
 #' @return Class "adi" is returned, which contains:
 #' \itemize{
+#' \item y - The original data;
 #' \item models - All fitted models;
 #' \item ICs - Values of information criteria;
 #' \item type - The type of the identified demand;
@@ -99,7 +100,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     outliersID <- which(outliers);
 
     # Record, when stockouts start and finish
-    stockoutsStart <- cumsum(yIntervals)[outliersID-1];
+    if(any(outliersID==1)){
+        stockoutsStart <- c(1,cumsum(yIntervals)[outliersID-1]);
+    }
+    else{
+        stockoutsStart <- cumsum(yIntervals)[outliersID-1];
+    }
     stockoutsEnd <- cumsum(yIntervals)[outliersID];
 
 
@@ -190,7 +196,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     # Add stockout model to the output
     idModels$stockout <- stockoutModel;
 
-    return(structure(list(models=idModels, ICs=adiCs, type=idType,
+    return(structure(list(y=y, models=idModels, ICs=adiCs, type=idType,
                           stockouts=list(start=stockoutsStart, end=stockoutsEnd),
                           new=productNew, obsolete=productObsolete),
                      class="adi"));
@@ -211,4 +217,13 @@ print.adi <- function(x, ...){
         cat("The product has become obsolete\n");
     }
     cat("The provided time series is", x$type, "\n");
+}
+
+#' @export
+plot.adi <- function(x, ...){
+
+    ids <- time(x$y);
+    plot(x$y, ...);
+    abline(v=ids[x$stockouts$start], col="red2");
+    abline(v=ids[x$stockouts$end], col="blue2", lty=2);
 }

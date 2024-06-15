@@ -16,6 +16,7 @@ adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99)
 \value{
 Class "adi" is returned, which contains:
 \itemize{
+\item y - The original data;
 \item models - All fitted models;
 \item ICs - Values of information criteria;
 \item type - The type of the identified demand;
