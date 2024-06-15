@@ -19,7 +19,11 @@ Class "adi" is returned, which contains:
 \item models - All fitted models;
 \item ICs - Values of information criteria;
 \item type - The type of the identified demand;
-\item stockouts - List with start and end ids of potential stockouts.
+\item stockouts - List with start and end ids of potential stockouts;
+\item new - Binary showing whether the data start with the abnormal number of zeroes.
+Must be a new product then;
+\item obsolete - Binary showing whether the data ends with the abnormal number of zeroes.
+Must be product that was discontinued (obsolete).
 }
 }
 \description{

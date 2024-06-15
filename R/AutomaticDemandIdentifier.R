@@ -22,7 +22,11 @@
 #' \item models - All fitted models;
 #' \item ICs - Values of information criteria;
 #' \item type - The type of the identified demand;
-#' \item stockouts - List with start and end ids of potential stockouts.
+#' \item stockouts - List with start and end ids of potential stockouts;
+#' \item new - Binary showing whether the data start with the abnormal number of zeroes.
+#' Must be a new product then;
+#' \item obsolete - Binary showing whether the data ends with the abnormal number of zeroes.
+#' Must be product that was discontinued (obsolete).
 #' }
 #'
 #' @template author
@@ -69,13 +73,27 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
 
     probabilities <- pointLikCumulative(stockoutModel);
 
-    # If the probability is higher than the main one, it's not an outlier
+    # If the probability is higher than the estimated one, it's not an outlier
     if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
         probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
     }
-    # The first one doesn't make sense, because it is definitely not a stockout!
+
+    # If the outlier has the interval of 1, it's not an outlier
+    if(any(probabilities>level & yIntervals==1)){
+        probabilities[probabilities>level & yIntervals==1] <- 0;
+    }
+
+    # Binaries for new/obsolete products to track zeroes in the beginning/end of data
+    productNew <- FALSE;
+    productObsolete <- FALSE;
+
+    # The first one is above the threshold, it is a "new product"
     if(probabilities[1]>level){
-        probabilities[1] <- 0;
+        productNew[] <- TRUE;
+    }
+    # The last one is above the threshold, it must be obsolescence
+    if(tail(probabilities,1)>level){
+        productObsolete[] <- TRUE;
     }
     outliers <- probabilities>level;
     outliersID <- which(outliers);
@@ -173,7 +191,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     idModels$stockout <- stockoutModel;
 
     return(structure(list(models=idModels, ICs=adiCs, type=idType,
-                          stockouts=list(start=stockoutsStart, end=stockoutsEnd)),
+                          stockouts=list(start=stockoutsStart, end=stockoutsEnd),
+                          new=productNew, obsolete=productObsolete),
                      class="adi"));
 }
 
@@ -183,7 +202,13 @@ print.adi <- function(x, ...){
         cat("There are",length(x$stockouts),"potential stockouts in the data.\n");
     }
     else if(length(x$stockouts$start)>0){
-        cat("There is 1 potential stockout in the data.\n");
+        cat("There is 1 potential stockout in the data\n");
+    }
+    if(x$new){
+        cat("The product is new (sales start later)\n");
+    }
+    if(x$obsolete){
+        cat("The product has become obsolete\n");
     }
     cat("The provided time series is", x$type, "\n");
 }
