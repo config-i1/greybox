@@ -4,19 +4,22 @@
 \alias{adi}
 \title{Automatic Demand Identifier}
 \usage{
-adi(y, ic = c("AICc", "AIC", "BICc", "BIC"))
+adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99)
 }
 \arguments{
 \item{y}{The vector of the data.}
 
 \item{ic}{Information criterion to use.}
+
+\item{level}{The confidence level used in stockouts identification.}
 }
 \value{
 Class "adi" is returned, which contains:
 \itemize{
 \item models - All fitted models;
 \item ICs - Values of information criteria;
-\item type - The type of the identified demand.
+\item type - The type of the identified demand;
+\item stockouts - List with start and end ids of potential stockouts.
 }
 }
 \description{
@@ -24,11 +27,15 @@ The function applies several models on the provided time series and identifies w
 type of demand it is based on an information criterion.
 }
 \details{
-The function creates explanatory variables based on LOWESS of the original data, then
-applies Normal, Normal + Bernoulli, Negative Binomial and Negative Binomial + Bernoulli
-models and selects the one that has the lowest IC. Based on that, it decides what type
-of demand the data corresponds to: regular non-count, intermittent non-count,
-regular count, or intermittent count.
+In the first step, function creates inter-demand intervals and fits a model with LOWESS
+of it assuming Geometric distribution. The outliers from this model are treated as
+potential stock outs.
+
+In the second step, the function creates explanatory variables based on LOWESS of the
+original data, then applies Normal, Normal + Bernoulli models and selects the one that
+has the lowest IC. Based on that, it decides what type of demand the data corresponds
+to: regular or intermittent. Finally, if the data is count, the function will identify
+that.
 }
 \examples{
 # Data from Poisson distribution

@@ -1,4 +1,4 @@
-greybox v2.0.1 (Release data: 2024-06-11)
+greybox v2.0.1 (Release data: 2024-06-15)
 
 Changes:
 * Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
@@ -8,6 +8,7 @@ Changes:
 * Likelihood for occurrence model is now calculated differently, depending on whether there are ARIMA elements or not. In the former case, it includes the differential entropy, while in the latter it doesn't.
 * New loss function in alm(): "ROLE" - Robust Likelihood Estimator, which uses trimming for the scale parameters and the likelihood to avoid the impact of outliers on the estimates.
 * New distribution in alm(): "dgeom" - Geometric distribution. This can be used for a model for demand intervals.
+* Count distributions now return standardised residuals based on the empirical cumulative probability for each of the observations (sort of probability transform).
 
 Bugfixes:
 * lmCombine() and lmDynamic() now return loss parameter.

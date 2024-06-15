@@ -21,10 +21,10 @@ the one with the small sample correction.}
 \value{
 The following list of values is returned:
 \itemize{
-\item{value}{The value of Cramer's V;}
-\item{statistic}{The value of Chi squared statistic associated with the Cramer's V;}
-\item{p.value}{The p-value of Chi squared test associated with the Cramer's V;}
-\item{df}{The number of degrees of freedom from the test.}
+\item value - The value of Cramer's V;
+\item statistic - The value of Chi squared statistic associated with the Cramer's V;
+\item p.value - The p-value of Chi squared test associated with the Cramer's V;
+\item df - The number of degrees of freedom from the test.
 }
 }
 \description{

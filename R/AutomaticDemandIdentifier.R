@@ -3,20 +3,26 @@
 #' The function applies several models on the provided time series and identifies what
 #' type of demand it is based on an information criterion.
 #'
-#' The function creates explanatory variables based on LOWESS of the original data, then
-#' applies Normal, Normal + Bernoulli, Negative Binomial and Negative Binomial + Bernoulli
-#' models and selects the one that has the lowest IC. Based on that, it decides what type
-#' of demand the data corresponds to: regular non-count, intermittent non-count,
-#' regular count, or intermittent count.
+#' In the first step, function creates inter-demand intervals and fits a model with LOWESS
+#' of it assuming Geometric distribution. The outliers from this model are treated as
+#' potential stock outs.
+#'
+#' In the second step, the function creates explanatory variables based on LOWESS of the
+#' original data, then applies Normal, Normal + Bernoulli models and selects the one that
+#' has the lowest IC. Based on that, it decides what type of demand the data corresponds
+#' to: regular or intermittent. Finally, if the data is count, the function will identify
+#' that.
 #'
 #' @param y The vector of the data.
 #' @param ic Information criterion to use.
+#' @param level The confidence level used in stockouts identification.
 #'
 #' @return Class "adi" is returned, which contains:
 #' \itemize{
 #' \item models - All fitted models;
 #' \item ICs - Values of information criteria;
-#' \item type - The type of the identified demand.
+#' \item type - The type of the identified demand;
+#' \item stockouts - List with start and end ids of potential stockouts.
 #' }
 #'
 #' @template author
@@ -29,7 +35,7 @@
 #'
 #' @importFrom stats lowess approx
 #' @export
-adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
+adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     # Intermittent demand identifier
 
     # Select IC
@@ -46,6 +52,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     xregData <- data.frame(y=y, x=y)
     xregData$x <- lowess(y)$y;
 
+
     #### Stockouts ####
     # Demand intervals to identify stockouts/new/old products
     # 0 is for the new products, length(y) is to track obsolescence
@@ -53,22 +60,32 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     xregDataIntervals <- data.frame(y=yIntervals, x=lowess(yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
-    testModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
-    testModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
+    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
+    stockoutModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
 
-    if(IC(testModelIntercept)<IC(testModel)){
-        testModel <- testModelIntercept;
+    if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+        stockoutModel <- stockoutModelIntercept;
     }
 
-    testModelOutliers <- outlierdummy(testModel, level=0.95);
-    # testModelOutliers <- cooks.distance(testModel)
+    probabilities <- pointLikCumulative(stockoutModel);
 
-    if(length(testModelOutliers$id)>0){
-        message("There are ",length(testModelOutliers$id)," potential stockouts in the data.");
+    # If the probability is higher than the main one, it's not an outlier
+    if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
+        probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
     }
+    # The first one doesn't make sense, because it is definitely not a stockout!
+    if(probabilities[1]>level){
+        probabilities[1] <- 0;
+    }
+    outliers <- probabilities>level;
+    outliersID <- which(outliers);
+
+    # Record, when stockouts start and finish
+    stockoutsStart <- cumsum(yIntervals)[outliersID-1];
+    stockoutsEnd <- cumsum(yIntervals)[outliersID];
 
 
-
+    #### Checking the demand type ####
     # Data for demand sizes
     xregDataSizes <- data.frame(y=y, x=y)
     xregDataSizes$x[] <- 0;
@@ -152,11 +169,21 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC")){
     # Get its name
     idType <- names(adiCs)[adiCsBest];
 
-    return(structure(list(models=idModels, ICs=adiCs, type=idType),
+    # Add stockout model to the output
+    idModels$stockout <- stockoutModel;
+
+    return(structure(list(models=idModels, ICs=adiCs, type=idType,
+                          stockouts=list(start=stockoutsStart, end=stockoutsEnd)),
                      class="adi"));
 }
 
 #' @export
 print.adi <- function(x, ...){
+    if(length(x$stockouts$start)>1){
+        cat("There are",length(x$stockouts),"potential stockouts in the data.\n");
+    }
+    else if(length(x$stockouts$start)>0){
+        cat("There is 1 potential stockout in the data.\n");
+    }
     cat("The provided time series is", x$type, "\n");
 }

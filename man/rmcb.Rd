@@ -35,19 +35,19 @@ the calculations using plot.rmcb() function.
 Function returns a list of a class "rmcb", which contains the following
 variables:
 \itemize{
-\item{mean}{Mean values for each method.}
-\item{interval}{Confidence intervals for each method.}
-\item{vlines}{Coordinates used for outplot="l", marking the groups of methods.}
-\item{groups}{The table containing the groups. \code{TRUE} - methods are in the
-same group, \code{FALSE} - they are not.}
-\item{methods}{Similar to \code{group} parameter, but with a slightly different
-presentation.}
-\item{p.value}{p-value for the test of the significance of the model. This is the
-value from the F test of the linear regression.}
-\item{level}{Confidence level.}
-\item{model}{lm model produced for the calculation of the intervals.}
-\item{outplot}{Style of the plot to produce.}
-\item{select}{The selected variable to highlight.}
+\item mean Mean values for each method.
+\item interval Confidence intervals for each method.
+\item vlines Coordinates used for outplot="l", marking the groups of methods.
+\item groups The table containing the groups. \code{TRUE} - methods are in the
+same group, \code{FALSE} - they are not.
+\item methods Similar to \code{group} parameter, but with a slightly different
+presentation.
+\item p.value p-value for the test of the significance of the model. This is the
+value from the F test of the linear regression.
+\item level Confidence level.
+\item model lm model produced for the calculation of the intervals.
+\item outplot Style of the plot to produce.
+\item select The selected variable to highlight.
 }
 }
 \description{
