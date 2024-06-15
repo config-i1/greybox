@@ -1119,6 +1119,10 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         message("Note that residuals diagnostics plots are produced for scale model");
     }
 
+    if(countDistribution && any(which %in% c(3, 9))){
+        message("Studentised residuals are not supported for count distributions");
+    }
+
     # Plots for the count data
     #
     # # Probability over time
@@ -1894,145 +1898,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
     }
 
-    # Plot of probability vs fitted for count distributions
-    plot10 <- function(x, type="prob", ...){
-        ellipsis <- list(...);
-
-        ellipsis$x <- as.vector(fitted(x));
-        ellipsis$y <- as.vector(switch(type,
-                                       "prob"=pointLikCumulative(x),
-                                       "log-prob"=log(1-pointLikCumulative(x))));
-
-        yName <- switch(type,
-                        "prob"="Probability",
-                        "log-prob"="Log(1-Probability)");
-
-        if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- paste0(yName," vs Fitted");
-        }
-
-        if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Fitted";
-        }
-        if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- yName;
-        }
-
-        if(legend){
-            if(ellipsis$x[length(ellipsis$x)]>mean(ellipsis$x)){
-                legendPosition <- "bottomright";
-            }
-            else{
-                legendPosition <- "topright";
-            }
-        }
-
-        # Get the IDs of outliers and statistic
-        outliers <- outlierdummy(x, level=level, type="rstandard");
-        outliersID <- outliers$id;
-        statistic <- outliers$statistic;
-        if(type=="log-prob"){
-            statistic[] <- log(1-statistic);
-        }
-        # Substitute zeroes with NAs if there was an occurrence
-        if(is.occurrence(x$occurrence)){
-            ellipsis$x[actuals(x$occurrence)==0] <- NA;
-        }
-
-        if(!any(names(ellipsis)=="ylim")){
-            if(type=="prob"){
-                ellipsis$ylim <- c(0,1)*1.2;
-            }
-            else{
-                ellipsis$ylim <- range(c(ellipsis$y,statistic,0))*1.2;
-            }
-            if(legend){
-                if(legendPosition=="bottomright"){
-                    ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
-                }
-                else{
-                    ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
-                }
-            }
-        }
-
-        xRange <- range(ellipsis$x, na.rm=TRUE);
-        xRange[1] <- xRange[1] - sd(ellipsis$x, na.rm=TRUE);
-        xRange[2] <- xRange[2] + sd(ellipsis$x, na.rm=TRUE);
-
-        # Don't produce axes, we need to modify y-axis
-        ellipsis$axes <- FALSE;
-
-        do.call(plot,ellipsis);
-        axis(side=1);
-        if(type=="prob"){
-            axis(side=2, at=seq(0,1,0.2), labels=seq(0,1,0.2));
-        }
-        else{
-            axis(side=2)
-            # axis(side=2, at=seq(floor(ellipsis$ylim[1]),floor(ellipsis$ylim[2]),1),
-            #      labels=seq(floor(ellipsis$ylim[2]),floor(ellipsis$ylim[1]),-1));
-        }
-        box()
-        abline(h=0, col="grey", lty=2);
-        if(type=="prob"){
-            polygon(c(xRange,rev(xRange)),c(statistic,statistic,0,0),
-                    col="lightgrey", border=NA, density=10);
-            abline(h=statistic, col="red", lty=2);
-        }
-        else{
-            polygon(c(xRange,rev(xRange)),c(statistic,statistic,0,0),
-                    col="lightgrey", border=NA, density=10);
-            abline(h=statistic, col="red", lty=2);
-        }
-
-        if(length(outliersID)>0){
-            points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
-            text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$y[outliersID]>0)*2+1);
-        }
-        if(lowess){
-            # Remove NAs
-            if(any(is.na(ellipsis$x))){
-                ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
-                ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
-            }
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
-        }
-
-        if(legend){
-            if(lowess){
-                legend(legendPosition,
-                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds","LOWESS line"),
-                       col=c("red", "black","red"), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
-            }
-            else{
-                legend(legendPosition,
-                       legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
-                       col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
-            }
-        }
-
-    }
-
     for(i in which){
         if(any(i==1)){
             plot1(x, ...);
         }
         else if(any(i==2)){
-            if(countDistribution){
-                plot10(x, type="prob", ...);
-            }
-            else{
-                plot2(x, ...);
-            }
+            plot2(x, ...);
         }
         else if(any(i==3)){
-            if(countDistribution){
-                plot10(x, type="log-prob", ...);
-            }
-            else{
-                plot2(x, type="rstudent", ...);
-            }
+            plot2(x, type="rstudent", ...);
         }
         else if(any(i==4)){
             plot3(x, ...);
@@ -2731,6 +2605,9 @@ rstandard.greybox <- function(model, ...){
         else if(any(model$distribution==c("dfnorm","drectnorm"))){
             errors[residsToGo] <- (errors[residsToGo]) / sqrt(extractScale(model)^2 * obs / df);
         }
+        else if(any(model$distribution==c("dpois","dnbinom","dgeom"))){
+            errors[residsToGo] <- qnorm(pointLikCumulative(model));
+        }
         else{
             errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
         }
@@ -2808,6 +2685,10 @@ rstudent.greybox <- function(model, ...){
         for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / mean(errors[-i]);
         }
+    }
+    # We don't do studentised residuals for count distributions
+    else if(any(model$distribution==c("dpois","dnbinom","dgeom"))){
+        rstudentised[residsToGo] <- qnorm(pointLikCumulative(model));
     }
     else{
         for(i in which(residsToGo)){
