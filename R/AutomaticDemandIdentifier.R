@@ -53,11 +53,6 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
                      class="adi"))
     }
 
-    # The original data
-    xregData <- data.frame(y=y, x=y)
-    xregData$x <- lowess(y)$y;
-
-
     #### Stockouts ####
     # Demand intervals to identify stockouts/new/old products
     # 0 is for the new products, length(y) is to track obsolescence
@@ -144,7 +139,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     yIDsLast <- cumsum(yIntervals)[tail(yIntervalsIDs,1)];
     yIDsToUse <- seq(yIDsFirst, yIDsLast, 1)-1;
 
+
     #### Checking the demand type ####
+    # The original data
+    xregData <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
+    xregData$x <- lowess(xregData$y)$y;
+
     # Data for demand sizes
     # Drop zeroes in the beginning/end based on productNew/productObsolete
     xregDataSizes <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
