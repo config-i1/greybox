@@ -88,7 +88,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
         productObsolete[] <- TRUE;
     }
 
-    # Reestimate the model dropping those zeroes
+    # Re-estimate the model dropping those zeroes
     # This is mainly needed to see if LOWESS will be better
     if(any(c(productNew,productObsolete))){
         # Redo indices, dropping the head and the tail if needed
@@ -109,6 +109,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
         probabilities <- c(c(0)[productNew],
                            pointLikCumulative(stockoutModel),
                            c(0)[productObsolete]);
+        stockoutModel$mu <- c(c(100)[productNew],
+                           stockoutModel$mu,
+                           c(100)[productObsolete]);
+    }
+    else{
+        yIntervalsIDs <- 1:length(yIntervals);
     }
 
     # If the probability is higher than the estimated one, it's not an outlier
@@ -133,16 +139,20 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     }
     stockoutsEnd <- cumsum(yIntervals)[outliersID];
 
+    # IDs that will be used in the next models (to drop zeroes in head/tail)
+    yIDsFirst <- cumsum(yIntervals)[yIntervalsIDs[1]];
+    yIDsLast <- cumsum(yIntervals)[tail(yIntervalsIDs,1)];
+    yIDsToUse <- seq(yIDsFirst, yIDsLast, 1)-1;
 
-    #### !!! Drop zeroes in the beginning/end based on productNew/productObsolete !!! ####
     #### Checking the demand type ####
     # Data for demand sizes
-    xregDataSizes <- data.frame(y=y, x=y)
+    # Drop zeroes in the beginning/end based on productNew/productObsolete
+    xregDataSizes <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
     xregDataSizes$x[] <- 0;
-    xregDataSizes$x[y!=0] <- lowess(y[y!=0])$y;
+    xregDataSizes$x[xregDataSizes$y!=0] <- lowess(xregDataSizes$y[xregDataSizes$y!=0])$y;
     # Fill in the gaps for demand sizes
-    xregDataSizes$x[y==0] <- NA;
-    xregDataSizes$x[] <- approx(xregDataSizes$x, xout=c(1:length(y)), rule=2)$y;
+    xregDataSizes$x[xregDataSizes$y==0] <- NA;
+    xregDataSizes$x[] <- approx(xregDataSizes$x, xout=c(1:nrow(xregDataSizes)), rule=2)$y;
 
     # If LOWESS didn't work due to high volume of zeroes/ones, use the one from demand sizes
     if(all(xregData$x==0) || all(xregData$x==1)){
@@ -155,7 +165,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     }
 
     # Data for demand occurrence
-    xregDataOccurrence <- data.frame(y=y, x=y)
+    xregDataOccurrence <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
     xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
     xregDataOccurrence$x[] <- lowess(xregDataOccurrence$y)$y;
 
@@ -250,6 +260,6 @@ plot.adi <- function(x, ...){
 
     ids <- time(x$y);
     plot(x$y, ...);
-    abline(v=ids[x$stockouts$start], col="red2");
-    abline(v=ids[x$stockouts$end], col="blue2", lty=2);
+    abline(v=ids[x$stockouts$start], col=2);
+    abline(v=ids[x$stockouts$end], col=3, lty=2);
 }
