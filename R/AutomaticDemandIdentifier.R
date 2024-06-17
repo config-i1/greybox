@@ -62,7 +62,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     # Demand intervals to identify stockouts/new/old products
     # 0 is for the new products, length(y) is to track obsolescence
     yIntervals <- diff(c(0,which(y!=0),length(y)+1));
-    xregDataIntervals <- data.frame(y=yIntervals, x=lowess(yIntervals)$y);
+    xregDataIntervals <- data.frame(y=yIntervals,
+                                    x=lowess(yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
     stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
@@ -74,6 +75,42 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
 
     probabilities <- pointLikCumulative(stockoutModel);
 
+    # Binaries for new/obsolete products to track zeroes in the beginning/end of data
+    productNew <- FALSE;
+    productObsolete <- FALSE;
+
+    # If the first one is above the threshold, it is a "new product"
+    if(probabilities[1]>level){
+        productNew[] <- TRUE;
+    }
+    # If the last one is above the threshold, it must be obsolescence
+    if(tail(probabilities,1)>level){
+        productObsolete[] <- TRUE;
+    }
+
+    # Reestimate the model dropping those zeroes
+    # This is mainly needed to see if LOWESS will be better
+    if(any(c(productNew,productObsolete))){
+        # Redo indices, dropping the head and the tail if needed
+        yIntervalsIDs <- c(c(1)[!productNew],
+                           2:(length(yIntervals)-1),
+                           length(yIntervals)[!productObsolete]);
+        xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs],
+                                        x=lowess(yIntervals[yIntervalsIDs])$y);
+
+        # Apply Geometric distribution model to check for stockouts
+        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
+        stockoutModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
+
+        if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+            stockoutModel <- stockoutModelIntercept;
+        }
+
+        probabilities <- c(c(0)[productNew],
+                           pointLikCumulative(stockoutModel),
+                           c(0)[productObsolete]);
+    }
+
     # If the probability is higher than the estimated one, it's not an outlier
     if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
         probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
@@ -84,18 +121,6 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
         probabilities[probabilities>level & yIntervals==1] <- 0;
     }
 
-    # Binaries for new/obsolete products to track zeroes in the beginning/end of data
-    productNew <- FALSE;
-    productObsolete <- FALSE;
-
-    # The first one is above the threshold, it is a "new product"
-    if(probabilities[1]>level){
-        productNew[] <- TRUE;
-    }
-    # The last one is above the threshold, it must be obsolescence
-    if(tail(probabilities,1)>level){
-        productObsolete[] <- TRUE;
-    }
     outliers <- probabilities>level;
     outliersID <- which(outliers);
 
@@ -109,6 +134,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     stockoutsEnd <- cumsum(yIntervals)[outliersID];
 
 
+    #### !!! Drop zeroes in the beginning/end based on productNew/productObsolete !!! ####
     #### Checking the demand type ####
     # Data for demand sizes
     xregDataSizes <- data.frame(y=y, x=y)
