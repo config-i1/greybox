@@ -93,15 +93,15 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     #### Prepare the data ####
     obs <- nrow(data);
     nMethods <- ncol(data);
-    if(nMethods>obs){
-        response <- readline(paste0("The number of methods is higher than the number of series. ",
-                                    "Are you sure that you want to continue? y/n?"));
-
-        if(all(response!=c("y","Y"))){
-            stop(paste0("Number of methods is higher than the number of series. ",
-                        "The user aborted the calculations."), call.=FALSE);
-        }
-    }
+    # if(nMethods>obs){
+    #     response <- readline(paste0("The number of methods is higher than the number of series. ",
+    #                                 "Are you sure that you want to continue? y/n?"));
+    #
+    #     if(all(response!=c("y","Y"))){
+    #         stop(paste0("Number of methods is higher than the number of series. ",
+    #                     "The user aborted the calculations."), call.=FALSE);
+    #     }
+    # }
     obsAll <- obs*nMethods;
     namesMethods <- colnames(data);
 
