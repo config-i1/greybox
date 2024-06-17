@@ -49,7 +49,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
 
     if(all(y!=0)){
         message("The data does not contain any zeroes. It must be regular.");
-        return(structure(list(models=NA, ICs=NA, type="regular non-count"),
+        return(structure(list(models=NA, ICs=NA, type="regular non-count",
+                              new=FALSE, obsolete=FALSE),
                      class="adi"))
     }
 
