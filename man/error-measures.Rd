@@ -173,7 +173,7 @@ rMIS(mtcars$mpg[-c(1:30)],ourForecast$lower,ourForecast$upper,
 \item Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias
 \url{https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/}
 \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
-\url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
+\url{https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
 \item Fildes R. (1992). The evaluation of
 extrapolative forecasting methods. International Journal of Forecasting, 8,
 pp.81-98.

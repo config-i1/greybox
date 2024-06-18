@@ -22,7 +22,7 @@ knitr::opts_chunk$set(
 library(greybox)
 ```
 
-When there is a need to select the most appropriate forecasting model or method for the data, the forecasters usually split the available sample into two parts: in-sample (aka "training set") and holdout sample (or out-sample, or "test set"). The model is then estimated on in-sample and its forecasting performance is evaluated [using some error measure](https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/) on the holdout sample.
+When there is a need to select the most appropriate forecasting model or method for the data, the forecasters usually split the available sample into two parts: in-sample (aka "training set") and holdout sample (or out-sample, or "test set"). The model is then estimated on in-sample and its forecasting performance is evaluated [using some error measure](https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/) on the holdout sample.
 
 If such a procedure done only once, then this is called "fixed origin" evaluation. However, the time series might contain outliers or level shifts and a poor model might perform better than the more appropriate one only because of that. In order to robustify the evaluation of models, something called "rolling origin" is used.
 

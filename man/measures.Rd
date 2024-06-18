@@ -59,7 +59,7 @@ measures(y[91:100],ourForecast,y[1:90],digits=5)
 \references{
 \itemize{
 \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
-\url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
+\url{https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
 \item Fildes R. (1992). The evaluation of
 extrapolative forecasting methods. International Journal of Forecasting, 8,
 pp.81-98.
