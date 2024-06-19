@@ -1,19 +1,27 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "15 September 2023"
+date: "20 June 2024"
 output: html_document
 ---
 
 ## Version
-This is the release of the package `greybox`, v2.0.0
+This is the release of the package `greybox`, v2.0.1
+
+## Note
+I have changed my email from ivan@svetunkov.ru to ivan@svetunkov.com. Because of that, some checks gave this warning:
+
+>New maintainer:
+>  Ivan Svetunkov <ivan@svetunkov.com>
+>Old maintainer(s):
+>  Ivan Svetunkov <ivan@svetunkov.ru>
 
 
 ## Test environments
-* local Ubuntu 22.04.3, R 4.3.1
+* local Ubuntu 22.04.4, R 4.4.0
 * github actions
 * win-builder (devel and release)
-* rhub with rhub::check_for_cran() command
+* rhub v2
 
 
 ## R CMD check results
@@ -31,9 +39,9 @@ This is the release of the package `greybox`, v2.0.0
 ## Github actions
 Successful checks for:
 
-- Windows latest release with R 4.2.3
-- MacOS latest macOS Big Sur 10.16 with R 4.2.3
-- Ubuntu 20.04.5 with R 4.2.3
+- Windows latest release with R 4.4.0
+- MacOS latest macOS Monterey 12.6.8 with R 4.4.0
+- Ubuntu latest with R 4.4.0
 
 
 ## win-builder
@@ -44,7 +52,7 @@ This is expected, because doMC is not available for Windows.
 
 
 ## R-hub
-
+All is fine
 
 ## Downstream dependencies
 R CMD check on reverse dependencies of greybox are okay.
