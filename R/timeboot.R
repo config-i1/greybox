@@ -116,9 +116,6 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
         warning("Data has non-positive values. Switching bootstrap type to 'additive'.",
                 call.=FALSE);
     }
-    else{
-        type[] <- "multiplicative";
-    }
 
     # The matrix for the new data
     yNew <- ts(matrix(NA, obsInsample, nsim),
