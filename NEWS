@@ -1,4 +1,12 @@
 greybox v2.0.1 (Release data: 2024-06-18)
+==============
+
+Changes:
+* Accept ellipsis in coefbootstrap().
+
+
+greybox v2.0.1 (Release data: 2024-06-18)
+==============
 
 Changes:
 * Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").

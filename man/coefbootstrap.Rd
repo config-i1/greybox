@@ -7,13 +7,13 @@
 \title{Bootstrap for parameters of models}
 \usage{
 coefbootstrap(object, nsim = 1000, size = floor(0.75 * nobs(object)),
-  replace = FALSE, prob = NULL, parallel = FALSE)
+  replace = FALSE, prob = NULL, parallel = FALSE, ...)
 
 \method{coefbootstrap}{lm}(object, nsim = 1000, size = floor(0.75 *
-  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
+  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE, ...)
 
 \method{coefbootstrap}{alm}(object, nsim = 1000, size = floor(0.75 *
-  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
+  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE, ...)
 }
 \arguments{
 \item{object}{The model estimated using either lm, or alm, or glm.}
@@ -32,6 +32,8 @@ being sampled. This is passed to the \link[base]{sample} as well.}
 
 \item{parallel}{Either a logical, specifying whether to do the calculations in parallel,
 or the number, specifying the number of cores to use for the parallel calculation.}
+
+\item{...}{Other parameters passed to the \link[greybox]{timeboot()} function.}
 }
 \value{
 Class "bootstrap" is returned, which contains:

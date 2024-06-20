@@ -19,6 +19,7 @@
 #' being sampled. This is passed to the \link[base]{sample} as well.
 #' @param parallel Either a logical, specifying whether to do the calculations in parallel,
 #' or the number, specifying the number of cores to use for the parallel calculation.
+#' @param ... Other parameters passed to the \link[greybox]{timeboot()} function.
 #'
 #' @return Class "bootstrap" is returned, which contains:
 #' \itemize{
@@ -47,11 +48,11 @@
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                          replace=FALSE, prob=NULL, parallel=FALSE) UseMethod("coefbootstrap")
+                          replace=FALSE, prob=NULL, parallel=FALSE, ...) UseMethod("coefbootstrap")
 
 #' @export
 coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                                  replace=FALSE, prob=NULL, parallel=FALSE){
+                                  replace=FALSE, prob=NULL, parallel=FALSE, ...){
 
     startTime <- Sys.time();
 
@@ -156,14 +157,14 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap.lm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                              replace=FALSE, prob=NULL, parallel=FALSE){
+                              replace=FALSE, prob=NULL, parallel=FALSE, ...){
     return(coefbootstrap.default(object, nsim, size, replace, prob, parallel));
 }
 
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                              replace=FALSE, prob=NULL, parallel=FALSE){
+                              replace=FALSE, prob=NULL, parallel=FALSE, ...){
 
     startTime <- Sys.time();
 
