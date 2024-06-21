@@ -4,8 +4,8 @@
 \alias{adi}
 \title{Automatic Demand Identifier}
 \usage{
-adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
-  loss = "likelihood")
+adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99, loss = "ROLE",
+  ...)
 }
 \arguments{
 \item{y}{The vector of the data.}
@@ -16,6 +16,8 @@ adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
 
 \item{loss}{The type of loss function to use in model estimation. See
 \link[greybox]{alm} for possible options.}
+
+\item{...}{Other parameters passed to the \code{alm()} function.}
 }
 \value{
 Class "adi" is returned, which contains:

@@ -18,6 +18,7 @@
 #' @param level The confidence level used in stockouts identification.
 #' @param loss The type of loss function to use in model estimation. See
 #' \link[greybox]{alm} for possible options.
+#' @param ... Other parameters passed to the \code{alm()} function.
 #'
 #' @return Class "adi" is returned, which contains:
 #' \itemize{
@@ -43,7 +44,7 @@
 #' @importFrom stats lowess approx
 #' @export
 adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
-                loss="likelihood"){
+                loss="ROLE", ...){
     # Intermittent demand identifier
 
     # Select IC
@@ -66,8 +67,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     # Apply Geometric distribution model to check for stockouts
     # Use Robust likelihood to get rid of potential strong outliers
-    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss);
-    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss);
+    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
 
     if(IC(stockoutModelIntercept)<IC(stockoutModel)){
         stockoutModel <- stockoutModelIntercept;
@@ -99,8 +100,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                                         x=lowess(yIntervals[yIntervalsIDs])$y);
 
         # Apply Geometric distribution model to check for stockouts
-        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss);
-        stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss);
+        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
 
         if(IC(stockoutModelIntercept)<IC(stockoutModel)){
             stockoutModel <- stockoutModelIntercept;
@@ -109,6 +110,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         probabilities <- c(c(0)[productNew],
                            pointLikCumulative(stockoutModel),
                            c(0)[productObsolete]);
+        # 100 is arbitrary just to have something big, not to flag as outlier
         stockoutModel$mu <- c(c(100)[productNew],
                            stockoutModel$mu,
                            c(100)[productObsolete]);
@@ -121,7 +123,6 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
         probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
     }
-
     # If the outlier has the interval of 1, it's not an outlier
     if(any(probabilities>level & yIntervals==1)){
         probabilities[probabilities>level & yIntervals==1] <- 0;
@@ -176,12 +177,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     # If there is no variability in LOWESS, use the fixed probability
     if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
-        modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss));
+        modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
     }
     else{
         # Choose the appropriate occurrence model
-        modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss));
-        modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis", loss=loss));
+        modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
+        modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis", loss=loss, ...));
 
         if(IC(modelOccurrenceFixed)<IC(modelOccurrence)){
             modelOccurrence <- modelOccurrenceFixed;
@@ -198,11 +199,11 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     #,"intermittent slow");
 
     # model 1 is the regular demand
-    idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", loss=loss));
+    idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", loss=loss, ...));
     # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
     # model 2 is the intermittent demand (mixture model)
-    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence, loss=loss));
+    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence, loss=loss, ...));
     # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
 
     # If the scale is zero then there must be no variability in demand sizes. Switch them off.
