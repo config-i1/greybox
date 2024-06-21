@@ -16,6 +16,8 @@
 #' @param y The vector of the data.
 #' @param ic Information criterion to use.
 #' @param level The confidence level used in stockouts identification.
+#' @param loss The type of loss function to use in model estimation. See
+#' \link[greybox]{alm} for possible options.
 #'
 #' @return Class "adi" is returned, which contains:
 #' \itemize{
@@ -40,7 +42,8 @@
 #'
 #' @importFrom stats lowess approx
 #' @export
-adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
+adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
+                loss="likelihood"){
     # Intermittent demand identifier
 
     # Select IC
@@ -62,8 +65,9 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
                                     x=lowess(yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
-    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
-    stockoutModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
+    # Use Robust likelihood to get rid of potential strong outliers
+    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss);
+    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss);
 
     if(IC(stockoutModelIntercept)<IC(stockoutModel)){
         stockoutModel <- stockoutModelIntercept;
@@ -95,8 +99,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
                                         x=lowess(yIntervals[yIntervalsIDs])$y);
 
         # Apply Geometric distribution model to check for stockouts
-        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss="ROLE");
-        stockoutModel <- alm(y-1~., xregDataIntervals, distribution="dgeom", loss="ROLE");
+        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss);
+        stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss);
 
         if(IC(stockoutModelIntercept)<IC(stockoutModel)){
             stockoutModel <- stockoutModelIntercept;
@@ -172,12 +176,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
 
     # If there is no variability in LOWESS, use the fixed probability
     if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
-        modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis"));
+        modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss));
     }
     else{
         # Choose the appropriate occurrence model
-        modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis"));
-        modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis"));
+        modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss));
+        modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis", loss=loss));
 
         if(IC(modelOccurrenceFixed)<IC(modelOccurrence)){
             modelOccurrence <- modelOccurrenceFixed;
@@ -194,11 +198,11 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99){
     #,"intermittent slow");
 
     # model 1 is the regular demand
-    idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm"));
+    idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", loss=loss));
     # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
     # model 2 is the intermittent demand (mixture model)
-    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence));
+    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence, loss=loss));
     # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
 
     # If the scale is zero then there must be no variability in demand sizes. Switch them off.

@@ -1,8 +1,9 @@
-greybox v2.0.1 (Release data: 2024-06-18)
+greybox v2.0.1 (Release data: 2024-06-21)
 ==============
 
 Changes:
 * Accept ellipsis in coefbootstrap().
+* adi() now accepts the parameter loss, which is "likelihood" by default.
 
 
 greybox v2.0.1 (Release data: 2024-06-18)

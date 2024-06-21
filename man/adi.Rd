@@ -4,7 +4,8 @@
 \alias{adi}
 \title{Automatic Demand Identifier}
 \usage{
-adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99)
+adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
+  loss = "likelihood")
 }
 \arguments{
 \item{y}{The vector of the data.}
@@ -12,6 +13,9 @@ adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99)
 \item{ic}{Information criterion to use.}
 
 \item{level}{The confidence level used in stockouts identification.}
+
+\item{loss}{The type of loss function to use in model estimation. See
+\link[greybox]{alm} for possible options.}
 }
 \value{
 Class "adi" is returned, which contains:
