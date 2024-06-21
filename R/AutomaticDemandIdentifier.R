@@ -44,7 +44,7 @@
 #' @importFrom stats lowess approx
 #' @export
 adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
-                loss="ROLE", ...){
+                loss="likelihood", ...){
     # Intermittent demand identifier
 
     # Select IC
@@ -120,9 +120,9 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     }
 
     # If the probability is higher than the estimated one, it's not an outlier
-    if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
-        probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
-    }
+    # if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
+    #     probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
+    # }
     # If the outlier has the interval of 1, it's not an outlier
     if(any(probabilities>level & yIntervals==1)){
         probabilities[probabilities>level & yIntervals==1] <- 0;

@@ -4,8 +4,8 @@
 \alias{adi}
 \title{Automatic Demand Identifier}
 \usage{
-adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99, loss = "ROLE",
-  ...)
+adi(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
+  loss = "likelihood", ...)
 }
 \arguments{
 \item{y}{The vector of the data.}
