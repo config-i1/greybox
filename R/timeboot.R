@@ -210,29 +210,23 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
     yNewSDMean <- mean(yNewSD);
     yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
 
-    if(type=="multiplicative"){
-        # Do scaling to get it closer to the variance of y
-        if(scale){
-            # Scale things to get the same mean as in the sample
-            sdData <- sd(y)/sqrt(length(y));
+    # Scale things to get the same sd of mean as in the sample
+    if(scale){
+        sdData <- sd(y)/sqrt(length(y));
+        if(type=="multiplicative"){
             sdBoot <- sd(apply(exp(yNew), 2, mean));
-            yNew[yOrder,] <- apply(log(y) + (sdData/sdBoot) * (yNew - log(y)), 2, sort);
         }
-        # Centre the points around the original data
-        yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + log(y), 2, sort);
-        yNew[] <- exp(yNew);
-    }
-    else{
-        # Do scaling to get it closer to the variance of y
-        if(scale){
-            # Scale things to get the same mean as in the sample
-            sdData <- sd(y)/sqrt(length(y));
+        else{
             sdBoot <- sd(apply(yNew, 2, mean));
-            yNew[yOrder,] <- apply(y + (sdData/sdBoot) * (yNew - y), 2, sort);
         }
+        # Scale data and sort again to maintain smoothness
+        yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort);
+    }
+    # Centre the points around the original data
+    yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + yTransformed, 2, sort);
 
-        # Centre the points around the original data
-        yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + y, 2, sort);
+    if(type=="multiplicative"){
+        yNew[] <- exp(yNew);
     }
 
     return(structure(list(call=cl, data=y, boot=yNew, type=type, sd=sd, scale=scale), class="timeboot"));
