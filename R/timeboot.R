@@ -34,6 +34,8 @@
 #' data.
 #' @param scale Scale (sd) to use in the normal distribution. Estimated as mean absolute
 #' differences of the data if omitted.
+#' @param scaling Whether to do scaling of time series to the bootstrapped ones to have
+#' similar variance to the original data.
 #'
 #' @return The function returns:
 #' \itemize{
@@ -57,7 +59,8 @@
 timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
                      type=c("additive","multiplicative"),
                      kind=c("nonparametric","parametric"),
-                     lag=frequency(y), scale=NULL){
+                     lag=frequency(y), scale=NULL,
+                     scaling=TRUE){
     cl <- match.call();
 
     type <- match.arg(type);
@@ -145,7 +148,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
         yDiffs <- sort(diff(yTransformed));
         yDiffsLength <- length(yDiffs);
         # Remove potential outliers
-        # yDiffs <- yDiffs[1:round(yDiffsLength*(1-trim),0)];
+        # yDiffs <- yDiffs[1:round(yDiffsLength*(1-0.05),0)];
         # Remove NaNs if they exist
         yDiffs <- yDiffs[!is.nan(yDiffs)];
         # Leave only finite values
@@ -180,12 +183,9 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
         # Generate the new ones
         # approx uses linear approximation to interpolate values
         yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-                            approx(ySplined$x, ySplined$y, xout=runif(obsInsample*nsim, 0, 1),
-                                   rule=2)$y,
+                                approx(ySplined$x, ySplined$y, xout=runif(obsInsample*nsim, 0, 1),
+                                       rule=2)$y,
                             obsInsample, nsim);
-
-        # Sort the final values
-        yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
     }
     else{
         # Calculate scale if it is not provided
@@ -198,16 +198,39 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
         #### Normal distribution randomness ####
         yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
-
-        # Sort values to make sure that we have similar structure in the end
-        yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
     }
 
-    # Centre the points around the original data
-    yNew[] <- yNew - apply(yNew, 1, mean) + yTransformed;
+    # Sort values to make sure that we have similar structure in the end
+    yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+
+    # Make sure that the variance of the data is stable
+    yNewVar <- apply(yNew, 1, var);
+    yNewVarMean <- mean(yNewVar);
+    yNew[] <- yTransformed + (yNewVarMean/yNewVar) * (yNew - yTransformed);
 
     if(type=="multiplicative"){
+        # Do scaling to get it closer to the variance of y
+        if(scaling){
+            # Scale things to get the same mean as in the sample
+            sdData <- sd(y)/sqrt(length(y));
+            sdBoot <- sd(apply(exp(yNew), 2, mean));
+            yNew[yOrder,] <- apply(log(y) + (sdData/sdBoot) * (yNew - log(y)), 2, sort);
+        }
+        # Centre the points around the original data
+        yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + log(y), 2, sort);
         yNew[] <- exp(yNew);
+    }
+    else{
+        # Do scaling to get it closer to the variance of y
+        if(scaling){
+            # Scale things to get the same mean as in the sample
+            sdData <- sd(y)/sqrt(length(y));
+            sdBoot <- sd(apply(yNew, 2, mean));
+            yNew[yOrder,] <- apply(y + (sdData/sdBoot) * (yNew - y), 2, sort);
+        }
+
+        # Centre the points around the original data
+        yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + y, 2, sort);
     }
 
     return(structure(list(call=cl, data=y, boot=yNew, type=type), class="timeboot"));
