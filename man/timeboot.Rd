@@ -6,7 +6,7 @@
 \usage{
 timeboot(y, nsim = 100, intermittent = c("yes", "no"),
   type = c("additive", "multiplicative"), kind = c("nonparametric",
-  "parametric"), lag = frequency(y), scale = NULL)
+  "parametric"), lag = frequency(y), sd = NULL, scale = TRUE)
 }
 \arguments{
 \item{y}{The original time series}
@@ -25,8 +25,11 @@ differences of the data.}
 \item{lag}{The lag to use in the calculation of differences. Should be 1 for non-seasonal
 data.}
 
-\item{scale}{Scale (sd) to use in the normal distribution. Estimated as mean absolute
+\item{sd}{Standard deviation to use in the normal distribution. Estimated as mean absolute
 differences of the data if omitted.}
+
+\item{scale}{Whether or not to do scaling of time series to the bootstrapped ones to have
+similar variance to the original data.}
 }
 \value{
 The function returns:
@@ -34,7 +37,9 @@ The function returns:
 \item \code{call} - the call that was used originally;
 \item \code{data} - the original data used in the function;
 \item \code{boot} - the matrix with the new series in columns and observations in rows.
-\item \code{type} - type of the bootstrap used.}
+\item \code{type} - type of the bootstrap used.
+\item \code{sd} - the value of sd used in case of parameteric bootstrap.
+\item \code{scale} - whether the scaling was needed.}
 }
 \description{
 The function implements a bootstrap inspired by the Maximum Entropy Bootstrap

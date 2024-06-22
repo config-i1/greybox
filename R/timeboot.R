@@ -32,9 +32,9 @@
 #' differences of the data.
 #' @param lag The lag to use in the calculation of differences. Should be 1 for non-seasonal
 #' data.
-#' @param scale Scale (sd) to use in the normal distribution. Estimated as mean absolute
+#' @param sd Standard deviation to use in the normal distribution. Estimated as mean absolute
 #' differences of the data if omitted.
-#' @param scaling Whether to do scaling of time series to the bootstrapped ones to have
+#' @param scale Whether or not to do scaling of time series to the bootstrapped ones to have
 #' similar variance to the original data.
 #'
 #' @return The function returns:
@@ -42,7 +42,9 @@
 #' \item \code{call} - the call that was used originally;
 #' \item \code{data} - the original data used in the function;
 #' \item \code{boot} - the matrix with the new series in columns and observations in rows.
-#' \item \code{type} - type of the bootstrap used.}
+#' \item \code{type} - type of the bootstrap used.
+#' \item \code{sd} - the value of sd used in case of parameteric bootstrap.
+#' \item \code{scale} - whether the scaling was needed.}
 #'
 #' @template author
 #' @template keywords
@@ -59,8 +61,8 @@
 timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
                      type=c("additive","multiplicative"),
                      kind=c("nonparametric","parametric"),
-                     lag=frequency(y), scale=NULL,
-                     scaling=TRUE){
+                     lag=frequency(y), sd=NULL,
+                     scale=TRUE){
     cl <- match.call();
 
     type <- match.arg(type);
@@ -81,7 +83,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
         # Bootstrap the demand sizes
         ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent="no",
-                               type=type, kind=kind, lag=1, scale=scale);
+                               type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
         # Make sure that we don't have negative values if there are no in the original data
         if(all(ySizes>0)){
@@ -95,7 +97,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
         # Bootstrap the interval sizes
         yIntervalsBoot <- timeboot(yIntervals, nsim=nsim, intermittent="no",
-                                   type=type, kind=kind, lag=1, scale=scale);
+                                   type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
         # Round up intervals
         yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot));
@@ -189,15 +191,15 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
     }
     else{
         # Calculate scale if it is not provided
-        if(is.null(scale)){
+        if(is.null(sd)){
             # This gives robust estimate of scale
-            scale <- mean(abs(diff(yTransformed,lag=lag)));
+            sd <- mean(abs(diff(yTransformed,lag=lag)));
             # This is one sensitive to outliers
             # scale <- sd(diff(yTransformed,lag=lag));
         }
 
         #### Normal distribution randomness ####
-        yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, scale), obsInsample, nsim);
+        yDiffsNew <- matrix(rnorm(obsInsample*nsim, 0, sd), obsInsample, nsim);
     }
 
     # Sort values to make sure that we have similar structure in the end
@@ -210,7 +212,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
     if(type=="multiplicative"){
         # Do scaling to get it closer to the variance of y
-        if(scaling){
+        if(scale){
             # Scale things to get the same mean as in the sample
             sdData <- sd(y)/sqrt(length(y));
             sdBoot <- sd(apply(exp(yNew), 2, mean));
@@ -222,7 +224,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
     }
     else{
         # Do scaling to get it closer to the variance of y
-        if(scaling){
+        if(scale){
             # Scale things to get the same mean as in the sample
             sdData <- sd(y)/sqrt(length(y));
             sdBoot <- sd(apply(yNew, 2, mean));
@@ -233,7 +235,7 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
         yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + y, 2, sort);
     }
 
-    return(structure(list(call=cl, data=y, boot=yNew, type=type), class="timeboot"));
+    return(structure(list(call=cl, data=y, boot=yNew, type=type, sd=sd, scale=scale), class="timeboot"));
 }
 
 #' @export
