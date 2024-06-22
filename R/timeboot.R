@@ -205,10 +205,10 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
     # Sort values to make sure that we have similar structure in the end
     yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
 
-    # Make sure that the variance of the data is stable
-    yNewVar <- apply(yNew, 1, var);
-    yNewVarMean <- mean(yNewVar);
-    yNew[] <- yTransformed + (yNewVarMean/yNewVar) * (yNew - yTransformed);
+    # Make sure that the SD of the data is constant
+    yNewSD <- apply(yNew, 1, sd);
+    yNewSDMean <- mean(yNewSD);
+    yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
 
     if(type=="multiplicative"){
         # Do scaling to get it closer to the variance of y
