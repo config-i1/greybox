@@ -58,7 +58,7 @@
 #' @rdname timeboot
 #' @importFrom stats supsmu
 #' @export
-timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
+timeboot <- function(y, nsim=100, intermittent=TRUE,
                      type=c("additive","multiplicative"),
                      kind=c("nonparametric","parametric"),
                      lag=frequency(y), sd=NULL,
@@ -67,135 +67,157 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
 
     type <- match.arg(type);
     kind <- match.arg(kind);
-    intermittent <- match.arg(intermittent);
-
 
     # Sample size and new data
     obsInsample <- length(y);
+    otU <- rep(TRUE, obsInsample);
+    yIsInteger <- FALSE;
 
     # If we have intermittent demand, do timeboot for demand sizes and intervals
-    if((intermittent=="yes") && any(y==0)){
-        otU <- y!=0;
-        obsNonZero <- sum(otU);
-        ySizes <- y[otU];
-        yIsInteger <- all(ySizes==trunc(ySizes));
-        yIntervals <- diff(c(0,which(otU)));
+    if(any(y==0)){
+        otU[] <- y!=0;
+        if(intermittent){
+            obsNonZero <- sum(otU);
+            ySizes <- y[otU];
+            yIsInteger <- all(ySizes==trunc(ySizes));
+            # -1 is needed to get the thing closer to the geometric distribution (start from zero)
+            yIntervals <- diff(c(0,which(otU)))-1;
 
-        # Bootstrap the demand sizes
-        ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent="no",
-                               type=type, kind=kind, lag=1, sd=sd, scale=scale);
-
-        # Make sure that we don't have negative values if there are no in the original data
-        if(all(ySizes>0)){
-            ySizesBoot$boot[] <- abs(ySizesBoot$boot);
-        }
-
-        # Round up sizes if they are integer in the original data
-        if(yIsInteger){
-            ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
-        }
-
-        # Bootstrap the interval sizes
-        yIntervalsBoot <- timeboot(yIntervals, nsim=nsim, intermittent="no",
+            # Bootstrap the demand sizes
+            ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent=FALSE,
                                    type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
-        # Round up intervals
-        yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot));
-        yIndices <- apply(yIntervalsBoot$boot, 2, cumsum);
+            # Make sure that we don't have negative values if there are no in the original data
+            if(all(ySizes>0)){
+                ySizesBoot$boot[] <- abs(ySizesBoot$boot);
+            }
 
-        # Form a bigger matrix
-        yNew <- matrix(0, max(c(yIndices, obsInsample)), nsim);
-        # Insert demand sizes
-        yNew[cbind(as.vector(yIndices), rep(1:nsim, each=obsNonZero))] <- ySizesBoot$boot;
+            # Round up sizes if they are integer in the original data
+            if(yIsInteger){
+                ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
+            }
 
-        return(structure(list(call=cl, data=y,
-                              # Trim the data to return the same sample size
-                              boot=ts(yNew[1:obsInsample,], frequency=frequency(y), start=start(y)),
-                              type=type,
-                              sizes=ySizesBoot, intervals=yIntervalsBoot),
-                         class="timeboot"));
+            # Bootstrap the interval sizes
+            yIntervalsBoot <- timeboot(yIntervals, nsim=nsim, intermittent=FALSE,
+                                       type=type, kind=kind, lag=1, sd=sd, scale=scale);
+
+            # Round up intervals and add 1 to get back to the original data
+            yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot))+1;
+            yIndices <- apply(yIntervalsBoot$boot, 2, cumsum);
+
+            # Form a bigger matrix
+            yNew <- matrix(0, max(c(yIndices, obsInsample)), nsim);
+            # Insert demand sizes
+            yNew[cbind(as.vector(yIndices), rep(1:nsim, each=obsNonZero))] <- ySizesBoot$boot;
+
+            return(structure(list(call=cl, data=y,
+                                  # Trim the data to return the same sample size
+                                  boot=ts(yNew[1:obsInsample,], frequency=frequency(y), start=start(y)),
+                                  type=type,
+                                  sizes=ySizesBoot, intervals=yIntervalsBoot),
+                             class="timeboot"));
+        }
+        else{
+            yIsInteger <- all(y==trunc(y));
+        }
     }
+    # Record, where zeroes were originally
+    otUIDsZeroes <- which(!otU);
 
-    if(any(y<=0) && type=="multiplicative"){
-        type[] <- "additive";
-        warning("Data has non-positive values. Switching bootstrap type to 'additive'.",
-                call.=FALSE);
-    }
+    # if(any(y<=0) && type=="multiplicative"){
+    #     type[] <- "additive";
+    #     warning("Data has non-positive values. Switching bootstrap type to 'additive'.",
+    #             call.=FALSE);
+    # }
 
     # The matrix for the new data
     yNew <- ts(matrix(NA, obsInsample, nsim),
                frequency=frequency(y), start=start(y));
-    # Ordered values
-    yOrder <- order(y);
-    ySorted <- sort(y);
-    # Intermediate points are done via a sensitive lowess
-    # This is because the sorted values have "trend"
-    # yIntermediate <- lowess(ySorted, f=0.02)$y;
-    yIntermediate <- ySorted;
 
     yTransformed <- y;
+
+    # Ordered values
+    yOrder <- order(yTransformed);
+    ySorted <- sort(yTransformed);
+
     if(type=="multiplicative"){
-        yTransformed[] <- log(y);
+        yTransformed[yTransformed==0] <- NA;
+        yTransformed[] <- log(yTransformed);
+        ySorted[ySorted==0] <- NA;
         ySorted[] <- log(ySorted);
-        yIntermediate[] <- log(yIntermediate);
     }
+    yIntermediate <- ySorted;
+    idsNonNAs <- !is.na(ySorted);
+
+    # Reset sample size to remove NAs
+    obsInsample[] <- sum(idsNonNAs);
 
     # Smooth the sorted series. This reduces impact of outliers and is just cool to do
-    yIntermediate <- supsmu(x=1:length(yIntermediate), yIntermediate)$y;
+    yIntermediate[idsNonNAs] <- supsmu(x=1:obsInsample, ySorted[idsNonNAs])$y;
 
     if(kind=="nonparametric"){
-        #### Differences are needed only for the non-parametric approach ####
-        # Prepare differences
-        # yDiffs <- sort(diff(ySorted));
-        yDiffs <- sort(diff(yTransformed));
-        yDiffsLength <- length(yDiffs);
-        # Remove potential outliers
-        # yDiffs <- yDiffs[1:round(yDiffsLength*(1-0.05),0)];
-        # Remove NaNs if they exist
-        yDiffs <- yDiffs[!is.nan(yDiffs)];
-        # Leave only finite values
-        yDiffs <- yDiffs[is.finite(yDiffs)];
-        # Create a contingency table
-        yDiffsLength[] <- length(yDiffs);
-        # yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
-        # Form vector larger than yDifsLength to "take care" of tails
-        yDiffsCumulative <- seq(0,1,length.out=yDiffsLength+2)[-c(1,yDiffsLength+2)];
-        # smooth the original differences
-        ySplined <- supsmu(yDiffsCumulative, yDiffs);
+        if(obsInsample>1){
+            #### Differences are needed only for the non-parametric approach ####
+            # Prepare differences
+            # yDiffs <- sort(diff(ySorted));
+            yDiffs <- sort(diff(yTransformed));
+            yDiffsLength <- length(yDiffs);
+            # Remove potential outliers
+            # yDiffs <- yDiffs[1:round(yDiffsLength*(1-0.02),0)];
+            # Remove NaNs if they exist
+            yDiffs <- yDiffs[!is.nan(yDiffs)];
+            # Leave only finite values
+            yDiffs <- yDiffs[is.finite(yDiffs)];
+            # Create a contingency table
+            yDiffsLength[] <- length(yDiffs);
+            # yDiffsCumulative <- cumsum(table(yDiffs)/(yDiffsLength));
+            # Form vector larger than yDifsLength to "take care" of tails
+            yDiffsCumulative <- seq(0,1,length.out=yDiffsLength+2)[-c(1,yDiffsLength+2)];
+            # smooth the original differences
+            ySplined <- supsmu(yDiffsCumulative, yDiffs);
 
-        #### Uniform selection of differences ####
-        # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
-        # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-        #                         yDiffs[yRandom],
-        #                     obsInsample, nsim);
+            #### Uniform selection of differences ####
+            # yRandom <- sample(1:yDiffsLength, size=obsInsample*nsim, replace=TRUE);
+            # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+            #                         yDiffs[yRandom],
+            #                     obsInsample, nsim);
 
-        # Random probabilities to select differences
-        # yRandom <- runif(obsInsample*nsim, 0, 1);
+            # Random probabilities to select differences
+            # yRandom <- runif(obsInsample*nsim, 0, 1);
 
-        #### Select differences based on histogram ####
-        # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-        #                         yDiffs[findInterval(yRandom,yDiffsCumulative)+1],
-        #                     obsInsample, nsim);
+            #### Select differences based on histogram ####
+            # yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+            #                         yDiffs[findInterval(yRandom,yDiffsCumulative)+1],
+            #                     obsInsample, nsim);
 
-        #### Differences based on interpolated cumulative values ####
-        # Generate the new ones
-        # yDiffsNew <- matrix(ySplined$y[findInterval(yRandom,ySplined$x)+1],
-        #                     obsInsample, nsim);
+            #### Differences based on interpolated cumulative values ####
+            # Generate the new ones
+            # yDiffsNew <- matrix(ySplined$y[findInterval(yRandom,ySplined$x)+1],
+            #                     obsInsample, nsim);
 
-        # Generate the new ones
-        # approx uses linear approximation to interpolate values
-        yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
-                                approx(ySplined$x, ySplined$y, xout=runif(obsInsample*nsim, 0, 1),
-                                       rule=2)$y,
-                            obsInsample, nsim);
+            # Generate the new ones
+            # approx uses linear approximation to interpolate values
+            yDiffsNew <- matrix(sample(c(-1,1), size=obsInsample*nsim, replace=TRUE) *
+                                    approx(ySplined$x, ySplined$y, xout=runif(obsInsample*nsim, 0, 1),
+                                           rule=2)$y,
+                                obsInsample, nsim);
+        }
+        else{
+            yDiffsNew <- matrix(0, obsInsample, nsim);
+        }
     }
     else{
         # Calculate scale if it is not provided
         if(is.null(sd)){
-            # This gives robust estimate of scale
-            sd <- mean(abs(diff(yTransformed,lag=lag)));
-            # This is one sensitive to outliers
-            # scale <- sd(diff(yTransformed,lag=lag));
+            if(obsInsample>1){
+                # This gives robust estimate of scale
+                sd <- mean(abs(diff(yTransformed,lag=lag)), na.rm=TRUE);
+                # This is one sensitive to outliers
+                # scale <- sd(diff(yTransformed,lag=lag));
+            }
+            else{
+                sd <- 1;
+            }
         }
 
         #### Normal distribution randomness ####
@@ -203,30 +225,40 @@ timeboot <- function(y, nsim=100, intermittent=c("yes","no"),
     }
 
     # Sort values to make sure that we have similar structure in the end
-    yNew[yOrder,] <- apply(yIntermediate + yDiffsNew, 2, sort);
+    yNew[yOrder,] <- rbind(matrix(NA, sum(!idsNonNAs), nsim),
+                           apply(yIntermediate[idsNonNAs] + yDiffsNew, 2, sort));
 
-    # Make sure that the SD of the data is constant
-    yNewSD <- apply(yNew, 1, sd);
-    yNewSDMean <- mean(yNewSD);
-    yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
+    # Don't do this for samples of one...
+    if(obsInsample>1){
+        # Make sure that the SD of the data is constant
+        yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
+        yNewSDMean <- median(yNewSD, na.rm=TRUE);
+        yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
 
-    # Scale things to get the same sd of mean as in the sample
-    if(scale){
-        sdData <- sd(y)/sqrt(length(y));
-        if(type=="multiplicative"){
-            sdBoot <- sd(apply(exp(yNew), 2, mean));
+        # Scale things to get the same sd of mean as in the sample
+        if(scale){
+            sdData <- sd(y)/sqrt(length(y));
+            if(type=="multiplicative"){
+                sdBoot <- sd(apply(exp(yNew), 2, mean, na.rm=TRUE));
+            }
+            else{
+                sdBoot <- sd(apply(yNew, 2, mean, na.rm=TRUE));
+            }
+            # Scale data and sort again to maintain smoothness
+            yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort, na.last=FALSE);
         }
-        else{
-            sdBoot <- sd(apply(yNew, 2, mean));
-        }
-        # Scale data and sort again to maintain smoothness
-        yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort);
     }
     # Centre the points around the original data
-    yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean) + yTransformed, 2, sort);
+    yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed, 2, sort, na.last=FALSE);
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
+    }
+
+    yNew[otUIDsZeroes,] <- 0;
+
+    if(yIsInteger){
+        yNew[] <- ceiling(yNew);
     }
 
     return(structure(list(call=cl, data=y, boot=yNew, type=type, sd=sd, scale=scale), class="timeboot"));

@@ -4,9 +4,9 @@
 \alias{timeboot}
 \title{Time series bootstrap}
 \usage{
-timeboot(y, nsim = 100, intermittent = c("yes", "no"),
-  type = c("additive", "multiplicative"), kind = c("nonparametric",
-  "parametric"), lag = frequency(y), sd = NULL, scale = TRUE)
+timeboot(y, nsim = 100, intermittent = TRUE, type = c("additive",
+  "multiplicative"), kind = c("nonparametric", "parametric"),
+  lag = frequency(y), sd = NULL, scale = TRUE)
 }
 \arguments{
 \item{y}{The original time series}

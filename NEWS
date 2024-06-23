@@ -1,10 +1,11 @@
-greybox v2.0.1 (Release data: 2024-06-22)
+greybox v2.0.1 (Release data: 2024-06-23)
 ==============
 
 Changes:
 * Accept ellipsis in coefbootstrap().
 * adi() now accepts the parameter loss, which is "likelihood" by default.
 * Tuning of timeboot() and changes in some of its parameters.
+* timeboot() now works with data which has some zeroes, but is not intermittent, when intermittent=F.
 
 
 greybox v2.0.1 (Release data: 2024-06-18)
