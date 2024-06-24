@@ -140,6 +140,7 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     yOrder <- order(yTransformed);
     ySorted <- sort(yTransformed);
 
+    # Logarithmic transformations of the original data
     if(type=="multiplicative"){
         yTransformed[yTransformed==0] <- NA;
         yTransformed[] <- log(yTransformed);
@@ -255,8 +256,10 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
         yNew[] <- exp(yNew);
     }
 
+    # Recreate zeroes where they were in the original data
     yNew[otUIDsZeroes,] <- 0;
 
+    # Round up values if the original data was integer
     if(yIsInteger){
         yNew[] <- ceiling(yNew);
     }
@@ -287,7 +290,12 @@ plot.timeboot <- function(x, sorted=FALSE, ...){
     }
 
     if(is.null(ellipsis$xlab)){
-        ellipsis$xlab <- "Probability";
+        if(sorted){
+            ellipsis$xlab <- "Probability";
+        }
+        else{
+            ellipsis$xlab <- "Time";
+        }
     }
 
     if(is.null(ellipsis$ylab)){
