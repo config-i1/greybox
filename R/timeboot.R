@@ -210,9 +210,12 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     else{
         # Calculate scale if it is not provided
         if(is.null(sd)){
+            if(lag>obsInsample){
+                lag[] <- 1;
+            }
             if(obsInsample>1){
                 # This gives robust estimate of scale
-                sd <- mean(abs(diff(yTransformed,lag=lag)), na.rm=TRUE);
+                sd <- mean(abs(diff(yTransformed[!is.na(yTransformed)],lag=lag)), na.rm=TRUE);
                 # This is one sensitive to outliers
                 # scale <- sd(diff(yTransformed,lag=lag));
             }
