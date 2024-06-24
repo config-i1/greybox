@@ -231,10 +231,10 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     yNew[] <- rbind(matrix(NA, sum(!idsNonNAs), nsim),
                     yIntermediate[idsNonNAs] + yDiffsNew);
 
-    # Don't do this for samples of one...
-    if(obsInsample>1){
+    # sd of y with one observation is not defined
+    if(obsInsample>1 && scale){
         # Scale things to get the same sd of mean as in the sample
-        if(scale){
+        # if(scale){
             sdData <- sd(y)/sqrt(length(y));
             if(type=="multiplicative"){
                 sdBoot <- sd(apply(exp(yNew), 2, mean, na.rm=TRUE));
@@ -244,21 +244,28 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
             }
             # Scale data
             yNew[] <- yIntermediate + (sdData/sdBoot) * (yNew - yIntermediate);
-        }
-
+        # }
+        #
         # Make sure that the SD of the data is constant
-        if(type=="multiplicative"){
-            yNewSD <- sqrt(apply((exp(yNew) - exp(yIntermediate))^2, 1, mean, na.rm=TRUE));
-        }
-        else{
-            yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
-        }
-        yNew[] <- yIntermediate + (sd(y)/yNewSD) * (yNew - yIntermediate);
+        # if(type=="multiplicative"){
+        #     yNewSD <- sqrt(apply((exp(yNew) - exp(yIntermediate))^2, 1, mean, na.rm=TRUE));
+        # }
+        # else{
+        #     yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
+        # }
+        # yNew[] <- yIntermediate + (sd(y)/yNewSD) * (yNew - yIntermediate);
     }
     # Sort things
     yNew[yOrder,] <- apply(yNew, 2, sort, na.last=FALSE);
     # Centre the points around the original data
-    yNew[] <- yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed;
+    yNew[] <- yTransformed + yNew - apply(yNew, 1, mean, na.rm=TRUE);
+
+    if(obsInsample>1){
+        # Make sure that the SD of the data is constant
+        yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
+        # yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed)
+        yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed)
+    }
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
