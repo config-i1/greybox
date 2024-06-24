@@ -59,7 +59,7 @@
 #' @importFrom stats supsmu
 #' @export
 timeboot <- function(y, nsim=100, intermittent=TRUE,
-                     type=c("additive","multiplicative"),
+                     type=c("multiplicative","additive"),
                      kind=c("nonparametric","parametric"),
                      lag=frequency(y), sd=NULL,
                      scale=TRUE){
