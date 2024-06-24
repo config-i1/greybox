@@ -233,11 +233,6 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
 
     # Don't do this for samples of one...
     if(obsInsample>1){
-        # Make sure that the SD of the data is constant
-        yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
-        yNewSDMedian <- median(yNewSD, na.rm=TRUE);
-        yNew[] <- yIntermediate + (yNewSDMedian/yNewSD) * (yNew - yIntermediate);
-
         # Scale things to get the same sd of mean as in the sample
         if(scale){
             sdData <- sd(y)/sqrt(length(y));
@@ -250,6 +245,15 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
             # Scale data
             yNew[] <- yIntermediate + (sdData/sdBoot) * (yNew - yIntermediate);
         }
+
+        # Make sure that the SD of the data is constant
+        if(type=="multiplicative"){
+            yNewSD <- sqrt(apply((exp(yNew) - exp(yIntermediate))^2, 1, mean, na.rm=TRUE));
+        }
+        else{
+            yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
+        }
+        yNew[] <- yIntermediate + (sd(y)/yNewSD) * (yNew - yIntermediate);
     }
     # Sort things
     yNew[yOrder,] <- apply(yNew, 2, sort, na.last=FALSE);
