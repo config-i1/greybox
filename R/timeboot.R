@@ -161,7 +161,7 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
             #### Differences are needed only for the non-parametric approach ####
             # Prepare differences
             # yDiffs <- sort(diff(ySorted));
-            yDiffs <- sort(diff(yTransformed));
+            yDiffs <- sort(diff(yTransformed[!is.na(yTransformed)]));
             yDiffsLength <- length(yDiffs);
             # Remove potential outliers
             # yDiffs <- yDiffs[1:round(yDiffsLength*(1-0.02),0)];
@@ -211,7 +211,7 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
         # Calculate scale if it is not provided
         if(is.null(sd)){
             if(lag>obsInsample){
-                lag[] <- 1;
+                lag <- 1;
             }
             if(obsInsample>1){
                 # This gives robust estimate of scale
