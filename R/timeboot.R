@@ -226,15 +226,20 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     }
 
     # Sort values to make sure that we have similar structure in the end
-    yNew[yOrder,] <- rbind(matrix(NA, sum(!idsNonNAs), nsim),
-                           apply(yIntermediate[idsNonNAs] + yDiffsNew, 2, sort));
+    # yNew[yOrder,] <- rbind(matrix(NA, sum(!idsNonNAs), nsim),
+    #                        apply(yIntermediate[idsNonNAs] + yDiffsNew, 2, sort));
+    yNew[] <- rbind(matrix(NA, sum(!idsNonNAs), nsim),
+                    yIntermediate[idsNonNAs] + yDiffsNew);
 
     # Don't do this for samples of one...
     if(obsInsample>1){
         # Make sure that the SD of the data is constant
-        yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
+        # yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
+        # yNewSDMean <- median(yNewSD, na.rm=TRUE);
+        # yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
+        yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
         yNewSDMean <- median(yNewSD, na.rm=TRUE);
-        yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
+        yNew[] <- yIntermediate + (yNewSDMean/yNewSD) * (yNew - yIntermediate);
 
         # Scale things to get the same sd of mean as in the sample
         if(scale){
@@ -246,11 +251,14 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
                 sdBoot <- sd(apply(yNew, 2, mean, na.rm=TRUE));
             }
             # Scale data and sort again to maintain smoothness
-            yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort, na.last=FALSE);
+            # yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort, na.last=FALSE);
+            yNew[] <- yIntermediate + (sdData/sdBoot) * (yNew - yIntermediate);
         }
     }
     # Centre the points around the original data
-    yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed, 2, sort, na.last=FALSE);
+    yNew[yOrder,] <- apply(yNew, 2, sort, na.last=FALSE);
+    yNew[] <- yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed;
+    # yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed, 2, sort, na.last=FALSE);
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
