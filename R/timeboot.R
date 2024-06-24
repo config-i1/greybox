@@ -234,12 +234,9 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     # Don't do this for samples of one...
     if(obsInsample>1){
         # Make sure that the SD of the data is constant
-        # yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
-        # yNewSDMean <- median(yNewSD, na.rm=TRUE);
-        # yNew[] <- yTransformed + (yNewSDMean/yNewSD) * (yNew - yTransformed);
         yNewSD <- sqrt(apply((yNew - yIntermediate)^2, 1, mean, na.rm=TRUE));
-        yNewSDMean <- median(yNewSD, na.rm=TRUE);
-        yNew[] <- yIntermediate + (yNewSDMean/yNewSD) * (yNew - yIntermediate);
+        yNewSDMedian <- median(yNewSD, na.rm=TRUE);
+        yNew[] <- yIntermediate + (yNewSDMedian/yNewSD) * (yNew - yIntermediate);
 
         # Scale things to get the same sd of mean as in the sample
         if(scale){
@@ -250,15 +247,14 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
             else{
                 sdBoot <- sd(apply(yNew, 2, mean, na.rm=TRUE));
             }
-            # Scale data and sort again to maintain smoothness
-            # yNew[yOrder,] <- apply(yTransformed + (sdData/sdBoot) * (yNew - yTransformed), 2, sort, na.last=FALSE);
+            # Scale data
             yNew[] <- yIntermediate + (sdData/sdBoot) * (yNew - yIntermediate);
         }
     }
-    # Centre the points around the original data
+    # Sort things
     yNew[yOrder,] <- apply(yNew, 2, sort, na.last=FALSE);
+    # Centre the points around the original data
     yNew[] <- yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed;
-    # yNew[yOrder,] <- apply(yNew - apply(yNew, 1, mean, na.rm=TRUE) + yTransformed, 2, sort, na.last=FALSE);
 
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
