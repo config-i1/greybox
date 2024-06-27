@@ -1,4 +1,4 @@
-greybox v2.0.1 (Release data: 2024-06-23)
+greybox v2.0.1 (Release data: 2024-06-27)
 ==============
 
 Changes:
@@ -6,6 +6,7 @@ Changes:
 * adi() now accepts the parameter loss, which is "likelihood" by default.
 * Tuning of timeboot() and changes in some of its parameters.
 * timeboot() now works with data which has some zeroes, but is not intermittent, when intermittent=F.
+* Substituted LOWESS with Friedman's Super Smoother.
 
 
 greybox v2.0.1 (Release data: 2024-06-18)

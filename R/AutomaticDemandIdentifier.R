@@ -63,7 +63,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # 0 is for the new products, length(y) is to track obsolescence
     yIntervals <- diff(c(0,which(y!=0),length(y)+1));
     xregDataIntervals <- data.frame(y=yIntervals,
-                                    x=lowess(yIntervals)$y);
+                                    x=supsmu(1:length(yIntervals),yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
     # Use Robust likelihood to get rid of potential strong outliers
@@ -97,7 +97,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                            2:(length(yIntervals)-1),
                            length(yIntervals)[!productObsolete]);
         xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs],
-                                        x=lowess(yIntervals[yIntervalsIDs])$y);
+                                        x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
 
         # Apply Geometric distribution model to check for stockouts
         stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
@@ -149,13 +149,13 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     #### Checking the demand type ####
     # The original data
     xregData <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
-    xregData$x <- lowess(xregData$y)$y;
+    xregData$x <- supsmu(1:length(xregData$y),xregData$y)$y;
 
     # Data for demand sizes
     # Drop zeroes in the beginning/end based on productNew/productObsolete
     xregDataSizes <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
     xregDataSizes$x[] <- 0;
-    xregDataSizes$x[xregDataSizes$y!=0] <- lowess(xregDataSizes$y[xregDataSizes$y!=0])$y;
+    xregDataSizes$x[xregDataSizes$y!=0] <- supsmu(1:sum(xregDataSizes$y!=0),xregDataSizes$y[xregDataSizes$y!=0])$y;
     # Fill in the gaps for demand sizes
     xregDataSizes$x[xregDataSizes$y==0] <- NA;
     xregDataSizes$x[] <- approx(xregDataSizes$x, xout=c(1:nrow(xregDataSizes)), rule=2)$y;
@@ -173,7 +173,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Data for demand occurrence
     xregDataOccurrence <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
     xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
-    xregDataOccurrence$x[] <- lowess(xregDataOccurrence$y)$y;
+    xregDataOccurrence$x[] <- supsmu(1:length(xregDataOccurrence$y),xregDataOccurrence$y)$y;
 
     # If there is no variability in LOWESS, use the fixed probability
     if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
