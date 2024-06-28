@@ -266,6 +266,12 @@ plot.adi <- function(x, ...){
 
     ids <- time(x$y);
     plot(x$y, ...);
-    abline(v=ids[x$stockouts$start], col=2);
-    abline(v=ids[x$stockouts$end], col=3, lty=2);
+    if(length(x$stockouts$start)>1){
+        abline(v=ids[x$stockouts$start], col=2);
+        abline(v=ids[x$stockouts$end], col=3, lty=2);
+        # Get the ylim used for plotting
+        ylim <- par("yaxp")[1:2];
+        rect(ids[x$stockouts$start], min(ylim[1],0), ids[x$stockouts$end], ylim[2]+5,
+             col="lightgrey", border=NA, density=20)
+    }
 }
