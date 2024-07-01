@@ -33,7 +33,7 @@ being sampled. This is passed to the \link[base]{sample} as well.}
 \item{parallel}{Either a logical, specifying whether to do the calculations in parallel,
 or the number, specifying the number of cores to use for the parallel calculation.}
 
-\item{...}{Other parameters passed to the \link[greybox]{timeboot()} function.}
+\item{...}{Other parameters passed to the \link[greybox]{timeboot} function.}
 }
 \value{
 Class "bootstrap" is returned, which contains:
