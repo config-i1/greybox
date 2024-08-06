@@ -82,7 +82,7 @@ pointLik.alm <- function(object, log=TRUE, ...){
                              "dt" = dt(y-mu, df=scale, log=log),
                              "ds" = ds(y, mu=mu, scale=scale, log=log),
                              "dls" = ds(log(y), mu=mu, scale=scale, log=log),
-                             "dgeom" = dgeom(y, prob=1/mu, log=log),
+                             "dgeom" = dgeom(y, prob=1/(mu+1), log=log),
                              "dpois" = dpois(y, lambda=mu, log=log),
                              "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=log),
                              "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=log),
@@ -158,7 +158,7 @@ pointLik.ets <- function(object, log=TRUE, ...){
 #' @importFrom stats pgeom pnbinom ppois
 pointLikCumulative <- function(object, ...){
     return(switch(object$distribution,
-                  "dgeom"=pgeom(actuals(object), 1/object$mu),
+                  "dgeom"=pgeom(actuals(object), 1/(object$mu+1)),
                   "dpois"=ppois(actuals(object), lambda=object$mu),
                   "dnbinom"=pnbinom(actuals(object), mu=object$mu, size=object$other$size)));
 }
