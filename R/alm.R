@@ -174,6 +174,7 @@
 #' \item loss - the type of the loss function used in the estimation,
 #' \item lossFunction - the loss function, if the custom is provided by the user,
 #' \item lossValue - the value of the loss function,
+#' \item res - the output of the optimisation (nloptr function),
 #' \item df.residual - number of degrees of freedom of the residuals of the model,
 #' \item df - number of degrees of freedom of the model,
 #' \item call - how the model was called,
@@ -1988,6 +1989,7 @@ alm <- function(formula, data, subset, na.action,
         }
         variablesNamesAll <- colnames(matrixXreg);
         CFValue <- CF(B, distribution, loss, y, matrixXreg, recursiveModel, denominator);
+        res <- NULL;
     }
 
     #### Form the fitted values, location and scale ####
@@ -2156,7 +2158,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Amend the number of parameters, depending on the type of distribution
-    if(any(distribution==c("dnbinom","dchisq","dt",
+    if(any(distribution==c("dchisq","dt",
                            "dbcnorm","dgnorm","dlgnorm","dalaplace"))){
         if(!aParameterProvided){
             nParam <- nParam + 1;
@@ -2304,7 +2306,7 @@ alm <- function(formula, data, subset, na.action,
 
     finalModel <- structure(list(coefficients=parameters, FI=FI, fitted=yFitted, residuals=as.vector(errors),
                                  mu=mu, scale=scale, distribution=distribution, logLik=logLik,
-                                 loss=loss, lossFunction=lossFunction, lossValue=CFValue,
+                                 loss=loss, lossFunction=lossFunction, lossValue=CFValue, res=res,
                                  df.residual=obsInsample-nParam, df=nParam, call=cl, rank=nParam,
                                  data=dataWork, terms=dataTerms,
                                  occurrence=occurrence, subset=subset, other=ellipsis, B=B,
