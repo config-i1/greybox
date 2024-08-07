@@ -10,6 +10,7 @@ Changes:
 * Dropped the smooth lines for the stockouts in adi() - the fixed probability seems to work fine.
 * Dropped the stockout periods in the demand model of adi().
 * We now return res in alm() to see how nloptr worked.
+* Diferent initialisation for the NegBin and positive distributions in case of y containing zeroes in alm().
 
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.

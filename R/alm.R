@@ -431,8 +431,7 @@ alm <- function(formula, data, subset, na.action,
                        "dgamma"=,
                        "dexp"=,
                        "dpois" =,
-                       "dnbinom" = exp(matrixXreg %*% B),
-                       # +1 is needed to make sure that probability lies between 0 and 1
+                       "dnbinom" =,
                        "dgeom" = exp(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
@@ -1545,7 +1544,9 @@ alm <- function(formula, data, subset, na.action,
                                        "dinvgauss","dgamma","dexp"))){
                     if(any(y[otU]==0)){
                         # Use Box-Cox if there are zeroes
-                        B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
+                        # B <- .lm.fit(matrixXreg[otU,,drop=FALSE],bcTransform(y[otU],0.01))$coefficients;
+                        # Shift y by one and do log transform
+                        B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]+1))$coefficients;
                     }
                     else{
                         B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]))$coefficients;
