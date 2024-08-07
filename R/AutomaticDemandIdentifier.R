@@ -67,25 +67,27 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     # Apply Geometric distribution model to check for stockouts
     # Use Robust likelihood to get rid of potential strong outliers
-    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-
-    if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-        stockoutModel <- stockoutModelIntercept;
-    }
+    stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+    # stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+    #
+    # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+    #     stockoutModel <- stockoutModelIntercept;
+    # }
 
     probabilities <- pointLikCumulative(stockoutModel);
+
+    # Instead of comparing with the level, see anomalies in comparison with the neighbours!
 
     # Binaries for new/obsolete products to track zeroes in the beginning/end of data
     productNew <- FALSE;
     productObsolete <- FALSE;
 
     # If the first one is above the threshold, it is a "new product"
-    if(probabilities[1]>level){
+    if(probabilities[1]>level && yIntervals[1]!=1){
         productNew[] <- TRUE;
     }
     # If the last one is above the threshold, it must be obsolescence
-    if(tail(probabilities,1)>level){
+    if(tail(probabilities,1)>level && tail(yIntervals,1)!=1){
         productObsolete[] <- TRUE;
     }
 
@@ -100,12 +102,12 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                                         x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
 
         # Apply Geometric distribution model to check for stockouts
-        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-        stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        # stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
 
-        if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-            stockoutModel <- stockoutModelIntercept;
-        }
+        # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+        #     stockoutModel <- stockoutModelIntercept;
+        # }
 
         probabilities <- c(c(0)[productNew],
                            pointLikCumulative(stockoutModel),
@@ -266,7 +268,7 @@ plot.adi <- function(x, ...){
 
     ids <- time(x$y);
     plot(x$y, ...);
-    if(length(x$stockouts$start)>1){
+    if(length(x$stockouts$start)>0){
         abline(v=ids[x$stockouts$start], col=2);
         abline(v=ids[x$stockouts$end], col=3, lty=2);
         # Get the ylim used for plotting
