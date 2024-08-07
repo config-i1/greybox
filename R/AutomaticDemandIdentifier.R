@@ -168,7 +168,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     xregDataSizes$x[xregDataSizes$y==0] <- NA;
     xregDataSizes$x[] <- approx(xregDataSizes$x, xout=c(1:nrow(xregDataSizes)), rule=2)$y;
 
-    # If LOWESS didn't work due to high volume of zeroes/ones, use the one from demand sizes
+    # If supsmu didn't work due to high volume of zeroes/ones, use the one from demand sizes
     if(all(xregData$x==0) || all(xregData$x==1)){
         xregData$x[] <- xregDataSizes$x;
     }
@@ -178,22 +178,29 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         xregData$x <- NULL;
     }
 
-    # Data for demand occurrence
-    xregDataOccurrence <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
-    xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
-    xregDataOccurrence$x[] <- supsmu(1:length(xregDataOccurrence$y),xregDataOccurrence$y)$y;
-
-    # If there is no variability in LOWESS, use the fixed probability
-    if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
-        modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
+    zeroesLeft <- FALSE;
+    if(any(y[yIDsToUse]==0)){
+        zeroesLeft <- TRUE;
     }
-    else{
-        # Choose the appropriate occurrence model
-        modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
-        modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis", loss=loss, ...));
 
-        if(IC(modelOccurrenceFixed)<IC(modelOccurrence)){
-            modelOccurrence <- modelOccurrenceFixed;
+    if(zeroesLeft){
+        # Data for demand occurrence
+        xregDataOccurrence <- data.frame(y=y[yIDsToUse], x=y[yIDsToUse])
+        xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
+        xregDataOccurrence$x[] <- supsmu(1:length(xregDataOccurrence$y),xregDataOccurrence$y)$y;
+
+        # If there is no variability in LOWESS, use the fixed probability
+        if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
+            modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
+        }
+        else{
+            # Choose the appropriate occurrence model
+            modelOccurrenceFixed <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
+            modelOccurrence <- suppressWarnings(alm(y~., xregDataOccurrence, distribution="plogis", loss=loss, ...));
+
+            if(IC(modelOccurrenceFixed)<IC(modelOccurrence)){
+                modelOccurrence <- modelOccurrenceFixed;
+            }
         }
     }
 
@@ -201,34 +208,38 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     dataIsInteger <- all(y==trunc(y));
 
     # List for models
-    nModels <- 2
+    nModels <- 4
     idModels <- vector("list", nModels);
-    names(idModels) <- c("regular","intermittent")#,"regular count","intermittent count");
+    names(idModels) <- c("regular","intermittent","regular count","mixture count");
     #,"intermittent slow");
 
     # model 1 is the regular demand
     idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", loss=loss, ...));
     # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
-    # model 2 is the intermittent demand (mixture model)
-    idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", occurrence=modelOccurrence, loss=loss, ...));
-    # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
+    if(zeroesLeft){
+        # model 2 is the intermittent demand (mixture model)
+        idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence, loss=loss, ...));
+        # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
 
-    # If the scale is zero then there must be no variability in demand sizes. Switch them off.
-    if(round(idModels[[2]]$scale,10)==0){
-        idModels[[2]]$logLik <- idModels[[2]]$occurrence$logLik;
+        # If the scale is zero then there must be no variability in demand sizes. Switch them off.
+        if(round(idModels[[2]]$scale,10)==0){
+            idModels[[2]]$logLik <- idModels[[2]]$occurrence$logLik;
+        }
     }
 
     if(dataIsInteger){
-        names(idModels) <- c("count","intermittent count");
+        # names(idModels) <- c("count","intermittent count");
         # model 3 is count data: Negative Binomial distribution
-        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dpois", maxeval=1000));
-        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=200));
+        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dpois"));
+        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=500));
         # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
 
-        # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-        # idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=200));
-        # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+        if(zeroesLeft){
+            # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
+            idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=500));
+            # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+        }
     }
 
     # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
