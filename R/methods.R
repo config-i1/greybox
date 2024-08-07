@@ -511,12 +511,12 @@ nparam.default <- function(object, ...){
 #' @export
 nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
-    # if(!is.null(object$occurrence)){
-    #     return(object$df+object$occurrence$df);
-    # }
-    # else{
+    if(!is.null(object$occurrence)){
+        return(object$df+object$occurrence$df);
+    }
+    else{
         return(object$df);
-    # }
+    }
 }
 
 #' @export
