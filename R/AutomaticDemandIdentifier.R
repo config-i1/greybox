@@ -135,15 +135,15 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     # Record, when stockouts start and finish
     if(any(outliersID==1)){
-        stockoutsStart <- c(1,cumsum(yIntervals)[outliersID-1]);
+        stockoutsStart <- c(1,cumsum(yIntervals)[outliersID-1])+1;
     }
     else{
-        stockoutsStart <- cumsum(yIntervals)[outliersID-1];
+        stockoutsStart <- cumsum(yIntervals)[outliersID-1]+1;
     }
-    stockoutsEnd <- cumsum(yIntervals)[outliersID];
+    stockoutsEnd <- cumsum(yIntervals)[outliersID]-1;
 
     # IDs of stockouts
-    stockoutIDs <- unlist(Map(`:`, stockoutsStart+1, stockoutsEnd-1));
+    stockoutIDs <- unlist(Map(`:`, stockoutsStart, stockoutsEnd));
 
     # IDs that will be used in the next models (to drop zeroes in head/tail)
     yIDsFirst <- cumsum(yIntervals)[yIntervalsIDs[1]];
@@ -275,11 +275,13 @@ plot.adi <- function(x, ...){
     ids <- time(x$y);
     plot(x$y, ...);
     if(length(x$stockouts$start)>0){
-        abline(v=ids[x$stockouts$start], col=2);
-        abline(v=ids[x$stockouts$end], col=3, lty=2);
+        idsStockoutsStart <- ids[x$stockouts$start-1];
+        idsStockoutsEnd <- ids[x$stockouts$end+1];
+        abline(v=idsStockoutsStart, col=2);
+        abline(v=idsStockoutsEnd, col=3, lty=2);
         # Get the ylim used for plotting
         ylim <- par("yaxp")[1:2];
-        rect(ids[x$stockouts$start], min(ylim[1],0), ids[x$stockouts$end], ylim[2]+5,
+        rect(idsStockoutsStart, min(ylim[1]-max(x$y),0), idsStockoutsEnd, ylim[2]+max(x$y),
              col="lightgrey", border=NA, density=20)
     }
 }
