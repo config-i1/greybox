@@ -78,7 +78,8 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
         otU[] <- y!=0;
         if(intermittent){
             obsNonZero <- sum(otU);
-            ySizes <- y[otU];
+            # Get rid of class
+            ySizes <- as.vector(y[otU]);
             yIsInteger <- all(ySizes==trunc(ySizes));
             # -1 is needed to get the thing closer to the geometric distribution (start from zero)
             yIntervals <- diff(c(0,which(otU)))-1;
