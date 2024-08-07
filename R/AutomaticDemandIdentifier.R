@@ -98,8 +98,8 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         yIntervalsIDs <- c(c(1)[!productNew],
                            2:(length(yIntervals)-1),
                            length(yIntervals)[!productObsolete]);
-        xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs],
-                                        x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
+        xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs]);
+                                        # x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
 
         # Apply Geometric distribution model to check for stockouts
         stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
@@ -142,10 +142,16 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     }
     stockoutsEnd <- cumsum(yIntervals)[outliersID];
 
+    # IDs of stockouts
+    stockoutIDs <- unlist(Map(`:`, stockoutsStart+1, stockoutsEnd-1));
+
     # IDs that will be used in the next models (to drop zeroes in head/tail)
     yIDsFirst <- cumsum(yIntervals)[yIntervalsIDs[1]];
     yIDsLast <- cumsum(yIntervals)[tail(yIntervalsIDs,1)];
     yIDsToUse <- seq(yIDsFirst, yIDsLast, 1)-1;
+
+    # Drop stockout periods
+    yIDsToUse <- yIDsToUse[!(yIDsToUse %in% stockoutIDs)];
 
 
     #### Checking the demand type ####
