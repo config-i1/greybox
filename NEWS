@@ -1,4 +1,4 @@
-greybox v2.0.2 (Release data: 2024-08-06)
+greybox v2.0.2 (Release data: 2024-08-07)
 ==============
 
 Changes:
@@ -7,6 +7,8 @@ Changes:
 * Tuning of timeboot() and changes in some of its parameters.
 * timeboot() now works with data which has some zeroes, but is not intermittent, when intermittent=F.
 * Substituted LOWESS with Friedman's Super Smoother.
+* Dropped the smooth lines for the stockouts in adi() - the fixed probability seems to work fine.
+* Dropped the stockout periods in the demand model of adi().
 
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.
