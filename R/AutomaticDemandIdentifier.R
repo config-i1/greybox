@@ -53,7 +53,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     if(all(y!=0)){
         message("The data does not contain any zeroes. It must be regular.");
-        return(structure(list(models=NA, ICs=NA, type="regular non-count",
+        return(structure(list(models=NA, ICs=NA, type="regular",
                               new=FALSE, obsolete=FALSE),
                      class="adi"))
     }
@@ -210,7 +210,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # List for models
     nModels <- 4
     idModels <- vector("list", nModels);
-    names(idModels) <- c("regular","intermittent","regular count","mixture count");
+    names(idModels) <- c("regular","intermittent","count","mixture count");
     #,"intermittent slow");
 
     # model 1 is the regular demand
@@ -218,13 +218,17 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
     if(zeroesLeft){
-        # model 2 is the intermittent demand (mixture model)
-        idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence, loss=loss, ...));
-        # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
-
-        # If the scale is zero then there must be no variability in demand sizes. Switch them off.
-        if(round(idModels[[2]]$scale,10)==0){
-            idModels[[2]]$logLik <- idModels[[2]]$occurrence$logLik;
+        # If the data is just binary, don't do the mixture model, do the Bernoulli
+        # The division by max is needed to also check situations with y %in% (0, a), e.g. a=100
+        if(all((xregData$y/max(xregData$y)) %in% c(0,1))){
+            idModels[[2]] <- modelOccurrence;
+            names(idModels)[2] <- "binary";
+        }
+        else{
+            # model 2 is the intermittent demand (mixture model)
+            idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm",
+                                                  occurrence=modelOccurrence, loss=loss, ...));
+            # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
         }
     }
 
@@ -236,9 +240,16 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
 
         if(zeroesLeft){
-            # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-            idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", occurrence=modelOccurrence, maxeval=500));
-            # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+            # If the data is just binary then we already have model 2
+            if(all((xregData$y/max(xregData$y)) %in% c(0,1))){
+                idModels[[4]] <- NULL;
+            }
+            else{
+                # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
+                idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom",
+                                                      occurrence=modelOccurrence, maxeval=500));
+                # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+            }
         }
     }
 
@@ -253,6 +264,13 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     adiCsBest <- which.min(adiCs);
     # Get its name
     idType <- names(adiCs)[adiCsBest];
+
+    # Logical rule: if the demand is integer and intermittent, it is count
+    if((dataIsInteger && idType=="intermittent") ||
+       # If it is integer-valued with some zeroes, it must be count
+       (dataIsInteger && zeroesLeft && idType=="regular")){
+        idType <- "count";
+    }
 
     # Add stockout model to the output
     idModels$stockout <- stockoutModel;
