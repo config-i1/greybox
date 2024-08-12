@@ -63,16 +63,18 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # 0 is for the new products, length(y) is to track obsolescence
     yIntervals <- diff(c(0,which(y!=0),length(y)+1));
     xregDataIntervals <- data.frame(y=yIntervals,
-                                    x=supsmu(1:length(yIntervals),yIntervals)$y);
+                                    ### LOWESS is more conservative than supsmu. Better for identification
+                                    # x=supsmu(1:length(yIntervals),yIntervals)$y);
+                                    x=lowess(1:length(yIntervals),yIntervals)$y);
 
     # Apply Geometric distribution model to check for stockouts
     # Use Robust likelihood to get rid of potential strong outliers
-    stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-    # stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-    #
-    # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-    #     stockoutModel <- stockoutModelIntercept;
-    # }
+    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+
+    if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+        stockoutModel <- stockoutModelIntercept;
+    }
 
     probabilities <- pointLikCumulative(stockoutModel);
 
