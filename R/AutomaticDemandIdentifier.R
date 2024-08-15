@@ -51,109 +51,111 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     ic <- match.arg(ic);
     IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
 
-    if(all(y!=0)){
-        message("The data does not contain any zeroes. It must be regular.");
-        return(structure(list(models=NA, ICs=NA, type="regular",
-                              new=FALSE, obsolete=FALSE),
-                     class="adi"))
-    }
-
-    #### Stockouts ####
-    # Demand intervals to identify stockouts/new/old products
-    # 0 is for the new products, length(y) is to track obsolescence
-    yIntervals <- diff(c(0,which(y!=0),length(y)+1));
-    xregDataIntervals <- data.frame(y=yIntervals,
-                                    ### LOWESS is more conservative than supsmu. Better for identification
-                                    # x=supsmu(1:length(yIntervals),yIntervals)$y);
-                                    x=lowess(1:length(yIntervals),yIntervals)$y);
-
-    # Apply Geometric distribution model to check for stockouts
-    # Use Robust likelihood to get rid of potential strong outliers
-    stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-    stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-
-    if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-        stockoutModel <- stockoutModelIntercept;
-    }
-
-    probabilities <- pointLikCumulative(stockoutModel);
-
-    # Instead of comparing with the level, see anomalies in comparison with the neighbours!
-
-    # Binaries for new/obsolete products to track zeroes in the beginning/end of data
-    productNew <- FALSE;
-    productObsolete <- FALSE;
-
-    # If the first one is above the threshold, it is a "new product"
-    if(probabilities[1]>level && yIntervals[1]!=1){
-        productNew[] <- TRUE;
-    }
-    # If the last one is above the threshold, it must be obsolescence
-    if(tail(probabilities,1)>level && tail(yIntervals,1)!=1){
-        productObsolete[] <- TRUE;
-    }
-
-    # Re-estimate the model dropping those zeroes
-    # This is mainly needed to see if LOWESS will be better
-    if(any(c(productNew,productObsolete))){
-        # Redo indices, dropping the head and the tail if needed
-        yIntervalsIDs <- c(c(1)[!productNew],
-                           2:(length(yIntervals)-1),
-                           length(yIntervals)[!productObsolete]);
-        xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs]);
-                                        # x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
+    # Do stockouts only for data with zeroes
+    if(any(y==0)){
+        #### Stockouts ####
+        # Demand intervals to identify stockouts/new/old products
+        # 0 is for the new products, length(y) is to track obsolescence
+        yIntervals <- diff(c(0,which(y!=0),length(y)+1));
+        xregDataIntervals <- data.frame(y=yIntervals,
+                                        ### LOWESS is more conservative than supsmu. Better for identification
+                                        # x=supsmu(1:length(yIntervals),yIntervals)$y);
+                                        x=lowess(1:length(yIntervals),yIntervals)$y);
 
         # Apply Geometric distribution model to check for stockouts
-        stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
-        # stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        # Use Robust likelihood to get rid of potential strong outliers
+        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
 
-        # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-        #     stockoutModel <- stockoutModelIntercept;
+        if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+            stockoutModel <- stockoutModelIntercept;
+        }
+
+        probabilities <- pointLikCumulative(stockoutModel);
+
+        # Instead of comparing with the level, see anomalies in comparison with the neighbours!
+
+        # Binaries for new/obsolete products to track zeroes in the beginning/end of data
+        productNew <- FALSE;
+        productObsolete <- FALSE;
+
+        # If the first one is above the threshold, it is a "new product"
+        if(probabilities[1]>level && yIntervals[1]!=1){
+            productNew[] <- TRUE;
+        }
+        # If the last one is above the threshold, it must be obsolescence
+        if(tail(probabilities,1)>level && tail(yIntervals,1)!=1){
+            productObsolete[] <- TRUE;
+        }
+
+        # Re-estimate the model dropping those zeroes
+        # This is mainly needed to see if LOWESS will be better
+        if(any(c(productNew,productObsolete))){
+            # Redo indices, dropping the head and the tail if needed
+            yIntervalsIDs <- c(c(1)[!productNew],
+                               2:(length(yIntervals)-1),
+                               length(yIntervals)[!productObsolete]);
+            xregDataIntervals <- data.frame(y=yIntervals[yIntervalsIDs]);
+            # x=supsmu(yIntervalsIDs,yIntervals[yIntervalsIDs])$y);
+
+            # Apply Geometric distribution model to check for stockouts
+            stockoutModel <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+            # stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+
+            # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+            #     stockoutModel <- stockoutModelIntercept;
+            # }
+
+            probabilities <- c(c(0)[productNew],
+                               pointLikCumulative(stockoutModel),
+                               c(0)[productObsolete]);
+            # 100 is arbitrary just to have something big, not to flag as outlier
+            stockoutModel$mu <- c(c(100)[productNew],
+                                  stockoutModel$mu,
+                                  c(100)[productObsolete]);
+        }
+        else{
+            yIntervalsIDs <- 1:length(yIntervals);
+        }
+
+        # If the probability is higher than the estimated one, it's not an outlier
+        # if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
+        #     probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
         # }
+        # If the outlier has the interval of 1, it's not an outlier
+        if(any(probabilities>level & yIntervals==1)){
+            probabilities[probabilities>level & yIntervals==1] <- 0;
+        }
 
-        probabilities <- c(c(0)[productNew],
-                           pointLikCumulative(stockoutModel),
-                           c(0)[productObsolete]);
-        # 100 is arbitrary just to have something big, not to flag as outlier
-        stockoutModel$mu <- c(c(100)[productNew],
-                           stockoutModel$mu,
-                           c(100)[productObsolete]);
+        outliers <- probabilities>level;
+        outliersID <- which(outliers);
+
+        # Record, when stockouts start and finish
+        if(any(outliersID==1)){
+            stockoutsStart <- c(1,cumsum(yIntervals)[outliersID-1])+1;
+        }
+        else{
+            stockoutsStart <- cumsum(yIntervals)[outliersID-1]+1;
+        }
+        stockoutsEnd <- cumsum(yIntervals)[outliersID]-1;
+
+        # IDs of stockouts
+        stockoutIDs <- unlist(Map(`:`, stockoutsStart, stockoutsEnd));
+
+        # IDs that will be used in the next models (to drop zeroes in head/tail)
+        yIDsFirst <- cumsum(yIntervals)[yIntervalsIDs[1]];
+        yIDsLast <- cumsum(yIntervals)[tail(yIntervalsIDs,1)];
+        yIDsToUse <- seq(yIDsFirst, yIDsLast, 1)-1;
+
+        # Drop stockout periods
+        yIDsToUse <- yIDsToUse[!(yIDsToUse %in% stockoutIDs)];
     }
     else{
-        yIntervalsIDs <- 1:length(yIntervals);
+        message("The data does not contain any zeroes. It must be regular.");
+        yIDsToUse <- 1:length(y);
+        stockoutsStart <- stockoutsEnd <- NULL;
+        productNew <- productObsolete <- FALSE;
     }
-
-    # If the probability is higher than the estimated one, it's not an outlier
-    # if(any((probabilities <= 1/stockoutModel$mu) & (probabilities>level))){
-    #     probabilities[(probabilities <= 1/stockoutModel$mu) & (probabilities>level)] <- 0;
-    # }
-    # If the outlier has the interval of 1, it's not an outlier
-    if(any(probabilities>level & yIntervals==1)){
-        probabilities[probabilities>level & yIntervals==1] <- 0;
-    }
-
-    outliers <- probabilities>level;
-    outliersID <- which(outliers);
-
-    # Record, when stockouts start and finish
-    if(any(outliersID==1)){
-        stockoutsStart <- c(1,cumsum(yIntervals)[outliersID-1])+1;
-    }
-    else{
-        stockoutsStart <- cumsum(yIntervals)[outliersID-1]+1;
-    }
-    stockoutsEnd <- cumsum(yIntervals)[outliersID]-1;
-
-    # IDs of stockouts
-    stockoutIDs <- unlist(Map(`:`, stockoutsStart, stockoutsEnd));
-
-    # IDs that will be used in the next models (to drop zeroes in head/tail)
-    yIDsFirst <- cumsum(yIntervals)[yIntervalsIDs[1]];
-    yIDsLast <- cumsum(yIntervals)[tail(yIntervalsIDs,1)];
-    yIDsToUse <- seq(yIDsFirst, yIDsLast, 1)-1;
-
-    # Drop stockout periods
-    yIDsToUse <- yIDsToUse[!(yIDsToUse %in% stockoutIDs)];
 
 
     #### Checking the demand type ####
@@ -180,6 +182,14 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         xregData$x <- NULL;
     }
 
+    # Check whether y has only two values
+    # The division by max is needed to also check situations with y %in% (0, a), e.g. a=100
+    yIsBinary <- all((xregData$y/max(xregData$y)) %in% c(0,1));
+
+    # Or it has just three... very low volume
+    yIsLowVolume <- all(xregData$y %in% c(0,1,2));
+
+    # Are there any zeroes left?
     zeroesLeft <- FALSE;
     if(any(y[yIDsToUse]==0)){
         zeroesLeft <- TRUE;
@@ -191,7 +201,7 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         xregDataOccurrence$y[] <- (xregDataOccurrence$y!=0)*1;
         xregDataOccurrence$x[] <- supsmu(1:length(xregDataOccurrence$y),xregDataOccurrence$y)$y;
 
-        # If there is no variability in LOWESS, use the fixed probability
+        # If there is no variability in SupSmu, use the fixed probability
         if(all(xregDataOccurrence$x==xregDataOccurrence$x[1])){
             modelOccurrence <- suppressWarnings(alm(y~1, xregDataOccurrence, distribution="plogis", loss=loss, ...));
         }
@@ -210,53 +220,63 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     dataIsInteger <- all(y==trunc(y));
 
     # List for models
-    nModels <- 4
+    nModels <- 5
     idModels <- vector("list", nModels);
-    names(idModels) <- c("regular","intermittent","count","mixture count");
-    #,"intermittent slow");
+    names(idModels) <- c("regular fractional","smooth intermittent fractional","lumpy intermittent fractional",
+                         "regular count","lumpy intermittent count");
 
-    # model 1 is the regular demand
+    # model 1 is the **regular fractional**
     idModels[[1]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm", loss=loss, ...));
-    # idModels[[1]] <- suppressWarnings(stepwise(xregData, distribution="dnorm"));
 
     if(zeroesLeft){
+        # model 2 is the **smooth intermittent fractional**
+        idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="drectnorm", loss=loss, ...));
+
+        # model 3 is the **lumpy intermittent fractional** (mixture model)
         # If the data is just binary, don't do the mixture model, do the Bernoulli
-        # The division by max is needed to also check situations with y %in% (0, a), e.g. a=100
-        if(all((xregData$y/max(xregData$y)) %in% c(0,1))){
-            idModels[[2]] <- modelOccurrence;
-            names(idModels)[2] <- "binary";
+        if(yIsBinary){
+            idModels[[3]] <- modelOccurrence;
+            names(idModels)[3] <- "smooth intermittent binary";
         }
         else{
-            # model 2 is the intermittent demand (mixture model)
-            idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm",
+            idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm",
                                                   occurrence=modelOccurrence, loss=loss, ...));
-            # idModels[[2]] <- suppressWarnings(stepwise(xregData, distribution="dnorm", occurrence=modelOccurrence));
         }
     }
 
     if(dataIsInteger){
-        # names(idModels) <- c("count","intermittent count");
-        # model 3 is count data: Negative Binomial distribution
-        # idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dpois"));
-        idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=500));
-        # idModels[[3]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom"));
+        # model 4 is **regular count**: Negative Binomial distribution
+        idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom", maxeval=500, loss=loss, ...));
 
         if(zeroesLeft){
-            # If the data is just binary then we already have model 2
-            if(all((xregData$y/max(xregData$y)) %in% c(0,1))){
-                idModels[[4]] <- NULL;
+            # These models are needed to take care of potential very low volume data
+            idModelAlternative <- vector("list",2)
+            idModelAlternative[[1]] <- alm(y~1, xregData, distribution="dbinom",
+                                           loss=loss, ...);
+            idModelAlternative[[2]] <- alm(y~., xregData, distribution="dbinom",
+                                           loss=loss, ...);
+            idModelAlternativeICs <- sapply(idModelAlternative, IC);
+
+            # If it is better, substitute it
+            if(any(idModelAlternativeICs < IC(idModels[[4]]))){
+                idModels[[4]] <- idModelAlternative[[which.min(idModelAlternativeICs)]];
             }
-            else{
-                # model 4 is zero-inflated count data: Negative Binomial distribution + Bernoulli
-                idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom",
-                                                      occurrence=modelOccurrence, maxeval=500));
-                # idModels[[4]] <- suppressWarnings(stepwise(xregData, distribution="dnbinom", occurrence=modelOccurrence));
+
+            # If the data is just binary then we already have model 3
+            if(!yIsBinary){
+                # Otherwise this is the same as model 4, and we just need to change the name
+                names(idModels)[4] <- "smooth intermittent count"
             }
+            #model 5 is **lumpy intermittent count**: Negative Binomial distribution + Bernoulli
+            idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom",
+                                                  occurrence=modelOccurrence, maxeval=500, loss=loss, ...));
         }
     }
 
-    # model 5 is slow and fractional demand: Box-Cox Normal + Bernoulli
-    # idModels[[5]] <- suppressWarnings(alm(y~., xregData, distribution="dlnorm", occurrence=modelOccurrence));
+    if(yIsBinary || yIsLowVolume){
+        # Switch off the unsuitable ones
+        idModels[[1]] <- idModels[[2]] <- NULL;
+    }
 
     # Remove redundant models
     idModels <- idModels[!sapply(idModels, is.null)]
