@@ -1,4 +1,4 @@
-#' Automatic Demand Identifier
+#' Automatic Identification of Demand
 #'
 #' The function applies several models on the provided time series and identifies what
 #' type of demand it is based on an information criterion.
@@ -20,7 +20,7 @@
 #' \link[greybox]{alm} for possible options.
 #' @param ... Other parameters passed to the \code{alm()} function.
 #'
-#' @return Class "adi" is returned, which contains:
+#' @return Class "aid" is returned, which contains:
 #' \itemize{
 #' \item y - The original data;
 #' \item models - All fitted models;
@@ -39,11 +39,11 @@
 #' @examples
 #' # Data from Poisson distribution
 #' y <- rpois(120, 0.7)
-#' adi(y)
+#' aid(y)
 #'
 #' @importFrom stats lowess approx
 #' @export
-adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
+aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                 loss="likelihood", ...){
     # Intermittent demand identifier
 
@@ -281,11 +281,11 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Remove redundant models
     idModels <- idModels[!sapply(idModels, is.null)]
     # Calculate ICs
-    adiCs <- sapply(idModels, IC);
+    aidCs <- sapply(idModels, IC);
     # Find the best one
-    adiCsBest <- which.min(adiCs);
+    aidCsBest <- which.min(aidCs);
     # Get its name
-    idType <- names(adiCs)[adiCsBest];
+    idType <- names(aidCs)[aidCsBest];
 
     # Logical rule: if the demand is integer and intermittent, it is count
     if((dataIsInteger && idType=="intermittent") ||
@@ -297,14 +297,14 @@ adi <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Add stockout model to the output
     idModels$stockout <- stockoutModel;
 
-    return(structure(list(y=y, models=idModels, ICs=adiCs, type=idType,
+    return(structure(list(y=y, models=idModels, ICs=aidCs, type=idType,
                           stockouts=list(start=stockoutsStart, end=stockoutsEnd),
                           new=productNew, obsolete=productObsolete),
-                     class="adi"));
+                     class="aid"));
 }
 
 #' @export
-print.adi <- function(x, ...){
+print.aid <- function(x, ...){
     if(length(x$stockouts$start)>1){
         cat("There are",length(x$stockouts$start),"potential stockouts in the data.\n");
     }
@@ -321,7 +321,7 @@ print.adi <- function(x, ...){
 }
 
 #' @export
-plot.adi <- function(x, ...){
+plot.aid <- function(x, ...){
 
     ids <- time(x$y);
     plot(x$y, ...);

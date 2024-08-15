@@ -751,6 +751,8 @@ This group includes:
 
 1. [Poisson distribution](#poisson),
 2. [Negative Binomial distribution](#nbinom),
+3. [Binomial distribution](#binom),
+4. [Geometric distribution](#geom),
 
 These distributions should be used in cases of count data.
 
@@ -805,6 +807,13 @@ legend("topright",legend=c("NegBin(5,0.5)","NegBin(5,0.9)","NegBin(5,0.1)","NegB
 ```
 
 `alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$. The user can also provide `size` parameter in ellipsis if it is reasonable to assume that it is known.
+
+
+### Binomial distribution {#binom}
+
+
+### Geometric distribution {#geom}
+
 
 ### An example of application
 Round up the response variable for the next example:
