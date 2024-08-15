@@ -51,7 +51,9 @@ pointLik.alm <- function(object, log=TRUE, ...){
     distribution <- object$distribution;
     y <- actuals(object);
     ot <- y!=0;
-    if(is.occurrence(object$occurrence)){
+    occurrenceModel <- is.occurrence(object$occurrence);
+    recursiveModel <- !is.null(object$other$arima);
+    if(occurrenceModel){
         otU <- y!=0;
         y <- y[otU];
         mu <- object$mu[otU];
@@ -85,6 +87,7 @@ pointLik.alm <- function(object, log=TRUE, ...){
                              "dgeom" = dgeom(y, prob=1/(mu+1), log=log),
                              "dpois" = dpois(y, lambda=mu, log=log),
                              "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=log),
+                             "dbinom" = dbinom(y-occurrenceModel*1, prob=mu, size=object$other$size, log=log),
                              "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=log),
                              "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=log),
                              "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
@@ -97,44 +100,48 @@ pointLik.alm <- function(object, log=TRUE, ...){
         likValues[otU] <- likValues[otU] - log(y);
     }
 
-    # If this is a mixture model, take the respective probabilities into account (differential entropy)
-    if(is.occurrence(object$occurrence)){
-        likValues[!otU] <- -switch(distribution,
-                                   "dnorm" =,
-                                   "dfnorm" =,
-                                   "dbcnorm" =,
-                                   "dlogitnorm" =,
-                                   "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
-                                   "dexp" = 1,
-                                   "dgnorm" =,
-                                   "dlgnorm" = 1/object$other$shape -
-                                       log(object$other$shape / (2*scale*gamma(1/object$other$shape))),
-                                   "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
-                                   "dgamma" = 1/scale + log(scale) + log(gamma(1/scale)) + (1-1/scale)*digamma(1/scale),
-                                   "dlaplace" =,
-                                   "dllaplace" =,
-                                   "dalaplace" = (1 + log(2*scale)),
-                                   "dlogis" = 2,
-                                   "dt" = ((scale+1)/2 *
-                                               (digamma((scale+1)/2)-digamma(scale/2)) +
-                                               log(sqrt(scale) * beta(scale/2,0.5))),
-                                   "ds" = ,
-                                   "dls" = (2 + 2*log(2*scale)),
-                                   "dchisq" = (log(2)*gamma(scale/2)-
-                                                   (1-scale/2)*digamma(scale/2)+
-                                                   scale/2),
-                                   "dbeta" = log(beta(mu,scale))-
-                                       (mu-1)*
-                                       (digamma(mu)-
-                                            digamma(mu+scale))-
-                                       (scale-1)*
-                                       (digamma(scale)-
-                                            digamma(mu+scale)),
-                                   # This is a normal approximation of the real entropy
-                                   "dpois" = 0.5*log(2*pi*scale)+0.5,
-                                   "dnbinom" = log(sqrt(2*pi)*scale)+0.5,
-                                   0
-        );
+    # If this is a mixture model, take the respective probabilities into account
+    if(occurrenceModel){
+        # Add differential entropy. This should only be done for the recursive model
+        if(recursiveModel){
+            likValues[!otU] <- -switch(distribution,
+                                       "dnorm" =,
+                                       "dfnorm" =,
+                                       "dbcnorm" =,
+                                       "dlogitnorm" =,
+                                       "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
+                                       "dexp" = 1,
+                                       "dgnorm" =,
+                                       "dlgnorm" = 1/object$other$shape -
+                                           log(object$other$shape / (2*scale*gamma(1/object$other$shape))),
+                                       "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
+                                       "dgamma" = 1/scale + log(scale) + log(gamma(1/scale)) + (1-1/scale)*digamma(1/scale),
+                                       "dlaplace" =,
+                                       "dllaplace" =,
+                                       "dalaplace" = (1 + log(2*scale)),
+                                       "dlogis" = 2,
+                                       "dt" = ((scale+1)/2 *
+                                                   (digamma((scale+1)/2)-digamma(scale/2)) +
+                                                   log(sqrt(scale) * beta(scale/2,0.5))),
+                                       "ds" = ,
+                                       "dls" = (2 + 2*log(2*scale)),
+                                       "dchisq" = (log(2)*gamma(scale/2)-
+                                                       (1-scale/2)*digamma(scale/2)+
+                                                       scale/2),
+                                       "dbeta" = log(beta(mu,scale))-
+                                           (mu-1)*
+                                           (digamma(mu)-
+                                                digamma(mu+scale))-
+                                           (scale-1)*
+                                           (digamma(scale)-
+                                                digamma(mu+scale)),
+                                       # This is a normal approximation of the real entropy
+                                       "dpois" = 0.5*log(2*pi*scale)+0.5,
+                                       "dnbinom" = log(sqrt(2*pi)*scale)+0.5,
+                                       "dbinom" = 0.5*log(2*pi*object$other$size*object$mu[!otU]*(1-object$mu[!otU]))+0.5,
+                                       0
+            );
+        }
 
         likValues <- likValues + pointLik(object$occurrence);
     }

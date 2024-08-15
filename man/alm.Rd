@@ -7,10 +7,10 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
   "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
-  "dpois", "dnbinom", "dgeom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
-  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE", "ROLE"),
-  occurrence = c("none", "plogis", "pnorm"), scale = NULL, orders = c(0,
-  0, 0), parameters = NULL, fast = FALSE, ...)
+  "dpois", "dnbinom", "dbinom", "dgeom", "dbeta", "dlogitnorm", "plogis",
+  "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE",
+  "ROLE"), occurrence = c("none", "plogis", "pnorm"), scale = NULL,
+  orders = c(0, 0, 0), parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -193,6 +193,8 @@ of several non-normal distributions. These include:
 \item \link[stats]{dbeta} - Beta distribution,
 \item \link[stats]{dpois} - Poisson Distribution,
 \item \link[stats]{dnbinom} - Negative Binomial Distribution,
+\item \link[stats]{dbinom} - Binomial Distribution,
+\item \link[stats]{dgeom} - Geometric Distribution,
 \item \link[stats]{plogis} - Cumulative Logistic Distribution,
 \item \link[stats]{pnorm} - Cumulative Normal distribution.
 }

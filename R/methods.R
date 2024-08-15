@@ -176,7 +176,7 @@ errorType.ets <- function(object, ...){
 #' @export
 logLik.alm <- function(object, ...){
     if(is.occurrence(object$occurrence)){
-        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object),class="logLik"));
     }
     else{
         # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
@@ -1112,7 +1112,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     }
 
     # Special treatment for count distributions
-    countDistribution <- any(x$distribution==c("dpois","dnbinom","dgeom"));
+    countDistribution <- any(x$distribution==c("dpois","dnbinom","dbinom","dgeom"));
 
     # Warn if the diagnostis will be done for scale
     if(is.scale(x$scale) && any(which %in% c(2:6,8,9,13:14))){
@@ -1432,6 +1432,17 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                                  nrow=nsim, ncol=nobs(x),
                                  dimnames=list(ppoints(nsim), NULL));
                 # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
+            }
+            else if(x$distribution=="dbinom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Binomial distribution";
+                }
+
+                # Produce matrix of quantiles
+                yQuant <- matrix(qbinom(ppoints(nsim), prob=rep(x$mu, each=nsim),
+                                         size=rep(x$other$size, each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
             else if(x$distribution=="dgeom"){
                 if(!any(names(ellipsis)=="main")){
@@ -2264,6 +2275,7 @@ print.summary.alm <- function(x, ...){
                       "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbinom" = paste0("Binomial with size=",x$other$size),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2347,6 +2359,7 @@ print.summary.scale <- function(x, ...){
                       "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbinom" = paste0("Binomial with size=",x$other$size),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2407,6 +2420,7 @@ print.summary.greybox <- function(x, ...){
                       "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dnbinom" = "Binomial",
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2464,6 +2478,7 @@ print.summary.greyboxC <- function(x, ...){
                       "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dnbinom" = "Binomial",
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2538,7 +2553,7 @@ hatvalues.greybox <- function(model, ...){
         xreg <- model$data[,-1,drop=FALSE];
     }
     # Hatvalues for different distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dbinom","dpois"))){
         hatValue <- hat(xreg);
     }
     else{
@@ -2589,7 +2604,7 @@ rstandard.greybox <- function(model, ...){
     # If it is scale model, there's no need to divide by scale anymore
     if(!is.scale(model)){
         # The proper residuals with leverage are currently done only for normal-based distributions
-        if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
+        if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             errors[] <- errors / (extractScale(model)*sqrt(1-hatvalues(model)));
         }
         else if(any(model$distribution==c("ds","dls"))){
@@ -2605,7 +2620,7 @@ rstandard.greybox <- function(model, ...){
         else if(any(model$distribution==c("dfnorm","drectnorm"))){
             errors[residsToGo] <- (errors[residsToGo]) / sqrt(extractScale(model)^2 * obs / df);
         }
-        else if(any(model$distribution==c("dpois","dnbinom","dgeom"))){
+        else if(any(model$distribution==c("dpois","dnbinom","dbinom","dgeom"))){
             errors[residsToGo] <- qnorm(pointLikCumulative(model));
         }
         else{
@@ -2687,7 +2702,7 @@ rstudent.greybox <- function(model, ...){
         }
     }
     # We don't do studentised residuals for count distributions
-    else if(any(model$distribution==c("dpois","dnbinom","dgeom"))){
+    else if(any(model$distribution==c("dpois","dnbinom","dbinom","dgeom"))){
         rstudentised[residsToGo] <- qnorm(pointLikCumulative(model));
     }
     else{
@@ -3431,6 +3446,18 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$upper[] <- exp(greyboxForecast$upper);
         }
     }
+    else if(object$distribution=="dbinom"){
+        greyboxForecast$scale <- object$other$size;
+        if(interval=="prediction"){
+            greyboxForecast$lower[] <- qbinom(levelLow,prob=greyboxForecast$mean,size=greyboxForecast$scale);
+            greyboxForecast$upper[] <- qbinom(levelUp,prob=greyboxForecast$mean,size=greyboxForecast$scale);
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
+        greyboxForecast$mean <- greyboxForecast$mean * object$other$size;
+    }
     else if(object$distribution=="dbeta"){
         greyboxForecast$shape1 <- greyboxForecast$mean;
         greyboxForecast$shape2 <- greyboxForecast$variances;
@@ -3909,7 +3936,7 @@ predict_almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         }
 
         # Transform the lagged response variables
-        if(any(object$distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom"))){
+        if(any(object$distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dbinom"))){
             if(any(y==0) & !is.occurrence(object$occurrence)){
                 # Use Box-Cox if there are zeroes
                 matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;

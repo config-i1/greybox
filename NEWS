@@ -1,4 +1,4 @@
-greybox v2.0.2 (Release data: 2024-08-07)
+greybox v2.0.2 (Release data: 2024-08-15)
 ==============
 
 Changes:
@@ -11,6 +11,7 @@ Changes:
 * Dropped the stockout periods in the demand model of adi().
 * We now return res in alm() to see how nloptr worked.
 * Diferent initialisation for the NegBin and positive distributions in case of y containing zeroes in alm().
+* New distribution in alm(), Binomial.
 
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.

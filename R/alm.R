@@ -27,6 +27,8 @@
 #' \item \link[stats]{dbeta} - Beta distribution,
 #' \item \link[stats]{dpois} - Poisson Distribution,
 #' \item \link[stats]{dnbinom} - Negative Binomial Distribution,
+#' \item \link[stats]{dbinom} - Binomial Distribution,
+#' \item \link[stats]{dgeom} - Geometric Distribution,
 #' \item \link[stats]{plogis} - Cumulative Logistic Distribution,
 #' \item \link[stats]{pnorm} - Cumulative Normal distribution.
 #' }
@@ -274,7 +276,7 @@ alm <- function(formula, data, subset, na.action,
                                "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
                                "dinvgauss","dgamma","dexp",
                                "dfnorm","drectnorm",
-                               "dpois","dnbinom","dgeom",
+                               "dpois","dnbinom","dbinom","dgeom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
                 loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE","ROLE"),
@@ -433,6 +435,8 @@ alm <- function(formula, data, subset, na.action,
                        "dpois" =,
                        "dnbinom" =,
                        "dgeom" = exp(matrixXreg %*% B),
+                       # This is n x p_t
+                       "dbinom" = plogis(matrixXreg %*% B),
                        "dchisq" = ifelseFast(any(matrixXreg %*% B <0),1E+100,(matrixXreg %*% B)^2),
                        "dbeta" = exp(matrixXreg %*% B[1:(length(B)/2)]),
                        "dlogitnorm"=,
@@ -527,6 +531,7 @@ alm <- function(formula, data, subset, na.action,
                       "dt" =,
                       "dchisq" =,
                       "dnbinom" = abs(other),
+                      "dbinom" = size,
                       # This is the variance of the Geometric distribution... not scale!
                       # "dgeom" = (mu[otU])^2-mu[otU],
                       "dpois" = mu[otU],
@@ -557,6 +562,7 @@ alm <- function(formula, data, subset, na.action,
                       "dgeom" =,
                       "dpois" =,
                       "dnbinom" = mu,
+                      "dbinom" = mu * size,
                       "dchisq" = mu + nu,
                       "dlnorm" =,
                       "dllaplace" =,
@@ -585,6 +591,7 @@ alm <- function(formula, data, subset, na.action,
                       "dt" =,
                       "dgeom" =,
                       "dnbinom" =,
+                      "dbinom" =,
                       "dpois" = y - mu,
                       "dinvgauss" =,
                       "dgamma" =,
@@ -643,6 +650,8 @@ alm <- function(formula, data, subset, na.action,
                                    "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
                                    "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                    "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                                   # -occurrenceModel is needed to have hurdle model
+                                   "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=fitterReturn$mu[otU], size=size, log=TRUE),
                                    "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
                                    "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -699,6 +708,7 @@ alm <- function(formula, data, subset, na.action,
                                               # This is a normal approximation of the real entropy
                                               # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
                                               # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                                              # "dbinom" = sum(0.5*log(2*pi*size*fitterReturn$mu[!otU]*(1-fitterReturn$mu[!otU]))+0.5),
                                               0
                 );
             }
@@ -737,6 +747,8 @@ alm <- function(formula, data, subset, na.action,
                                         "dgeom" = dgeom(y[otU], prob=1/fitterReturn$mu[otU], log=TRUE),
                                         "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
                                         "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                                        "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=fitterReturn$mu[otU],
+                                                          size=size, log=TRUE),
                                         "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                         "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
                                         "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
@@ -1284,7 +1296,7 @@ alm <- function(formula, data, subset, na.action,
 
     if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dbcnorm","dchisq",
                            "dfnorm","drectnorm",
-                           "dgeom","dpois","dnbinom",
+                           "dgeom","dpois","dnbinom","dbinom",
                            "dinvgauss","dgamma")) && any(y<0)){
         stop(paste0("Negative values are not allowed in the response variable for the distribution '",distribution,"'"),
              call.=FALSE);
@@ -1295,7 +1307,7 @@ alm <- function(formula, data, subset, na.action,
              call.=FALSE);
     }
 
-    if(any(distribution==c("dpois","dnbinom","dgeom")) && any(y!=trunc(y))){
+    if(any(distribution==c("dpois","dnbinom","dbinom","dgeom")) && any(y!=trunc(y))){
         stop(paste0("Count data is needed for the distribution '",distribution,"', but you have fractional numbers. ",
                     "Maybe you should try some other distribution?"),
              call.=FALSE);
@@ -1312,6 +1324,11 @@ alm <- function(formula, data, subset, na.action,
                            "So we used a minor correction for it, in order to overcome this limitation."), call.=FALSE);
             y <- y*(1-2*1e-10);
         }
+    }
+
+    # In the Binomial distribution, we always know the size!
+    if(distribution=="dbinom"){
+        size <- length(unique(y))-1;
     }
 
     if(any(distribution==c("plogis","pnorm"))){
@@ -1339,6 +1356,10 @@ alm <- function(formula, data, subset, na.action,
         otU <- ot;
         obsNonZero <- sum(ot);
         obsZero <- sum(!ot);
+        # If this is Binomial mixture, the size is smaller (zeroes are removed)
+        if(distribution=="dbinom"){
+            size <- size-1;
+        }
     }
     else{
         otU <- rep(TRUE,obsInsample);
@@ -1500,7 +1521,7 @@ alm <- function(formula, data, subset, na.action,
 
             nVariables <- nVariables + arOrder;
             # Write down the values for the matrixXreg in the necessary transformations
-            if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dgeom","dpois","dnbinom"))){
+            if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dgeom","dpois","dnbinom","dbinom"))){
                 if(any(y[otU]==0)){
                     # Use Box-Cox if there are zeroes
                     ariElements[] <- bcTransform(ariElements,0.01);
@@ -1555,10 +1576,16 @@ alm <- function(formula, data, subset, na.action,
                 else if(distribution=="dgeom"){
                     B <- .lm.fit(matrixXreg[otU,,drop=FALSE],log(y[otU]+any(y==0)*1))$coefficients;
                 }
-                else if(any(distribution==c("dpois"))){
+                else if(distribution==c("dpois")){
                     # This is inspired by GLM estimation
                     muInSample <- mean(y);
                     B <- c(solve(t(matrixXreg) %*% matrixXreg * muInSample) %*% t(matrixXreg) %*% (y-muInSample));
+                }
+                else if(distribution=="dbinom"){
+                    # Smooth the original series
+                    ySupSmu <- supsmu(which(otU), y[otU])$y;
+                    # Get estimates of parameters based on the smoothed series
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],ySupSmu)$coefficients;
                 }
                 else if(any(distribution==c("plogis","pnorm"))){
                     # Box-Cox transform in order to get meaningful initials
@@ -1644,6 +1671,12 @@ alm <- function(formula, data, subset, na.action,
                 if(any(distribution==c("dexp","dlnorm","dllaplace","dls","dlgnorm","dgeom","dpois","dnbinom",
                                        "dinvgauss","dgamma"))){
                     B <- .lm.fit(matrixXregForDiffs,diff(log(y[otU]),differences=iOrder))$coefficients;
+                }
+                else if(distribution=="dbinom"){
+                    # Smooth the original series
+                    ySupSmu <- supsmu(which(otU), y[otU])$y;
+                    # Get estimates of parameters based on the smoothed series
+                    B <- .lm.fit(matrixXreg[otU,,drop=FALSE],ySupSmu)$coefficients;
                 }
                 else if(any(distribution==c("plogis","pnorm"))){
                     # Box-Cox transform in order to get meaningful initials
@@ -1849,7 +1882,7 @@ alm <- function(formula, data, subset, na.action,
 
         #### Define what to do with the maxeval ####
         if(is.null(ellipsis$maxeval)){
-            if(any(distribution==c("dchisq","dgeom","dpois","dnbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
+            if(any(distribution==c("dchisq","dgeom","dpois","dnbinom","dbinom","dbcnorm","plogis","pnorm")) || recursiveModel){
                 # maxeval <- 500;
                 maxeval <- length(B) * 40;
             }
@@ -2225,7 +2258,7 @@ alm <- function(formula, data, subset, na.action,
         if(!occurrenceProvided){
             occurrence <- do.call("alm", list(formula=occurrenceFormula, data=dataNew,
                                               distribution=occurrence, ar=arOrder, i=iOrder));
-            if(exists("dataSubstitute",inherits=FALSE,mode="call")){
+            if(exists("dataSubstitute",inherits=FALSE)){
                 occurrence$call$data <- as.name(paste0(deparse(dataSubstitute),collapse=""));
             }
             else{
@@ -2275,6 +2308,9 @@ alm <- function(formula, data, subset, na.action,
         # mu and scale are set top be equal to mu and variance.
         scale <- mu * scale / ((mu+scale)^2 * (mu + scale + 1));
         mu <- yFitted;
+    }
+    else if(distribution=="dbinom"){
+        ellipsis$size <- size;
     }
 
     # Return LogLik, depending on the used loss
