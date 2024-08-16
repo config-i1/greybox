@@ -1,4 +1,4 @@
-greybox v2.0.2 (Release data: 2024-08-15)
+greybox v2.0.2 (Release data: 2024-08-16)
 ==============
 
 Changes:
@@ -16,6 +16,7 @@ Changes:
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.
 * Corrected the number of estimated parameters in NegBin regression, alm().
+* plot.greybox() will now produce plots always, even if Inf values were present in the data. Those values will be flagged separately.
 
 
 greybox v2.0.1 (Release data: 2024-06-18)

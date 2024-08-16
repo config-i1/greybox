@@ -95,6 +95,7 @@ outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent")
                         # For count distributions, we do transform into std.Normal
                         "dpois"=,
                         "dnbinom"=,
+                        "dbinom"=,
                         "dgeom"=,
                         qnorm(c((1-level)/2, (1+level)/2), 0, 1));
     outliersID <- which(errors>statistic[2] | errors<statistic[1]);

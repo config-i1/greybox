@@ -167,7 +167,8 @@ pointLikCumulative <- function(object, ...){
     return(switch(object$distribution,
                   "dgeom"=pgeom(actuals(object), 1/(object$mu+1)),
                   "dpois"=ppois(actuals(object), lambda=object$mu),
-                  "dnbinom"=pnbinom(actuals(object), mu=object$mu, size=object$other$size)));
+                  "dnbinom"=pnbinom(actuals(object), mu=object$mu, size=object$other$size),
+                  "dbinom"=pbinom(actuals(object), prob=1/(object$mu+1), size=object$other$size)));
 }
 
 #' Point AIC
