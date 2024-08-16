@@ -780,7 +780,7 @@ legend("topright",legend=c("Poisson(0.1)","Poisson(0.5)","Poisson(1)","Poisson(5
        lwd=1, col=c("black","blue","purple","red"))
 ```
 
-`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful...
+`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful.
 
 ### Negative Binomial distribution {#nbinom}
 Negative Binomial distribution implemented in `alm()` is parameterised in terms of mean and variance:
@@ -791,18 +791,18 @@ where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optim
 
 Here are some examples of PMF of Negative Binomial distribution with different sizes and probabilities:
 ```{r pmfNegBin, echo=FALSE}
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.5),type="b",ylim=c(0,0.4),
+plot(seq(0,10,1),dnbinom(seq(0,10,1),3,0.5),type="b",ylim=c(0,0.4),
      xlab="y_t",ylab="Density",main="PMF of Negative Binomial distribution")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.75),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.5),type="b",
      col="blue", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.25),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.75),type="b",
      col="purple", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),3,0.5),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.25),type="b",
      col="red", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
-legend("topright",legend=c("NegBin(5,0.5)","NegBin(5,0.9)","NegBin(5,0.1)","NegBin(3,0.5)"),
+legend("topright",legend=c("NegBin(3,0.5)","NegBin(5,0.5)","NegBin(5,0.75)","NegBin(5,0.25)"),
        lwd=1, col=c("black","blue","purple","red"))
 ```
 
@@ -810,9 +810,57 @@ legend("topright",legend=c("NegBin(5,0.5)","NegBin(5,0.9)","NegBin(5,0.1)","NegB
 
 
 ### Binomial distribution {#binom}
+The PMF of Binomial distribution is written as:
+\begin{equation} \label{eq:Bin}
+    P(X=y_t) = \binom{n}{y_t} p_t^y_t (1-p_t)^{n-y_t},
+\end{equation}
+where $n$ is the size parameter, $\mu_t=\exp(x_t' B)$ $p_t = \frac{1}{1+\mu_t}$ and $\mathrm{E}({y}_t) = n \times p_t$. The size parameter is always known and can be calculated as a number of unique values in $y$ minus one. So, if the data takes one of the three values: 0, 1 and 2, the size will be $n=2$. The values of $p_t$ and $n$ are then used in the `dbinom()` function to calculate the log-likelihood.
+
+Visually, the PMF of the Binomial distribution has the following shapes with different values of probability and size:
+```{r pmfBin, echo=FALSE}
+plot(seq(0,10,1),dbinom(seq(0,10,1),3,0.5),type="b",ylim=c(0,0.4),
+     xlab="y_t",ylab="Density",main="PMF of Binomial distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.5),type="b",
+     col="blue", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.75),type="b",
+     col="purple", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.25),type="b",
+     col="red", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("Bin(3,0.5)","Bin(5,0.5)","Bin(5,0.75)","Bin(5,0.25)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
+
+`alm()` with `distribution="dbinom"` returns $\mu_t$ in `mu` and $\mathrm{E}({y}_t)$ in `fitted.values`, the `scale` and `other$size` both contain the same value of $n$. The prediction intervals are produces using `qbinom()` function. `resid()` method returns $y_t - \mathrm{E}({y}_t)$.
 
 
 ### Geometric distribution {#geom}
+There is also Geometric distribution implemented in `alm()`. It has the following PMF:
+\begin{equation} \label{eq:Geom}
+    P(X=y_t) = (1-p_t)^{y_t} p_t,
+\end{equation}
+where $p_t = \frac{1}{1+\exp(x_t' B)}$. The conditional expectation in this model is calculated as $\mu_t = \frac{1}{p_t} - 1 = \exp(x_t' B)$. The probability is used in the calculation of the log-likelihood via the `dgeom()` function.
+
+Several PMFs of the Geometric distribution are shown in the following figure:
+```{r pmfBin, echo=FALSE}
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.25),type="b",ylim=c(0,1),
+     xlab="y_t",ylab="Density",main="PMF of Geometric distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.5),type="b",
+     col="blue", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.75),type="b",
+     col="purple", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+# plot(seq(0,10,1),dgeom(seq(0,10,1),0.9),type="b",
+#      col="red", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("Geom(0.25)","Geom(0.5)","Geom(0.75)"),
+       lwd=1, col=c("black","blue","purple"))
+```
+
+`alm()` with `distribution="dgeom"` returns $\mu_t$ in `mu` and in `fitted.values`. The `scale` does not contain anything useful, because the Geometric distribution has a time varying variance, which depends on the probability. The prediction intervals are produces using `qgeom()` function. Similarly to the other count distribution, `resid()` method returns $y_t - \mu_t$.
 
 
 ### An example of application
