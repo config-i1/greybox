@@ -3083,7 +3083,7 @@ xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL
 #' @param occurrence If occurrence was provided, then a user can provide a vector of future
 #' values via this variable.
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp qgeom
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp qgeom qbinom
 #' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),

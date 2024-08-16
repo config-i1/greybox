@@ -266,7 +266,7 @@
 #' @importFrom pracma hessian
 #' @importFrom nloptr nloptr
 #' @importFrom stats model.frame sd terms model.matrix update.formula
-#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma dexp dgeom
+#' @importFrom stats dchisq dlnorm dnorm dlogis dpois dnbinom dt dbeta dgamma dexp dgeom dbinom
 #' @importFrom stats plogis
 #' @importFrom statmod dinvgauss
 #' @importFrom stats arima

@@ -162,7 +162,7 @@ pointLik.ets <- function(object, log=TRUE, ...){
     return(likValues);
 }
 
-#' @importFrom stats pgeom pnbinom ppois
+#' @importFrom stats pgeom pnbinom ppois pbinom
 pointLikCumulative <- function(object, ...){
     return(switch(object$distribution,
                   "dgeom"=pgeom(actuals(object), 1/(object$mu+1)),
