@@ -1081,9 +1081,9 @@ As mentioned earlier, depending on the distribution, we would have slight differ
 4. [Generalised Normal](#gnormal) and [Log-Generalised Normal](#lgnormal) distributions. Logarithms of absolute residuals in the power of $\beta$ are used in the initialisation, $\hat{\sigma}_t^{\frac{1}{\beta}}$ is used in the density function;
 5. [Gamma distribution](#gamma). Logarithms of squared residuals minus one ($\log(e_t-1)^2$) are used in the initialisation. This is needed in order to get to the estimate of the variance in the residuals, as the distribution assumes in `alm()` that $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function;
 6. Inverse Gaussian distribution. The residuals are transformed according to the formula: $\log\left(\frac{(e_t-1)^2}{e_t}\right)$, which (similarly to Gamma distribution) is motivated by the assumption of $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function.
-7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily has a good reason and is done for fail-safe purposes.
+7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily have a good reason and is done for fail-safe purposes.
 
-Note that the scale model is currently a new experimental feature, so it might not produce perfect results. Let me know if you have ideas of how to improve it via [https://github.com/config-i1/greybox/issues](https://github.com/config-i1/greybox/issues).
+Note that the scale model is a relatively new feature, so it might not produce perfect results. Let me know if you have ideas of how to improve it via [https://github.com/config-i1/greybox/issues](https://github.com/config-i1/greybox/issues).
 
 
 # Using different loss functions {#losses}
@@ -1095,7 +1095,7 @@ There are several loss functions implemented in the function and there is an opt
 
 The likelihoods of the distributions above are maximised, when the respective losses are minimised, so all the inference discussed above hold in these three situations. In all the other cases, the `alm()` function will not return `logLik` and might complain that the derivations can be misleading.
 
-Also, when `loss="likelihood"` the number of estimated parameters includes the scale of distribution (e.g. standard deviation in case of Normal distribution), but it is not counted in the number of parameters of all the other losses.
+Also, when `loss="likelihood"` (and for the three cases above) the number of estimated parameters includes the scale of distribution (e.g. standard deviation in case of Normal distribution), but it is not counted in the number of parameters of all the other losses.
 
 Finally, we can provide custom loss functions. Here is an example:
 ```{r}
@@ -1133,6 +1133,6 @@ There are several parameters in the optimiser that can be regulated by the user.
 8. `ftol_abs` - the stopping criterion in case of the absolute change in the loss function (the default is 0 - not used);
 9. `print_level` - the level of output for the optimiser (0 by default). If equal to 41, then the detailed results of the optimisation are returned.
 
-You can read more about these parameters by running the function {nloptr.print.options()} form the `nloptr` package. Typically, if your model does not work as expected, you might need to tune some of these parameters in order to make sure that the optimum of the loss is reached to the satisfactory extent.
+You can read more about these parameters by running the function `nloptr.print.options()` form the `nloptr` package. Typically, if your model does not work as expected, you might need to tune some of these parameters in order to make sure that the optimum of the loss is reached to the satisfactory extent.
 
 # References
