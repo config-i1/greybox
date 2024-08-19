@@ -512,7 +512,7 @@ nparam.default <- function(object, ...){
 nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
     if(!is.null(object$occurrence)){
-        return(object$df+object$occurrence$df);
+        return(object$df+nparam(object$occurrence));
     }
     else{
         return(object$df);

@@ -2183,7 +2183,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Parameters of the model. Scale part goes later
-    if(scaleModel || any(distribution==c("dexp","dpois","dgeom"))){
+    if(scaleModel || any(distribution==c("dexp","dpois","dgeom","dbinom","plogis","pnorm"))){
         nParam <- nVariables;
     }
     else{
