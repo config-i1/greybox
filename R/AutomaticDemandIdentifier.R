@@ -250,10 +250,14 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
         if(zeroesLeft){
             # These models are needed to take care of potential very low volume data
-            idModelAlternative <- vector("list",2)
+            idModelAlternative <- vector("list",4)
             idModelAlternative[[1]] <- alm(y~1, xregData, distribution="dbinom",
                                            loss=loss, ...);
             idModelAlternative[[2]] <- alm(y~., xregData, distribution="dbinom",
+                                           loss=loss, ...);
+            idModelAlternative[[3]] <- alm(y~1, xregData, distribution="dbinom", occurrence=modelOccurrence,
+                                           loss=loss, ...);
+            idModelAlternative[[4]] <- alm(y~., xregData, distribution="dbinom", occurrence=modelOccurrence,
                                            loss=loss, ...);
             idModelAlternativeICs <- sapply(idModelAlternative, IC);
 
