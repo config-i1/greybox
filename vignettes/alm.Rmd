@@ -844,7 +844,7 @@ There is also Geometric distribution implemented in `alm()`. It has the followin
 where $p_t = \frac{1}{1+\exp(x_t' B)}$. The conditional expectation in this model is calculated as $\mu_t = \frac{1}{p_t} - 1 = \exp(x_t' B)$. The probability is used in the calculation of the log-likelihood via the `dgeom()` function.
 
 Several PMFs of the Geometric distribution are shown in the following figure:
-```{r pmfBin, echo=FALSE}
+```{r pmfGeom, echo=FALSE}
 plot(seq(0,10,1),dgeom(seq(0,10,1),0.25),type="b",ylim=c(0,1),
      xlab="y_t",ylab="Density",main="PMF of Geometric distribution")
 par(new=TRUE)
