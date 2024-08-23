@@ -1,4 +1,4 @@
-greybox v2.0.2 (Release data: 2024-08-19)
+greybox v2.0.2 (Release data: 2024-08-23)
 ==============
 
 Changes:
@@ -13,6 +13,7 @@ Changes:
 * We now return res in alm() to see how nloptr worked.
 * Diferent initialisation for the NegBin and positive distributions in case of y containing zeroes in alm().
 * New distribution in alm(), Binomial.
+* plot.timeboot() is now documented.
 
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.

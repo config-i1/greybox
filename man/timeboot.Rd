@@ -2,11 +2,14 @@
 % Please edit documentation in R/timeboot.R
 \name{timeboot}
 \alias{timeboot}
+\alias{plot.timeboot}
 \title{Time series bootstrap}
 \usage{
 timeboot(y, nsim = 100, intermittent = TRUE, type = c("multiplicative",
   "additive"), kind = c("nonparametric", "parametric"), lag = frequency(y),
   sd = NULL, scale = TRUE)
+
+\method{plot}{timeboot}(x, sorted = FALSE, legend = TRUE, ...)
 }
 \arguments{
 \item{y}{The original time series}
@@ -30,6 +33,15 @@ differences of the data if omitted.}
 
 \item{scale}{Whether or not to do scaling of time series to the bootstrapped ones to have
 similar variance to the original data.}
+
+\item{x}{The object of the class timeboot.}
+
+\item{sorted}{Whether the sorted (\code{TRUE}) or the original (\code{FALSE})
+data should be used.}
+
+\item{legend}{Whether to produce the legend on the plot.}
+
+\item{...}{Other parameters passed to the plot function.}
 }
 \value{
 The function returns:
@@ -39,7 +51,8 @@ The function returns:
 \item \code{boot} - the matrix with the new series in columns and observations in rows.
 \item \code{type} - type of the bootstrap used.
 \item \code{sd} - the value of sd used in case of parameteric bootstrap.
-\item \code{scale} - whether the scaling was needed.}
+\item \code{scale} - whether the scaling was needed.
+\item \code{smooth} - the smoothed ordered actual data.}
 }
 \description{
 The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
@@ -48,16 +61,16 @@ The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
 The function implements the following algorithm:
 
 1. Sort the data in the ascending order, recording the original order of elements;
-2. Take first differences of the sorted series and sort them;
-3. Create contingency table based on the differences and take the cumulative sum
-of it. This way we end up with an empirical CDF of differences;
-4. Generate random numbers from the uniform distribution between 0 and 1;
-5. Get the differences that correspond to the random numbers (randomly extract
+2. Take first differences of the original data and sort them;
+3. Generate random numbers from the uniform distribution between 0 and 1;
+4. Get the smoothed differences that correspond to the random numbers (randomly extract
 empirical quantiles). This way we take the empirical density into account when
 selecting the differences;
-6. Add the random differences to the sorted series from (1) to get a new time series;
-7. Sort the new time series in the ascending order;
-8. Reorder (7) based on the initial order of series.
+5. Add the random differences to the sorted series from (1) to get a new time series;
+6. Sort the new time series in the ascending order;
+7. Reorder (6) based on the initial order of series;
+8. Centre the data around the original series;
+9. Scale the data to make sure that the variance is constant over time.
 
 If the multiplicative bootstrap is used then logarithms of the sorted series
 are used and at the very end, the exponent of the resulting data is taken. This way the
