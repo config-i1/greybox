@@ -167,16 +167,16 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
         # Bootstrap the data
         dataBoot <- suppressWarnings(apply(as.data.frame(newCall$data), 2, dsrboot,
                                            nsim=nsim, intermittent=FALSE));
-        nVariables <- length(dataBoot);
+        nLevels <- length(dataBoot);
         # Fill in the list of data
         for(i in 1:nsim){
-            for(j in 1:nVariables){
+            for(j in 1:nLevels){
                 newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
             }
         }
         if(!parallel){
             for(i in 1:nsim){
-                newCall$data <- newData[[i]];
+                newCall$data[] <- newData[[i]];
                 testModel <- suppressWarnings(eval(newCall));
                 coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
             }
@@ -184,7 +184,7 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
         else{
             # We don't do rbind for security reasons - in order to deal with skipped variables
             coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
-                newCall$data <- newData[[i]];
+                newCall$data[] <- newData[[i]];
                 testModel <- eval(newCall);
                 return(coef(testModel));
             })
@@ -399,16 +399,16 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         # Bootstrap the data
         dataBoot <- suppressWarnings(apply(newCall$data, 2, dsrboot,
                                            nsim=nsim, intermittent=FALSE));
-        nVariables <- length(dataBoot);
+        nLevels <- length(dataBoot);
         # Fill in the list of data
         for(i in 1:nsim){
-            for(j in 1:nVariables){
+            for(j in 1:nLevels){
                 newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
             }
         }
         if(!parallel){
             for(i in 1:nsim){
-                newCall$data <- newData[[i]];
+                newCall$data[] <- newData[[i]];
                 testModel <- suppressWarnings(eval(newCall));
                 coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
             }
@@ -416,7 +416,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         else{
             # We don't do rbind for security reasons - in order to deal with skipped variables
             coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
-                newCall$data <- newData[[i]];
+                newCall$data[] <- newData[[i]];
                 testModel <- eval(newCall);
                 return(coef(testModel));
             })
