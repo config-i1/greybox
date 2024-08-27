@@ -1,24 +1,16 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "20 June 2024"
+date: "27 August 2024"
 output: html_document
 ---
 
 ## Version
-This is the release of the package `greybox`, v2.0.1
-
-## Note
-I have changed my email from ivan@svetunkov.ru to ivan@svetunkov.com. Because of that, some checks gave this warning:
-
->New maintainer:
->  Ivan Svetunkov <ivan@svetunkov.com>
->Old maintainer(s):
->  Ivan Svetunkov <ivan@svetunkov.ru>
+This is the release of the package `greybox`, v2.0.2
 
 
 ## Test environments
-* local Ubuntu 22.04.4, R 4.4.0
+* local Ubuntu 22.04.4, R 4.4.1
 * github actions
 * win-builder (devel and release)
 * rhub v2
@@ -39,9 +31,9 @@ I have changed my email from ivan@svetunkov.ru to ivan@svetunkov.com. Because of
 ## Github actions
 Successful checks for:
 
-- Windows latest release with R 4.4.0
-- MacOS latest macOS Monterey 12.6.8 with R 4.4.0
-- Ubuntu latest with R 4.4.0
+- Windows latest release with R 4.4.1
+- MacOS latest macOS Monterey 12.6.8 with R 4.4.1
+- Ubuntu latest with R 4.4.1
 
 
 ## win-builder
