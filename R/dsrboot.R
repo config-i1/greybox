@@ -1,8 +1,9 @@
-#' Time series bootstrap
+#' Data Shape Replication Bootstrap
 #'
 #' The function implements a bootstrap inspired by the Maximum Entropy Bootstrap
 #'
-#' The function implements the following algorithm:
+#' The "Data Shape Replication" bootstrap reproduces the shape of the original time series
+#' by creating randomness around it. It is done in the following steps:
 #'
 #' 1. Sort the data in the ascending order, recording the original order of elements;
 #' 2. Take first differences of the original data and sort them;
@@ -54,16 +55,16 @@
 #' The meboot R Package." Journal of Statistical Software, 29(5), 1–19. \doi{doi:10.18637/jss.v029.i05}.
 #'
 #' @examples
-#' timeboot(AirPassengers) |> plot()
+#' dsrboot(AirPassengers) |> plot()
 #'
-#' @rdname timeboot
+#' @rdname dsrboot
 #' @importFrom stats supsmu
 #' @export
-timeboot <- function(y, nsim=100, intermittent=TRUE,
-                     type=c("multiplicative","additive"),
-                     kind=c("nonparametric","parametric"),
-                     lag=frequency(y), sd=NULL,
-                     scale=TRUE){
+dsrboot <- function(y, nsim=100, intermittent=TRUE,
+                    type=c("multiplicative","additive"),
+                    kind=c("nonparametric","parametric"),
+                    lag=frequency(y), sd=NULL,
+                    scale=TRUE){
     cl <- match.call();
 
     type <- match.arg(type);
@@ -74,20 +75,20 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     otU <- rep(TRUE, obsInsample);
     yIsInteger <- FALSE;
 
-    # If we have intermittent demand, do timeboot for demand sizes and intervals
+    # If we have intermittent demand, do dsrboot for demand sizes and intervals
     if(any(y==0)){
         otU[] <- y!=0;
         if(intermittent){
             obsNonZero <- sum(otU);
             # Get rid of class
             ySizes <- as.vector(y[otU]);
-            yIsInteger <- all(ySizes==trunc(ySizes));
+            yIsInteger[] <- all(ySizes==trunc(ySizes));
             # -1 is needed to get the thing closer to the geometric distribution (start from zero)
             yIntervals <- diff(c(0,which(otU)))-1;
 
             # Bootstrap the demand sizes
-            ySizesBoot <- timeboot(ySizes, nsim=nsim, intermittent=FALSE,
-                                   type=type, kind=kind, lag=1, sd=sd, scale=scale);
+            ySizesBoot <- dsrboot(ySizes, nsim=nsim, intermittent=FALSE,
+                                  type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
             # Make sure that we don't have negative values if there are no in the original data
             if(all(ySizes>0)){
@@ -100,8 +101,8 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
             }
 
             # Bootstrap the interval sizes
-            yIntervalsBoot <- timeboot(yIntervals, nsim=nsim, intermittent=FALSE,
-                                       type=type, kind=kind, lag=1, sd=sd, scale=scale);
+            yIntervalsBoot <- dsrboot(yIntervals, nsim=nsim, intermittent=FALSE,
+                                      type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
             # Round up intervals and add 1 to get back to the original data
             yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot))+1;
@@ -117,24 +118,31 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
                                   boot=ts(yNew[1:obsInsample,], frequency=frequency(y), start=start(y)),
                                   type=type,
                                   sizes=ySizesBoot, intervals=yIntervalsBoot),
-                             class="timeboot"));
+                             class="dsrboot"));
         }
         else{
-            yIsInteger <- all(y==trunc(y));
+            yIsInteger[] <- all(y==trunc(y));
         }
     }
-    # Record, where zeroes were originally
-    otUIDsZeroes <- which(!otU);
-
-    # if(any(y<=0) && type=="multiplicative"){
-    #     type[] <- "additive";
-    #     warning("Data has non-positive values. Switching bootstrap type to 'additive'.",
-    #             call.=FALSE);
-    # }
 
     # The matrix for the new data
     yNew <- ts(matrix(NA, obsInsample, nsim),
                frequency=frequency(y), start=start(y));
+
+    # Check whether the variable is binary
+    yIsBinary <- all((y/max(y)) %in% c(0,1));
+
+    # Is the response variable binary? No bootstrap then!
+    if(yIsBinary){
+        warning("The data is binary, so there is no point in bootstraping it.",
+                call.=FALSE);
+        yNew[] <- y;
+        return(structure(list(call=cl, data=y, boot=yNew, type=type, sd=sd, scale=scale,
+                              smooth=y), class="dsrboot"));
+    }
+
+    # Record, where zeroes were originally
+    otUIDsZeroes <- which(!otU);
 
     yTransformed <- y;
 
@@ -280,22 +288,22 @@ timeboot <- function(y, nsim=100, intermittent=TRUE,
     }
 
     return(structure(list(call=cl, data=y, boot=yNew, type=type, sd=sd, scale=scale,
-                          smooth=yIntermediate), class="timeboot"));
+                          smooth=yIntermediate), class="dsrboot"));
 }
 
 #' @export
-print.timeboot <- function(x, ...){
+print.dsrboot <- function(x, ...){
     cat("Bootstrapped", ncol(x$boot), "series,", x$type, "type.\n");
 }
 
-#' @rdname timeboot
-#' @param x The object of the class timeboot.
+#' @rdname dsrboot
+#' @param x The object of the class dsrboot.
 #' @param sorted Whether the sorted (\code{TRUE}) or the original (\code{FALSE})
 #' data should be used.
 #' @param legend Whether to produce the legend on the plot.
 #' @param ... Other parameters passed to the plot function.
 #' @export
-plot.timeboot <- function(x, sorted=FALSE, legend=TRUE, ...){
+plot.dsrboot <- function(x, sorted=FALSE, legend=TRUE, ...){
     nsim <- ncol(x$boot);
     ellipsis <- list(...);
     if(sorted){

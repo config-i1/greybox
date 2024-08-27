@@ -1,4 +1,4 @@
-greybox v2.0.2 (Release data: 2024-08-23)
+greybox v2.0.2 (Release data: 2024-08-27)
 ==============
 
 Changes:
@@ -14,6 +14,8 @@ Changes:
 * Diferent initialisation for the NegBin and positive distributions in case of y containing zeroes in alm().
 * New distribution in alm(), Binomial.
 * plot.timeboot() is now documented.
+* Renamed "timeboot()" into "dsrboot()" ("Data Shape Replication").
+* coefbootstrap() now has two options for bootstrap: "cr" and "dsr" (see documentation).
 
 Bugfixes:
 * Geometric distribution used a wrong formula for the probability.

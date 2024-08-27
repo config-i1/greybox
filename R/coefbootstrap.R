@@ -12,14 +12,20 @@
 #' @param nsim Number of iterations (simulations) to run.
 #' @param size A non-negative integer giving the number of items to choose (the sample size),
 #' passed to \link[base]{sample} function in R. If not provided and model contains ARIMA
-#' components, this value will be selected at random on each iteration.
+#' components, this value will be selected at random on each iteration. This is only used for
+#' \code{method="cr"}.
 #' @param replace Should sampling be with replacement? Also, passed to \link[base]{sample}
-#' function in R.
+#' function in R. Only used in \code{method="cr"}.
 #' @param prob A vector of probability weights for obtaining the elements of the vector
-#' being sampled. This is passed to the \link[base]{sample} as well.
+#' being sampled. This is passed to the \link[base]{sample} as well. Only used with
+#' \code{method="cr"}.
 #' @param parallel Either a logical, specifying whether to do the calculations in parallel,
 #' or the number, specifying the number of cores to use for the parallel calculation.
-#' @param ... Other parameters passed to the \link[greybox]{timeboot} function.
+#' @param method Which bootstrap method to use. Currently two options are supported:
+#' \code{"dsr"} - "Data Shape Replication, implemented in \link[greybox]{dsrboot};
+#' \code{"cr"} - "Case Resampling", basic bootstrap that assumes that observations are
+#' independent (not suitable for models with ARIMA elements).
+#' @param ... Parameters passed to the \link[greybox]{dsrboot} function.
 #'
 #' @return Class "bootstrap" is returned, which contains:
 #' \itemize{
@@ -42,17 +48,19 @@
 #' @examples
 #' # An example with ALM
 #' ourModel <- alm(mpg~., mtcars, distribution="dlnorm", loss="HAM")
-#' # A fast example with 10 iterations. Use at least 1000 to get better results
+#' # A fast example with 10 iterations. Use at least 100 to get better results
 #' coefbootstrap(ourModel, nsim=10)
 #'
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                          replace=FALSE, prob=NULL, parallel=FALSE, ...) UseMethod("coefbootstrap")
+                          replace=FALSE, prob=NULL, parallel=FALSE,
+                          method=c("dsr","cr"), ...) UseMethod("coefbootstrap")
 
 #' @export
 coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                                  replace=FALSE, prob=NULL, parallel=FALSE, ...){
+                                  replace=FALSE, prob=NULL, parallel=FALSE,
+                                  method=c("dsr","cr"), ...){
 
     startTime <- Sys.time();
 
@@ -64,6 +72,8 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
         stop("In order for the function to work, the object should have the variable 'call' in it. Cannot proceed.",
              call.=FALSE);
     }
+
+    method <- match.arg(method);
 
     if(is.numeric(parallel)){
         nCores <- parallel;
@@ -122,23 +132,66 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
     # Indices for the observations to use and the vector of subsets
     indices <- c(1:obsInsample);
 
-    if(!parallel){
-        for(i in 1:nsim){
-            newCall$subset <- sample(indices,size=size,replace=replace,prob=prob);
-            testModel <- suppressWarnings(eval(newCall));
-            coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
+    if(method=="cr"){
+        if(!parallel){
+            for(i in 1:nsim){
+                newCall$subset <- sample(indices,size=size,replace=replace,prob=prob);
+                testModel <- suppressWarnings(eval(newCall));
+                coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
+            }
+        }
+        else{
+            # We don't do rbind for security reasons - in order to deal with skipped variables
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+                newCall$subset <- sample(indices,size=size,replace=replace,prob=prob);
+                testModel <- eval(newCall);
+                return(coef(testModel));
+            })
+            # Prepare the matrix with parameters
+            for(i in 1:nsim){
+                coefBootstrap[i,names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            }
         }
     }
     else{
-        # We don't do rbind for security reasons - in order to deal with skipped variables
-        coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
-            newCall$subset <- sample(indices,size=size,replace=replace,prob=prob);
-            testModel <- eval(newCall);
-            return(coef(testModel));
-        })
-        # Prepare the matrix with parameters
+        # Set all redundant variables to NA
+        replace <- prob <- size <- NA;
+        # Amend the data
+        newCall$data <- model.matrix(object);
+        newCall$data[,1] <- model.frame(object)[[1]];
+        colnames(newCall$data)[1] <- all.vars(formula(object))[1];
+        # Create a new dataset
+        newData <- replicate(nsim, as.data.frame(newCall$data), simplify=FALSE);
+        # Create formula for the used data
+        newCall$formula <- as.formula(paste0(colnames(newCall$data)[1],"~."));
+        # Bootstrap the data
+        dataBoot <- suppressWarnings(apply(as.data.frame(newCall$data), 2, dsrboot,
+                                           nsim=nsim, intermittent=FALSE));
+        nVariables <- length(dataBoot);
+        # Fill in the list of data
         for(i in 1:nsim){
-            coefBootstrap[i,names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            for(j in 1:nVariables){
+                newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
+            }
+        }
+        if(!parallel){
+            for(i in 1:nsim){
+                newCall$data <- newData[[i]];
+                testModel <- suppressWarnings(eval(newCall));
+                coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
+            }
+        }
+        else{
+            # We don't do rbind for security reasons - in order to deal with skipped variables
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+                newCall$data <- newData[[i]];
+                testModel <- eval(newCall);
+                return(coef(testModel));
+            })
+            # Prepare the matrix with parameters
+            for(i in 1:nsim){
+                coefBootstrap[i,names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            }
         }
     }
     # Get rid of NAs. They mean "zero"
@@ -148,7 +201,7 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
     coefvcov <- coefBootstrap - matrix(coefficientsOriginal, nsim, nVariables, byrow=TRUE);
 
     return(structure(list(vcov=(t(coefvcov) %*% coefvcov)/nsim,
-                          coefficients=coefBootstrap,
+                          coefficients=coefBootstrap, method=method,
                           nsim=nsim, size=size, replace=replace, prob=prob, parallel=parallel,
                           model=object$call[[1]], timeElapsed=Sys.time()-startTime),
                      class="bootstrap"));
@@ -157,18 +210,22 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap.lm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                              replace=FALSE, prob=NULL, parallel=FALSE, ...){
-    return(coefbootstrap.default(object, nsim, size, replace, prob, parallel));
+                             replace=FALSE, prob=NULL, parallel=FALSE,
+                             method=c("dsr","cr"), ...){
+    return(coefbootstrap.default(object, nsim, size, replace, prob, parallel, method, ...));
 }
 
 #' @rdname coefbootstrap
 #' @export
 coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
-                              replace=FALSE, prob=NULL, parallel=FALSE, ...){
+                              replace=FALSE, prob=NULL, parallel=FALSE,
+                              method=c("dsr","cr"), ...){
 
     startTime <- Sys.time();
 
     cl <- match.call();
+
+    method <- match.arg(method);
 
     if(is.numeric(parallel)){
         nCores <- parallel;
@@ -311,23 +368,62 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         }
     }
 
-    if(!parallel){
-        for(i in 1:nsim){
-            newCall$subset <- sampler(indices,size,replace,prob,arimaModel,changeSize);
-            testModel <- suppressWarnings(eval(newCall));
-            coefBootstrap[i,variablesNamesMade %in% names(coef(testModel))] <- coef(testModel);
+    if(method=="cr"){
+        if(!parallel){
+            for(i in 1:nsim){
+                newCall$subset <- sampler(indices,size,replace,prob,arimaModel,changeSize);
+                testModel <- suppressWarnings(eval(newCall));
+                coefBootstrap[i,variablesNamesMade %in% names(coef(testModel))] <- coef(testModel);
+            }
+        }
+        else{
+            # We don't do rbind for security reasons - in order to deal with skipped variables
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+                newCall$subset <- sampler(indices,size,replace,prob,arimaModel,changeSize);
+                testModel <- eval(newCall);
+                return(coef(testModel));
+            })
+            # Prepare the matrix with parameters
+            for(i in 1:nsim){
+                coefBootstrap[i,variablesNamesMade %in% names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            }
         }
     }
     else{
-        # We don't do rbind for security reasons - in order to deal with skipped variables
-        coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
-            newCall$subset <- sampler(indices,size,replace,prob,arimaModel,changeSize);
-            testModel <- eval(newCall);
-            return(coef(testModel));
-        })
-        # Prepare the matrix with parameters
+        # Set all redundant variables to NA
+        replace <- prob <- size <- NA;
+        # Create a new dataset
+        newData <- replicate(nsim, object$data, simplify=FALSE);
+        newCall$data <- object$data;
+        newCall$formula <- as.formula(paste0(colnames(object$data)[1],"~."));
+        # Bootstrap the data
+        dataBoot <- suppressWarnings(apply(newCall$data, 2, dsrboot,
+                                           nsim=nsim, intermittent=FALSE));
+        nVariables <- length(dataBoot);
+        # Fill in the list of data
         for(i in 1:nsim){
-            coefBootstrap[i,variablesNamesMade %in% names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            for(j in 1:nVariables){
+                newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
+            }
+        }
+        if(!parallel){
+            for(i in 1:nsim){
+                newCall$data <- newData[[i]];
+                testModel <- suppressWarnings(eval(newCall));
+                coefBootstrap[i,names(coef(testModel))] <- coef(testModel);
+            }
+        }
+        else{
+            # We don't do rbind for security reasons - in order to deal with skipped variables
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+                newCall$data <- newData[[i]];
+                testModel <- eval(newCall);
+                return(coef(testModel));
+            })
+            # Prepare the matrix with parameters
+            for(i in 1:nsim){
+                coefBootstrap[i,names(coefBootstrapParallel[[i]])] <- coefBootstrapParallel[[i]];
+            }
         }
     }
 
@@ -341,7 +437,7 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
     coefvcov <- coefBootstrap - matrix(colMeans(coefBootstrap), nsim, nVariables, byrow=TRUE);
 
     return(structure(list(vcov=(t(coefvcov) %*% coefvcov)/(nsim-1),
-                          coefficients=coefBootstrap,
+                          coefficients=coefBootstrap, method=method,
                           nsim=nsim, size=size, replace=replace, prob=prob, parallel=parallel,
                           model=object$call[[1]], timeElapsed=Sys.time()-startTime),
                      class="bootstrap"));
@@ -350,6 +446,6 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
 
 #' @export
 print.bootstrap <- function(x, ...){
-    cat(paste0("Bootstrap for the ", x$model, " model with nsim=",x$nsim," and size=",x$size,"\n"))
+    cat(paste0("Bootstrap for the ", x$model, " model with nsim=",x$nsim," using ", x$method, " method\n"))
     cat(paste0("Time elapsed: ",round(as.numeric(x$timeElapsed,units="secs"),2)," seconds\n"));
 }

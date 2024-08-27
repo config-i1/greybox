@@ -13,7 +13,7 @@
 #' \link[greybox]{pBICc} - point versions of respective information criteria.
 #' \item \link[greybox]{coefbootstrap} - Method that uses a simple implementation of the
 #' case resampling to get bootstrapped estimates of parameters of the model.
-#' \item \link[greybox]{timeboot} - Bootstrap inspired by the meboot package, that creates
+#' \item \link[greybox]{dsrboot} - Bootstrap inspired by the meboot package, that creates
 #' bootstraped series based on the provided one.
 #' \item \link[greybox]{determination} - Coefficients of determination between different
 #' exogenous variables.
