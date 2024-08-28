@@ -271,7 +271,7 @@ dsrboot <- function(y, nsim=100, intermittent=TRUE,
     if(obsInsample>1){
         # Make sure that the SD of the data is constant
         yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
-        yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed)
+        yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed);
     }
 
     if(type=="multiplicative"){
