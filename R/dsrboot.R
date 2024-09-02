@@ -174,10 +174,10 @@ dsrboot <- function(y, nsim=100, intermittent=TRUE,
             # yDiffs <- sort(diff(ySorted[!is.na(ySorted)]));
 
             # This is differences of the smoothed data
-            # yDiffs <- sort(diff(yIntermediate[!is.na(yIntermediate)]));
+            yDiffs <- sort(diff(yIntermediate[!is.na(yIntermediate)]));
 
             # This is differences of the original data
-            yDiffs <- sort(diff(yTransformed[!is.na(yTransformed)]));
+            # yDiffs <- sort(diff(yTransformed[!is.na(yTransformed)]));
 
             yDiffsLength <- length(yDiffs);
             # Remove potential outliers
@@ -274,9 +274,10 @@ dsrboot <- function(y, nsim=100, intermittent=TRUE,
         yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed);
     }
 
+    yIntermediate[yOrder] <- yIntermediate;
     if(type=="multiplicative"){
         yNew[] <- exp(yNew);
-        yIntermediate[yOrder] <- exp(yIntermediate);
+        yIntermediate[] <- exp(yIntermediate);
     }
 
     # Recreate zeroes where they were in the original data
