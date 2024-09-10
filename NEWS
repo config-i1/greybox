@@ -1,3 +1,10 @@
+greybox v2.0.3 (Release data: 2024-09-10)
+==============
+
+Changes:
+* coefbootstrap() now bootstraps only the response variable in case of dsr.
+
+
 greybox v2.0.2 (Release data: 2024-08-27)
 ==============
 

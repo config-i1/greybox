@@ -165,14 +165,16 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
         # Create formula for the used data
         newCall$formula <- as.formula(paste0(colnames(newCall$data)[1],"~."));
         # Bootstrap the data
-        dataBoot <- suppressWarnings(apply(as.data.frame(newCall$data), 2, dsrboot,
-                                           nsim=nsim, intermittent=FALSE));
-        nLevels <- length(dataBoot);
+        # dataBoot <- suppressWarnings(apply(as.data.frame(newCall$data), 2, dsrboot,
+        #                                    nsim=nsim, intermittent=FALSE));
+        dataBoot <- dsrboot(actuals(object), nsim=nsim, ...)$boot;
+        # nLevels <- length(dataBoot);
         # Fill in the list of data
         for(i in 1:nsim){
-            for(j in 1:nLevels){
-                newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
-            }
+            newData[[i]][,1] <- dataBoot[,i];
+            # for(j in 1:nLevels){
+            #     newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
+            # }
         }
         if(!parallel){
             for(i in 1:nsim){
@@ -397,14 +399,16 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         newCall$data <- object$data;
         newCall$formula <- as.formula(paste0(colnames(object$data)[1],"~."));
         # Bootstrap the data
-        dataBoot <- suppressWarnings(apply(newCall$data, 2, dsrboot,
-                                           nsim=nsim, intermittent=FALSE));
-        nLevels <- length(dataBoot);
+        # dataBoot <- suppressWarnings(apply(newCall$data, 2, dsrboot,
+        #                                    nsim=nsim, intermittent=FALSE));
+        dataBoot <- dsrboot(actuals(object), nsim=nsim, ...)$boot;
+        # nLevels <- length(dataBoot);
         # Fill in the list of data
         for(i in 1:nsim){
-            for(j in 1:nLevels){
-                newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
-            }
+            newData[[i]][,1] <- dataBoot[,i];
+            # for(j in 1:nLevels){
+            #     newData[[i]][,j] <- dataBoot[[j]]$boot[,i];
+            # }
         }
         if(!parallel){
             for(i in 1:nsim){

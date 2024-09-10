@@ -5,7 +5,7 @@
 \alias{plot.dsrboot}
 \title{Data Shape Replication Bootstrap}
 \usage{
-dsrboot(y, nsim = 100, intermittent = TRUE, type = c("multiplicative",
+dsrboot(y, nsim = 100, intermittent = FALSE, type = c("multiplicative",
   "additive"), kind = c("nonparametric", "parametric"), lag = frequency(y),
   sd = NULL, scale = TRUE)
 

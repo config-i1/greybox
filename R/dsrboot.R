@@ -60,7 +60,7 @@
 #' @rdname dsrboot
 #' @importFrom stats supsmu
 #' @export
-dsrboot <- function(y, nsim=100, intermittent=TRUE,
+dsrboot <- function(y, nsim=100, intermittent=FALSE,
                     type=c("multiplicative","additive"),
                     kind=c("nonparametric","parametric"),
                     lag=frequency(y), sd=NULL,
