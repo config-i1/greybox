@@ -51,12 +51,14 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     ic <- match.arg(ic);
     IC <- switch(ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
 
+    obsInSample <- length(y);
+
     # Do stockouts only for data with zeroes
     if(any(y==0)){
         #### Stockouts ####
         # Demand intervals to identify stockouts/new/old products
-        # 0 is for the new products, length(y) is to track obsolescence
-        yIntervals <- diff(c(0,which(y!=0),length(y)+1));
+        # 0 is for the new products, obsInSample is to track obsolescence
+        yIntervals <- diff(c(0,which(y!=0),obsInSample+1));
         xregDataIntervals <- data.frame(y=yIntervals,
                                         ### LOWESS is more conservative than supsmu. Better for identification
                                         # x=supsmu(1:length(yIntervals),yIntervals)$y);
@@ -154,7 +156,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     }
     else{
         message("The data does not contain any zeroes. It must be regular.");
-        yIDsToUse <- 1:length(y);
+        yIDsToUse <- 1:obsInSample;
         stockoutsStart <- stockoutsEnd <- NULL;
         productNew <- productObsolete <- FALSE;
     }
@@ -303,8 +305,20 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Add stockout model to the output
     idModels$stockout <- stockoutModel;
 
+    nStockouts <- length(stockoutsStart);
+    if(nStockouts>0){
+        stockoutDummies <- matrix(0, obsInSample, nStockouts,
+                                  dimnames=list(NULL, paste0("Stockout", 1:nStockouts)));
+        for(i in 1:nStockouts){
+            stockoutDummies[stockoutsStart[i]:stockoutsEnd[i],i] <- 1;
+        }
+    }
+    else{
+        stockoutDummies <- NULL;
+    }
+
     return(structure(list(y=y, models=idModels, ICs=aidCs, type=idType,
-                          stockouts=list(start=stockoutsStart, end=stockoutsEnd),
+                          stockouts=list(start=stockoutsStart, end=stockoutsEnd, dummies=stockoutDummies),
                           new=productNew, obsolete=productObsolete),
                      class="aid"));
 }

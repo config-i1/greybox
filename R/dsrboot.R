@@ -70,6 +70,9 @@ dsrboot <- function(y, nsim=100, intermittent=FALSE,
     type <- match.arg(type);
     kind <- match.arg(kind);
 
+    # Get rid of class
+    y <- as.vector(y);
+
     # Sample size and new data
     obsInsample <- length(y);
     otU <- rep(TRUE, obsInsample);
