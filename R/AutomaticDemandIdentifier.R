@@ -305,20 +305,27 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Add stockout model to the output
     idModels$stockout <- stockoutModel;
 
-    nStockouts <- length(stockoutsStart);
-    if(nStockouts>0){
-        stockoutDummies <- matrix(0, obsInSample, nStockouts,
-                                  dimnames=list(NULL, paste0("Stockout", 1:nStockouts)));
-        for(i in 1:nStockouts){
-            stockoutDummies[stockoutsStart[i]:stockoutsEnd[i],i] <- 1;
+    # Stockout dummy variable
+    stockoutDummy <- rep(0, obsInSample);
+    if(length(stockoutsStart)>0){
+        for(i in 1:length(stockoutsStart)){
+            stockoutDummy[stockoutsStart[i]:stockoutsEnd[i]] <- 1;
         }
     }
-    else{
-        stockoutDummies <- NULL;
+    # Dummy variable for the beginning of series
+    newDummy <- rep(0, obsInSample);
+    if(productNew){
+        newDummy[1:(which(y!=0)[1]-1)] <- 1;
+    }
+    # Dummy variable for the end of series
+    obsoleteDummy <- rep(0, obsInSample);
+    if(productObsolete){
+        obsoleteDummy[(tail(which(y!=0),1)+1):obsInSample] <- 1;
     }
 
     return(structure(list(y=y, models=idModels, ICs=aidCs, type=idType,
-                          stockouts=list(start=stockoutsStart, end=stockoutsEnd, dummies=stockoutDummies),
+                          stockouts=list(start=stockoutsStart, end=stockoutsEnd,
+                                         dummy=stockoutDummy, new=newDummy, obsolete=obsoleteDummy),
                           new=productNew, obsolete=productObsolete),
                      class="aid"));
 }

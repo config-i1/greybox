@@ -3,7 +3,7 @@ greybox v2.0.3 (Release data: 2024-09-14)
 
 Changes:
 * coefbootstrap() now bootstraps only the response variable in case of dsr.
-* aid() now returns a matrix of dummies with stockouts.
+* aid() now returns a binary vector for stockouts, another one for "new" product and another one for the "obsolete".
 
 Bugfixes:
 * dsrboot() now removes the class of the provided data. This helps in case of the zoo objects.
