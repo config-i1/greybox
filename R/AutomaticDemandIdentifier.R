@@ -80,7 +80,9 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         productObsolete <- FALSE;
 
         # If the first one is above the threshold, it is a "new product"
-        if(probabilities[1]>level && yIntervals[1]!=1){
+        # if(probabilities[1]>level && yIntervals[1]!=1){
+        # If the first one is not one, the data starts with zeroes
+        if(yIntervals[1]!=1){
             productNew[] <- TRUE;
         }
         # If the last one is above the threshold, it must be obsolescence
