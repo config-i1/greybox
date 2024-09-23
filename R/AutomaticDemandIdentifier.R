@@ -302,8 +302,10 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         idType <- "count";
     }
 
-    # Add stockout model to the output
-    idModels$stockout <- stockoutModel;
+    # Add stockout model to the output if there were some zeroes
+    if(any(y==0)){
+        idModels$stockout <- stockoutModel;
+    }
 
     # Stockout dummy variable
     stockoutDummy <- rep(0, obsInSample);
