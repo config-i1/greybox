@@ -63,5 +63,7 @@ Distribution Applications in Hydrology. Water Resources Research,
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.ru}
+
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

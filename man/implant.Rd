@@ -46,7 +46,7 @@ ourModel <- implant(ourModel, ourScale)
 \link[greybox]{alm}, \link[smooth]{adam}, \link[greybox]{sm}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

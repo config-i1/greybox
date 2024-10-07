@@ -90,6 +90,6 @@ Distribution Applications in Hydrology. Water Resources Research,
 \code{\link[greybox]{Distributions}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

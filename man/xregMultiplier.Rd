@@ -36,7 +36,7 @@ xregMultiplier(x)
 \link[greybox]{xregExpander}, \link[greybox]{xregTransformer}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

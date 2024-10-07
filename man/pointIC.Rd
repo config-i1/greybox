@@ -49,6 +49,6 @@ AIC(ourModel)
 \link[greybox]{pointLik}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

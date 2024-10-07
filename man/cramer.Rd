@@ -52,6 +52,6 @@ of the Korean Statistical Society, 42, pp. 323-328. \doi{10.1016/j.jkss.2012.10.
 \link[greybox]{mcor}, \link[greybox]{association}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

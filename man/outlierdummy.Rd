@@ -63,5 +63,5 @@ xregOutlierDummy <- outlierdummy(ourModel)
 \link[stats]{influence.measures}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

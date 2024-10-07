@@ -51,6 +51,6 @@ log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
 \link[stats]{AIC}, \link[stats]{BIC}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

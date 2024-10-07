@@ -29,5 +29,5 @@ when working with ARIMA models.
 \link[stats]{convolve}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

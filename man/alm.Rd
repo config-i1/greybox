@@ -289,7 +289,7 @@ plot(predict(ourModel,xreg[-c(1:80),],interval="p"))}
 \link[greybox]{xregTransformer}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

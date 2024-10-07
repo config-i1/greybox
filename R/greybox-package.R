@@ -46,9 +46,8 @@
 #'
 #' @name greybox
 #' @aliases greybox-package
-#' @author Ivan Svetunkov, \email{ivan@svetunkov.ru}
+#' @template author
 #'
-#' Maintainer: Ivan Svetunkov
 #' @seealso \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 #'
 #' @template keywords

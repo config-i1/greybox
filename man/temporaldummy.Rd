@@ -103,7 +103,7 @@ temporaldummy(x, type="month", of="year", h=10)
 \link[greybox]{outlierdummy}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

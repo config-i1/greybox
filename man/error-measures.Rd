@@ -198,5 +198,5 @@ prediction, and estimation. Journal of the American Statistical Association,
 \link[greybox]{pinball}, \link[greybox]{hm}, \link[greybox]{measures}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

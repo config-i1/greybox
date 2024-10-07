@@ -48,6 +48,6 @@ mcor(mtcars$am, mtcars$mpg)
 \link[greybox]{cramer}, \link[greybox]{association}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

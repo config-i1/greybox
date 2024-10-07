@@ -57,5 +57,5 @@ Working Paper of Department of Management Science, Lancaster University, 2023:3,
 }
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

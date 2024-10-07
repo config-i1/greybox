@@ -74,6 +74,6 @@ association(mtcars)
 \link[greybox]{cramer}, \link[greybox]{mcor}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

@@ -100,6 +100,6 @@ Multiple Data Sets. Journal of Machine Learning Research, 7, 1-30.
 }
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

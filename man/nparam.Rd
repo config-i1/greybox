@@ -44,6 +44,6 @@ nvariate(ourModel)
 \link[stats]{nobs}, \link[stats]{logLik}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

@@ -122,7 +122,7 @@ plot(forecast(ourModel,h=10,interval="p"))
 \link[stats]{predict.lm}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{ts}
 \keyword{univar}

@@ -78,5 +78,5 @@ International Journal of Forecasting, 29(3), 510-522.
 }
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

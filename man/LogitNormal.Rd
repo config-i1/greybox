@@ -87,6 +87,6 @@ Biometrics, 21 (3), 721–732. doi: 10.2307/2528553
 \code{\link[greybox]{Distributions}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

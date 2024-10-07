@@ -120,7 +120,7 @@ selection criterion. Statistics {&} Probability Letters, 44(1), 79–86.
 \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

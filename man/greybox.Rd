@@ -65,9 +65,7 @@ stepwise(xreg)
 \code{\link[greybox]{stepwise}, \link[greybox]{lmCombine}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
-
-Maintainer: Ivan Svetunkov
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

@@ -182,6 +182,6 @@ pp. 437-450. \doi{10.1016/S0169-2070(00)00065-0}.
 \author{
 Yves Sagaert
 
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{ts}

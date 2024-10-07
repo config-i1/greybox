@@ -107,7 +107,7 @@ plot(ourModel, c(1:14))
 \link[stats]{plot.lm}, \link[stats]{rstandard}, \link[stats]{rstudent}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{ts}
 \keyword{univar}

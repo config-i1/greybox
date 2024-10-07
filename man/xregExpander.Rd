@@ -52,7 +52,7 @@ xregExpander(x)
 \code{\link[smooth]{es}, \link[greybox]{stepwise}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

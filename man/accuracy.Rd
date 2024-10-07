@@ -39,5 +39,5 @@ predict(ourModel,xreg[-c(1:80),]) |>
    accuracy(xreg[-c(1:80),"y"])
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

@@ -60,6 +60,6 @@ determination(xreg)
 \link[stats]{cor}, \link[greybox]{mcor}, \link[greybox]{stepwise}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}

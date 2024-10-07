@@ -101,6 +101,6 @@ laplace distribution and its extension. Communications in Statistics
 \code{\link[greybox]{Distributions}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

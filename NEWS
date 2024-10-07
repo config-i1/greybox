@@ -8,6 +8,7 @@ Changes:
 Bugfixes:
 * dsrboot() now removes the class of the provided data. This helps in case of the zoo objects.
 * Removed the residual methods for the nemenyi class, which was long gone (to tsutils).
+* Corrected my email address.
 
 
 greybox v2.0.2 (Release data: 2024-08-27)

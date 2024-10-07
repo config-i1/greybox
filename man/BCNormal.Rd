@@ -91,6 +91,6 @@ Journal of the Royal Statistical Society. Series B (Methodological),
 \code{\link[greybox]{Distributions}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

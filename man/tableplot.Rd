@@ -49,7 +49,7 @@ tableplot(mtcars$am, mtcars$gear)
 \code{\link[graphics]{plot}, \link[base]{table}, \link[greybox]{spread}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{graph}
 \keyword{plots}
