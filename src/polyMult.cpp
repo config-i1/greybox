@@ -1,7 +1,7 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
-/* # Function allows to multiply polinomails */
+/* # Function allows to multiply polynomials */
 NumericVector polyMult(NumericVector const &poly1, NumericVector const &poly2){
 
     int poly1Nonzero = poly1.size()-1;
@@ -18,7 +18,7 @@ NumericVector polyMult(NumericVector const &poly1, NumericVector const &poly2){
     return poly3;
 }
 
-/* # Function allows to multiply polinomails */
+/* # Function allows to multiply polynomials */
 //' This function calculates parameters for the polynomials
 //'
 //' The function accepts two vectors with the parameters for the polynomials and returns
