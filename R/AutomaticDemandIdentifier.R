@@ -53,6 +53,9 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     obsInSample <- length(y);
 
+    # Substitute NAs with zeroes
+    y[is.na(y)] <- 0;
+
     # Do stockouts only for data with zeroes
     if(any(y==0)){
         #### Stockouts ####
