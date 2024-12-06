@@ -36,6 +36,9 @@
 #' return an array. If your function returns a list, then you will have a list of
 #' lists in the end. So it makes sense to understand what you want to get before
 #' running the function.
+#' @param step Number of observations to skip between origins when moving to the next one.
+#' For example, could be useful if forecast should be produced every week on
+#' Sunday, in which case, for daily data, \code{step=7}.
 #' @param ci The parameter defines if the in-sample window size should be constant.
 #' If \code{TRUE}, then with each origin one observation is added at the end of
 #' series and another one is removed from the beginning.
@@ -82,7 +85,7 @@
 #' # We can now plot the results of this evaluation:
 #' plot(ourRO)
 #'
-#' # You can also use dolar sign
+#' # You can also use dollar sign
 #' ourValue <- "$pred"
 #' # And you can have constant in-sample size
 #' ro(y, h=5, origins=5, ourCall, ourValue, ci=TRUE)
@@ -163,8 +166,8 @@
 #' ro(x,h=5,origins=5,ourCall,ourValue)}
 #'
 #' @export ro
-ro <- function(data,h=10,origins=10,call,value=NULL,
-               ci=FALSE,co=TRUE,silent=TRUE,parallel=FALSE, ...){
+ro <- function(data, h=10, origins=10, call, value=NULL, step=1,
+               ci=FALSE, co=TRUE, silent=TRUE, parallel=FALSE, ...){
     # Function makes Rolling Origin for the data using the call
     #    Copyright (C) 2016  Yves Sagaert & Ivan Svetunkov
 
@@ -239,15 +242,12 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
     y <- data;
     hh <- h;
     obs <- length(y);
-    inSample <- obs - origins;
+    # In case of !co, we have origins x step
+    # In the other case it is (origins-1)* step + h
+    obsInSample <- obs - (origins*step + (h-step)*co);
 
     holdout <- matrix(NA,nrow=h,ncol=origins);
-    if(co){
-        colnames(holdout) <- paste0("origin",inSample+c(1:origins)-h);
-    }
-    else{
-        colnames(holdout) <- paste0("origin",inSample+c(1:origins));
-    }
+    colnames(holdout) <- paste0("origin",obsInSample+c(1:origins-1)*step);
     rownames(holdout) <- paste0("h",c(1:h));
 
     forecasts <- list(NA);
@@ -263,16 +263,16 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
     if(!parallel){
         if(!co){
             for(ivan41 in 1:origins){
-                # Adjust forecasting horizon to not exeed the sample size
-                h[] <- min(hh,obs - (inSample+ivan41-1));
+                # Adjust forecasting horizon to not exceed the sample size
+                h[] <- min(hh, step*(origins - ivan41 + 1));
                 # Make the in-sample
                 if(!ci){
-                    counti <- 1:(inSample+ivan41-1);
+                    counti <- 1:(obsInSample+step*(ivan41-1));
                 }
                 else{
-                    counti <- ivan41:(inSample+ivan41-1);
+                    counti <- (step*(ivan41-1))+1:obsInSample;
                 }
-                counto <- (inSample+ivan41):(inSample+ivan41+h-1);
+                counto <- (obsInSample+step*(ivan41-1))+1:h;
                 countf <- c(counti,counto);
 
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
@@ -293,12 +293,12 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
             for(ivan41 in 1:origins){
                 # Make the in-sample
                 if(!ci){
-                    counti <- 1:(inSample-h+ivan41);
+                    counti <- 1:(obsInSample+step*(ivan41-1));
                 }
                 else{
-                    counti <- ivan41:(inSample-h+ivan41);
+                    counti <- (step*(ivan41-1))+1:obsInSample;
                 }
-                counto <- (inSample+ivan41-h+1):(inSample+ivan41);
+                counto <- (obsInSample+step*(ivan41-1))+1:h;
                 countf <- c(counti,counto);
 
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
@@ -335,16 +335,16 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
 
         if(!co){
             forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
-                # Adjust forecasting horizon to not exeed the sample size
-                h <- min(hh,obs - (inSample+ivan41-1));
+                # Adjust forecasting horizon to not exceed the sample size
+                h[] <- min(hh, step*(origins - ivan41 + 1));
                 # Make the in-sample
-                if(ci==FALSE){
-                    counti <- 1:(inSample+ivan41-1);
+                if(!ci){
+                    counti <- 1:(obsInSample+step*(ivan41-1));
                 }
                 else{
-                    counti <- ivan41:(inSample+ivan41-1);
+                    counti <- (step*(ivan41-1))+1:obsInSample;
                 }
-                counto <- (inSample+ivan41):(inSample+ivan41+h-1);
+                counto <- (obsInSample+step*(ivan41-1))+1:h;
                 countf <- c(counti,counto);
 
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
@@ -361,13 +361,13 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         else{
             forecasts <- foreach::`%dopar%`(foreach::foreach(ivan41=1:origins, .packages=callpackages, .export=ls(envir=callenvir)),{
                 # Make the in-sample
-                if(ci==FALSE){
-                    counti <- 1:(inSample-h+ivan41);
+                if(!ci){
+                    counti <- 1:(obsInSample+step*(ivan41-1));
                 }
                 else{
-                    counti <- ivan41:(inSample-h+ivan41);
+                    counti <- (step*(ivan41-1))+1:obsInSample;
                 }
-                counto <- (inSample+ivan41-h+1):(inSample+ivan41);
+                counto <- (obsInSample+step*(ivan41-1))+1:h;
                 countf <- c(counti,counto);
 
                 data <- ts(y[counti],start=dataStart,frequency=dataFrequency);
@@ -391,14 +391,15 @@ ro <- function(data,h=10,origins=10,call,value=NULL,
         }
 
         # Form matrix of holdout in a different loop...
-        if(co==FALSE){
+        if(!co){
             for(ivan41 in 1:origins){
-                holdout[1:h,ivan41] <- y[(inSample+ivan41):(inSample+ivan41+h-1)];
+                h[] <- min(hh, step*(origins - ivan41 + 1));
+                holdout[1:h,ivan41] <- y[(obsInSample+step*(ivan41-1))+1:h];
             }
         }
         else{
             for(ivan41 in 1:origins){
-                holdout[,ivan41] <- y[(inSample+ivan41-h+1):(inSample+ivan41)];
+                holdout[1:h,ivan41] <- y[(obsInSample+step*(ivan41-1))+1:h];
             }
         }
     }
