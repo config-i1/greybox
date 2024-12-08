@@ -2,7 +2,7 @@ Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
 Version: 2.0.3
-Date: 2024-10-07
+Date: 2024-12-06
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.com", role = c("aut", "cre"),
                   comment="Senior Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
