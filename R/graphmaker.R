@@ -113,6 +113,10 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         }
     }
 
+    # Define palette
+    paletteBasic <- paletteDetector(c("black","purple2","blue2","darkgrey","red2"));
+    ellipsis$col <- paletteBasic[1];
+
     legendCall <- list(x="bottom");
     if(length(level>1)){
         legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
@@ -122,7 +126,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
                                paste0(level*100,"% prediction interval"),"Forecast origin");
     }
-    legendCall$col <- c("black","purple","blue","darkgrey","red");
+    legendCall$col <- paletteBasic;
     legendCall$lwd <- c(1,2,2,3,2);
     legendCall$lty <- c(1,2,1,2,1);
     legendCall$ncol <- 3
@@ -246,14 +250,14 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     do.call(plot, ellipsis);
 
     if(any(!is.na(fitted))){
-        lines(fitted, col="purple", lwd=2, lty=2);
+        lines(fitted, col=paletteBasic[2], lwd=2, lty=2);
     }
     else{
         legendElements[2] <- FALSE;
     }
 
     if(vline){
-        abline(v=time(forecast)[1]-deltat(forecast),col="red",lwd=2);
+        abline(v=time(forecast)[1]-deltat(forecast),col=paletteBasic[5],lwd=2);
     }
 
     if(intervals){
@@ -303,7 +307,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                lines(lower,col="darkgrey",lwd=3,lty=2);
+                lines(lower,col=paletteBasic[4],lwd=3,lty=2);
             }
 
             if(is.matrix(upper)){
@@ -313,10 +317,10 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                lines(upper,col="darkgrey",lwd=3,lty=2);
+                lines(upper,col=paletteBasic[4],lwd=3,lty=2);
             }
 
-            lines(forecast,col="blue",lwd=2);
+            lines(forecast,col=paletteBasic[3],lwd=2);
         }
         # Code for the h=1
         else{
@@ -329,7 +333,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                points(lower,col="darkgrey",lwd=3,pch=4);
+                points(lower,col=paletteBasic[4],lwd=3,pch=4);
             }
             if(length(upper)>1){
                 col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
@@ -340,17 +344,32 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                points(upper,col="darkgrey",lwd=3,pch=4);
+                points(upper,col=paletteBasic[4],lwd=3,pch=4);
             }
-            points(forecast,col="blue",lwd=2,pch=4);
+            points(forecast,col=paletteBasic[3],lwd=2,pch=4);
         }
     }
     else{
         if(h!=1){
-            lines(forecast,col="blue",lwd=2);
+            lines(forecast,col=paletteBasic[3],lwd=2);
         }
         else{
-            points(forecast,col="blue",lwd=2,pch=4);
+            points(forecast,col=paletteBasic[3],lwd=2,pch=4);
         }
     }
+}
+
+paletteDetector <- function(colours){
+    # If the default palette is used, define the new one in black and white
+    paletteBasic <- palette();
+    palette("default");
+    paletteDefault <- palette();
+    if(all(paletteBasic %in% paletteDefault) &&
+       all(paletteBasic==paletteDefault)){
+        paletteBasic <- colours;
+    }
+    else{
+        palette(paletteBasic);
+    }
+    return(paletteBasic);
 }

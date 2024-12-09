@@ -8,7 +8,7 @@
 #' frequency of 0 corresponds to the white colour, the frequency of 1 corresponds to the
 #' black. The colours can be changed by defining a different palette via the
 #' \code{palette()} function. The function also adds the number of dots (points)
-#' proportional to the nuber of values in each category to simplify the reading of plots.
+#' proportional to the number of values in each category to simplify the reading of plots.
 #'
 #' See details in the vignette "Marketing analytics with greybox":
 #' \code{vignette("maUsingGreybox","greybox")}
@@ -144,17 +144,8 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
         mar2 <- c(0,0,2.1,2.1);
     }
 
-    # If the default palette is used, define the new one in black and white
-    paletteBasic <- palette();
-    palette("default");
-    paletteDefault <- palette();
-    if(all(paletteBasic %in% paletteDefault) &&
-       all(paletteBasic==paletteDefault)){
-        paletteBasic <- c("white","black");
-    }
-    else{
-        palette(paletteBasic);
-    }
+    # Define palette
+    paletteBasic <- paletteDetector(c("white","black"));
 
     # Create gradients of different insensitivity
     paletteBasicCol <- colorRampPalette(paletteBasic[1:2])(1000)[findInterval(t(tableData), seq(0, 1, length.out=1000))];
