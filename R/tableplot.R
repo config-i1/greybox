@@ -34,6 +34,7 @@
 #' tableplot(mtcars$am, mtcars$gear)
 #'
 #' @importFrom utils head tail
+#' @importFrom grDevices colorRampPalette
 #' @export tableplot
 tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
     ellipsis <- list(...);

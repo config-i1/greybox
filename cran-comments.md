@@ -5,6 +5,9 @@ date: "08 December 2024"
 output: html_document
 ---
 
+## Resubmission notes
+Fixed an import issue detected by automatic checks, but not detected on my environments.
+
 ## Version
 This is the release of the package `greybox`, v2.0.3
 
