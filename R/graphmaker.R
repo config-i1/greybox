@@ -5,7 +5,8 @@
 #'
 #' Function uses the provided data to construct a linear graph. It is strongly
 #' advised to use \code{ts} objects to define the start of each of the vectors.
-#' Otherwise the data may be plotted incorrectly.
+#' Otherwise the data may be plotted incorrectly. The colours can be changed by
+#' defining a different palette via the \code{palette()} function.
 #'
 #' @param actuals The vector of actual values
 #' @param forecast The vector of forecasts. Should be \code{ts} object that starts at
@@ -114,7 +115,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
 
     # Define palette
-    paletteBasic <- paletteDetector(c("black","purple2","blue2","darkgrey","red2"));
+    paletteBasic <- paletteDetector(c("black","purple","blue","darkgrey","red"));
     ellipsis$col <- paletteBasic[1];
 
     legendCall <- list(x="bottom");
@@ -299,9 +300,14 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
 
+
+            if(is.matrix(lower) || is.matrix(upper)){
+                nLevels <- max(ncol(lower), ncol(upper));
+                col <- colorRampPalette(paletteBasic[c(1,4)])(nLevels)[findInterval(1:nLevels,
+                                                                                    seq(1, nLevels, length.out=nLevels))];
+            }
             # Draw the lines
             if(is.matrix(lower)){
-                col <- grey(1-c(1:ncol(lower))/(ncol(lower)+1));
                 for(i in 1:ncol(lower)){
                     lines(lower[,i],col=col[i],lwd=2,lty=2);
                 }
@@ -311,7 +317,6 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
             }
 
             if(is.matrix(upper)){
-                col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
                 for(i in 1:ncol(upper)){
                     lines(upper[,i],col=col[i],lwd=2,lty=2);
                 }
