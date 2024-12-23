@@ -8,6 +8,9 @@
 #' then boxplots (with grey dots corresponding to mean values) are constructed. Finally,
 #' for the two categorical variables the tableplot is returned (see
 #' \link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
+#' The colours in the plot can be changed by defining a different palette via the
+#' \code{palette()} function, in which case spread() will use the first four colours
+#' in the pallete.
 #'
 #' See details in the vignette "Marketing analytics with greybox":
 #' \code{vignette("maUsingGreybox","greybox")}
@@ -83,6 +86,9 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
         }
     }
 
+    # Set the palette for the plots
+    paletteBasic <- paletteDetector(c("white","black","grey","grey41"));
+
     if(log){
         if(any(data[numericData]<=0)){
             warning("Some variables have non-positive data, so logarithms cannot be produced for them.",call.=FALSE);
@@ -105,7 +111,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
             hist(data[[1]], main=mainTitle);
         }
         else{
-            barplot(table(data[[1]]), col="white");
+            barplot(table(data[[1]]), col=paletteBasic[3]);
         }
     }
     else{
@@ -117,16 +123,17 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 if(i==j){
                     if(histograms){
                         if(numericData[i]){
-                            hist(data[[i]], main="", axes=FALSE);
+                            hist(data[[i]], main="", axes=FALSE, col=paletteBasic[3]);
                         }
                         else{
-                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col="white");
+                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col=paletteBasic[3]);
                         }
                     }
                     else{
                         if(numericData[i]){
                             midPoint <- (max(data[[i]], na.rm=TRUE)+min(data[[i]], na.rm=TRUE))/2;
-                            plot(data[[i]], data[[i]], col="white", axes=FALSE);
+                            plot(0, 0, col="white", axes=FALSE,
+                                 xlim=range(data[[i]]), ylim=range(data[[i]]));
                             text(midPoint,midPoint,variablesNames[i],cex=1.5);
                         }
                         else{
@@ -140,29 +147,28 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 }
                 else{
                     if(numericData[i] && numericData[j]){
-                        plot(data[[i]],data[[j]], main="", axes=FALSE);
+                        plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[2]);
                         if(lowess){
-                            lines(lowess(data[[i]], data[[j]]), col="darkgrey", lty=2, lwd=2);
+                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[4], lty=2, lwd=2);
                         }
                     }
                     else if(numericData[i]){
-                        # boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
                         boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),
-                                data, horizontal=TRUE, main="", axes=FALSE);
+                                data, horizontal=TRUE, main="", axes=FALSE, col=paletteBasic[3]);
                         if(lowess){
                             lines(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                                  c(1:length(levels(data[[j]]))), col="darkgrey", lty=2, lwd=2);
+                                  c(1:length(levels(data[[j]]))), col=paletteBasic[4], lty=2, lwd=2);
                         }
                         points(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                               c(1:length(levels(data[[j]]))), pch=19, col="darkgrey");
+                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[4]);
                     }
                     else if(numericData[j]){
-                        # boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
-                        boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),data, main="", axes=FALSE);
+                        boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),
+                                data, main="", axes=FALSE, col=paletteBasic[3]);
                         if(lowess){
-                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col="darkgrey", lty=2, lwd=2);
+                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[4], lty=2, lwd=2);
                         }
-                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col="darkgrey");
+                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[4]);
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);

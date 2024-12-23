@@ -6,7 +6,8 @@
 #' Function uses the provided data to construct a linear graph. It is strongly
 #' advised to use \code{ts} objects to define the start of each of the vectors.
 #' Otherwise the data may be plotted incorrectly. The colours can be changed by
-#' defining a different palette via the \code{palette()} function.
+#' defining a different palette via the \code{palette()} function. The function
+#' then would use colours 2 - 6 in the palette.
 #'
 #' @param actuals The vector of actual values
 #' @param forecast The vector of forecasts. Should be \code{ts} object that starts at
@@ -18,8 +19,6 @@
 #' Should be ts object that start at the end of \code{fitted} values.
 #' @param level The width of the prediction interval.
 #' @param legend If \code{TRUE}, the legend is drawn.
-#' @param cumulative If \code{TRUE}, then the forecast is treated as
-#' cumulative and value per period is plotted.
 #' @param vline Whether to draw the vertical line, splitting the in-sample
 #' and the holdout sample.
 #' @param parReset Whether to reset par() after plotting things or not.
@@ -57,7 +56,7 @@
 #' @importFrom graphics rect
 #' @importFrom zoo zoo
 graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
-                       level=NULL, legend=TRUE, cumulative=FALSE, vline=TRUE,
+                       level=NULL, legend=TRUE, vline=TRUE,
                        parReset=TRUE, ...){
     # Function constructs the universal linear graph for any model
 
@@ -83,12 +82,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
     h <- length(forecast);
 
-    if(cumulative){
-        pointForecastLabel <- "Point forecast per period";
-    }
-    else{
-        pointForecastLabel <- "Point forecast";
-    }
+    pointForecastLabel <- "Point forecast";
 
     # Write down the default values of par
     parDefault <- par(no.readonly=TRUE);
@@ -115,8 +109,8 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
 
     # Define palette
-    paletteBasic <- paletteDetector(c("black","purple","blue","darkgrey","red"));
-    ellipsis$col <- paletteBasic[1];
+    paletteBasic <- paletteDetector(c("white","black","purple","blue","darkgrey","red"));
+    ellipsis$col <- paletteBasic[2];
 
     legendCall <- list(x="bottom");
     if(length(level>1)){
@@ -127,7 +121,12 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         legendCall$legend <- c("Series","Fitted values",pointForecastLabel,
                                paste0(level*100,"% prediction interval"),"Forecast origin");
     }
-    legendCall$col <- paletteBasic;
+    if(all(paletteBasic %in% c("white","black","purple","blue","darkgrey","red"))){
+        legendCall$col <- paletteBasic[-1];
+    }
+    else{
+        legendCall$col <- paletteBasic;
+    }
     legendCall$lwd <- c(1,2,2,3,2);
     legendCall$lty <- c(1,2,1,2,1);
     legendCall$ncol <- 3
@@ -192,10 +191,6 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
         ellipsis$xlim <- range(time(actuals)[1],time(forecast)[max(h,1)]);
     }
 
-    if(!is.null(ellipsis$main) & cumulative){
-        ellipsis$main <- paste0(ellipsis$main,", cumulative forecast");
-    }
-
     if(is.null(ellipsis$type)){
         ellipsis$type <- "l";
     }
@@ -251,14 +246,14 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     do.call(plot, ellipsis);
 
     if(any(!is.na(fitted))){
-        lines(fitted, col=paletteBasic[2], lwd=2, lty=2);
+        lines(fitted, col=paletteBasic[3], lwd=2, lty=2);
     }
     else{
         legendElements[2] <- FALSE;
     }
 
     if(vline){
-        abline(v=time(forecast)[1]-deltat(forecast),col=paletteBasic[5],lwd=2);
+        abline(v=time(forecast)[1]-deltat(forecast),col=paletteBasic[6],lwd=2);
     }
 
     if(intervals){
@@ -303,7 +298,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
             if(is.matrix(lower) || is.matrix(upper)){
                 nLevels <- max(ncol(lower), ncol(upper));
-                col <- colorRampPalette(paletteBasic[c(1,4)])(nLevels)[findInterval(1:nLevels,
+                col <- colorRampPalette(paletteBasic[c(2,5)])(nLevels)[findInterval(1:nLevels,
                                                                                     seq(1, nLevels, length.out=nLevels))];
             }
             # Draw the lines
@@ -313,7 +308,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                lines(lower,col=paletteBasic[4],lwd=3,lty=2);
+                lines(lower,col=paletteBasic[5],lwd=3,lty=2);
             }
 
             if(is.matrix(upper)){
@@ -322,10 +317,10 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                lines(upper,col=paletteBasic[4],lwd=3,lty=2);
+                lines(upper,col=paletteBasic[5],lwd=3,lty=2);
             }
 
-            lines(forecast,col=paletteBasic[3],lwd=2);
+            lines(forecast,col=paletteBasic[4],lwd=2);
         }
         # Code for the h=1
         else{
@@ -338,7 +333,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                points(lower,col=paletteBasic[4],lwd=3,pch=4);
+                points(lower,col=paletteBasic[5],lwd=3,pch=4);
             }
             if(length(upper)>1){
                 col <- grey(1-c(1:ncol(upper))/(ncol(upper)+1));
@@ -349,17 +344,17 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
                 }
             }
             else{
-                points(upper,col=paletteBasic[4],lwd=3,pch=4);
+                points(upper,col=paletteBasic[5],lwd=3,pch=4);
             }
-            points(forecast,col=paletteBasic[3],lwd=2,pch=4);
+            points(forecast,col=paletteBasic[4],lwd=2,pch=4);
         }
     }
     else{
         if(h!=1){
-            lines(forecast,col=paletteBasic[3],lwd=2);
+            lines(forecast,col=paletteBasic[4],lwd=2);
         }
         else{
-            points(forecast,col=paletteBasic[3],lwd=2,pch=4);
+            points(forecast,col=paletteBasic[4],lwd=2,pch=4);
         }
     }
 }

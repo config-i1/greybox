@@ -5,8 +5,7 @@
 \title{Linear graph construction function}
 \usage{
 graphmaker(actuals, forecast, fitted = NULL, lower = NULL, upper = NULL,
-  level = NULL, legend = TRUE, cumulative = FALSE, vline = TRUE,
-  parReset = TRUE, ...)
+  level = NULL, legend = TRUE, vline = TRUE, parReset = TRUE, ...)
 }
 \arguments{
 \item{actuals}{The vector of actual values}
@@ -25,9 +24,6 @@ Should be ts object that start at the end of \code{fitted} values.}
 \item{level}{The width of the prediction interval.}
 
 \item{legend}{If \code{TRUE}, the legend is drawn.}
-
-\item{cumulative}{If \code{TRUE}, then the forecast is treated as
-cumulative and value per period is plotted.}
 
 \item{vline}{Whether to draw the vertical line, splitting the in-sample
 and the holdout sample.}
@@ -48,7 +44,8 @@ forecasts.
 Function uses the provided data to construct a linear graph. It is strongly
 advised to use \code{ts} objects to define the start of each of the vectors.
 Otherwise the data may be plotted incorrectly. The colours can be changed by
-defining a different palette via the \code{palette()} function.
+defining a different palette via the \code{palette()} function. The function
+then would use colours 2 - 6 in the palette.
 }
 \examples{
 
