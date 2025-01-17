@@ -458,12 +458,12 @@ plot.aidCat <- function(x, ...){
     text(1.5,-0.5,paste0("Lumpy Intermittent Fractional\n(",x$categories[2,3],")"))
 
     # Summary
-    text(-0.5,-1.1,paste0("Regular\n(",x$categories[1,1]+x$categories[1,1],")"))
-    text(0.5,-1.1,paste0("Smooth Intermittent\n(",x$categories[1,2]+x$categories[2,2],")"))
-    text(1.5,-1.1,paste0("Lumpy Intermittent\n(",x$categories[1,3]+x$categories[2,3],")"))
+    text(-0.5,-1.1,paste0("Regular\n(",sum(x$categories[,1]),")"))
+    text(0.5,-1.1,paste0("Smooth Intermittent\n(",sum(x$categories[,2]),")"))
+    text(1.5,-1.1,paste0("Lumpy Intermittent\n(",sum(x$categories[,3]),")"))
 
-    text(2.1,0.5,paste0("Count\n(",sum(x$categories[1,1:3]),")"), srt=90)
-    text(2.1,-0.5,paste0("Fractional\n(",sum(x$categories[2,1:3]),")"), srt=90)
+    text(2.1,0.5,paste0("Count\n(",sum(x$categories[1,]),")"), srt=90)
+    text(2.1,-0.5,paste0("Fractional\n(",sum(x$categories[2,]),")"), srt=90)
 
     text(2.1,-1.1,paste0("Total\n(",sum(x$categories),")"))
 
