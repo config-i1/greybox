@@ -435,18 +435,19 @@ plot.aidCat <- function(x, ...){
     on.exit(par(parDefault));
 
     # The canvas
-    plot(0, 0, type="l", xlim=c(-1,2), ylim=c(-1,1), axes=F, xlab="", ylab="", ...)
+    plot(0, 0, type="l", xlim=c(-1,2.2), ylim=c(-1.2,1), axes=F, xlab="", ylab="", ...)
     title(xlab="Demand intervals", line=-0.5)
     title(ylab="Demand sizes type", line=-1)
     # abline(h=0)
     # abline(v=c(-1,0,1,2))
-    lines(c(-1,2),c(0,0))
-    lines(c(-1,2),c(-1,-1))
-    lines(c(-1,2),c(1,1))
-    lines(c(-1,-1),c(-1,1))
-    lines(c(0,0),c(-1,1))
-    lines(c(1,1),c(-1,1))
-    lines(c(2,2),c(-1,1))
+    lines(c(-1,2.2),c(-1,-1))
+    lines(c(-1,2.2),c(0,0))
+    lines(c(-1,2.2),c(1,1))
+
+    lines(c(-1,-1),c(-1.2,1))
+    lines(c(0,0),c(-1.2,1))
+    lines(c(1,1),c(-1.2,1))
+    lines(c(2,2),c(-1.2,1))
 
     # Categories
     text(-0.5,0.5,paste0("Regular Count\n(",x$categories[1,1],")"))
@@ -455,4 +456,15 @@ plot.aidCat <- function(x, ...){
     text(-0.5,-0.5, paste0("Regular Fractional\n(",x$categories[2,1],")"))
     text(0.5,-0.5,paste0("Smooth Intermittent Fractional\n(",x$categories[2,2],")"))
     text(1.5,-0.5,paste0("Lumpy Intermittent Fractional\n(",x$categories[2,3],")"))
+
+    # Summary
+    text(-0.5,-1.1,paste0("Regular\n(",x$categories[1,1]+x$categories[1,1],")"))
+    text(0.5,-1.1,paste0("Smooth Intermittent\n(",x$categories[1,2]+x$categories[2,2],")"))
+    text(1.5,-1.1,paste0("Lumpy Intermittent\n(",x$categories[1,3]+x$categories[2,3],")"))
+
+    text(2.1,0.5,paste0("Count\n(",sum(x$categories[1,1:3]),")"), srt=90)
+    text(2.1,-0.5,paste0("Fractional\n(",sum(x$categories[2,1:3]),")"), srt=90)
+
+    text(2.1,-1.1,paste0("Total\n(",sum(x$categories),")"))
+
 }
