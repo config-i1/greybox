@@ -2,10 +2,13 @@
 % Please edit documentation in R/AutomaticDemandIdentifier.R
 \name{aid}
 \alias{aid}
+\alias{aidCat}
 \title{Automatic Identification of Demand}
 \usage{
 aid(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
   loss = "likelihood", ...)
+
+aidCat(data, ...)
 }
 \arguments{
 \item{y}{The vector of the data.}
@@ -17,10 +20,13 @@ aid(y, ic = c("AICc", "AIC", "BICc", "BIC"), level = 0.99,
 \item{loss}{The type of loss function to use in model estimation. See
 \link[greybox]{alm} for possible options.}
 
-\item{...}{Other parameters passed to the \code{alm()} function.}
+\item{...}{Other parameters passed to the \code{alm()} function. In case of the
+\code{aidCat()} function, the \code{aid()} parameters can be passed here.}
+
+\item{data}{The dataframe or a matrix to which the aid function should be applied}
 }
 \value{
-Class "aid" is returned, which contains:
+\code{aid()} returns an object of class "aid", which contains:
 \itemize{
 \item y - The original data;
 \item models - All fitted models;
@@ -31,6 +37,13 @@ Class "aid" is returned, which contains:
 Must be a new product then;
 \item obsolete - Binary showing whether the data ends with the abnormal number of zeroes.
 Must be product that was discontinued (obsolete).
+}
+
+\code{aidCat()} returns an object of class "aidCat", which contains:
+\itemize{
+\item categories - the vector with the count of series in each category;
+\item anomalies - the vector that contains counts of cases where product was flagged
+as new, obsolete and having stockouts.
 }
 }
 \description{
@@ -53,6 +66,9 @@ that.
 y <- rpois(120, 0.7)
 aid(y)
 
+xreg <- cbind(x1=rpois(100,1), x2=rpois(100,2),
+              x3=rpois(100,5), x4=rnorm(100,10,2))
+aidCat(xreg) |> plot()
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.com}

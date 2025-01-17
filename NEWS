@@ -1,9 +1,10 @@
-greybox v2.0.4 (Release data: 2024-12-11)
+greybox v2.0.4 (Release data: 2025-01-17)
 ==============
 
 Changes:
 * tableplot() now supports palettes, using 1st and 2nd colours. By default it will set them to white and black respectively to return a greyscale image. Similar functionality is planned for other functions that have plotting in them.
-* graphmaker() now supports palettes.
+* graphmaker() and spread() now support palettes.
+* aidCat(), which is a new function based on aid() that splits the dataset into categories for regular/intermittent etc demand.
 
 
 greybox v2.0.3 (Release data: 2024-12-06)

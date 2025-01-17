@@ -18,9 +18,10 @@
 #' @param level The confidence level used in stockouts identification.
 #' @param loss The type of loss function to use in model estimation. See
 #' \link[greybox]{alm} for possible options.
-#' @param ... Other parameters passed to the \code{alm()} function.
+#' @param ... Other parameters passed to the \code{alm()} function. In case of the
+#' \code{aidCat()} function, the \code{aid()} parameters can be passed here.
 #'
-#' @return Class "aid" is returned, which contains:
+#' @return \code{aid()} returns an object of class "aid", which contains:
 #' \itemize{
 #' \item y - The original data;
 #' \item models - All fitted models;
@@ -42,6 +43,7 @@
 #' aid(y)
 #'
 #' @importFrom stats lowess approx
+#' @rdname aid
 #' @export
 aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                 loss="likelihood", ...){
@@ -243,7 +245,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         # If the data is just binary, don't do the mixture model, do the Bernoulli
         if(yIsBinary){
             idModels[[3]] <- modelOccurrence;
-            names(idModels)[3] <- "smooth intermittent binary";
+            names(idModels)[3] <- "smooth intermittent count";
         }
         else{
             idModels[[3]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm",
@@ -370,4 +372,87 @@ plot.aid <- function(x, ...){
         rect(idsStockoutsStart, ylim[1]-max(x$y), idsStockoutsEnd, ylim[2]+max(x$y),
              col="lightgrey", border=NA, density=20)
     }
+}
+
+
+#' @param data The dataframe or a matrix to which the aid function should be applied
+#'
+#' @return \code{aidCat()} returns an object of class "aidCat", which contains:
+#' \itemize{
+#' \item categories - the vector with the count of series in each category;
+#' \item anomalies - the vector that contains counts of cases where product was flagged
+#' as new, obsolete and having stockouts.
+#' }
+#' @examples
+#' xreg <- cbind(x1=rpois(100,1), x2=rpois(100,2),
+#'               x3=rpois(100,5), x4=rnorm(100,10,2))
+#' aidCat(xreg) |> plot()
+#' @rdname aid
+#' @export
+aidCat <- function(data, ...){
+
+    # Apply aid()
+    if(is.matrix(data)){
+        aidApplied <- apply(data, 2, aid, ...);
+    }
+    else if(is.data.frame(data) || is.list(data)){
+        aidApplied <- lapply(data, aid, ...);
+    }
+
+    # Extract categories
+    aidCategory <- factor(sapply(aidApplied,"[[","type"),
+                          levels=c("regular count","smooth intermittent count","lumpy intermittent count",
+                                   "regular fractional","smooth intermittent fractional","lumpy intermittent fractional"));
+    aidTable <- table(aidCategory);
+
+    # Count number of new, obsolete and stockouts
+    aidNew <- sum(sapply(aidApplied,"[[","new"));
+    aidOld <- sum(sapply(aidApplied,"[[","obsolete"));
+    aidStockouts <- length(unlist(sapply(lapply(aidApplied,"[[","stockouts"),"[[","start")));
+
+    return(structure(list(categories=matrix(aidTable,2,3,
+                                            dimnames=list(c("Count","Fractional"),
+                                                          c("Regular","Smooth Intermittent","Lumpy Intermittent")),
+                                            byrow=TRUE),
+                          anomalies=setNames(c(aidNew,aidStockouts,aidOld),
+                                             c("New","Stockouts","Old"))),
+                     class="aidCat"))
+}
+
+
+#' @export
+print.aidCat <- function(x, ...){
+    cat("Demand categories:\n")
+    print(x$categories)
+
+    cat("\nAnomalies:\n")
+    print(x$anomalies)
+}
+
+#' @export
+plot.aidCat <- function(x, ...){
+    parDefault <- par(mar=c(1,0,1,0));
+    on.exit(par(parDefault));
+
+    # The canvas
+    plot(0, 0, type="l", xlim=c(-1,2), ylim=c(-1,1), axes=F, xlab="", ylab="", ...)
+    title(xlab="Demand intervals", line=-0.5)
+    title(ylab="Demand sizes type", line=-1)
+    # abline(h=0)
+    # abline(v=c(-1,0,1,2))
+    lines(c(-1,2),c(0,0))
+    lines(c(-1,2),c(-1,-1))
+    lines(c(-1,2),c(1,1))
+    lines(c(-1,-1),c(-1,1))
+    lines(c(0,0),c(-1,1))
+    lines(c(1,1),c(-1,1))
+    lines(c(2,2),c(-1,1))
+
+    # Categories
+    text(-0.5,0.5,paste0("Regular Count\n(",x$categories[1,1],")"))
+    text(0.5,0.5,paste0("Smooth Intermittent Count\n(",x$categories[1,2],")"))
+    text(1.5,0.5,paste0("Lumpy Intermittent Count\n(",x$categories[1,3],")"))
+    text(-0.5,-0.5, paste0("Regular Fractional\n(",x$categories[2,1],")"))
+    text(0.5,-0.5,paste0("Smooth Intermittent Fractional\n(",x$categories[2,2],")"))
+    text(1.5,-0.5,paste0("Lumpy Intermittent Fractional\n(",x$categories[2,3],")"))
 }
