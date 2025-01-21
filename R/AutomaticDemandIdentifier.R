@@ -379,7 +379,8 @@ plot.aid <- function(x, ...){
 #'
 #' @return \code{aidCat()} returns an object of class "aidCat", which contains:
 #' \itemize{
-#' \item categories - the vector with the count of series in each category;
+#' \item categories - the vector with the names of categories for each time series;
+#' \item types - the vector with the count of series in each category;
 #' \item anomalies - the vector that contains counts of cases where product was flagged
 #' as new, obsolete and having stockouts.
 #' }
@@ -410,10 +411,11 @@ aidCat <- function(data, ...){
     aidOld <- sum(sapply(aidApplied,"[[","obsolete"));
     aidStockouts <- length(unlist(sapply(lapply(aidApplied,"[[","stockouts"),"[[","start")));
 
-    return(structure(list(categories=matrix(aidTable,2,3,
-                                            dimnames=list(c("Count","Fractional"),
-                                                          c("Regular","Smooth Intermittent","Lumpy Intermittent")),
-                                            byrow=TRUE),
+    return(structure(list(categories=aidCategory,
+                          types=matrix(aidTable,2,3,
+                                       dimnames=list(c("Count","Fractional"),
+                                                     c("Regular","Smooth Intermittent","Lumpy Intermittent")),
+                                       byrow=TRUE),
                           anomalies=setNames(c(aidNew,aidStockouts,aidOld),
                                              c("New","Stockouts","Old"))),
                      class="aidCat"))
@@ -423,7 +425,7 @@ aidCat <- function(data, ...){
 #' @export
 print.aidCat <- function(x, ...){
     cat("Demand categories:\n")
-    print(x$categories)
+    print(x$types)
 
     cat("\nAnomalies:\n")
     print(x$anomalies)
@@ -450,21 +452,21 @@ plot.aidCat <- function(x, ...){
     lines(c(2,2),c(-1.2,1))
 
     # Categories
-    text(-0.5,0.5,paste0("Regular Count\n(",x$categories[1,1],")"))
-    text(0.5,0.5,paste0("Smooth Intermittent Count\n(",x$categories[1,2],")"))
-    text(1.5,0.5,paste0("Lumpy Intermittent Count\n(",x$categories[1,3],")"))
-    text(-0.5,-0.5, paste0("Regular Fractional\n(",x$categories[2,1],")"))
-    text(0.5,-0.5,paste0("Smooth Intermittent Fractional\n(",x$categories[2,2],")"))
-    text(1.5,-0.5,paste0("Lumpy Intermittent Fractional\n(",x$categories[2,3],")"))
+    text(-0.5,0.5,paste0("Regular Count\n(",x$types[1,1],")"))
+    text(0.5,0.5,paste0("Smooth Intermittent Count\n(",x$types[1,2],")"))
+    text(1.5,0.5,paste0("Lumpy Intermittent Count\n(",x$types[1,3],")"))
+    text(-0.5,-0.5, paste0("Regular Fractional\n(",x$types[2,1],")"))
+    text(0.5,-0.5,paste0("Smooth Intermittent Fractional\n(",x$types[2,2],")"))
+    text(1.5,-0.5,paste0("Lumpy Intermittent Fractional\n(",x$types[2,3],")"))
 
     # Summary
-    text(-0.5,-1.1,paste0("Regular\n(",sum(x$categories[,1]),")"))
-    text(0.5,-1.1,paste0("Smooth Intermittent\n(",sum(x$categories[,2]),")"))
-    text(1.5,-1.1,paste0("Lumpy Intermittent\n(",sum(x$categories[,3]),")"))
+    text(-0.5,-1.1,paste0("Regular\n(",sum(x$types[,1]),")"))
+    text(0.5,-1.1,paste0("Smooth Intermittent\n(",sum(x$types[,2]),")"))
+    text(1.5,-1.1,paste0("Lumpy Intermittent\n(",sum(x$types[,3]),")"))
 
-    text(2.1,0.5,paste0("Count\n(",sum(x$categories[1,]),")"), srt=90)
-    text(2.1,-0.5,paste0("Fractional\n(",sum(x$categories[2,]),")"), srt=90)
+    text(2.1,0.5,paste0("Count\n(",sum(x$types[1,]),")"), srt=90)
+    text(2.1,-0.5,paste0("Fractional\n(",sum(x$types[2,]),")"), srt=90)
 
-    text(2.1,-1.1,paste0("Total\n(",sum(x$categories),")"))
+    text(2.1,-1.1,paste0("Total\n(",sum(x$types),")"))
 
 }

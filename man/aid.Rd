@@ -41,7 +41,8 @@ Must be product that was discontinued (obsolete).
 
 \code{aidCat()} returns an object of class "aidCat", which contains:
 \itemize{
-\item categories - the vector with the count of series in each category;
+\item categories - the vector with the names of categories for each time series;
+\item types - the vector with the count of series in each category;
 \item anomalies - the vector that contains counts of cases where product was flagged
 as new, obsolete and having stockouts.
 }
