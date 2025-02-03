@@ -58,9 +58,9 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     # Substitute NAs with zeroes
     y[is.na(y)] <- 0;
 
+    #### Stockouts detection ####
     # Do stockouts only for data with zeroes
     if(any(y==0)){
-        #### Stockouts ####
         # Demand intervals to identify stockouts/new/old products
         # 0 is for the new products, obsInSample is to track obsolescence
         yIntervals <- diff(c(0,which(y!=0),obsInSample+1));
