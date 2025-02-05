@@ -255,7 +255,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         }
 
         # This is the lumpy intermittent
-        if(IC(idModels[[2]]) < IC(idModels[[1]])){
+        if(!yIsBinary && (IC(idModels[[2]]) < IC(idModels[[1]]))){
             idType[] <- "lumpy intermittent fractional";
         }
 
@@ -286,7 +286,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
                 idType[] <- "smooth intermittent count";
 
                 # Is lumpy better than smooth?
-                if(IC(idModels[[4]]) < IC(idModels[[3]])){
+                if(!yIsBinary && (IC(idModels[[4]]) < IC(idModels[[3]]))){
                     idType[] <- "lumpy intermittent count";
                 }
             }
