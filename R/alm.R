@@ -636,8 +636,9 @@ alm <- function(formula, data, subset, na.action,
                                                       shape=fitterReturn$other, log=TRUE)-log(y[otU]),
                                    # Use ifelse() to remove densities for y=0, which result in -Inf
                                    # This is just a fix! It has no good reason behind it!
-                                   "dbcnorm" = ifelse(y[otU]!=0,dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                                   lambda=fitterReturn$other, log=TRUE),0),
+                                   "dbcnorm" = ifelse(y[otU]!=0,
+                                                      dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                              lambda=fitterReturn$other, log=TRUE),0),
                                    "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
                                    "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
