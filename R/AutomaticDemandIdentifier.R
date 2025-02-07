@@ -255,9 +255,9 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         }
 
         # This is the lumpy intermittent
-        if(!yIsBinary && (IC(idModels[[2]]) < IC(idModels[[1]]))){
-            idType[] <- "lumpy intermittent fractional";
-        }
+        # if(!yIsBinary && (IC(idModels[[2]]) < IC(idModels[[1]]))){
+        #     idType[] <- "lumpy intermittent fractional";
+        # }
 
         if(dataIsInteger && !yIsBinary){
             # model 3 is **smooth intermittent count**: Negative Binomial distribution
@@ -292,7 +292,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
             # }
 
             # Choose the best from all the four options
-            idType[] <- names(idModels)[which.min(sapply(idModels, IC))];
+            # idType[] <- names(idModels)[which.min(sapply(idModels, IC))];
         }
     }
     else{
@@ -308,20 +308,22 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
             # model 2 is **regular count**: Negative Binomial distribution
             idModels[[2]] <- suppressWarnings(alm(y~., xregData,
                                                   distribution="dnbinom", maxeval=500, loss=loss, ...));
-            if(IC(idModels[[2]]) < IC(idModels[[1]])){
-                idType[] <- "regular count";
-            }
+            # if(IC(idModels[[2]]) < IC(idModels[[1]])){
+            #     idType[] <- "regular count";
+            # }
         }
     }
 
     # Remove redundant models
-    # idModels <- idModels[!sapply(idModels, is.null)]
+    idModels <- idModels[!sapply(idModels, is.null)]
     # Calculate ICs
     # aidCs <- sapply(idModels, IC);
     # Find the best one
     # aidCsBest <- which.min(aidCs);
-    # Get its name
-    # idType <- names(aidCs)[aidCsBest];
+    if(!yIsBinary){
+        # Get its name
+        idType <- names(idModels)[which.min(sapply(idModels, IC))];
+    }
 
     # Logical rule: if the demand is integer and intermittent, it is count
     # if((dataIsInteger && idType=="intermittent") ||
