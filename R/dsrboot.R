@@ -87,7 +87,7 @@ dsrboot <- function(y, nsim=100, intermittent=FALSE,
             ySizes <- as.vector(y[otU]);
             yIsInteger[] <- all(ySizes==trunc(ySizes));
             # -1 is needed to get the thing closer to the geometric distribution (start from zero)
-            yIntervals <- diff(c(0,which(otU)))-1;
+            yIntervals <- diff(c(0,which(otU))) #-1;
 
             # Bootstrap the demand sizes
             ySizesBoot <- dsrboot(ySizes, nsim=nsim, intermittent=FALSE,
@@ -98,17 +98,18 @@ dsrboot <- function(y, nsim=100, intermittent=FALSE,
                 ySizesBoot$boot[] <- abs(ySizesBoot$boot);
             }
 
-            # Round up sizes if they are integer in the original data
+            # Round demand sizes if they are integer in the original data
             if(yIsInteger){
-                ySizesBoot$boot[] <- ceiling(ySizesBoot$boot);
+                ySizesBoot$boot[] <- round(ySizesBoot$boot, 0);
             }
 
             # Bootstrap the interval sizes
             yIntervalsBoot <- dsrboot(yIntervals, nsim=nsim, intermittent=FALSE,
                                       type=type, kind=kind, lag=1, sd=sd, scale=scale);
 
-            # Round up intervals and add 1 to get back to the original data
-            yIntervalsBoot$boot[] <- ceiling(abs(yIntervalsBoot$boot))+1;
+            # Round intervals and add 1 to get back to the original data
+            yIntervalsBoot$boot[] <- round(abs(yIntervalsBoot$boot),0) #+1;
+            yIntervalsBoot$boot[yIntervalsBoot$boot<=0] <- 1;
             yIndices <- apply(yIntervalsBoot$boot, 2, cumsum);
 
             # Form a bigger matrix
@@ -274,6 +275,8 @@ dsrboot <- function(y, nsim=100, intermittent=FALSE,
     if(obsInsample>1){
         # Make sure that the SD of the data is constant
         yNewSD <- sqrt(apply((yNew - yTransformed)^2, 1, mean, na.rm=TRUE));
+        # Make sure that we don't have zero sd
+        yNewSD[yNewSD==0] <- min(yNewSD[yNewSD!=0]);
         yNew[] <- yTransformed + (mean(yNewSD, na.rm=TRUE)/(yNewSD)) * (yNew - yTransformed);
     }
 
@@ -320,7 +323,7 @@ plot.dsrboot <- function(x, sorted=FALSE, legend=TRUE, ...){
     }
 
     if(is.null(ellipsis$ylim)){
-        ellipsis$ylim <- range(x$boot);
+        ellipsis$ylim <- range(c(x$boot,x$data));
     }
 
     if(is.null(ellipsis$xlab)){
