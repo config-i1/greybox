@@ -112,9 +112,9 @@ dsrboot <- function(y, nsim=100, intermittent=FALSE,
             yIndices <- apply(yIntervalsBoot$boot, 2, cumsum);
 
             # Form a bigger matrix
-            yNew <- matrix(0, max(c(yIndices, obsInsample)), nsim);
+            yNew <- matrix(0, max(c(yIndices, obsInsample), na.rm=TRUE), nsim);
             # Insert demand sizes
-            yNew[cbind(as.vector(yIndices), rep(1:nsim, each=obsNonZero))] <- ySizesBoot$boot;
+            yNew[cbind(yIndices[!is.na(yIndices)], rep(1:nsim, each=obsNonZero))] <- ySizesBoot$boot;
 
             return(structure(list(call=cl, data=y,
                                   # Trim the data to return the same sample size
