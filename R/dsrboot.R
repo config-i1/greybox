@@ -55,7 +55,7 @@
 #' The meboot R Package." Journal of Statistical Software, 29(5), 1–19. \doi{doi:10.18637/jss.v029.i05}.
 #'
 #' @examples
-#' dsrboot(AirPassengers) |> plot()
+#' plot(dsrboot(AirPassengers))
 #'
 #' @rdname dsrboot
 #' @importFrom stats supsmu

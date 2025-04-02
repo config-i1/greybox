@@ -80,7 +80,7 @@ series is. In case of the additive bootstrap, the trended series will be noisier
 the level of series is low.
 }
 \examples{
-dsrboot(AirPassengers) |> plot()
+plot(dsrboot(AirPassengers))
 
 }
 \references{

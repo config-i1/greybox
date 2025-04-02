@@ -4267,8 +4267,7 @@ generics::accuracy
 #' colnames(xreg) <- c("y","x1","x2","Noise")
 #'
 #' ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
-#' predict(ourModel,xreg[-c(1:80),]) |>
-#'    accuracy(xreg[-c(1:80),"y"])
+#'  accuracy(predict(ourModel,xreg[-c(1:80),]), xreg[-c(1:80),"y"])
 #' @rdname accuracy
 #' @export
 accuracy.greybox <- function(object, holdout=NULL, ...){

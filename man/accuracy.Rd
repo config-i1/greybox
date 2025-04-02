@@ -35,8 +35,7 @@ xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,30
 colnames(xreg) <- c("y","x1","x2","Noise")
 
 ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
-predict(ourModel,xreg[-c(1:80),]) |>
-   accuracy(xreg[-c(1:80),"y"])
+ accuracy(predict(ourModel,xreg[-c(1:80),]), xreg[-c(1:80),"y"])
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.com}
