@@ -1,15 +1,12 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "08 December 2024"
+date: "02 April 2025"
 output: html_document
 ---
 
-## Resubmission notes
-Fixed an import issue detected by automatic checks, but not detected on my environments.
-
 ## Version
-This is the release of the package `greybox`, v2.0.3
+This is the release of the package `greybox`, v2.0.4. This has a fix of the note on CRAN.
 
 
 ## Test environments
