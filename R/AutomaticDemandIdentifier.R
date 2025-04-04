@@ -412,7 +412,7 @@ plot.aid <- function(x, ...){
 #' @examples
 #' xreg <- cbind(x1=rpois(100,1), x2=rpois(100,2),
 #'               x3=rpois(100,5), x4=rnorm(100,10,2))
-#' aidCat(xreg) |> plot()
+#' plot(aidCat(xreg))
 #' @rdname aid
 #' @export
 aidCat <- function(data, ...){

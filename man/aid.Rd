@@ -69,7 +69,7 @@ aid(y)
 
 xreg <- cbind(x1=rpois(100,1), x2=rpois(100,2),
               x3=rpois(100,5), x4=rnorm(100,10,2))
-aidCat(xreg) |> plot()
+plot(aidCat(xreg))
 }
 \author{
 Ivan Svetunkov, \email{ivan@svetunkov.com}

@@ -1,9 +1,13 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "02 April 2025"
+date: "04 April 2025"
 output: html_document
 ---
+
+## Update
+I removed the pipeline operators from the documentation, so that the package no longer depends on R >=4.1.0.
+
 
 ## Version
 This is the release of the package `greybox`, v2.0.4. This has a fix of the note on CRAN.
