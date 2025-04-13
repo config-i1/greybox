@@ -55,12 +55,12 @@
 #' @export
 coefbootstrap <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                           replace=FALSE, prob=NULL, parallel=FALSE,
-                          method=c("dsr","cr"), ...) UseMethod("coefbootstrap")
+                          method=c("cr","dsr"), ...) UseMethod("coefbootstrap")
 
 #' @export
 coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                                   replace=FALSE, prob=NULL, parallel=FALSE,
-                                  method=c("dsr","cr"), ...){
+                                  method=c("cr","dsr"), ...){
 
     startTime <- Sys.time();
 
@@ -213,7 +213,7 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
 #' @export
 coefbootstrap.lm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                              replace=FALSE, prob=NULL, parallel=FALSE,
-                             method=c("dsr","cr"), ...){
+                             method=c("cr","dsr"), ...){
     return(coefbootstrap.default(object, nsim, size, replace, prob, parallel, method, ...));
 }
 
@@ -221,7 +221,7 @@ coefbootstrap.lm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
 #' @export
 coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                               replace=FALSE, prob=NULL, parallel=FALSE,
-                              method=c("dsr","cr"), ...){
+                              method=c("cr","dsr"), ...){
 
     startTime <- Sys.time();
 

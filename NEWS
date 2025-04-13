@@ -1,3 +1,10 @@
+greybox v2.0.5 (Release data: 2025-04-13)
+==============
+
+Changes:
+* Switched back to the Case Resampling bootstrap as the default one instead of the DSR.
+
+
 greybox v2.0.4 (Release data: 2025-04-02)
 ==============
 

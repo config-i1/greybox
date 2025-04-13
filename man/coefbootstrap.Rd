@@ -7,16 +7,16 @@
 \title{Bootstrap for parameters of models}
 \usage{
 coefbootstrap(object, nsim = 1000, size = floor(0.75 * nobs(object)),
-  replace = FALSE, prob = NULL, parallel = FALSE, method = c("dsr",
-  "cr"), ...)
+  replace = FALSE, prob = NULL, parallel = FALSE, method = c("cr",
+  "dsr"), ...)
 
 \method{coefbootstrap}{lm}(object, nsim = 1000, size = floor(0.75 *
   nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE,
-  method = c("dsr", "cr"), ...)
+  method = c("cr", "dsr"), ...)
 
 \method{coefbootstrap}{alm}(object, nsim = 1000, size = floor(0.75 *
   nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE,
-  method = c("dsr", "cr"), ...)
+  method = c("cr", "dsr"), ...)
 }
 \arguments{
 \item{object}{The model estimated using either lm, or alm, or glm.}
