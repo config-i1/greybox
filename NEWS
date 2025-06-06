@@ -1,8 +1,9 @@
-greybox v2.0.5 (Release data: 2025-04-13)
+greybox v2.0.5 (Release data: 2025-06-06)
 ==============
 
 Changes:
 * Switched back to the Case Resampling bootstrap as the default one instead of the DSR.
+* Switching off the loess in aid() for stockouts detection. Looks like this is easier and works well.
 
 
 greybox v2.0.4 (Release data: 2025-04-02)

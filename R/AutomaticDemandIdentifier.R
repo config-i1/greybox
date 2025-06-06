@@ -71,12 +71,14 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
         # Apply Geometric distribution model to check for stockouts
         # Use Robust likelihood to get rid of potential strong outliers
-        stockoutModelIntercept <- alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
+        # stockoutModel <-
+        # stockoutModelIntercept <-
+        #     alm(y-1~1, xregDataIntervals, distribution="dgeom", loss=loss, ...);
         stockoutModel <- alm(y-1~x, xregDataIntervals, distribution="dgeom", loss=loss, ...);
 
-        if(IC(stockoutModelIntercept)<IC(stockoutModel)){
-            stockoutModel <- stockoutModelIntercept;
-        }
+        # if(IC(stockoutModelIntercept)<IC(stockoutModel)){
+        #     stockoutModel <- stockoutModelIntercept;
+        # }
 
         probabilities <- pointLikCumulative(stockoutModel);
 
