@@ -1204,7 +1204,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(a=0,b=1,col="grey",lwd=2,lty=2)
         if(lowess){
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
         }
     }
 
@@ -1288,7 +1288,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         abline(h=0, col="grey", lty=2);
         polygon(c(xRange,rev(xRange)),c(statistic[1],statistic[1],statistic[2],statistic[2]),
                 col="lightgrey", border=NA, density=10);
-        abline(h=statistic, col="red", lty=2);
+        abline(h=statistic, col=2, lty=2);
         if(length(outliersID)>0){
             points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
             text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$y[outliersID]>0)*2+1);
@@ -1299,25 +1299,30 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
                 ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
             }
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
         }
         # Markers for infinite values
         if(infiniteValues){
-            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg="red");
+            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
             text(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
                  labels=infiniteMarkersIDs, pos=1);
         }
 
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
+
             if(lowess){
                 legend(legendPosition,
                        legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds","LOWESS line"),
-                       col=c("red", "black","red"), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
+                       col=c(2, basicColour, 2), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
             }
             else{
                 legend(legendPosition,
                        legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
-                       col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
+                       col=c(2, basicColour), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
             }
         }
     }
@@ -1371,7 +1376,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
         if(lowess){
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
         }
     }
 
@@ -1647,10 +1652,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Start plotting
         do.call(plot,ellipsis);
-        lines(yFitted, col="purple");
+        lines(yFitted, col=2);
+
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
             legend(legendPosition,legend=c("Actuals","Fitted"),
-                   col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+                   col=c(basicColour,2), lwd=rep(1,2), lty=c(1,1));
         }
     }
 
@@ -1738,24 +1748,29 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(any(is.na(ellipsis$x))){
                 ellipsis$x[is.na(ellipsis$x)] <- mean(ellipsis$x, na.rm=TRUE);
             }
-            lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
+            lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col=2);
         }
         abline(h=0, col="grey", lty=2);
-        abline(h=statistic[1], col="red", lty=2);
-        abline(h=statistic[2], col="red", lty=2);
+        abline(h=statistic[1], col=2, lty=2);
+        abline(h=statistic[2], col=2, lty=2);
         polygon(c(1:nobs(x), c(nobs(x):1)),
                 c(rep(statistic[1],nobs(x)), rep(statistic[2],nobs(x))),
                 col="lightgrey", border=NA, density=10);
 
         # Markers for infinite values
         if(infiniteValues){
-            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg="red");
+            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
             text(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
                  labels=infiniteMarkersIDs, pos=1);
         }
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
+
             legend(legendPosition,legend=c("Residuals",paste0(level*100,"% prediction interval")),
-                   col=c("black","red"), lwd=rep(1,3), lty=c(1,1,2));
+                   col=c(basicColour,2), lwd=rep(1,3), lty=c(1,1,2));
         }
     }
 
@@ -1822,8 +1837,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         ellipsis$type <- "h"
 
         do.call(plot,ellipsis);
-        abline(h=0, col="black", lty=1);
-        abline(h=statistic, col="red", lty=2);
+        abline(h=0, col=1, lty=1);
+        abline(h=statistic, col=2, lty=2);
         if(any(ellipsis$x>statistic[2] | ellipsis$x<statistic[1])){
             outliers <- which(ellipsis$x >statistic[2] | ellipsis$x <statistic[1]);
             points(outliers, ellipsis$x[outliers], pch=16);
@@ -1852,7 +1867,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
         ellipsis$x <- abs(cooks.distance(x));
         thresholdsF <- qf(c(0.5,0.75,0.95), nparam(x), nobs(x)-nparam(x))
-        thresholdsColours <- c("red","red","red")
+        thresholdsColours <- c(2,2,2)
         thresholdsLty <- c(3,2,5)
         thresholdsLwd <- c(1,1,2)
         outliersID <- which(ellipsis$x>=thresholdsF[2]);
@@ -1878,7 +1893,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
         # Markers for infinite values
         if(infiniteValues){
-            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg="red");
+            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
             text(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
                  labels=infiniteMarkersIDs, pos=1);
         }
@@ -1949,12 +1964,12 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
         if(lowess){
-            lines(lowess(ellipsis$x[!is.na(ellipsis$y)], ellipsis$y[!is.na(ellipsis$y)]), col="red");
+            lines(lowess(ellipsis$x[!is.na(ellipsis$y)], ellipsis$y[!is.na(ellipsis$y)]), col=2);
         }
 
         # Markers for infinite values
         if(infiniteValues){
-            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg="red");
+            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
             text(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
                  labels=infiniteMarkersIDs, pos=1);
         }
@@ -2179,7 +2194,7 @@ plot.rollingOrigin <- function(x, ...){
                                        max(unlist(lapply(x,max,na.rm=T)),na.rm=T),
                                        na.rm=TRUE),
          type="l", ...);
-    abline(v=roStart, col="red", lwd=2);
+    abline(v=roStart, col=2, lwd=2);
     for(j in 1:thingsToPlot){
         colCurrent <- rgb((j-1)/thingsToPlot,0,(thingsToPlot-j+1)/thingsToPlot,1);
         for(i in 1:roh){
