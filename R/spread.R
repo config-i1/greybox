@@ -87,7 +87,7 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
     }
 
     # Set the palette for the plots
-    paletteBasic <- paletteDetector(c("white","black","grey","grey41"));
+    paletteBasic <- paletteDetector(c("black","grey41","grey","lightgrey"));
 
     if(log){
         if(any(data[numericData]<=0)){
@@ -123,10 +123,10 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 if(i==j){
                     if(histograms){
                         if(numericData[i]){
-                            hist(data[[i]], main="", axes=FALSE, col=paletteBasic[3]);
+                            hist(data[[i]], main="", axes=FALSE, col=paletteBasic[4]);
                         }
                         else{
-                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col=paletteBasic[3]);
+                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col=paletteBasic[4]);
                         }
                     }
                     else{
@@ -147,9 +147,9 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 }
                 else{
                     if(numericData[i] && numericData[j]){
-                        plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[2]);
+                        plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[1]);
                         if(lowess){
-                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[4], lty=2, lwd=2);
+                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[2], lty=2, lwd=2);
                         }
                     }
                     else if(numericData[i]){
@@ -157,18 +157,18 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                                 data, horizontal=TRUE, main="", axes=FALSE, col=paletteBasic[3]);
                         if(lowess){
                             lines(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                                  c(1:length(levels(data[[j]]))), col=paletteBasic[4], lty=2, lwd=2);
+                                  c(1:length(levels(data[[j]]))), col=paletteBasic[2], lty=2, lwd=2);
                         }
                         points(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[4]);
+                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[2]);
                     }
                     else if(numericData[j]){
                         boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),
                                 data, main="", axes=FALSE, col=paletteBasic[3]);
                         if(lowess){
-                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[4], lty=2, lwd=2);
+                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[2], lty=2, lwd=2);
                         }
-                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[4]);
+                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[2]);
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);

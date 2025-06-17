@@ -360,7 +360,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 }
 
 paletteDetector <- function(colours){
-    # If the default palette is used, define the new one in black and white
+    # If the default palette is used, define the new one in the provided colours
     paletteBasic <- palette();
     palette("default");
     paletteDefault <- palette();

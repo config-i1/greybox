@@ -147,10 +147,11 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
     }
 
     # Define palette
-    paletteBasic <- paletteDetector(c("white","black"));
+    paletteBasic <- paletteDetector(c("black","grey41","grey","lightgrey"));
 
     # Create gradients of different insensitivity
-    paletteBasicCol <- colorRampPalette(paletteBasic[1:2])(1000)[findInterval(t(tableData), seq(0, 1, length.out=1000))];
+    paletteBasicCol <- colorRampPalette(c("white",paletteBasic[2]))(1000)[findInterval(t(tableData),
+                                                                                       seq(0, 1, length.out=1000))];
 
     if(legend){
         parDefault <- par(no.readonly=TRUE);
@@ -171,10 +172,10 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
 
             # Colour for text and points
             if(tableData[i,j]>0.5){
-                colAdditional <- paletteBasic[1];
+                colAdditional <- paletteBasic[2];
             }
             else{
-                colAdditional <- paletteBasic[2];
+                colAdditional <- paletteBasic[1];
             }
             if(labels){
                 text(xMid[i],yMid[j],labels=round(tableData[i,j],5),col=colAdditional);

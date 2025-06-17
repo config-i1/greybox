@@ -1,9 +1,10 @@
-greybox v2.0.5 (Release data: 2025-06-06)
+greybox v2.0.5 (Release data: 2025-06-17)
 ==============
 
 Changes:
 * Switched back to the Case Resampling bootstrap as the default one instead of the DSR.
 * Switching off the loess in aid() for stockouts detection. Looks like this is easier and works well.
+* Tuning the palettes in tableplot() and spread(). These now use colours 1, 2, 3 and 4 if the palette differs from the default one, or shades of grey if not. The tableplot() uses the combination of colour 1 and white.
 
 
 greybox v2.0.4 (Release data: 2025-04-02)
