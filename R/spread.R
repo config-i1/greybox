@@ -108,10 +108,10 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
 
     if(nVariables==1){
         if(numericData[1]){
-            hist(data[[1]], main=mainTitle);
+            hist(data[[1]], main=mainTitle, col=paletteBasic[4]);
         }
         else{
-            barplot(table(data[[1]]), col=paletteBasic[3]);
+            barplot(table(data[[1]]), col=paletteBasic[4]);
         }
     }
     else{
@@ -149,26 +149,26 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                     if(numericData[i] && numericData[j]){
                         plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[1]);
                         if(lowess){
-                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[2], lty=2, lwd=2);
+                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[3], lty=2, lwd=2);
                         }
                     }
                     else if(numericData[i]){
                         boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),
-                                data, horizontal=TRUE, main="", axes=FALSE, col=paletteBasic[3]);
+                                data, horizontal=TRUE, main="", axes=FALSE, col=paletteBasic[4]);
                         if(lowess){
                             lines(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                                  c(1:length(levels(data[[j]]))), col=paletteBasic[2], lty=2, lwd=2);
+                                  c(1:length(levels(data[[j]]))), col=paletteBasic[3], lty=2, lwd=2);
                         }
                         points(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[2]);
+                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[3]);
                     }
                     else if(numericData[j]){
                         boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),
-                                data, main="", axes=FALSE, col=paletteBasic[3]);
+                                data, main="", axes=FALSE, col=paletteBasic[4]);
                         if(lowess){
-                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[2], lty=2, lwd=2);
+                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[3], lty=2, lwd=2);
                         }
-                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[2]);
+                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[3]);
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);

@@ -147,7 +147,7 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
     }
 
     # Define palette
-    paletteBasic <- paletteDetector(c("black","grey41","grey","lightgrey"));
+    paletteBasic <- paletteDetector(c("black","black"));
 
     # Create gradients of different insensitivity
     paletteBasicCol <- colorRampPalette(c("white",paletteBasic[2]))(1000)[findInterval(t(tableData),
@@ -156,7 +156,7 @@ tableplot <- function(x, y=NULL, labels=TRUE, legend=FALSE, points=TRUE, ...){
     if(legend){
         parDefault <- par(no.readonly=TRUE);
         on.exit(par(parDefault));
-        colPalette <- colorRampPalette(c(paletteBasic[1],paletteBasic[2]));
+        colPalette <- colorRampPalette(c("white",paletteBasic[2]));
         layout(matrix(1:2,1,2),widths=c(0.9,0.1));
         par(mar=mar1);
     }
