@@ -1,20 +1,16 @@
 ---
 title: "Cran Comments"
 author: "Ivan Svetunkov"
-date: "04 April 2025"
+date: "30 June 2025"
 output: html_document
 ---
 
-## Update
-I removed the pipeline operators from the documentation, so that the package no longer depends on R >=4.1.0.
-
-
 ## Version
-This is the release of the package `greybox`, v2.0.4. This has a fix of the note on CRAN.
+This is the release of the package `greybox`, v2.0.5.
 
 
 ## Test environments
-* local Ubuntu 24.10, R 4.4.1
+* local Ubuntu 25.04 R 4.5.1
 * github actions
 * win-builder (devel and release)
 * rhub v2
@@ -35,9 +31,9 @@ This is the release of the package `greybox`, v2.0.4. This has a fix of the note
 ## Github actions
 Successful checks for:
 
-- Windows latest release with R 4.4.1
-- MacOS latest macOS Monterey 12.6.8 with R 4.4.1
-- Ubuntu latest with R 4.4.1
+- Windows latest release with R 4.5.1
+- MacOS latest macOS Monterey 12.6.8 with R 4.5.1
+- Ubuntu latest with R 4.5.1
 
 
 ## win-builder
