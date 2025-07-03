@@ -7,7 +7,7 @@
 #' advised to use \code{ts} objects to define the start of each of the vectors.
 #' Otherwise the data may be plotted incorrectly. The colours can be changed by
 #' defining a different palette via the \code{palette()} function. The function
-#' then would use colours 2 - 6 in the palette.
+#' then would use colours 1 - 6 in the palette.
 #'
 #' @param actuals The vector of actual values
 #' @param forecast The vector of forecasts. Should be \code{ts} object that starts at
@@ -109,7 +109,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
     }
 
     # Define palette
-    paletteBasic <- paletteDetector(c("black","red","purple","blue","darkgrey"));
+    paletteBasic <- paletteDetector(c("black","red","purple","blue","darkgrey","lightgrey"));
     ellipsis$col <- paletteBasic[1];
 
     legendCall <- list(x="bottom");
@@ -285,7 +285,7 @@ graphmaker <- function(actuals, forecast, fitted=NULL, lower=NULL, upper=NULL,
 
             if(is.matrix(lower) || is.matrix(upper)){
                 nLevels <- max(ncol(lower), ncol(upper));
-                col <- colorRampPalette(c(paletteBasic[c(4,5)]))(nLevels)[findInterval(1:nLevels,
+                col <- colorRampPalette(c(paletteBasic[c(5,6)]))(nLevels)[findInterval(1:nLevels,
                                                                                     seq(1, nLevels, length.out=nLevels))];
             }
             # Draw the lines

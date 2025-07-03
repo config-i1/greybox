@@ -45,7 +45,7 @@ Function uses the provided data to construct a linear graph. It is strongly
 advised to use \code{ts} objects to define the start of each of the vectors.
 Otherwise the data may be plotted incorrectly. The colours can be changed by
 defining a different palette via the \code{palette()} function. The function
-then would use colours 2 - 6 in the palette.
+then would use colours 1 - 6 in the palette.
 }
 \examples{
 
