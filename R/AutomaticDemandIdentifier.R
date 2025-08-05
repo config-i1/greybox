@@ -26,7 +26,8 @@
 #' \item y - The original data;
 #' \item models - All fitted models;
 #' \item ICs - Values of information criteria;
-#' \item type - The type of the identified demand;
+#' \item type - The list with the specific type categories (count/fractional, intermittent/regular, smooth/lumpy);
+#' \item name - The name of the identified demand;
 #' \item stockouts - List with start and end ids of potential stockouts;
 #' \item new - Binary showing whether the data start with the abnormal number of zeroes.
 #' Must be a new product then;
@@ -210,6 +211,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
     # Type of the data based on the model
     idType <- "regular fractional";
+    idTypeDetailed <- list(type1="count/fractional",type2="regular/intermittent",type2a="smooth/lumpy")
 
     if(zeroesLeft){
         # Data for demand occurrence
@@ -242,6 +244,9 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
 
         # This is the basic model
         idType[] <- "smooth intermittent fractional";
+        idTypeDetailed$type2a[] <- "smooth";
+        idTypeDetailed$type2[] <- "intermittent";
+        idTypeDetailed$type1[] <- "fractional";
 
         # model 2 is the **lumpy intermittent fractional** (mixture model)
         # model 3 is the **smooth intermittent count** (binary model)
@@ -250,16 +255,14 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
             idModels[[3]] <- modelOccurrence;
 
             idType[] <- "smooth intermittent count";
+            idTypeDetailed$type2a[] <- "smooth";
+            idTypeDetailed$type2[] <- "intermittent";
+            idTypeDetailed$type1[] <- "count";
         }
         else{
             idModels[[2]] <- suppressWarnings(alm(y~., xregData, distribution="dnorm",
                                                   occurrence=modelOccurrence, loss=loss, ...));
         }
-
-        # This is the lumpy intermittent
-        # if(!yIsBinary && (IC(idModels[[2]]) < IC(idModels[[1]]))){
-        #     idType[] <- "lumpy intermittent fractional";
-        # }
 
         if(dataIsInteger && !yIsBinary){
             # model 3 is **smooth intermittent count**: Negative Binomial distribution
@@ -282,19 +285,6 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
             #model 4 is **lumpy intermittent count**: Negative Binomial distribution + Bernoulli
             idModels[[4]] <- suppressWarnings(alm(y~., xregData, distribution="dnbinom",
                                                   occurrence=modelOccurrence, maxeval=500, loss=loss, ...));
-
-            # If count is better than the fractional
-            # if(IC(idModels[[3]]) < IC(idModels[[1]])){
-            #     idType[] <- "smooth intermittent count";
-            #
-            #     # Is lumpy better than smooth?
-            #     if(IC(idModels[[4]]) < IC(idModels[[3]])){
-            #         idType[] <- "lumpy intermittent count";
-            #     }
-            # }
-
-            # Choose the best from all the four options
-            # idType[] <- names(idModels)[which.min(sapply(idModels, IC))];
         }
     }
     else{
@@ -310,9 +300,6 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
             # model 2 is **regular count**: Negative Binomial distribution
             idModels[[2]] <- suppressWarnings(alm(y~., xregData,
                                                   distribution="dnbinom", maxeval=500, loss=loss, ...));
-            # if(IC(idModels[[2]]) < IC(idModels[[1]])){
-            #     idType[] <- "regular count";
-            # }
         }
     }
 
@@ -325,14 +312,18 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
     if(!yIsBinary){
         # Get its name
         idType <- names(idModels)[which.min(sapply(idModels, IC))];
+        parts <- strsplit(idType, " ")[[1]]
+        if(length(parts)==3){
+            idTypeDetailed$type2a[] <- parts[1];
+            idTypeDetailed$type2[] <- parts[2];
+            idTypeDetailed$type1[] <- parts[3];
+        }
+        else{
+            idTypeDetailed$type2[] <- parts[1];
+            idTypeDetailed$type1[] <- parts[2];
+            idTypeDetailed$type2a <- NULL;
+        }
     }
-
-    # Logical rule: if the demand is integer and intermittent, it is count
-    # if((dataIsInteger && idType=="intermittent") ||
-    #    # If it is integer-valued with some zeroes, it must be count
-    #    (dataIsInteger && zeroesLeft && idType=="regular")){
-    #     idType <- "count";
-    # }
 
     # Add stockout model to the output if there were some zeroes
     if(any(y==0)){
@@ -357,7 +348,7 @@ aid <- function(y, ic=c("AICc","AIC","BICc","BIC"), level=0.99,
         obsoleteDummy[(tail(which(y!=0),1)+1):obsInSample] <- 1;
     }
 
-    return(structure(list(y=y, models=idModels, type=idType,
+    return(structure(list(y=y, models=idModels, name=idType, type=idTypeDetailed,
                           stockouts=list(start=stockoutsStart, end=stockoutsEnd,
                                          dummy=stockoutDummy, new=newDummy, obsolete=obsoleteDummy),
                           new=productNew, obsolete=productObsolete),
@@ -378,7 +369,7 @@ print.aid <- function(x, ...){
     if(x$obsolete){
         cat("The product has become obsolete\n");
     }
-    cat("The provided time series is", x$type, "\n");
+    cat("The provided time series is", x$name, "\n");
 }
 
 #' @export
@@ -428,7 +419,7 @@ aidCat <- function(data, ...){
     }
 
     # Extract categories
-    aidCategory <- factor(sapply(aidApplied,"[[","type"),
+    aidCategory <- factor(sapply(aidApplied,"[[","name"),
                           levels=c("regular count","smooth intermittent count","lumpy intermittent count",
                                    "regular fractional","smooth intermittent fractional","lumpy intermittent fractional"));
     aidTable <- table(aidCategory);

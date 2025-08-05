@@ -31,7 +31,8 @@ aidCat(data, ...)
 \item y - The original data;
 \item models - All fitted models;
 \item ICs - Values of information criteria;
-\item type - The type of the identified demand;
+\item type - The list with the specific type categories (count/fractional, intermittent/regular, smooth/lumpy);
+\item name - The name of the identified demand;
 \item stockouts - List with start and end ids of potential stockouts;
 \item new - Binary showing whether the data start with the abnormal number of zeroes.
 Must be a new product then;

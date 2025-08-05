@@ -1,8 +1,10 @@
-greybox v2.0.5 (Release data: 2025-06-30)
+greybox v2.0.6 (Release data: 2025-08-05)
 ==============
 
 Changes:
 * Fixed the pallette in graphmaker() for intervals.
+* aid() now returns "smooth intermittent count" etc in the name and more detailed categories in the type variable (e.g. type1="count", type2="intermittent", and type2a="smooth").
+
 
 greybox v2.0.5 (Release data: 2025-06-30)
 ==============
