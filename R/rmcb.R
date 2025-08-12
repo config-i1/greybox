@@ -15,6 +15,16 @@
 #' that the data is ranked, it test the differences in medians between the methods and
 #' then produces plots based on that.
 #'
+#' The critical distances by default are calculated based on the Studentised range
+#' statistics, so the test gives exactly the same result as the Nemenyi test. However,
+#' there are several options with the "distribution" parameter, which would fit a regression
+#' and extract standard errors from it to produce critical distances. e.g.
+#' \code{distribution="dnorm"} would rely on the Student's distribution and the covariance
+#' matrix of the parameters. On large datasets, this performs similar to the default
+#' option of \code{distribution="tukey"}. If any other distribution is used, the function
+#' would call \code{alm()} and fit a model on the original data with the assumed
+#' distribution (e.g. comparing the locations for each of the methods).
+#'
 #' There is also a \code{plot()} method that allows producing either "mcb" or "lines"
 #' style of plot. This can be regulated via \code{plot(x, outplot="lines")}.
 #
@@ -28,6 +38,8 @@
 #' @param select What column of data to highlight on the plot. If NULL, then
 #' the method with the lowest value is selected.
 #' @param ... Other parameters passed to \link[base]{rank} function.
+#' \code{distribution} parameter can also be passed here to alter the behaviour of
+#'  the function.
 #
 #' @return If \code{outplot!="none"}, then the function plots the results after all
 #' the calculations using plot.rmcb() function.
@@ -123,11 +135,20 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
         ties.method <- ellipsis$ties.method;
     }
     if(is.null(ellipsis$distribution)){
-        distribution <- "dnorm";
-        data[] <- t(apply(data,1,rank,na.last=na.last,ties.method=ties.method));
+        distribution <- "tukey";
     }
     else{
         distribution <- ellipsis$distribution;
+    }
+
+    # Apply Friedman's test on the original data
+    if(distribution=="tukey"){
+        friedmanTest <- friedman.test(data);
+    }
+
+    # Use ranks if the distribution is either the default or tukey
+    if(any(distribution==c("dnorm","tukey"))){
+        data[] <- t(apply(data,1,rank,na.last=na.last,ties.method=ties.method));
     }
 
     # Form the matrix of dummy variables, excluding the first one
@@ -152,7 +173,7 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     #### Fit the model ####
     # This is the model used for the confidence intervals calculation
     # And the one needed for the importance and the p-value of the model
-    if(distribution=="dnorm"){
+    if(any(distribution==c("dnorm","tukey"))){
         lmModel <- .lm.fit(dataNew[,-1], dataNew[,1]);
         lmModel$xreg <- dataNew[,-1];
         lmModel$df.residual <- obsAll - nMethods;
@@ -191,15 +212,27 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
                           dimnames=list(namesMethods,
                                         c(paste0((1-level)/2*100,"%"),paste0((1+level)/2*100,"%"))));
     lmCoefs[-1] <- lmCoefs[1] + lmCoefs[-1];
-    # Construct prediction intervals
-    lmIntervals[,1] <- lmCoefs +qt((1-level)/2,df=lmModel$df.residual)*lmSE;
-    lmIntervals[,2] <- lmCoefs +qt((1+level)/2,df=lmModel$df.residual)*lmSE;
+
+    # Construct confidence intervals
+    if(distribution=="tukey"){
+        # Division by 2 is needed to use the critical distance correctly for |R_i - R_j| >= CD
+        qStat <- qtukey(level, nMethods, Inf) * sqrt((nMethods*(nMethods+1))/(12*obs)) / 2;
+    }
+    else{
+        qStat <- qt((1+level)/2,df=lmModel$df.residual) * lmSE;
+    }
+
+    lmIntervals[,1] <- lmCoefs - qStat;
+    lmIntervals[,2] <- lmCoefs + qStat;
 
     #### Relative importance of the model and the test ####
     if(distribution=="dnorm"){
         R2 <- 1 - sum(residuals(lmModel)^2) / sum((lmModel$actuals-mean(lmModel$actuals))^2);
         FValue <- R2 / (nMethods-1) / ((1-R2)/lmModel$df.residual);
         p.value <- pf(FValue, df1=(nMethods-1), df2=lmModel$df.residual, lower.tail=FALSE);
+    }
+    else if(distribution=="tukey"){
+        p.value <- friedmanTest$p.value;
     }
     else{
         AICs <- c(AIC(lmModel2),AIC(lmModel));

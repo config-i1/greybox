@@ -24,7 +24,9 @@ to get the same effect.}
 \item{select}{What column of data to highlight on the plot. If NULL, then
 the method with the lowest value is selected.}
 
-\item{...}{Other parameters passed to \link[base]{rank} function.}
+\item{...}{Other parameters passed to \link[base]{rank} function.
+\code{distribution} parameter can also be passed here to alter the behaviour of
+ the function.}
 
 \item{x}{The produced rmcb model.}
 }
@@ -65,6 +67,16 @@ of dummy variables for each column of the data (forecasting method), b is the
 vector of coefficients for the dummies and e is the error term of the model. Given
 that the data is ranked, it test the differences in medians between the methods and
 then produces plots based on that.
+
+The critical distances by default are calculated based on the Studentised range
+statistics, so the test gives exactly the same result as the Nemenyi test. However,
+there are several options with the "distribution" parameter, which would fit a regression
+and extract standard errors from it to produce critical distances. e.g.
+\code{distribution="dnorm"} would rely on the Student's distribution and the covariance
+matrix of the parameters. On large datasets, this performs similar to the default
+option of \code{distribution="tukey"}. If any other distribution is used, the function
+would call \code{alm()} and fit a model on the original data with the assumed
+distribution (e.g. comparing the locations for each of the methods).
 
 There is also a \code{plot()} method that allows producing either "mcb" or "lines"
 style of plot. This can be regulated via \code{plot(x, outplot="lines")}.
