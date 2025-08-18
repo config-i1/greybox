@@ -259,7 +259,7 @@ rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL,
     }
 
     # Remove `` symbols in case of spaces in names
-    names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
+    # names(lmCoefs) <- gsub("[[:punct:]]", "", names(lmCoefs));
     rownames(lmIntervals) <- names(lmCoefs);
 
     #### Prepare things for the groups for "lines" plot ####
