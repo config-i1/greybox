@@ -510,8 +510,14 @@ nparam.default <- function(object, ...){
 
 #' @export
 nparam.Arima <- function(object, ...){
-    # Get the df from the likelihood
-    return(nparam(logLik(object)));
+    # If this is NA, the model was estimated via CSS
+    if(is.na(logLik(object))){
+        return(length(coefficients(object)))
+    }
+    else{
+        # Get the df from the likelihood
+        return(nparam(logLik(object)));
+    }
 }
 
 #' @export
