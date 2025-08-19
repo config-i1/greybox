@@ -509,6 +509,12 @@ nparam.default <- function(object, ...){
 }
 
 #' @export
+nparam.Arima <- function(object, ...){
+    # Get the df from the likelihood
+    return(nparam(logLik(object)));
+}
+
+#' @export
 nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
     if(is.occurrence(object$occurrence)){
@@ -564,6 +570,11 @@ sigma.greybox <- function(object, all=FALSE, ...){
     else{
         return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
     }
+}
+
+#' @export
+sigma.Arima <- function(object, ...){
+    return(sqrt(object$sigma2));
 }
 
 #' @export
