@@ -122,12 +122,26 @@ BICc.varest <- function(object, ...){
 #' @export
 extractAIC.alm <- function(fit, scale=NULL, k=2, ...){
     ellipsis <- list(...);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(fit$loss,
+                         "MSE"=switch(fit$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(fit$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(fit$distribution,
+                                      "ds"=1,
+                                      0),
+                         0)
+
     if(!is.null(ellipsis$ic)){
         IC <- switch(ellipsis$ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
-        return(c(nparam(fit),IC(fit)));
+        return(c(nparam(fit)+correction,IC(fit)));
     }
     else{
-        return(c(nparam(fit),k*nparam(fit)-2*logLik(fit)));
+        return(c(nparam(fit)+correction,k*(nparam(fit)+correction)-2*logLik(fit)));
     }
 }
 
