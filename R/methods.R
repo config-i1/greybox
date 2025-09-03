@@ -526,7 +526,7 @@ nparam.default <- function(object, ...){
 nparam.Arima <- function(object, ...){
     # If this is NA, the model was estimated via CSS
     if(is.na(logLik(object))){
-        return(length(coefficients(object)))
+        return(length(coef(object)))
     }
     else{
         # Get the df from the likelihood

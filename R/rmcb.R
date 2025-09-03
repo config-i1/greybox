@@ -94,7 +94,7 @@
 #' par(mar=c(2,2,4,0)+0.1)
 #' plot(ourTest, main="Four methods")
 #'
-#' @importFrom stats pchisq
+#' @importFrom stats pchisq friedman.test qtukey
 #' @rdname rmcb
 #' @export rmcb
 rmcb <- function(data, level=0.95, outplot=c("mcb","lines","none"), select=NULL, ...){
