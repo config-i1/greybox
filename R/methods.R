@@ -82,6 +82,58 @@ BICc.default <- function(object, ...){
 }
 
 #' @export
+AICc.greybox <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    obs <- nobs(object);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(object$loss,
+                         "MSE"=switch(object$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(object$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(object$distribution,
+                                      "ds"=1,
+                                      0),
+                         0);
+
+    nparamAll <- nparam(object) + correction;
+
+    IC <- 2*nparamAll - 2*llikelihood + 2 * nparamAll * (nparamAll + 1) / (obs - nparamAll - 1);
+
+    return(IC);
+}
+
+#' @export
+BICc.greybox <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    obs <- nobs(object);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(object$loss,
+                         "MSE"=switch(object$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(object$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(object$distribution,
+                                      "ds"=1,
+                                      0),
+                         0);
+
+    nparamAll <- nparam(object) + correction;
+
+    IC <- - 2*llikelihood + (nparamAll * log(obs) * obs) / (obs - nparamAll - 1);
+
+    return(IC);
+}
+
+#' @export
 AICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
@@ -134,7 +186,7 @@ extractAIC.alm <- function(fit, scale=NULL, k=2, ...){
                          "HAM"=switch(fit$distribution,
                                       "ds"=1,
                                       0),
-                         0)
+                         0);
 
     if(!is.null(ellipsis$ic)){
         IC <- switch(ellipsis$ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
@@ -204,7 +256,7 @@ logLik.alm <- function(object, ...){
                              "HAM"=switch(object$distribution,
                                           "ds"=1,
                                           0),
-                             0)
+                             0);
         return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+correction,class="logLik"));
     }
 }

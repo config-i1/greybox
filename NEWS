@@ -1,3 +1,10 @@
+greybox v2.0.7 (Release data: 2025-09-27)
+==============
+
+Bugfixes:
+* Fix for AICc and BICc: now the degrees of freedom are correct in case of loss="MSE".
+
+
 greybox v2.0.6 (Release data: 2025-08-19)
 ==============
 
