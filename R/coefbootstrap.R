@@ -84,6 +84,9 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
         nCores <- min(parallel::detectCores() - 1, nsim);
     }
 
+    # Define the variable, which is only needed for doParallel
+    cluster <- NULL;
+
     # If they asked for parallel, make checks and try to do that
     if(parallel){
         if(!requireNamespace("foreach", quietly = TRUE)){
@@ -202,6 +205,11 @@ coefbootstrap.default <- function(object, nsim=1000, size=floor(0.75*nobs(object
     # Centre the coefficients for the calculation of the vcov
     coefvcov <- coefBootstrap - matrix(coefficientsOriginal, nsim, nVariables, byrow=TRUE);
 
+    # Check if the clusters have been made
+    if(!is.null(cluster)){
+        parallel::stopCluster(cluster);
+    }
+
     return(structure(list(vcov=(t(coefvcov) %*% coefvcov)/nsim,
                           coefficients=coefBootstrap, method=method,
                           nsim=nsim, size=size, replace=replace, prob=prob, parallel=parallel,
@@ -272,6 +280,21 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
                      call. = FALSE);
             }
         }
+
+        # Ьake the list of the needed packages to pass to doParallel. Bloody Windows!
+        callenvir <- globalenv();
+        callpackages <- search();
+        callpackages <- callpackages[c(-1,-length(callpackages))];
+        callpackages <- callpackages[substring(callpackages,1,7)=="package"];
+        callpackages <- substring(callpackages,9,nchar(callpackages));
+        callpackages <- callpackages[callpackages!="timeDate"];
+        callpackages <- callpackages[callpackages!="zoo"];
+        callpackages <- callpackages[callpackages!="stats"];
+        callpackages <- callpackages[callpackages!="graphics"];
+        callpackages <- callpackages[callpackages!="grDevices"];
+        callpackages <- callpackages[callpackages!="utils"];
+        callpackages <- callpackages[callpackages!="datasets"];
+        callpackages <- callpackages[callpackages!="methods"];
     }
 
     # Coefficients of the model
@@ -380,7 +403,9 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         }
         else{
             # We don't do rbind for security reasons - in order to deal with skipped variables
-            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim,
+                                                                         .packages=callpackages,
+                                                                         .export=ls(envir=callenvir)),{
                 newCall$subset <- sampler(indices,size,replace,prob,arimaModel,changeSize);
                 testModel <- eval(newCall);
                 return(coef(testModel));
@@ -419,7 +444,9 @@ coefbootstrap.alm <- function(object, nsim=1000, size=floor(0.75*nobs(object)),
         }
         else{
             # We don't do rbind for security reasons - in order to deal with skipped variables
-            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim),{
+            coefBootstrapParallel <- foreach::`%dopar%`(foreach::foreach(i=1:nsim,
+                                                                         .packages=callpackages,
+                                                                         .export=ls(envir=callenvir)),{
                 newCall$data[] <- newData[[i]];
                 testModel <- eval(newCall);
                 return(coef(testModel));
