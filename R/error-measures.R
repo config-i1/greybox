@@ -1,7 +1,7 @@
 #' Error measures
 #'
-#' Functions allow to calculate different types of errors for point and
-#' interval predictions:
+#' Functions allow to calculate different types of error metrics for point and
+#' interval forecasts:
 #' \enumerate{
 #' \item ME - Mean Error,
 #' \item MAE - Mean Absolute Error,
@@ -13,6 +13,7 @@
 #' the critique),
 #' \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006),
 #' \item RMSSE - Root Mean Squared Scaled Error (used in M5 Competition),
+#' \item SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias),
 #' \item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
 #' \item rRMSE - Relative Root Mean Squared Error,
 #' \item rAME - Relative Absolute Mean Error,
@@ -276,7 +277,7 @@ MASE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/scale);
+        return(MAE(holdout, forecast, na.rm=na.rm)/scale);
     }
 }
 
@@ -295,7 +296,7 @@ RMSSE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale));
+        return(sqrt(MSE(holdout, forecast, na.rm=na.rm)/scale));
     }
 }
 
@@ -320,8 +321,8 @@ rMAE <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/
-                             mean(abs(as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm));
+            return(MAE(holdout, forecast ,na.rm=na.rm) /
+                       MAE(holdout, benchmark, na.rm=na.rm));
         }
     }
 }
@@ -346,8 +347,8 @@ rRMSE <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/
-                             mean((as.vector(holdout)-as.vector(benchmark))^2,na.rm=na.rm)));
+            return(sqrt(MSE(holdout, forecast, na.rm=na.rm) /
+                            MSE(holdout, benchmark, na.rm=na.rm)));
         }
     }
 }
@@ -372,8 +373,8 @@ rAME <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(abs(mean((as.vector(holdout)-as.vector(forecast)),na.rm=na.rm))/
-                             abs(mean((as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm)));
+            return(abs(ME(holdout, forecast, na.rm=na.rm))/
+                       abs(ME(holdout, benchmark, na.rm=na.rm)));
         }
     }
 }
@@ -417,7 +418,7 @@ sMSE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale);
+        return(MSE(holdout, forecast, na.rm=na.rm)/scale);
     }
 }
 
@@ -506,6 +507,25 @@ GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
     }
 }
 
+#' @rdname error-measures
+#' @export SAME
+#' @aliases SAME
+SAME <- function(holdout, forecast, scale, na.rm=TRUE){
+# This function calculates Scaled Absolute Mean Error to measure bias
+# holdout - holdout values,
+# forecast - forecasted values.
+# scale - the measure to scale errors with. Usually - MAE of in-sample.
+    if(length(holdout) != length(forecast)){
+        message("The length of the provided data differs.");
+        message(paste0("Length of holdout: ",length(holdout)));
+        message(paste0("Length of forecast: ",length(forecast)));
+        stop("Cannot proceed.",call.=FALSE);
+    }
+    else{
+        return(abs(ME(holdout, forecast, na.rm=na.rm))/scale);
+    }
+}
+
 #' Error measures for the provided forecasts
 #'
 #' Function calculates several error measures using the provided
@@ -533,6 +553,7 @@ GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
 #' \item MASE,
 #' \item sMAE,
 #' \item RMSSE,
+#' \item SAME,
 #' \item sMSE,
 #' \item sCE,
 #' \item rMAE,
@@ -590,6 +611,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
                        sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        MASE(holdout,forecast,mean(abs(diff(actual)))),
                        RMSSE(holdout,forecast,mean(diff(actual)^2)),
+                       SAME(holdout,forecast,mean(abs(diff(actual)))),
                        rMAE(holdout,forecast,becnhmarkForecast),
                        rRMSE(holdout,forecast,becnhmarkForecast),
                        rAME(holdout,forecast,becnhmarkForecast),
@@ -600,8 +622,10 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
     }
     names(errormeasures) <- c("ME","MAE","MSE",
                               "MPE","MAPE",
-                              "sCE","sMAE","sMSE","MASE","RMSSE",
-                              "rMAE","rRMSE","rAME","asymmetry","sPIS");
+                              "sCE","sMAE","sMSE",
+                              "MASE","RMSSE","SAME",
+                              "rMAE","rRMSE","rAME",
+                              "asymmetry","sPIS");
     return(errormeasures);
 }
 

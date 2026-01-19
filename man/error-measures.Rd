@@ -20,6 +20,7 @@
 \alias{sCE}
 \alias{sMIS}
 \alias{GMRAE}
+\alias{SAME}
 \title{Error measures}
 \usage{
 ME(holdout, forecast, na.rm = TRUE)
@@ -58,6 +59,8 @@ sCE(holdout, forecast, scale, na.rm = TRUE)
 sMIS(holdout, lower, upper, scale, level = 0.95, na.rm = TRUE)
 
 GMRAE(holdout, forecast, benchmark, na.rm = TRUE)
+
+SAME(holdout, forecast, scale, na.rm = TRUE)
 }
 \arguments{
 \item{holdout}{The vector or matrix of holdout values.}
@@ -89,8 +92,8 @@ benchmark model.}
 All the functions return the scalar value.
 }
 \description{
-Functions allow to calculate different types of errors for point and
-interval predictions:
+Functions allow to calculate different types of error metrics for point and
+interval forecasts:
 \enumerate{
 \item ME - Mean Error,
 \item MAE - Mean Absolute Error,
@@ -102,6 +105,7 @@ interval predictions:
 the critique),
 \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006),
 \item RMSSE - Root Mean Squared Scaled Error (used in M5 Competition),
+\item SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias),
 \item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
 \item rRMSE - Relative Root Mean Squared Error,
 \item rAME - Relative Absolute Mean Error,

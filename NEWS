@@ -1,5 +1,8 @@
-greybox v2.0.7 (Release data: 2025-12-11)
+greybox v2.0.7 (Release data: 2026-01-19)
 ==============
+
+Changes:
+* Introduced new error measure - SAME, which is the Scaled Absolute Mean Error. This measures bias.
 
 Bugfixes:
 * Fix for AICc and BICc: now the degrees of freedom are correct in case of loss="MSE".

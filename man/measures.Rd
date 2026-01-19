@@ -33,6 +33,7 @@ The functions returns the named vector of errors:
 \item MASE,
 \item sMAE,
 \item RMSSE,
+\item SAME,
 \item sMSE,
 \item sCE,
 \item rMAE,
