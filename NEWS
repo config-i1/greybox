@@ -1,8 +1,9 @@
-greybox v2.0.7 (Release data: 2026-01-19)
+greybox v2.0.7 (Release data: 2026-01-27)
 ==============
 
 Bugfixes:
 * delta parameter calculation in lowess for spread() was not working in case of missing values. Fixed this.
+* Fixes in the axes of spread() in case of histogram=TRUE.
 
 
 greybox v2.0.7 (Release data: 2026-01-19)

@@ -123,10 +123,15 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 if(i==j){
                     if(histograms){
                         if(numericData[i]){
-                            hist(data[[i]], main="", axes=FALSE, col=paletteBasic[4]);
+                            histPlotted <- hist(data[[i]], main="", axes=FALSE, col=paletteBasic[4]);
+                            histPlottedX <- histPlotted$breaks;
+                            histPlottedYRange <- range(histPlotted$counts);
                         }
                         else{
-                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col=paletteBasic[4]);
+                            dataTable <- table(data[[i]]);
+                            histPlottedX <- barplot(dataTable, main="", axes=FALSE,
+                                                    axisnames=FALSE, col=paletteBasic[4]);
+                            histPlottedYRange <- range(dataTable);
                         }
                     }
                     else{
@@ -181,7 +186,8 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 # Add axis and labels if this is the first element
                 if(i==1){
                     if(histograms){
-                        mtext(variablesNames[nVariables-j+1], side=2, at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
+                        mtext(variablesNames[nVariables-j+1], side=2,
+                              at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
                     }
                     else{
                         if(numericData[j]){
@@ -216,8 +222,16 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                     }
                     else{
                         uniqueValues <- levels(data[[j]]);
-                        axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                             labels=sort(uniqueValues,na.last=TRUE));
+                        # The last element in the matrix is special in case of histogram
+                        if(j==nVariables){
+                            axis(4, at=seq(histPlottedYRange[1],histPlottedYRange[2]-0.5,
+                                           length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues,na.last=TRUE));
+                        }
+                        else{
+                            axis(4, at=seq(1,length(uniqueValues), length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues,na.last=TRUE));
+                        }
                     }
                 }
 
@@ -228,9 +242,15 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 axis(1);
             }
             else{
-                uniqueValues <- levels(unique(data[[i]]));
-                axis(1,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                     labels=uniqueValues);
+                if(i==nVariables && histograms){
+                    uniqueValues <- levels(unique(data[[i]]));
+                    axis(1,at=histPlottedX, labels=uniqueValues);
+                }
+                else{
+                    uniqueValues <- levels(unique(data[[i]]));
+                    axis(1,at=seq(1,length(uniqueValues), length.out=length(uniqueValues)),
+                         labels=uniqueValues);
+                }
             }
             if(histograms){
                 mtext(variablesNames[i], side=3, at=(i-0.5)/nVariables, line=1, outer=TRUE);
