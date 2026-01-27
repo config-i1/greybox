@@ -149,7 +149,10 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                     if(numericData[i] && numericData[j]){
                         plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[1]);
                         if(lowess){
-                            lines(lowess(data[[i]], data[[j]]), col=paletteBasic[3], lty=2, lwd=2);
+                            # Get the default delta, but use na.rm to get rid of NAs
+                            delta <- 0.01 * diff(range(data[[i]], na.rm=TRUE));
+                            lowessLine <-lowess(data[[i]], data[[j]], delta=delta);
+                            lines(lowessLine, col=paletteBasic[3], lty=2, lwd=2);
                         }
                     }
                     else if(numericData[i]){

@@ -1,6 +1,13 @@
 greybox v2.0.7 (Release data: 2026-01-19)
 ==============
 
+Bugfixes:
+* delta parameter calculation in lowess for spread() was not working in case of missing values. Fixed this.
+
+
+greybox v2.0.7 (Release data: 2026-01-19)
+==============
+
 Changes:
 * Introduced new error measure - SAME, which is the Scaled Absolute Mean Error. This measures bias.
 
