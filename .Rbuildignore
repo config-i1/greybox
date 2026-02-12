@@ -10,3 +10,5 @@ man-roxygen
 cran-comments.md
 ^CRAN-SUBMISSION$
 conda
+python
+CLAUDE.md
