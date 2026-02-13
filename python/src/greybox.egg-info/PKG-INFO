@@ -1,0 +1,50 @@
+Metadata-Version: 2.4
+Name: greybox
+Version: 0.1.0
+Summary: Toolbox for model building and forecasting
+Author-email: Ivan Svetunkov <ivan@svetunkov.com>
+License: LGPL-2.1
+Classifier: Development Status :: 3 - Alpha
+Classifier: Intended Audience :: Science/Research
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v2.1 (LGPL-2.1)
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.8
+Classifier: Programming Language :: Python :: 3.9
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Topic :: Scientific/Engineering :: Mathematics
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: numpy
+Requires-Dist: scipy
+Requires-Dist: pandas
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+Requires-Dist: flake8; extra == "dev"
+Requires-Dist: mypy; extra == "dev"
+Requires-Dist: black; extra == "dev"
+
+# Greybox
+
+Python port of the R package `greybox` - a toolbox for model building and forecasting.
+
+## Installation
+
+```bash
+pip install greybox
+```
+
+## Features
+
+- Regression Models: Advanced Linear Model (ALM), Scale Model (SM), Dynamic Linear Regression
+- Model Selection: Stepwise regression based on information criteria, partial correlations
+- Variable Processing: Lag/lead expansion, mathematical transformations, cross-product generation
+- Forecasting: Rolling origin evaluation, point forecasts
+- Statistical Measures: AIC, BIC, determination coefficients, association measures
+- Bootstrap Methods: Parameter bootstrap, bootstrap for time series
+- Distributions: Normal, Laplace, LogitNormal, Beta-Normal, etc.
+
+## License
+
+LGPL-2.1
