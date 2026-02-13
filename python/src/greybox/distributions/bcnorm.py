@@ -73,7 +73,9 @@ def pbcnorm(q, mu=0, sigma=1, lambda_bc=0):
     else:
         result = np.zeros_like(q, dtype=float)
         mask = q > 0
-        result[mask] = stats.norm.cdf((np.power(q[mask], lambda_bc) - 1) / lambda_bc, loc=mu, scale=sigma)
+        result[mask] = stats.norm.cdf(
+            (np.power(q[mask], lambda_bc) - 1) / lambda_bc, loc=mu, scale=sigma
+        )
         result[q <= 0] = 0
         return result
 
@@ -101,7 +103,9 @@ def qbcnorm(p, mu=0, sigma=1, lambda_bc=0):
     if lambda_bc == 0:
         return stats.lognorm.ppf(p, s=sigma, scale=np.exp(mu))
     else:
-        result = np.power(stats.norm.ppf(p, loc=mu, scale=sigma) * lambda_bc + 1, 1 / lambda_bc)
+        result = np.power(
+            stats.norm.ppf(p, loc=mu, scale=sigma) * lambda_bc + 1, 1 / lambda_bc
+        )
         result = np.where(np.isnan(result), 0, result)
         return result
 

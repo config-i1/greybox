@@ -12,7 +12,7 @@ from .fnorm import dfnorm, pfnorm, qfnorm, rfnorm
 from .rectnorm import drectnorm, prectnorm, qrectnorm, rrectnorm
 from .logitnorm import dlogitnorm, plogitnorm, qlogitnorm, rlogitnorm
 from .laplace import dlaplace, plaplace, qlaplace, rlaplace
-from .logis import dlogis, plogis, qlogis, rlogis
+from .logis import dlogis, qlogis, rlogis
 from .t import dt, pt, qt, rt
 from .lnorm import dlnorm, plnorm, qlnorm
 from .llaplace import dllaplace, qllaplace

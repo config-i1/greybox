@@ -32,7 +32,9 @@ def drectnorm(q, mu=0, sigma=1, log=False):
     """
     q = np.asarray(q)
     indicator = (q > 0).astype(float)
-    density = indicator * stats.norm.pdf(q, loc=mu, scale=sigma) + (1 - indicator) * stats.norm.cdf(0, loc=mu, scale=sigma)
+    density = indicator * stats.norm.pdf(q, loc=mu, scale=sigma) + (
+        1 - indicator
+    ) * stats.norm.cdf(0, loc=mu, scale=sigma)
     density = np.maximum(density, 1e-300)
     if log:
         return np.log(density)
@@ -58,7 +60,9 @@ def prectnorm(q, mu=0, sigma=1):
     """
     q = np.asarray(q)
     indicator = (q > 0).astype(float)
-    return indicator * stats.norm.cdf(q, loc=mu, scale=sigma) + (1 - indicator) * stats.norm.cdf(0, loc=mu, scale=sigma)
+    return indicator * stats.norm.cdf(q, loc=mu, scale=sigma) + (
+        1 - indicator
+    ) * stats.norm.cdf(0, loc=mu, scale=sigma)
 
 
 def qrectnorm(p, mu=0, sigma=1):

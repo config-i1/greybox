@@ -9,6 +9,116 @@ import re
 import numpy as np
 
 
+TRANSFORMATIONS = {
+    "log": np.log,
+    "log10": np.log10,
+    "log2": np.log2,
+    "sqrt": np.sqrt,
+    "exp": np.exp,
+    "abs": np.abs,
+    "sin": np.sin,
+    "cos": np.cos,
+    "tan": np.tan,
+}
+
+
+def _parse_transformation(term):
+    """Parse a term to check if it contains a transformation.
+
+    Parameters
+    ----------
+    term : str
+        Term to parse, e.g., "log(x)", "x^2", "I(x+y)"
+
+    Returns
+    -------
+    tuple : (transformation, variable, is_protected)
+        - transformation: str or None (e.g., "log", "sqrt", "^2")
+        - variable: str (the base variable name)
+        - is_protected: bool (True if wrapped in I())
+    """
+    term = term.strip()
+
+    if term.startswith("I(") and term.endswith(")"):
+        inner = term[2:-1]
+        return ("I", inner, True)
+
+    for func_name in TRANSFORMATIONS.keys():
+        pattern = f"{func_name}\\(([^)]+)\\)"
+        match = re.match(pattern, term)
+        if match:
+            return (func_name, match.group(1), False)
+
+    if "^" in term:
+        parts = term.split("^")
+        if len(parts) == 2:
+            try:
+                power = int(parts[1].strip())
+                return (f"^ {power}", parts[0].strip(), False)
+            except ValueError:
+                pass
+
+    return (None, term, False)
+
+
+def _apply_transformation(var_name, data_dict, n_obs):
+    """Apply transformation to a variable.
+
+    Parameters
+    ----------
+    var_name : str
+        Variable name, possibly with transformation (e.g., "log(x)", "x^2")
+    data_dict : dict
+        Data dictionary.
+    n_obs : int
+        Number of observations.
+
+    Returns
+    -------
+    np.ndarray
+        Transformed variable values.
+    """
+    transform, base_var, is_protected = _parse_transformation(var_name)
+
+    if transform == "I":
+        inner_transform, inner_base, _ = _parse_transformation(base_var)
+        if inner_base in data_dict:
+            base_data = np.array(data_dict[inner_base], dtype=float)
+        else:
+            raise ValueError(f"Variable '{inner_base}' not found in data")
+
+        if inner_transform is None:
+            return base_data
+        if inner_transform.startswith("^"):
+            power = int(inner_transform.split()[1])
+            return base_data**power
+        if inner_transform in TRANSFORMATIONS:
+            return TRANSFORMATIONS[inner_transform](base_data)
+        return base_data
+
+    if base_var == "trend":
+        if "trend" in data_dict:
+            base_data = np.array(data_dict["trend"], dtype=float)
+        else:
+            base_data = np.arange(1, n_obs + 1, dtype=float)
+    elif base_var in data_dict:
+        base_data = np.array(data_dict[base_var], dtype=float)
+    else:
+        raise ValueError(f"Variable '{base_var}' not found in data")
+
+    if transform is None:
+        return base_data
+
+    if transform.startswith("^"):
+        power = int(transform.split()[1])
+        return base_data**power
+
+    if transform in TRANSFORMATIONS:
+        return TRANSFORMATIONS[transform](base_data)
+
+    raise ValueError(f"Unknown transformation: {transform}")
+
+
 def formula(formula_str, data, return_type="both"):
     """Parse formula string and return design matrix and/or response.
 
@@ -16,6 +126,8 @@ def formula(formula_str, data, return_type="both"):
     ----------
     formula_str : str
         Formula string in R-style, e.g., "y ~ x1 + x2" or "~ x1 + x2" (no y).
+        Supports transformations: log(x), sqrt(x), x^2, etc.
+        Use I() to protect expressions: I(x^2)
     data : dict or DataFrame
         Data containing variables. Can be dict, DataFrame, or dict of arrays.
     return_type : str, optional
@@ -34,10 +146,15 @@ def formula(formula_str, data, return_type="both"):
     >>> data = {'y': [1, 2, 3], 'x1': [4, 5, 6], 'x2': [7, 8, 9]}
     >>> y, X = formula("y ~ x1 + x2", data)
     >>> X_no_intercept = formula("~ x1 + x2", data, return_type="X")
+
+    >>> # With transformations
+    >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
+    >>> y, X = formula("log(y) ~ x + x^2", data)  # y is log-transformed, X has x and x^2
     """
     formula_str = formula_str.strip()
 
     has_response = True
+    lhs = None
     if formula_str.startswith("~"):
         has_response = False
         formula_str = formula_str[1:].strip()
@@ -60,18 +177,32 @@ def formula(formula_str, data, return_type="both"):
         data_dict = data
     else:
         try:
-            data_dict = data.to_dict(orient='list')
+            data_dict = data.to_dict(orient="list")
         except AttributeError:
             raise ValueError("data must be dict or DataFrame")
+
+    n_obs = len(next(iter(data_dict.values())))
 
     if return_type == "terms":
         return terms
 
     y = None
-    if has_response:
-        if lhs not in data_dict:
-            raise ValueError(f"Response variable '{lhs}' not found in data")
-        y = np.array(data_dict[lhs], dtype=float)
+    if has_response and lhs:
+        transform, base_var, _ = _parse_transformation(lhs)
+        if base_var not in data_dict:
+            raise ValueError(f"Response variable '{base_var}' not found in data")
+        y_data = np.array(data_dict[base_var], dtype=float)
+
+        if transform is None:
+            y = y_data
+        elif transform == "I":
+            y = y_data
+        elif transform.startswith("^"):
+            power = int(transform.split()[1])
+            y = y_data**power
+        elif transform in TRANSFORMATIONS:
+            y = TRANSFORMATIONS[transform](y_data)
+
         terms = rhs_terms
 
     if return_type == "y":
@@ -87,46 +218,27 @@ def formula(formula_str, data, return_type="both"):
 
         if term == "1" or term == "intercept":
             if not intercept_added:
-                X_columns.append(np.ones(len(y) if y is not None else len(next(iter(data_dict.values())))))
+                X_columns.append(np.ones(n_obs))
                 intercept_added = True
             continue
 
-        if "*" in term:
-            parts = term.split("*")
-            if len(parts) == 2:
-                var1, var2 = parts[0].strip(), parts[1].strip()
-                if var1 not in data_dict:
-                    raise ValueError(f"Variable '{var1}' not found in data")
-                if var2 not in data_dict:
-                    raise ValueError(f"Variable '{var2}' not found in data")
-                col1 = np.array(data_dict[var1], dtype=float)
-                col2 = np.array(data_dict[var2], dtype=float)
-                X_columns.append(col1 * col2)
+        if term == "trend":
+            if "trend" not in data_dict:
+                X_columns.append(np.arange(1, n_obs + 1, dtype=float))
+            else:
+                X_columns.append(np.array(data_dict["trend"], dtype=float))
             continue
 
-        if ":" in term:
-            parts = term.split(":")
-            if len(parts) == 2:
-                var1, var2 = parts[0].strip(), parts[1].strip()
-                if var1 not in data_dict:
-                    raise ValueError(f"Variable '{var1}' not found in data")
-                if var2 not in data_dict:
-                    raise ValueError(f"Variable '{var2}' not found in data")
-                col1 = np.array(data_dict[var1], dtype=float)
-                col2 = np.array(data_dict[var2], dtype=float)
-                X_columns.append(col1 * col2)
-            continue
-
-        if term in data_dict:
-            X_columns.append(np.array(data_dict[term], dtype=float))
-        else:
-            raise ValueError(f"Variable '{term}' not found in data")
+        try:
+            col = _apply_transformation(term, data_dict, n_obs)
+            X_columns.append(col)
+        except ValueError:
+            raise
 
     if not intercept_added:
-        X_columns.insert(0, np.ones(len(y) if y is not None else len(X_columns[0])))
+        X_columns.insert(0, np.ones(n_obs))
 
     if not X_columns:
-        n_obs = len(y) if y is not None else len(next(iter(data_dict.values())))
         X = np.ones((n_obs, 1))
     else:
         X = np.column_stack(X_columns)
@@ -206,6 +318,6 @@ def expand_formula(formula_str):
 
     rhs = rhs.strip()
 
-    rhs = re.sub(r'(\w+)\s*\*\s*(\w+)', r'\1 + \2 + \1:\2', rhs)
+    rhs = re.sub(r"(\w+)\s*\*\s*(\w+)", r"\1 + \2 + \1:\2", rhs)
 
     return f"{lhs.strip()} ~ {rhs}"

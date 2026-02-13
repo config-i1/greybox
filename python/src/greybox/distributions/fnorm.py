@@ -31,9 +31,13 @@ def dfnorm(q, mu=0, sigma=1, log=False):
         Density values.
     """
     q = np.asarray(q)
-    density = 1 / (np.sqrt(2 * np.pi) * sigma) * (
-        np.exp(-(np.abs(q) - mu)**2 / (2 * sigma**2)) +
-        np.exp(-(np.abs(q) + mu)**2 / (2 * sigma**2))
+    density = (
+        1
+        / (np.sqrt(2 * np.pi) * sigma)
+        * (
+            np.exp(-((np.abs(q) - mu) ** 2) / (2 * sigma**2))
+            + np.exp(-((np.abs(q) + mu) ** 2) / (2 * sigma**2))
+        )
     )
     is_zero = q < 0
     result = np.where(is_zero, 0.0, np.maximum(density, 1e-300))
@@ -60,7 +64,11 @@ def pfnorm(q, mu=0, sigma=1):
         CDF values.
     """
     q = np.asarray(q)
-    result = stats.norm.cdf(q, loc=mu, scale=sigma) + stats.norm.cdf(q, loc=-mu, scale=sigma) - 1
+    result = (
+        stats.norm.cdf(q, loc=mu, scale=sigma)
+        + stats.norm.cdf(q, loc=-mu, scale=sigma)
+        - 1
+    )
     result = np.where(q < 0, 0, result)
     return result
 
@@ -91,6 +99,7 @@ def qfnorm(p, mu=0, sigma=1):
         elif pi == 1:
             result[i] = np.inf
         else:
+
             def objective(x):
                 return pfnorm(x, mu, sigma) - pi
 

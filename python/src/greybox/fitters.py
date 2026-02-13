@@ -22,7 +22,7 @@ def scaler_internal(
     otU: np.ndarray,
     df: int,
     trim: float = 0.0,
-    side: str = "both"
+    side: str = "both",
 ) -> float:
     """Calculate scale parameter based on distribution.
 
@@ -58,7 +58,7 @@ def scaler_internal(
     mu_otU = mu[otU]
 
     if distribution == "dbeta":
-        return np.exp(matrix_xreg @ B[-len(B)//2:])
+        return np.exp(matrix_xreg @ B[-len(B) // 2 :])
 
     elif distribution == "dnorm":
         return np.sqrt(mean_fast((y_otU - mu_otU) ** 2, df, trim, side))
@@ -70,10 +70,16 @@ def scaler_internal(
         return mean_fast(np.sqrt(np.abs(y_otU - mu_otU)), df * 2, trim, side)
 
     elif distribution == "dgnorm":
-        return (other * mean_fast(np.abs(y_otU - mu_otU) ** other, df, trim, side)) ** (1 / other)
+        return (other * mean_fast(np.abs(y_otU - mu_otU) ** other, df, trim, side)) ** (
+            1 / other
+        )
 
     elif distribution == "dlogis":
-        return np.sqrt(mean_fast((y_otU - mu_otU) ** 2, df, trim, side)) * np.sqrt(3) / np.pi
+        return (
+            np.sqrt(mean_fast((y_otU - mu_otU) ** 2, df, trim, side))
+            * np.sqrt(3)
+            / np.pi
+        )
 
     elif distribution == "dalaplace":
         indicator = (y_otU <= mu_otU).astype(float)
@@ -89,7 +95,9 @@ def scaler_internal(
         return mean_fast(np.sqrt(np.abs(np.log(y_otU) - mu_otU)), df * 2, trim, side)
 
     elif distribution == "dlgnorm":
-        return (other * mean_fast(np.abs(np.log(y_otU) - mu_otU) ** other, df, trim, side)) ** (1 / other)
+        return (
+            other * mean_fast(np.abs(np.log(y_otU) - mu_otU) ** other, df, trim, side)
+        ) ** (1 / other)
 
     elif distribution == "dbcnorm":
         y_transformed = bc_transform(y_otU, other)
@@ -102,7 +110,9 @@ def scaler_internal(
         return mean_fast((y_otU / mu_otU - 1) ** 2, df, trim, side)
 
     elif distribution == "dlogitnorm":
-        return np.sqrt(mean_fast((np.log(y_otU / (1 - y_otU)) - mu_otU) ** 2, df, trim, side))
+        return np.sqrt(
+            mean_fast((np.log(y_otU / (1 - y_otU)) - mu_otU) ** 2, df, trim, side)
+        )
 
     elif distribution in ("dfnorm", "drectnorm", "dt", "dchisq"):
         return np.abs(other) if other is not None else 1.0
@@ -119,21 +129,18 @@ def scaler_internal(
     elif distribution == "pnorm":
         p = (y - dist.pnorm(mu, 0, 1) + 1) / 2
         q = dist.qnorm(p, 0, 1)
-        return np.sqrt(mean_fast(q ** 2))
+        return np.sqrt(mean_fast(q**2))
 
     elif distribution == "plogis":
         log_term = np.log((1 + y * (1 + np.exp(mu))) / (1 + np.exp(mu) * (2 - y) - y))
-        return np.sqrt(mean_fast(log_term ** 2))
+        return np.sqrt(mean_fast(log_term**2))
 
     else:
         return 1.0
 
 
 def extractor_fitted(
-    distribution: str,
-    mu: np.ndarray,
-    scale: float | np.ndarray,
-    lambda_bc: float = 0.0
+    distribution: str, mu: np.ndarray, scale: float | np.ndarray, lambda_bc: float = 0.0
 ) -> np.ndarray:
     """Extract fitted values in original scale.
 
@@ -154,13 +161,30 @@ def extractor_fitted(
         Fitted values in original scale.
     """
     if distribution == "dfnorm":
-        return np.sqrt(2 / np.pi) * scale * np.exp(-mu ** 2 / (2 * scale ** 2)) + mu * (1 - 2 * dist.pnorm(-mu / scale, mean=0, sd=1))
+        return np.sqrt(2 / np.pi) * scale * np.exp(-(mu**2) / (2 * scale**2)) + mu * (
+            1 - 2 * dist.pnorm(-mu / scale, mean=0, sd=1)
+        )
 
     elif distribution == "drectnorm":
-        return mu * (1 - dist.pnorm(0, mean=mu, sd=scale)) + scale * dist.dnorm(0, mean=mu, sd=scale)
+        return mu * (1 - dist.pnorm(0, mean=mu, sd=scale)) + scale * dist.dnorm(
+            0, mean=mu, sd=scale
+        )
 
-    elif distribution in ("dnorm", "dgnorm", "dinvgauss", "dgamma", "dexp", "dlaplace",
-                           "dalaplace", "dlogis", "dt", "ds", "dgeom", "dpois", "dnbinom"):
+    elif distribution in (
+        "dnorm",
+        "dgnorm",
+        "dinvgauss",
+        "dgamma",
+        "dexp",
+        "dlaplace",
+        "dalaplace",
+        "dlogis",
+        "dt",
+        "ds",
+        "dgeom",
+        "dpois",
+        "dnbinom",
+    ):
         return mu
 
     elif distribution == "dbinom":
@@ -192,10 +216,7 @@ def extractor_fitted(
 
 
 def extractor_residuals(
-    distribution: str,
-    mu: np.ndarray,
-    y: np.ndarray,
-    lambda_bc: float = 0.0
+    distribution: str, mu: np.ndarray, y: np.ndarray, lambda_bc: float = 0.0
 ) -> np.ndarray:
     """Extract residuals in transformed scale.
 
@@ -218,8 +239,22 @@ def extractor_residuals(
     if distribution in ("dbinom", "dbeta"):
         return y - extractor_fitted(distribution, mu, 1.0)
 
-    elif distribution in ("dfnorm", "drectnorm", "dnorm", "dlaplace", "ds", "dgnorm",
-                          "dalaplace", "dlogis", "dt", "dgeom", "dnbinom", "dpois", "dinvgauss", "dgamma"):
+    elif distribution in (
+        "dfnorm",
+        "drectnorm",
+        "dnorm",
+        "dlaplace",
+        "ds",
+        "dgnorm",
+        "dalaplace",
+        "dlogis",
+        "dt",
+        "dgeom",
+        "dnbinom",
+        "dpois",
+        "dinvgauss",
+        "dgamma",
+    ):
         return y - mu
 
     elif distribution == "dexp":
@@ -261,7 +296,7 @@ def fitter(
     n_variables: int = 0,
     loss: str = "likelihood",
     lambda_val: float = 0.0,
-    a_parameter_provided: bool = False
+    a_parameter_provided: bool = False,
 ) -> dict:
     """Basic fitter for non-dynamic models.
 
@@ -345,7 +380,9 @@ def fitter(
         if poly1 is not None and ar_order > 0:
             poly1[1:] = -B[-ar_order:]
             if n_variables > ar_order:
-                B = np.concatenate([B[:len(B) - ar_order], -np.convolve(poly2, poly1)[1:]])
+                B = np.concatenate(
+                    [B[: len(B) - ar_order], -np.convolve(poly2, poly1)[1:]]
+                )
             else:
                 B = -np.convolve(poly2, poly1)[1:]
         elif i_order > 0:
@@ -356,11 +393,19 @@ def fitter(
 
     mu = np.zeros_like(y, dtype=float)
 
-    if distribution in ("dinvgauss", "dgamma", "dexp", "dpois", "dnbinom", "dbinom", "dgeom"):
+    if distribution in (
+        "dinvgauss",
+        "dgamma",
+        "dexp",
+        "dpois",
+        "dnbinom",
+        "dbinom",
+        "dgeom",
+    ):
         mu = np.exp(matrix_xreg @ B)
     elif distribution == "dchisq":
         linear_pred = matrix_xreg @ B
-        mu = np.where(linear_pred < 0, 1e100, linear_pred ** 2)
+        mu = np.where(linear_pred < 0, 1e100, linear_pred**2)
     elif distribution == "dbeta":
         half_len = len(B) // 2
         mu = np.exp(matrix_xreg @ B[:half_len])
@@ -370,16 +415,13 @@ def fitter(
     otU = np.ones(len(y), dtype=bool)
     df = np.sum(otU)
 
-    scale = scaler_internal(
-        B, distribution, y, matrix_xreg, mu, other,
-        otU, df
-    )
+    scale = scaler_internal(B, distribution, y, matrix_xreg, mu, other, otU, df)
 
     return {
         "mu": mu,
         "scale": scale,
         "other": other,
-        "poly1": poly1 if poly1 is not None else np.array([1.0])
+        "poly1": poly1 if poly1 is not None else np.array([1.0]),
     }
 
 
@@ -392,7 +434,7 @@ def fitter_recursive(
     other=None,
     a_parameter_provided: bool = False,
     lambda_bc: float = 0.0,
-    **kwargs
+    **kwargs,
 ) -> dict:
     """Fitter for dynamic (ARIMA) models.
 
@@ -423,10 +465,13 @@ def fitter_recursive(
         Dictionary with mu, scale, other, matrix_xreg keys.
     """
     fitter_return = fitter(
-        B, distribution, y, matrix_xreg,
+        B,
+        distribution,
+        y,
+        matrix_xreg,
         other=other,
         a_parameter_provided=a_parameter_provided,
-        **kwargs
+        **kwargs,
     )
 
     return {
@@ -434,5 +479,5 @@ def fitter_recursive(
         "scale": fitter_return["scale"],
         "other": fitter_return["other"],
         "poly1": fitter_return["poly1"],
-        "matrix_xreg": matrix_xreg
+        "matrix_xreg": matrix_xreg,
     }

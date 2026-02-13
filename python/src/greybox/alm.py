@@ -130,18 +130,35 @@ class ALM:
     """
 
     DISTRIBUTIONS = [
-        "dnorm", "dlaplace", "ds", "dgnorm", "dlogis", "dt", "dalaplace",
-        "dlnorm", "dllaplace", "dls", "dlgnorm", "dbcnorm",
-        "dinvgauss", "dgamma", "dexp", "dchisq",
-        "dfnorm", "drectnorm",
-        "dpois", "dnbinom", "dbinom", "dgeom",
-        "dbeta", "dlogitnorm",
-        "plogis", "pnorm"
+        "dnorm",
+        "dlaplace",
+        "ds",
+        "dgnorm",
+        "dlogis",
+        "dt",
+        "dalaplace",
+        "dlnorm",
+        "dllaplace",
+        "dls",
+        "dlgnorm",
+        "dbcnorm",
+        "dinvgauss",
+        "dgamma",
+        "dexp",
+        "dchisq",
+        "dfnorm",
+        "drectnorm",
+        "dpois",
+        "dnbinom",
+        "dbinom",
+        "dgeom",
+        "dbeta",
+        "dlogitnorm",
+        "plogis",
+        "pnorm",
     ]
 
-    LOSS_FUNCTIONS = [
-        "likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE", "ROLE"
-    ]
+    LOSS_FUNCTIONS = ["likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE", "ROLE"]
 
     def __init__(
         self,
@@ -159,7 +176,7 @@ class ALM:
         lambda_l1=None,
         lambda_l2=None,
         nlopt_kargs=None,
-        verbose=0
+        verbose=0,
     ):
         self.distribution = distribution
         self.loss = loss
@@ -201,8 +218,7 @@ class ALM:
 
         if self.loss not in self.LOSS_FUNCTIONS:
             raise ValueError(
-                f"Invalid loss: {self.loss}. "
-                f"Choose from: {self.LOSS_FUNCTIONS}"
+                f"Invalid loss: {self.loss}. Choose from: {self.LOSS_FUNCTIONS}"
             )
 
         if not isinstance(self.orders, (tuple, list)) or len(self.orders) != 3:
@@ -249,23 +265,20 @@ class ALM:
             if len(y_pos) > 0:
                 try:
                     B_init = np.linalg.lstsq(X_pos, np.log(y_pos), rcond=None)[0]
-                except:
+                except Exception:
                     B_init = np.zeros(n_features)
         elif self.distribution in ("dlogitnorm",):
             y_clip = np.clip(y, 1e-10, 1 - 1e-10)
             y_transformed = np.log(y_clip / (1 - y_clip))
             try:
                 B_init = np.linalg.lstsq(X, y_transformed, rcond=None)[0]
-            except:
+            except Exception:
                 B_init = np.zeros(n_features)
         else:
             try:
                 B_init = np.linalg.lstsq(X, y, rcond=None)[0]
-            except:
+            except Exception:
                 B_init = np.zeros(n_features)
-
-        ar_order = 0
-        i_order = 0
 
         n_params = n_features
 
@@ -280,17 +293,21 @@ class ALM:
                 X,
                 ar_order=0,
                 i_order=0,
-                lambda_val=self.lambda_l1 if self.loss == "LASSO" else (self.lambda_l2 if self.loss == "RIDGE" else 0.0),
+                lambda_val=self.lambda_l1
+                if self.loss == "LASSO"
+                else (self.lambda_l2 if self.loss == "RIDGE" else 0.0),
                 other=other_val,
                 a_parameter_provided=a_parameter_provided,
                 trim=self.trim,
                 lambda_bc=self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
-                size=self.size if self.distribution == "dbinom" else 1.0
+                size=self.size if self.distribution == "dbinom" else 1.0,
             )
 
         algorithm_name = self.nlopt_kargs.get("algorithm", "NLOPT_LN_NELDERMEAD")
         if algorithm_name not in NLOPT_ALGORITHMS:
-            raise ValueError(f"Unknown algorithm: {algorithm_name}. Choose from: {list(NLOPT_ALGORITHMS.keys())}")
+            raise ValueError(
+                f"Unknown algorithm: {algorithm_name}. Choose from: {list(NLOPT_ALGORITHMS.keys())}"
+            )
 
         algorithm = NLOPT_ALGORITHMS[algorithm_name]
 
@@ -335,10 +352,14 @@ class ALM:
         }
 
         scale = scaler_internal(
-            B_opt, self.distribution, y, X,
-            fitter_return["mu"], other_val,
+            B_opt,
+            self.distribution,
+            y,
+            X,
+            fitter_return["mu"],
+            other_val,
             np.ones(len(y), dtype=bool),
-            np.sum(np.ones(len(y), dtype=bool))
+            np.sum(np.ones(len(y), dtype=bool)),
         )
         fitter_return["scale"] = scale
         self.scale_ = scale
@@ -348,14 +369,14 @@ class ALM:
             self.distribution,
             fitter_return["mu"],
             scale,
-            self.lambda_bc if self.distribution == "dbcnorm" else 0.0
+            self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
         self.residuals_ = extractor_residuals(
             self.distribution,
             fitter_return["mu"],
             y,
-            self.lambda_bc if self.distribution == "dbcnorm" else 0.0
+            self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
         self.loss_value_ = objective_func(B_opt, np.zeros(n_params))
@@ -363,7 +384,14 @@ class ALM:
         if self.loss == "likelihood":
             self.log_lik_ = -self.loss_value_
             n_params = n_features
-            if self.distribution not in ("dexp", "dpois", "dgeom", "dbinom", "plogis", "pnorm"):
+            if self.distribution not in (
+                "dexp",
+                "dpois",
+                "dgeom",
+                "dbinom",
+                "plogis",
+                "pnorm",
+            ):
                 n_params += 1
             self.aic_ = 2 * n_params - 2 * self.log_lik_
             self.bic_ = n_params * np.log(n_samples) - 2 * self.log_lik_
@@ -406,7 +434,7 @@ class ALM:
             self.distribution,
             mu,
             self.scale_,
-            self.lambda_bc if self.distribution == "dbcnorm" else 0.0
+            self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
     def score(self, X, y, metric="likelihood"):
@@ -433,10 +461,20 @@ class ALM:
                 return self.log_lik_
             y = np.asarray(y)
             log_lik = 0.0
-            y_otU = y[y != 0] if self.distribution not in ("dlnorm", "dllaplace", "dls", "dlgnorm") else y
-            mu_otU = y_pred[y != 0] if self.distribution not in ("dlnorm", "dllaplace", "dls", "dlgnorm") else y_pred
+            y_otU = (
+                y[y != 0]
+                if self.distribution not in ("dlnorm", "dllaplace", "dls", "dlgnorm")
+                else y
+            )
+            mu_otU = (
+                y_pred[y != 0]
+                if self.distribution not in ("dlnorm", "dllaplace", "dls", "dlgnorm")
+                else y_pred
+            )
             if self.distribution == "dnorm":
-                log_lik = np.sum(dist.dnorm(y_otU, mean=mu_otU, sd=self.scale_, log=True))
+                log_lik = np.sum(
+                    dist.dnorm(y_otU, mean=mu_otU, sd=self.scale_, log=True)
+                )
             return log_lik
         elif metric == "MSE":
             return np.mean((y - y_pred) ** 2)
@@ -486,7 +524,7 @@ class ALM:
             "lambda_l1": self.lambda_l1,
             "lambda_l2": self.lambda_l2,
             "nlopt_kargs": self.nlopt_kargs,
-            "verbose": self.verbose
+            "verbose": self.verbose,
         }
 
     def set_params(self, **params):
@@ -508,7 +546,4 @@ class ALM:
         return self
 
     def __repr__(self):
-        return (
-            f"ALM(distribution={self.distribution!r}, "
-            f"loss={self.loss!r})"
-        )
+        return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"
