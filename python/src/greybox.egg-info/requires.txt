@@ -1,0 +1,9 @@
+numpy
+scipy
+pandas
+
+[dev]
+pytest
+flake8
+mypy
+black

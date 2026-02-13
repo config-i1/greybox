@@ -1,0 +1,99 @@
+"""Laplace distribution functions.
+
+Density, cumulative distribution, quantile functions and random number
+generation for the Laplace distribution.
+"""
+
+import numpy as np
+from scipy import stats
+
+
+def dlaplace(q, loc=0, scale=1, log=False):
+    """Laplace distribution density.
+
+    Parameters
+    ----------
+    q : array_like
+        Quantiles.
+    loc : float
+        Location parameter (mu).
+    scale : float
+        Scale parameter.
+    log : bool
+        If True, return log-density.
+
+    Returns
+    -------
+    array
+        Density values.
+    """
+    result = stats.laplace.pdf(q, loc=loc, scale=scale)
+    if log:
+        return np.log(result + 1e-300)
+    return result
+
+
+def plaplace(q, loc=0, scale=1):
+    """Laplace distribution CDF.
+
+    Parameters
+    ----------
+    q : array_like
+        Quantiles.
+    loc : float
+        Location parameter.
+    scale : float
+        Scale parameter.
+
+    Returns
+    -------
+    array
+        CDF values.
+    """
+    return stats.laplace.cdf(q, loc=loc, scale=scale)
+
+
+def qlaplace(p, loc=0, scale=1):
+    """Laplace distribution quantile function.
+
+    Parameters
+    ----------
+    p : array_like
+        Probabilities.
+    loc : float
+        Location parameter.
+    scale : float
+        Scale parameter.
+
+    Returns
+    -------
+    array
+        Quantile values.
+    """
+    return stats.laplace.ppf(p, loc=loc, scale=scale)
+
+
+def rlaplace(n, loc=0, scale=1):
+    """Laplace distribution random number generation.
+
+    Parameters
+    ----------
+    n : int
+        Number of observations.
+    loc : float
+        Location parameter.
+    scale : float
+        Scale parameter.
+
+    Returns
+    -------
+    array
+        Random values.
+    """
+    return stats.laplace.rvs(loc=loc, scale=scale, size=n)
+
+
+dalaplace = dlaplace
+palaplace = plaplace
+qlaplace = qlaplace
+rlaplace = rlaplace
