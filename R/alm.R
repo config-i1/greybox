@@ -608,6 +608,102 @@ alm <- function(formula, data, subset, na.action,
         ));
     }
 
+    CFLogLik <- function(distribution, y, fitterReturn, otU, ot){
+        return(switch(distribution,
+                      "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
+                      "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                      "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                      "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                        shape=fitterReturn$other, log=TRUE),
+                      "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+                      "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
+                      "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                              alpha=fitterReturn$other, log=TRUE),
+                      "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+                      "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
+                                             scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                      "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+                      "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+                                         shape=fitterReturn$other, log=TRUE)-log(y[otU]),
+                      # Use ifelse() to remove densities for y=0, which result in -Inf
+                      # This is just a fix! It has no good reason behind it!
+                      "dbcnorm" = ifelse(y[otU]!=0,
+                                         dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+                                                 lambda=fitterReturn$other, log=TRUE),0),
+                      "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                      "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                      "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+                                              dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+                      "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
+                                        scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
+                      "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
+                      "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+                      "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
+                      "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
+                      "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+                      # -occurrenceModel is needed to have hurdle model
+                      "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=1/(fitterReturn$mu[otU]+1), size=size, log=TRUE),
+                      "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+                      "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
+                      "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+                                  pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+                      "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+                                   plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+        ));
+    }
+
+    CFLogLikEntropy <- function(distribution, fitterReturn, obsZero){
+        return(switch(distribution,
+                      "dnorm" =,
+                      "dfnorm" =,
+                      "dbcnorm" =,
+                      "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                      "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
+                      "dgnorm" =,
+                      "dlgnorm" =obsZero*(1/fitterReturn$other-
+                                              log(fitterReturn$other /
+                                                      (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
+                      "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                                             sum(log(fitterReturn$mu[!otU]))),
+                      # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                      # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                      #                     log(gamma(1/fitterReturn$scale)) +
+                      #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                      "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
+                                         (1 - fitterReturn$scale* fitterReturn$mu) *
+                                         digamma(fitterReturn$scale* fitterReturn$mu) +
+                                         fitterReturn$scale* fitterReturn$mu),
+                      # 1-ln(lambda), where lambda=1
+                      "dexp" = obsZero,
+                      # Entropy of Geometric distribution needs to be added here
+                      # "dgeom" =,
+                      "dlaplace" =,
+                      "dllaplace" =,
+                      "ds" =,
+                      "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
+                      "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+                      "dlogis" = obsZero*2,
+                      "dt" = obsZero*((fitterReturn$scale+1)/2 *
+                                          (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
+                                          log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
+                      "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
+                                              (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
+                                              fitterReturn$scale/2),
+                      "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
+                                        (fitterReturn$mu[otU]-1)*
+                                        (digamma(fitterReturn$mu[otU])-
+                                             digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
+                                        (fitterReturn$scale[otU]-1)*
+                                        (digamma(fitterReturn$scale[otU])-
+                                             digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
+                      # This is a normal approximation of the real entropy
+                      # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                      # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                      # "dbinom" = sum(0.5*log(2*pi*size*fitterReturn$mu[!otU]*(1-fitterReturn$mu[!otU]))+0.5),
+                      0
+        ))
+    }
+
     CF <- function(B, distribution, loss, y, matrixXreg, recursiveModel, denominator){
         if(recursiveModel){
             fitterReturn <- fitterRecursive(B, distribution, y, matrixXreg);
@@ -618,197 +714,203 @@ alm <- function(formula, data, subset, na.action,
 
         if(loss=="likelihood"){
             # The original log-likelilhood
-            CFValue <- -sum(switch(distribution,
-                                   "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
-                                   "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                   "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                   "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                     shape=fitterReturn$other, log=TRUE),
-                                   "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                   "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
-                                   "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                           alpha=fitterReturn$other, log=TRUE),
-                                   "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
-                                   "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
-                                                          scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                   "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                   "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                      shape=fitterReturn$other, log=TRUE)-log(y[otU]),
-                                   # Use ifelse() to remove densities for y=0, which result in -Inf
-                                   # This is just a fix! It has no good reason behind it!
-                                   "dbcnorm" = ifelse(y[otU]!=0,
-                                                      dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                              lambda=fitterReturn$other, log=TRUE),0),
-                                   "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                   "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                   "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
-                                                           dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
-                                   "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
-                                                     scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
-                                   "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
-                                   "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
-                                   "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
-                                   "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
-                                   "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
-                                   # -occurrenceModel is needed to have hurdle model
-                                   "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=1/(fitterReturn$mu[otU]+1), size=size, log=TRUE),
-                                   "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                   "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
-                                   "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
-                                               pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                                   "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
-                                                plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
-            ));
+            CFValue <- -sum(CFLogLik(distribution, y, fitterReturn, otU, ot));
+            # CFValue <- -sum(switch(distribution,
+            #                        "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
+            #                        "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                        "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                        "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                          shape=fitterReturn$other, log=TRUE),
+            #                        "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                        "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
+            #                        "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                                alpha=fitterReturn$other, log=TRUE),
+            #                        "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+            #                        "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
+            #                                               scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+            #                        "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+            #                        "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                           shape=fitterReturn$other, log=TRUE)-log(y[otU]),
+            #                        # Use ifelse() to remove densities for y=0, which result in -Inf
+            #                        # This is just a fix! It has no good reason behind it!
+            #                        "dbcnorm" = ifelse(y[otU]!=0,
+            #                                           dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+            #                                                   lambda=fitterReturn$other, log=TRUE),0),
+            #                        "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                        "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                        "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+            #                                                dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+            #                        "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
+            #                                          scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
+            #                        "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
+            #                        "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+            #                        "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
+            #                        "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
+            #                        "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+            #                        # -occurrenceModel is needed to have hurdle model
+            #                        "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=1/(fitterReturn$mu[otU]+1), size=size, log=TRUE),
+            #                        "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                        "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
+            #                        "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+            #                                    pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+            #                        "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+            #                                     plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+            # ));
 
             # The differential entropy for the models with the missing data
             if(recursiveModel && occurrenceModel){
-                CFValue[] <- CFValue + switch(distribution,
-                                              "dnorm" =,
-                                              "dfnorm" =,
-                                              "dbcnorm" =,
-                                              "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
-                                              "dgnorm" =,
-                                              "dlgnorm" =obsZero*(1/fitterReturn$other-
-                                                                      log(fitterReturn$other /
-                                                                              (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
-                                              "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
-                                                                              sum(log(fitterReturn$mu[!otU]))),
-                                              # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
-                                              # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
-                                              #                     log(gamma(1/fitterReturn$scale)) +
-                                              #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
-                                              "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
-                                                              (1 - fitterReturn$scale* fitterReturn$mu) *
-                                                              digamma(fitterReturn$scale* fitterReturn$mu) +
-                                                              fitterReturn$scale* fitterReturn$mu),
-                                              # 1-ln(lambda), where lambda=1
-                                              "dexp" = obsZero,
-                                              # Entropy of Geometric distribution needs to be added here
-                                              # "dgeom" =,
-                                              "dlaplace" =,
-                                              "dllaplace" =,
-                                              "ds" =,
-                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
-                                              "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
-                                              "dlogis" = obsZero*2,
-                                              "dt" = obsZero*((fitterReturn$scale+1)/2 *
-                                                                  (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
-                                                                  log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
-                                              "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
-                                                                      (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
-                                                                      fitterReturn$scale/2),
-                                              "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
-                                                                (fitterReturn$mu[otU]-1)*
-                                                                (digamma(fitterReturn$mu[otU])-
-                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
-                                                                (fitterReturn$scale[otU]-1)*
-                                                                (digamma(fitterReturn$scale[otU])-
-                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
-                                              # This is a normal approximation of the real entropy
-                                              # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
-                                              # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                              # "dbinom" = sum(0.5*log(2*pi*size*fitterReturn$mu[!otU]*(1-fitterReturn$mu[!otU]))+0.5),
-                                              0
-                );
+                CFValue[] <- CFValue + CFLogLikEntropy(distribution, fitterReturn, obsZero);
+                #     switch(distribution,
+                #                               "dnorm" =,
+                #                               "dfnorm" =,
+                #                               "dbcnorm" =,
+                #                               "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                #                               "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
+                #                               "dgnorm" =,
+                #                               "dlgnorm" =obsZero*(1/fitterReturn$other-
+                #                                                       log(fitterReturn$other /
+                #                                                               (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
+                #                               "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                #                                                               sum(log(fitterReturn$mu[!otU]))),
+                #                               # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                #                               # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                #                               #                     log(gamma(1/fitterReturn$scale)) +
+                #                               #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                #                               "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
+                #                                               (1 - fitterReturn$scale* fitterReturn$mu) *
+                #                                               digamma(fitterReturn$scale* fitterReturn$mu) +
+                #                                               fitterReturn$scale* fitterReturn$mu),
+                #                               # 1-ln(lambda), where lambda=1
+                #                               "dexp" = obsZero,
+                #                               # Entropy of Geometric distribution needs to be added here
+                #                               # "dgeom" =,
+                #                               "dlaplace" =,
+                #                               "dllaplace" =,
+                #                               "ds" =,
+                #                               "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
+                #                               "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+                #                               "dlogis" = obsZero*2,
+                #                               "dt" = obsZero*((fitterReturn$scale+1)/2 *
+                #                                                   (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
+                #                                                   log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
+                #                               "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
+                #                                                       (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
+                #                                                       fitterReturn$scale/2),
+                #                               "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
+                #                                                 (fitterReturn$mu[otU]-1)*
+                #                                                 (digamma(fitterReturn$mu[otU])-
+                #                                                      digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
+                #                                                 (fitterReturn$scale[otU]-1)*
+                #                                                 (digamma(fitterReturn$scale[otU])-
+                #                                                      digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
+                #                               # This is a normal approximation of the real entropy
+                #                               # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                #                               # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                #                               # "dbinom" = sum(0.5*log(2*pi*size*fitterReturn$mu[!otU]*(1-fitterReturn$mu[!otU]))+0.5),
+                #                               0
+                # );
             }
         }
         else
         if(loss=="ROLE"){
             # The original log-likelilhood
-            CFValue <- -meanFast(switch(distribution,
-                                        "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
-                                        "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                        "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                        "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                          shape=fitterReturn$other, log=TRUE),
-                                        "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
-                                        "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
-                                        "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                                alpha=fitterReturn$other, log=TRUE),
-                                        "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
-                                        "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
-                                                               scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                        "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
-                                        "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
-                                                           shape=fitterReturn$other, log=TRUE)-log(y[otU]),
-                                        # Use ifelse() to remove densities for y=0, which result in -Inf
-                                        # This is just a fix! It has no good reason behind it!
-                                        "dbcnorm" = ifelse(y[otU]!=0,dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
-                                                                             lambda=fitterReturn$other, log=TRUE),0),
-                                        "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                        "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                        "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
-                                                                dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
-                                        "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
-                                                          scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
-                                        "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
-                                        "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
-                                        "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
-                                        "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
-                                        "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
-                                        "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=1/(fitterReturn$mu[otU]+1),
-                                                          size=size, log=TRUE),
-                                        "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
-                                        "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
-                                        "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
-                                                    pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                                        "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
-                                                     plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
-            ), trim=trim);
+            CFValue <- -meanFast(CFLogLik(distribution, y, fitterReturn, otU, ot),
+                                 trim=trim);
+            # CFValue <- -meanFast(switch(distribution,
+            #                             "dnorm" = dnorm(y[otU], mean=fitterReturn$mu[otU], sd=fitterReturn$scale, log=TRUE),
+            #                             "dlaplace" = dlaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                             "ds" = ds(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                             "dgnorm" = dgnorm(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                               shape=fitterReturn$other, log=TRUE),
+            #                             "dlogis" = dlogis(y[otU], location=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE),
+            #                             "dt" = dt(y[otU]-fitterReturn$mu[otU], df=fitterReturn$scale, log=TRUE),
+            #                             "dalaplace" = dalaplace(y[otU], mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                                     alpha=fitterReturn$other, log=TRUE),
+            #                             "dlnorm" = dlnorm(y[otU], meanlog=fitterReturn$mu[otU], sdlog=fitterReturn$scale, log=TRUE),
+            #                             "dllaplace" = dlaplace(log(y[otU]), mu=fitterReturn$mu[otU],
+            #                                                    scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+            #                             "dls" = ds(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale, log=TRUE)-log(y[otU]),
+            #                             "dlgnorm" = dgnorm(log(y[otU]), mu=fitterReturn$mu[otU], scale=fitterReturn$scale,
+            #                                                shape=fitterReturn$other, log=TRUE)-log(y[otU]),
+            #                             # Use ifelse() to remove densities for y=0, which result in -Inf
+            #                             # This is just a fix! It has no good reason behind it!
+            #                             "dbcnorm" = ifelse(y[otU]!=0,dbcnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale,
+            #                                                                  lambda=fitterReturn$other, log=TRUE),0),
+            #                             "dfnorm" = dfnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                             "drectnorm" = drectnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                             "dinvgauss" = dinvgauss(y[otU], mean=fitterReturn$mu[otU],
+            #                                                     dispersion=fitterReturn$scale/fitterReturn$mu[otU], log=TRUE),
+            #                             "dgamma" = dgamma(y[otU], shape=1/fitterReturn$scale,
+            #                                               scale=fitterReturn$scale*fitterReturn$mu[otU], log=TRUE),
+            #                             "dexp" = dexp(y[otU], rate=1/fitterReturn$mu[otU], log=TRUE),
+            #                             "dchisq" = dchisq(y[otU], df=fitterReturn$scale, ncp=fitterReturn$mu[otU], log=TRUE),
+            #                             "dgeom" = dgeom(y[otU], prob=1/(fitterReturn$mu[otU]+1), log=TRUE),
+            #                             "dpois" = dpois(y[otU], lambda=fitterReturn$mu[otU], log=TRUE),
+            #                             "dnbinom" = dnbinom(y[otU], mu=fitterReturn$mu[otU], size=fitterReturn$scale, log=TRUE),
+            #                             "dbinom" = dbinom(y[otU]-occurrenceModel*1, prob=1/(fitterReturn$mu[otU]+1),
+            #                                               size=size, log=TRUE),
+            #                             "dlogitnorm" = dlogitnorm(y[otU], mu=fitterReturn$mu[otU], sigma=fitterReturn$scale, log=TRUE),
+            #                             "dbeta" = dbeta(y[otU], shape1=fitterReturn$mu[otU], shape2=fitterReturn$scale[otU], log=TRUE),
+            #                             "pnorm" = c(pnorm(fitterReturn$mu[ot], mean=0, sd=1, log.p=TRUE),
+            #                                         pnorm(fitterReturn$mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
+            #                             "plogis" = c(plogis(fitterReturn$mu[ot], location=0, scale=1, log.p=TRUE),
+            #                                          plogis(fitterReturn$mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE))
+            # ), trim=trim);
 
+            # Change scale to look like the standard likelihood
             CFValue[] <- CFValue*obsInsample;
 
             # The differential entropy for the models with the missing data
             if(recursiveModel && occurrenceModel){
-                CFValue[] <- CFValue + switch(distribution,
-                                              "dnorm" =,
-                                              "dfnorm" =,
-                                              "dbcnorm" =,
-                                              "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                              "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
-                                              "dgnorm" =,
-                                              "dlgnorm" =obsZero*(1/fitterReturn$other-
-                                                                      log(fitterReturn$other /
-                                                                              (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
-                                              "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
-                                                                              sum(log(fitterReturn$mu[!otU]))),
-                                              # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
-                                              # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
-                                              #                     log(gamma(1/fitterReturn$scale)) +
-                                              #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
-                                              "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
-                                                              (1 - fitterReturn$scale* fitterReturn$mu) *
-                                                              digamma(fitterReturn$scale* fitterReturn$mu) +
-                                                              fitterReturn$scale* fitterReturn$mu),
-                                              # 1-ln(lambda), where lambda=1
-                                              # Entropy of Geometric distribution needs to be added here
-                                              # "dgeom" =,
-                                              "dexp" = obsZero,
-                                              "dlaplace" =,
-                                              "dllaplace" =,
-                                              "ds" =,
-                                              "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
-                                              "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
-                                              "dlogis" = obsZero*2,
-                                              "dt" = obsZero*((fitterReturn$scale+1)/2 *
-                                                                  (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
-                                                                  log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
-                                              "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
-                                                                      (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
-                                                                      fitterReturn$scale/2),
-                                              "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
-                                                                (fitterReturn$mu[otU]-1)*
-                                                                (digamma(fitterReturn$mu[otU])-
-                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
-                                                                (fitterReturn$scale[otU]-1)*
-                                                                (digamma(fitterReturn$scale[otU])-
-                                                                     digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
-                                              # This is a normal approximation of the real entropy
-                                              # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
-                                              # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
-                                              0
-                );
+                CFValue[] <- CFValue + CFLogLikEntropy(distribution, fitterReturn, obsZero);
+                # CFValue[] <- CFValue + switch(distribution,
+                #                               "dnorm" =,
+                #                               "dfnorm" =,
+                #                               "dbcnorm" =,
+                #                               "dlogitnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                #                               "dlnorm" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5) + sum(fitterReturn$mu[!otU]),
+                #                               "dgnorm" =,
+                #                               "dlgnorm" =obsZero*(1/fitterReturn$other-
+                #                                                       log(fitterReturn$other /
+                #                                                               (2*fitterReturn$scale*gamma(1/fitterReturn$other)))),
+                #                               "dinvgauss" = 0.5*(obsZero*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))-
+                #                                                               sum(log(fitterReturn$mu[!otU]))),
+                #                               # "dinvgauss" = obsZero*(0.5*(log(pi/2)+1+suppressWarnings(log(fitterReturn$scale)))),
+                #                               # "dgamma" = obsZero*(1/fitterReturn$scale + log(fitterReturn$scale) +
+                #                               #                     log(gamma(1/fitterReturn$scale)) +
+                #                               #                     (1-1/fitterReturn$scale)*digamma(1/fitterReturn$scale)),
+                #                               "dgamma" = sum(log(1/fitterReturn$scale * gamma(fitterReturn$scale* fitterReturn$mu)) +
+                #                                               (1 - fitterReturn$scale* fitterReturn$mu) *
+                #                                               digamma(fitterReturn$scale* fitterReturn$mu) +
+                #                                               fitterReturn$scale* fitterReturn$mu),
+                #                               # 1-ln(lambda), where lambda=1
+                #                               # Entropy of Geometric distribution needs to be added here
+                #                               # "dgeom" =,
+                #                               "dexp" = obsZero,
+                #                               "dlaplace" =,
+                #                               "dllaplace" =,
+                #                               "ds" =,
+                #                               "dls" = obsZero*(2 + 2*log(2*fitterReturn$scale)),
+                #                               "dalaplace" = obsZero*(1 + log(2*fitterReturn$scale)),
+                #                               "dlogis" = obsZero*2,
+                #                               "dt" = obsZero*((fitterReturn$scale+1)/2 *
+                #                                                   (digamma((fitterReturn$scale+1)/2)-digamma(fitterReturn$scale/2)) +
+                #                                                   log(sqrt(fitterReturn$scale) * beta(fitterReturn$scale/2,0.5))),
+                #                               "dchisq" = obsZero*(log(2)*gamma(fitterReturn$scale/2)-
+                #                                                       (1-fitterReturn$scale/2)*digamma(fitterReturn$scale/2)+
+                #                                                       fitterReturn$scale/2),
+                #                               "dbeta" = sum(log(beta(fitterReturn$mu[otU],fitterReturn$scale[otU]))-
+                #                                                 (fitterReturn$mu[otU]-1)*
+                #                                                 (digamma(fitterReturn$mu[otU])-
+                #                                                      digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))-
+                #                                                 (fitterReturn$scale[otU]-1)*
+                #                                                 (digamma(fitterReturn$scale[otU])-
+                #                                                      digamma(fitterReturn$mu[otU]+fitterReturn$scale[otU]))),
+                #                               # This is a normal approximation of the real entropy
+                #                               # "dpois" = sum(0.5*log(2*pi*fitterReturn$scale)+0.5),
+                #                               # "dnbinom" = obsZero*(log(sqrt(2*pi)*fitterReturn$scale)+0.5),
+                #                               0
+                # );
             }
         }
         else{
