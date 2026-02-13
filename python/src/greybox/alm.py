@@ -7,10 +7,30 @@ to the fit() method.
 
 import numpy as np
 import nlopt
+from scipy import stats
 
 from .fitters import scaler_internal, extractor_fitted, extractor_residuals
 from .cost_function import cf
 from . import distributions as dist
+
+
+class PredictionResult:
+    """Prediction result object with mean and interval bounds.
+
+    Attributes
+    ----------
+    mean : np.ndarray
+        Predicted values (point forecasts).
+    lower : np.ndarray or None
+        Lower prediction bounds.
+    upper : np.ndarray or None
+        Upper prediction bounds.
+    """
+
+    def __init__(self):
+        self.mean = None
+        self.lower = None
+        self.upper = None
 
 
 NLOPT_ALGORITHMS = {
@@ -207,6 +227,8 @@ class ALM:
         self.n_iter_ = None
         self._result = None
         self._n_features = None
+        self._X_train_ = None
+        self.df_residual_ = None
 
     def _validate_params(self):
         """Validate input parameters."""
@@ -396,23 +418,135 @@ class ALM:
             self.aic_ = 2 * n_params - 2 * self.log_lik_
             self.bic_ = n_params * np.log(n_samples) - 2 * self.log_lik_
 
+        self.df_residual_ = n_samples - n_params
+        self._X_train_ = X.copy()
+        XtX = X.T @ X
+        XtX += np.eye(XtX.shape[0]) * 1e-10
+        self._XtX_inv_ = np.linalg.inv(XtX)
+
         return self
 
-    def predict(self, X):
+    def _calculate_variance(self, X, interval="confidence"):
+        """Calculate conditional variance for prediction intervals.
+
+        Parameters
+        ----------
+        X : np.ndarray
+            Design matrix for predictions.
+        interval : str
+            Type of interval: "confidence" or "prediction".
+
+        Returns
+        -------
+        variances : np.ndarray
+            Variance values for each observation.
+        """
+        leverage = np.diag(X @ self._XtX_inv_ @ X.T)
+        var_ce = leverage * (self.scale_**2)
+
+        if interval == "prediction":
+            return var_ce + (self.scale_**2)
+        return var_ce
+
+    def _calculate_quantiles(self, mean, variances, interval, level, side):
+        """Calculate lower and upper quantiles for prediction intervals.
+
+        Parameters
+        ----------
+        mean : np.ndarray
+            Predicted mean values.
+        variances : np.ndarray
+            Variance values.
+        interval : str
+            Type of interval: "confidence" or "prediction".
+        level : float or list
+            Confidence level(s).
+        side : str
+            Side of interval: "both", "upper", or "lower".
+
+        Returns
+        -------
+        lower : np.ndarray or None
+            Lower bounds.
+        upper : np.ndarray or None
+            Upper bounds.
+        """
+        if interval == "none":
+            return None, None
+
+        if not isinstance(level, list):
+            level = [level]
+
+        n_levels = len(level)
+        n_obs = len(mean)
+        se = np.sqrt(variances)
+
+        if side == "upper":
+            level_low = [0.0] * n_levels
+            level_up = level
+        elif side == "lower":
+            level_low = [1 - lev for lev in level]
+            level_up = [1.0] * n_levels
+        else:
+            level_low = [(1 - lev) / 2 for lev in level]
+            level_up = [(1 + lev) / 2 for lev in level]
+
+        if self.distribution == "dnorm":
+            quantiles_low = stats.norm.ppf(level_low, loc=0, scale=1)
+            quantiles_up = stats.norm.ppf(level_up, loc=0, scale=1)
+        else:
+            quantiles_low = stats.t.ppf(level_low, df=self.df_residual_)
+            quantiles_up = stats.t.ppf(level_up, df=self.df_residual_)
+
+        lower = np.zeros((n_obs, n_levels))
+        upper = np.zeros((n_obs, n_levels))
+
+        for i in range(n_levels):
+            lower[:, i] = mean + quantiles_low[i] * se
+            upper[:, i] = mean + quantiles_up[i] * se
+
+        if n_levels == 1:
+            lower = lower.ravel()
+            upper = upper.ravel()
+
+        if side == "upper":
+            lower = None
+        elif side == "lower":
+            upper = None
+
+        return lower, upper
+
+    def predict(self, X, interval="none", level=0.95, side="both"):
         """Predict using the fitted model.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Design matrix. Should have same number of features as training data.
+        interval : str, optional
+            Type of interval: "none", "confidence", or "prediction".
+            Default is "none".
+        level : float or list, optional
+            Confidence level(s) for intervals. Default is 0.95 (95%).
+        side : str, optional
+            Side of interval: "both", "upper", or "lower". Default is "both".
 
         Returns
         -------
-        y_pred : ndarray of shape (n_samples,)
-            Predicted values.
+        PredictionResult
+            Object with the following attributes:
+            - mean : np.ndarray - Predicted values (point forecasts)
+            - lower : np.ndarray or None - Lower prediction bounds
+            - upper : np.ndarray or None - Upper prediction bounds
         """
         if self.fitted_values_ is None:
             raise ValueError("Model not fitted. Call fit() first.")
+
+        if interval not in ("none", "confidence", "prediction"):
+            raise ValueError("interval must be 'none', 'confidence', or 'prediction'")
+
+        if side not in ("both", "upper", "lower"):
+            raise ValueError("side must be 'both', 'upper', or 'lower'")
 
         X = np.asarray(X, dtype=float)
         if X.ndim == 1:
@@ -430,12 +564,28 @@ class ALM:
 
         mu = X @ B
 
-        return extractor_fitted(
+        mean = extractor_fitted(
             self.distribution,
             mu,
             self.scale_,
             self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
+
+        if interval == "none":
+            lower = None
+            upper = None
+        else:
+            variances = self._calculate_variance(X, interval)
+            lower, upper = self._calculate_quantiles(
+                mean, variances, interval, level, side
+            )
+
+        result = PredictionResult()
+        result.mean = mean
+        result.lower = lower
+        result.upper = upper
+
+        return result
 
     def score(self, X, y, metric="likelihood"):
         """Calculate model score.
@@ -454,7 +604,8 @@ class ALM:
         score : float
             Score value.
         """
-        y_pred = self.predict(X)
+        y_pred_result = self.predict(X)
+        y_pred = y_pred_result.mean
 
         if metric == "likelihood":
             if self.log_lik_ is not None:

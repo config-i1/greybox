@@ -129,7 +129,7 @@ class TestALM:
         assert model.aic_ is not None
         
         y_pred = model.predict(X)
-        assert y_pred.shape == y.shape
+        assert y_pred.mean.shape == y.shape
 
     def test_alm_get_params(self):
         """Test ALM get_params."""
@@ -431,3 +431,143 @@ class TestALMMtcars:
             model.coef_[0], -5.3, rtol=1e-1,
             err_msg="wt coefficient doesn't match R"
         )
+
+    def test_alm_predict_intervals(self):
+        """Test ALM prediction intervals."""
+        np.random.seed(42)
+        n = 50
+        X = np.column_stack([np.ones(n), np.arange(1, n + 1)])
+        y = 2 + 0.5 * np.arange(1, n + 1) + np.random.normal(0, 1, n)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95)
+
+        assert result.mean is not None
+        assert result.lower is not None
+        assert result.upper is not None
+        assert result.mean.shape == y.shape
+        assert result.lower.shape == y.shape
+        assert result.upper.shape == y.shape
+
+        assert np.all(result.lower <= result.mean)
+        assert np.all(result.mean <= result.upper)
+
+        result_no_interval = model.predict(X)
+        assert result_no_interval.lower is None
+        assert result_no_interval.upper is None
+
+        result_pred = model.predict(X, interval="prediction", level=0.95)
+        assert result_pred.lower is not None
+        assert result_pred.upper is not None
+        assert np.all(result_pred.lower <= result_pred.upper)
+
+        coverage = np.mean((y >= result_pred.lower) & (y <= result_pred.upper))
+        assert 0.85 < coverage < 1.0
+
+    def test_alm_predict_intervals_side_upper(self):
+        """Test ALM prediction intervals with side='upper'."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95, side="upper")
+
+        assert result.lower is None
+        assert result.upper is not None
+        assert np.all(result.mean <= result.upper)
+
+    def test_alm_predict_intervals_side_lower(self):
+        """Test ALM prediction intervals with side='lower'."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95, side="lower")
+
+        assert result.lower is not None
+        assert result.upper is None
+        assert np.all(result.lower <= result.mean)
+
+    def test_alm_predict_intervals_multiple_levels(self):
+        """Test ALM prediction intervals with multiple confidence levels."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        levels = [0.80, 0.90, 0.95]
+        result = model.predict(X, interval="confidence", level=levels)
+
+        assert result.lower is not None
+        assert result.upper is not None
+        assert result.lower.shape[1] == len(levels)
+        assert result.upper.shape[1] == len(levels)
+
+    def test_alm_predict_intervals_dlaplace(self):
+        """Test ALM prediction intervals with dlaplace distribution."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95)
+
+        assert result.mean is not None
+        assert result.lower is not None
+        assert result.upper is not None
+        assert np.all(result.lower <= result.mean)
+        assert np.all(result.mean <= result.upper)
+
+    def test_alm_predict_intervals_dlogis(self):
+        """Test ALM prediction intervals with dlogis distribution."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        result = model.predict(X, interval="prediction", level=0.95)
+
+        assert result.mean is not None
+        assert result.lower is not None
+        assert result.upper is not None
+        assert np.all(result.lower <= result.mean)
+        assert np.all(result.mean <= result.upper)
+
+    def test_alm_predict_mean_matches_fitted(self):
+        """Test that predict mean matches fitted values."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt + hp", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        result = model.predict(X)
+        fitted = model.fitted_values_
+
+        np.testing.assert_allclose(result.mean, fitted, rtol=1e-5)
+
+    def test_alm_predict_intervals_wider_for_prediction(self):
+        """Test that prediction intervals are wider than confidence intervals."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model.fit(X, y)
+
+        conf_result = model.predict(X, interval="confidence", level=0.95)
+        pred_result = model.predict(X, interval="prediction", level=0.95)
+
+        conf_width = np.mean(conf_result.upper - conf_result.lower)
+        pred_width = np.mean(pred_result.upper - pred_result.lower)
+
+        assert pred_width > conf_width
+
