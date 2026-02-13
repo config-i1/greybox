@@ -11,9 +11,8 @@ if [ -d "${STAGING_DIR}" ]; then
     git checkout main
     git pull upstream main 2>/dev/null || git pull origin main
 else
-    gh repo fork conda-forge/staged-recipes --clone --clone-dir "${STAGING_DIR}"
+    gh repo fork conda-forge/staged-recipes --clone -- "${STAGING_DIR}"
     cd "${STAGING_DIR}"
-    git remote add upstream https://github.com/conda-forge/staged-recipes.git 2>/dev/null || true
 fi
 
 echo "=== Step 2: Create branch and copy recipe ==="
