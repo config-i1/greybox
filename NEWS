@@ -1,10 +1,143 @@
-greybox v1.0.8 (Release data: 2023-02-22)
+greybox v2.0.7 (Release data: 2026-01-27)
+==============
+
+Bugfixes:
+* delta parameter calculation in lowess for spread() was not working in case of missing values. Fixed this.
+* Fixes in the axes of spread() in case of histogram=TRUE.
+
+
+greybox v2.0.7 (Release data: 2026-01-19)
+==============
+
+Changes:
+* Introduced new error measure - SAME, which is the Scaled Absolute Mean Error. This measures bias.
+
+Bugfixes:
+* Fix for AICc and BICc: now the degrees of freedom are correct in case of loss="MSE".
+* Fix in the parallel calculations of the coefbootstrap with doParallel.
+
+
+greybox v2.0.6 (Release data: 2025-08-19)
+==============
+
+Changes:
+* Fixed the pallette in graphmaker() for intervals.
+* aid() now returns "smooth intermittent count" etc in the name and more detailed categories in the type variable (e.g. type1="count", type2="intermittent", and type2a="smooth").
+* rmcb() now uses the Studentised statistics by default.
+* sigma() and nparam() methods for Arima.
+
+Bugfixes:
+* Fix in extractAIC, now the degrees of freedom are correct in case of loss="MSE".
+
+
+greybox v2.0.5 (Release data: 2025-06-30)
+==============
+
+Changes:
+* Switched back to the Case Resampling bootstrap as the default one instead of the DSR.
+* Switching off the loess in aid() for stockouts detection. Looks like the straight line is easier and works well.
+* Tuning the palettes in tableplot() and spread(). These now use colours 1, 2, 3 and 4 if the palette differs from the default one, or shades of grey if not. The tableplot() uses the combination of colour 1 and white. graphmaker() and plot.greybox() now also rely on a palette.
+
+
+greybox v2.0.4 (Release data: 2025-04-02)
+==============
+
+Changes:
+* tableplot() now supports palettes, using 1st and 2nd colours. By default it will set them to white and black respectively to return a greyscale image. Similar functionality is planned for other functions that have plotting in them.
+* graphmaker() and spread() now support palettes.
+* aidCat(), which is a new function based on aid() that splits the dataset into categories for regular/intermittent etc demand.
+
+Bugfixes:
+* Fix in dsrboot() for cases with intermittent demand and low number of simulations.
+* Fixes in accuracy() and dsrboot() documentation to make sure that pipeline operators are not used.
+
+
+greybox v2.0.3 (Release data: 2024-12-06)
+==============
+
+Changes:
+* coefbootstrap() now bootstraps only the response variable in case of dsr.
+* aid() now returns a binary vector for stockouts, another one for "new" product and another one for the "obsolete".
+* ro() now has a step parameter, which determines how many observations to skip between origins.
+
+Bugfixes:
+* dsrboot() now removes the class of the provided data. This helps in case of the zoo objects.
+* Removed the residual methods for the nemenyi class, which was long gone (to tsutils).
+* Corrected my email address.
+
+
+greybox v2.0.2 (Release data: 2024-08-27)
+==============
+
+Changes:
+* Accept ellipsis in coefbootstrap().
+* Renamed adi() into aid().
+* aid() now accepts the parameter loss, which is "likelihood" by default.
+* Tuning of timeboot() and changes in some of its parameters.
+* timeboot() now works with data which has some zeroes, but is not intermittent, when intermittent=F.
+* Substituted LOWESS with Friedman's Super Smoother in timeboot().
+* Dropped the smooth lines for the stockouts in aid() - the fixed probability seems to work fine.
+* Dropped the stockout periods in the demand model of aid().
+* We now return res in alm() to see how nloptr worked.
+* Diferent initialisation for the NegBin and positive distributions in case of y containing zeroes in alm().
+* New distribution in alm(), Binomial.
+* plot.timeboot() is now documented.
+* Renamed "timeboot()" into "dsrboot()" ("Data Shape Replication").
+* coefbootstrap() now has two options for bootstrap: "cr" and "dsr" (see documentation).
+
+Bugfixes:
+* Geometric distribution used a wrong formula for the probability.
+* Corrected the number of estimated parameters in NegBin regression, alm().
+* plot.greybox() will now produce plots always, even if Inf values were present in the data. Those values will be flagged separately.
+* Corrected the number of estimated parameters in the occurrence model.
+
+
+greybox v2.0.1 (Release data: 2024-06-18)
+==============
+
+Changes:
+* Corrected how the number of parameters is calculated in alm() for loss=c("MSE","MAE","HAM") and respective distribution=c("dnorm","dlaplace","ds").
+* "NLOPT_LN_NELDERMEAD" is now used as the default algorithm for the model estimation instead of "NLOPT_LN_SBPLX". The latter produced biased estimates of parameters...
+* New function for time series bootstrap, timeboot(), inspired by Maximum Entropy Bootstrap from meboot package.
+* adi() function to identify type of demand under consideration.
+* Likelihood for occurrence model is now calculated differently, depending on whether there are ARIMA elements or not. In the former case, it includes the differential entropy, while in the latter it doesn't.
+* New loss function in alm(): "ROLE" - Robust Likelihood Estimator, which uses trimming for the scale parameters and the likelihood to avoid the impact of outliers on the estimates.
+* New distribution in alm(): "dgeom" - Geometric distribution. This can be used for a model for demand intervals.
+* Count distributions now return standardised residuals based on the empirical cumulative probability for each of the observations (sort of probability transform).
+
+Bugfixes:
+* lmCombine() and lmDynamic() now return loss parameter.
+* Fixed a weird bug in vcov.alm(), where instead of inverting Fisher Information, the function would return it as is. This did not apply to all cases, but could have appeared in some situations, when Choleski decomposition would fail.
+* Found some mistakes in the calculation of differential entropy in alm() with occurrence and some distributions.
+* Fixed a bug in alm() with regularisation, which would not work in case of a simple linear regression.
+
+
+greybox v2.0.0 (Release data: 2023-09-15)
+==============
+
+Changes:
+* Starting from v2.0.0, the greybox package for R will be released under the LGPLv2.1 license. The source of the older version of the software under the GPL(>=2) is available here: https://github.com/config-i1/greybox/releases/tag/v1.0.9
+
+
+greybox v1.0.9 (Release data: 2023-09-15)
+==============
+
+Changes:
+* Documentation for distributions of greybox
+* Extremity and Complex Extremity introduced, aligning them with the HAM paper.
+* actuals() now also extracts actuals from the predict.greybox objects.
+* accuracy() method for greybox classes.
+
+
+greybox v1.0.8 (Release data: 2023-04-02)
 ==============
 
 Changes:
 * Smooth dynamic weights via LOWESS in lmDynamic.
 * RIDGE is now properly implemented as in James et al. Introduction to Statistical Learning.
 * LASSO works well now. The only issue is in doing estimation in small number of iterations. Currently ~2000 are needed to converge.
+* Introduced parameter formula in stepwise(), lmCombine() and lmDynamic() to allow user to specify transformation of variables and the largest model to choose from.
+* Also, subset is now available in stepwise(), lmCombine() and lmDynamic().
 
 Bugfixes:
 * PACF in plot.greybox() dropped lag 1 because of a typo.

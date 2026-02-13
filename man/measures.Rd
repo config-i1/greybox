@@ -33,6 +33,7 @@ The functions returns the named vector of errors:
 \item MASE,
 \item sMAE,
 \item RMSSE,
+\item SAME,
 \item sMSE,
 \item sCE,
 \item rMAE,
@@ -59,7 +60,7 @@ measures(y[91:100],ourForecast,y[1:90],digits=5)
 \references{
 \itemize{
 \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
-\url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
+\url{https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
 \item Fildes R. (1992). The evaluation of
 extrapolative forecasting methods. International Journal of Forecasting, 8,
 pp.81-98.
@@ -78,5 +79,5 @@ International Journal of Forecasting, 29(3), 510-522.
 }
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

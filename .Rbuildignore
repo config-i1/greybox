@@ -9,4 +9,7 @@ man-roxygen
 ^revdep$
 cran-comments.md
 ^CRAN-SUBMISSION$
-Python
+conda
+python
+CLAUDE.md
+AGENTS.md

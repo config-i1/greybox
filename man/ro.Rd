@@ -4,8 +4,8 @@
 \alias{ro}
 \title{Rolling Origin}
 \usage{
-ro(data, h = 10, origins = 10, call, value = NULL, ci = FALSE,
-  co = TRUE, silent = TRUE, parallel = FALSE, ...)
+ro(data, h = 10, origins = 10, call, value = NULL, step = 1,
+  ci = FALSE, co = TRUE, silent = TRUE, parallel = FALSE, ...)
 }
 \arguments{
 \item{data}{Data vector or ts object with the response variable passed to the
@@ -31,6 +31,10 @@ messy!). Note that if your function returns a list with matrices, then ro will
 return an array. If your function returns a list, then you will have a list of
 lists in the end. So it makes sense to understand what you want to get before
 running the function.}
+
+\item{step}{Number of observations to skip between origins when moving to the next one.
+For example, could be useful if forecast should be produced every week on
+Sunday, in which case, for daily data, \code{step=7}.}
 
 \item{ci}{The parameter defines if the in-sample window size should be constant.
 If \code{TRUE}, then with each origin one observation is added at the end of
@@ -91,7 +95,7 @@ ourRO <- ro(y, h=5, origins=5, ourCall, ourValue)
 # We can now plot the results of this evaluation:
 plot(ourRO)
 
-# You can also use dolar sign
+# You can also use dollar sign
 ourValue <- "$pred"
 # And you can have constant in-sample size
 ro(y, h=5, origins=5, ourCall, ourValue, ci=TRUE)
@@ -182,6 +186,6 @@ pp. 437-450. \doi{10.1016/S0169-2070(00)00065-0}.
 \author{
 Yves Sagaert
 
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{ts}

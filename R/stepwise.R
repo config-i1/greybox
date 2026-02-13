@@ -22,6 +22,10 @@
 #' printed out. \code{silent=TRUE} means that nothing is produced.
 #' @param df Number of degrees of freedom to add (should be used if stepwise is
 #' used on residuals).
+#' @param formula If provided, then the selection will be done from the listed
+#' variables in the formula after all the necessary transformations.
+#' @param subset an optional vector specifying a subset of observations to be
+#' used in the fitting process.
 #' @param method Method of correlations calculation. The default is Pearson's
 #' correlation, which should be applicable to a wide range of data in different scales.
 #' @param distribution Distribution to pass to \code{alm()}. See \link[greybox]{alm}
@@ -64,12 +68,14 @@
 #' @importFrom stats .lm.fit
 #' @export stepwise
 stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL,
+                     formula=NULL, subset=NULL,
                      method=c("pearson","kendall","spearman"),
                      distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
-                                    "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
-                                    "dinvgauss","dgamma",
+                                    "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
+                                    "dinvgauss","dgamma","dexp",
+                                    "dfnorm","drectnorm",
                                     "dpois","dnbinom",
-                                    "dlogitnorm",
+                                    "dbeta","dlogitnorm",
                                     "plogis","pnorm"),
                      occurrence=c("none","plogis","pnorm"), ...){
     ##### Function that selects variables based on IC and using partial correlations
@@ -83,14 +89,38 @@ stepwise <- function(data, ic=c("AICc","AIC","BIC","BICc"), silent=TRUE, df=NULL
     # Create substitute and remove the original data
     dataSubstitute <- substitute(data);
 
-    # Check, whether the response is numeric
-    if(is.data.frame(data)){
-        if(!is.numeric(data[[1]])){
-            warning(paste0("The response variable (first column of the data) is not numeric! ",
-                           "We will make it numeric, but we cannot promise anything."),
-                    call.=FALSE);
-            data[[1]] <- as.numeric(data[[1]]);
+    # Use formula to form the data frame for further selection
+    if(!is.null(formula) || !is.null(subset)){
+        # If subset is provided, but not formula, generate one
+        if(is.null(formula)){
+            formula <- as.formula(paste0(colnames(data)[1],"~."));
         }
+
+        # Do model.frame manipulations
+        mf <- match.call(expand.dots = FALSE);
+        mf <- mf[c(1L, match(c("formula", "data", "subset"), names(mf), 0L))];
+        mf$drop.unused.levels <- TRUE;
+        mf[[1L]] <- quote(stats::model.frame);
+
+        if(!is.data.frame(data)){
+            mf$data <- as.data.frame(data);
+        }
+        # Evaluate data frame to do transformations of variables
+        data <- eval(mf, parent.frame());
+        responseName <- colnames(data)[1];
+
+        # Remove variables that have "-x" in the formula
+        dataTerms <- terms(data);
+        data <- data[,c(responseName, colnames(attr(dataTerms,"factors")))];
+        ## We do it this way to avoid factors expansion into dummies at this stage
+    }
+
+    # Check, whether the response is numeric
+    if(!is.numeric(data[[1]])){
+        warning(paste0("The response variable is not numeric! ",
+                       "We will make it numeric, but we cannot promise anything."),
+                call.=FALSE);
+        data[[1]] <- as.numeric(data[[1]]);
     }
 
     distribution <- match.arg(distribution);

@@ -7,13 +7,16 @@
 \title{Bootstrap for parameters of models}
 \usage{
 coefbootstrap(object, nsim = 1000, size = floor(0.75 * nobs(object)),
-  replace = FALSE, prob = NULL, parallel = FALSE)
+  replace = FALSE, prob = NULL, parallel = FALSE, method = c("cr",
+  "dsr"), ...)
 
 \method{coefbootstrap}{lm}(object, nsim = 1000, size = floor(0.75 *
-  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
+  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE,
+  method = c("cr", "dsr"), ...)
 
 \method{coefbootstrap}{alm}(object, nsim = 1000, size = floor(0.75 *
-  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE)
+  nobs(object)), replace = FALSE, prob = NULL, parallel = FALSE,
+  method = c("cr", "dsr"), ...)
 }
 \arguments{
 \item{object}{The model estimated using either lm, or alm, or glm.}
@@ -22,16 +25,25 @@ coefbootstrap(object, nsim = 1000, size = floor(0.75 * nobs(object)),
 
 \item{size}{A non-negative integer giving the number of items to choose (the sample size),
 passed to \link[base]{sample} function in R. If not provided and model contains ARIMA
-components, this value will be selected at random on each iteration.}
+components, this value will be selected at random on each iteration. This is only used for
+\code{method="cr"}.}
 
 \item{replace}{Should sampling be with replacement? Also, passed to \link[base]{sample}
-function in R.}
+function in R. Only used in \code{method="cr"}.}
 
 \item{prob}{A vector of probability weights for obtaining the elements of the vector
-being sampled. This is passed to the \link[base]{sample} as well.}
+being sampled. This is passed to the \link[base]{sample} as well. Only used with
+\code{method="cr"}.}
 
 \item{parallel}{Either a logical, specifying whether to do the calculations in parallel,
 or the number, specifying the number of cores to use for the parallel calculation.}
+
+\item{method}{Which bootstrap method to use. Currently two options are supported:
+\code{"dsr"} - "Data Shape Replication, implemented in \link[greybox]{dsrboot};
+\code{"cr"} - "Case Resampling", basic bootstrap that assumes that observations are
+independent (not suitable for models with ARIMA elements).}
+
+\item{...}{Parameters passed to the \link[greybox]{dsrboot} function.}
 }
 \value{
 Class "bootstrap" is returned, which contains:
@@ -60,7 +72,7 @@ independent.
 \examples{
 # An example with ALM
 ourModel <- alm(mpg~., mtcars, distribution="dlnorm", loss="HAM")
-# A fast example with 10 iterations. Use at least 1000 to get better results
+# A fast example with 10 iterations. Use at least 100 to get better results
 coefbootstrap(ourModel, nsim=10)
 
 }
@@ -68,7 +80,7 @@ coefbootstrap(ourModel, nsim=10)
 \code{\link[greybox]{alm}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

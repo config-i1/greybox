@@ -43,5 +43,5 @@ pinball(mtcars$mpg[-c(1:30)],ourForecast$lower,level=0.025,loss=2)
 
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }

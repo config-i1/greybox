@@ -1,10 +1,10 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 1.0.8.41005
-Date: 2023-02-22
-Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.ru", role = c("aut", "cre"),
-                  comment="Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
+Version: 2.0.8.41002
+Date: 2026-01-27
+Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.com", role = c("aut", "cre"),
+                  comment="Senior Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
                   comment="Visiting Research at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"))
 URL: https://github.com/config-i1/greybox
@@ -18,7 +18,7 @@ Description: Implements functions and instruments for regression model building 
              regression model problem and more. Models developed in the package are tailored
              specifically for forecasting purposes. So as a results there are several methods
              that allow producing forecasts from these models and visualising them.
-License: GPL (>=2)
+License: LGPL-2.1
 Depends:
     R (>= 3.5.0)
 Imports:
@@ -44,7 +44,8 @@ Suggests:
     knitr
 Enhances:
     vars,
-RoxygenNote: 7.2.1
+    forecast
+RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Encoding: UTF-8
 Roxygen: list(old_usage = TRUE)

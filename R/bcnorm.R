@@ -6,7 +6,7 @@
 #'
 #' The distribution has the following density function:
 #'
-#' f(y) = y^{lambda-1} 1/sqrt(2 pi) exp(-((y^lambda-1)/lambda -mu)^2 / (2 sigma^2))
+#' f(y) = y^(lambda-1) 1/sqrt(2 pi) exp(-((y^lambda-1)/lambda -mu)^2 / (2 sigma^2))
 #'
 #' Both \code{pbcnorm} and \code{qbcnorm} are returned for the lower
 #' tail of the distribution.
@@ -61,6 +61,8 @@
 #' Journal of the Royal Statistical Society. Series B (Methodological),
 #' 26(2), 211–252. Retrieved from https://www.jstor.org/stable/2984418
 #' }
+#'
+#' @seealso \code{\link[greybox]{Distributions}}
 #'
 #' @rdname BCNormal
 #' @importFrom stats dnorm pnorm qnorm rnorm

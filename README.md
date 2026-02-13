@@ -2,9 +2,10 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/greybox)](https://cran.r-project.org/package=greybox)
 [![Downloads](http://cranlogs.r-pkg.org/badges/greybox)](https://cran.r-project.org/package=greybox)
 [![R-CMD-check](https://github.com/config-i1/greybox/actions/workflows/test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/test.yml)
-[![ko-fi](https://ivan.svetunkov.ru/ko-fi.png)](https://ko-fi.com/G2G51C4C4)
 
 The package _greybox_ contains functions for model building, which is currently done via the model selection and combinations based on information criteria. The resulting model can then be used in analysis and forecasting.
+
+![hex-sticker of the greybox package for R](https://github.com/config-i1/greybox/blob/master/man/figures/greybox-web.png?raw=true)
 
 There are several groups of functions in the package.
 

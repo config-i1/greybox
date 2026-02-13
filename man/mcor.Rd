@@ -18,11 +18,11 @@ The only option that is not available here is \code{"pairwise.complete.obs"}.}
 \value{
 The following list of values is returned:
 \itemize{
-\item{value}{The value of the coefficient;}
-\item{statistic}{The value of F-statistics associated with the parameter;}
-\item{p.value}{The p-value of F-statistics associated with the parameter;}
-\item{df.residual}{The number of degrees of freedom for the residuals;}
-\item{df}{The number of degrees of freedom for the data.}
+\item value - The value of the coefficient;
+\item statistic - The value of F-statistics associated with the parameter;
+\item p.value - The p-value of F-statistics associated with the parameter;
+\item df.residual - The number of degrees of freedom for the residuals;
+\item df - The number of degrees of freedom for the data.
 }
 }
 \description{
@@ -48,6 +48,6 @@ mcor(mtcars$am, mtcars$mpg)
 \link[greybox]{cramer}, \link[greybox]{association}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

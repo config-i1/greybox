@@ -1,7 +1,7 @@
 #' Error measures
 #'
-#' Functions allow to calculate different types of errors for point and
-#' interval predictions:
+#' Functions allow to calculate different types of error metrics for point and
+#' interval forecasts:
 #' \enumerate{
 #' \item ME - Mean Error,
 #' \item MAE - Mean Absolute Error,
@@ -13,6 +13,7 @@
 #' the critique),
 #' \item MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006),
 #' \item RMSSE - Root Mean Squared Scaled Error (used in M5 Competition),
+#' \item SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias),
 #' \item rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013),
 #' \item rRMSE - Relative Root Mean Squared Error,
 #' \item rAME - Relative Absolute Mean Error,
@@ -56,7 +57,7 @@
 #' \item Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias
 #' \url{https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/}
 #' \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
-#' \url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
+#' \url{https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
 #' \item Fildes R. (1992). The evaluation of
 #' extrapolative forecasting methods. International Journal of Forecasting, 8,
 #' pp.81-98.
@@ -276,7 +277,7 @@ MASE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/scale);
+        return(MAE(holdout, forecast, na.rm=na.rm)/scale);
     }
 }
 
@@ -295,7 +296,7 @@ RMSSE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale));
+        return(sqrt(MSE(holdout, forecast, na.rm=na.rm)/scale));
     }
 }
 
@@ -320,8 +321,8 @@ rMAE <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(mean(abs(as.vector(holdout)-as.vector(forecast)),na.rm=na.rm)/
-                             mean(abs(as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm));
+            return(MAE(holdout, forecast ,na.rm=na.rm) /
+                       MAE(holdout, benchmark, na.rm=na.rm));
         }
     }
 }
@@ -346,8 +347,8 @@ rRMSE <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(sqrt(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/
-                             mean((as.vector(holdout)-as.vector(benchmark))^2,na.rm=na.rm)));
+            return(sqrt(MSE(holdout, forecast, na.rm=na.rm) /
+                            MSE(holdout, benchmark, na.rm=na.rm)));
         }
     }
 }
@@ -372,8 +373,8 @@ rAME <-function(holdout, forecast, benchmark, na.rm=TRUE){
             return(1);
         }
         else{
-            return(abs(mean((as.vector(holdout)-as.vector(forecast)),na.rm=na.rm))/
-                             abs(mean((as.vector(holdout)-as.vector(benchmark)),na.rm=na.rm)));
+            return(abs(ME(holdout, forecast, na.rm=na.rm))/
+                       abs(ME(holdout, benchmark, na.rm=na.rm)));
         }
     }
 }
@@ -417,7 +418,7 @@ sMSE <- function(holdout, forecast, scale, na.rm=TRUE){
         stop("Cannot proceed.",call.=FALSE);
     }
     else{
-        return(mean((as.vector(holdout)-as.vector(forecast))^2,na.rm=na.rm)/scale);
+        return(MSE(holdout, forecast, na.rm=na.rm)/scale);
     }
 }
 
@@ -506,6 +507,25 @@ GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
     }
 }
 
+#' @rdname error-measures
+#' @export SAME
+#' @aliases SAME
+SAME <- function(holdout, forecast, scale, na.rm=TRUE){
+# This function calculates Scaled Absolute Mean Error to measure bias
+# holdout - holdout values,
+# forecast - forecasted values.
+# scale - the measure to scale errors with. Usually - MAE of in-sample.
+    if(length(holdout) != length(forecast)){
+        message("The length of the provided data differs.");
+        message(paste0("Length of holdout: ",length(holdout)));
+        message(paste0("Length of forecast: ",length(forecast)));
+        stop("Cannot proceed.",call.=FALSE);
+    }
+    else{
+        return(abs(ME(holdout, forecast, na.rm=na.rm))/scale);
+    }
+}
+
 #' Error measures for the provided forecasts
 #'
 #' Function calculates several error measures using the provided
@@ -533,6 +553,7 @@ GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
 #' \item MASE,
 #' \item sMAE,
 #' \item RMSSE,
+#' \item SAME,
 #' \item sMSE,
 #' \item sCE,
 #' \item rMAE,
@@ -544,7 +565,7 @@ GMRAE <- function(holdout, forecast, benchmark, na.rm=TRUE){
 #' For the details on these errors, see \link[greybox]{Errors}.
 #' @references \itemize{
 #' \item Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
-#' \url{https://forecasting.svetunkov.ru/en/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
+#' \url{https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/}
 #' \item Fildes R. (1992). The evaluation of
 #' extrapolative forecasting methods. International Journal of Forecasting, 8,
 #' pp.81-98.
@@ -590,6 +611,7 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
                        sMSE(holdout,forecast,mean(abs(actual[actual!=0]))^2),
                        MASE(holdout,forecast,mean(abs(diff(actual)))),
                        RMSSE(holdout,forecast,mean(diff(actual)^2)),
+                       SAME(holdout,forecast,mean(abs(diff(actual)))),
                        rMAE(holdout,forecast,becnhmarkForecast),
                        rRMSE(holdout,forecast,becnhmarkForecast),
                        rAME(holdout,forecast,becnhmarkForecast),
@@ -600,18 +622,21 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
     }
     names(errormeasures) <- c("ME","MAE","MSE",
                               "MPE","MAPE",
-                              "sCE","sMAE","sMSE","MASE","RMSSE",
-                              "rMAE","rRMSE","rAME","asymmetry","sPIS");
+                              "sCE","sMAE","sMSE",
+                              "MASE","RMSSE","SAME",
+                              "rMAE","rRMSE","rAME",
+                              "asymmetry","sPIS");
     return(errormeasures);
 }
 
 
 #' Half moment of a distribution and its derivatives.
 #'
-#' \code{hm} function estimates half moment from some predefined constant
-#' \code{C}. \code{ham} estimates half absolute moment. Finally, \code{asymmetry}
-#' function returns asymmetry coefficient, while \code{extremity}
-#' returns the coefficient of excess, both based on \code{hm}.
+#' \code{hm()} function estimates half moment from some predefined constant
+#' \code{C}. \code{ham()} estimates the Half Absolute Moment. \code{asymmetry()}
+#' function returns Asymmetry coefficient, while \code{extremity()}
+#' returns the coefficient of Extremity, both based on \code{hm()}. Finally,
+#' \code{cextremity()} returns the Complex Extremity coefficient, based on \code{hm()}.
 #'
 #' \code{NA} values of \code{x} are excluded on the first step of calculation.
 #'
@@ -621,14 +646,22 @@ measures <- function(holdout, forecast, actual, digits=NULL, benchmark=c("naive"
 #' @param x A variable based on which HM is estimated.
 #' @param C Centring parameter.
 #' @param ...  Other parameters passed to mean function.
-#' @return A complex variable is returned for \code{hm} function and real values
-#' are returned for \code{asymmetry} and \code{ham}.
+#' @return A complex variable is returned for the \code{hm()} and \code{cextremity()}
+#' functions, and real values are returned for \code{ham()},
+#' \code{asymmetry()} and \code{extremity()}.
+#' @references
+#' \itemize{
+#' \item Svetunkov I., Kourentzes N., Svetunkov S. "Half Central Moment for Data Analysis".
+#' Working Paper of Department of Management Science, Lancaster University, 2023:3, 1–21.
+#' }
 #' @examples
 #'
 #' x <- rnorm(100,0,1)
 #' hm(x)
 #' ham(x)
 #' asymmetry(x)
+#' extremity(x)
+#' cextremity(x)
 #'
 #' @export hm
 #' @rdname hm
@@ -657,8 +690,18 @@ asymmetry <- function(x,C=mean(x, na.rm=TRUE),...){
 #' @export extremity
 #' @aliases extremity
 extremity <- function(x,C=mean(x, na.rm=TRUE),...){
-    # This function calculates half moment
-    return(ham(x, C, ...)/mean((x-C)^2, ...)^0.25);
+    # This function calculates the Extremity coefficient
+    return(2*(ham(x, C, ...)/mean((x-C)^2, ...)^0.25)^{log(0.5)/log(2*3^{-0.75})}-1);
+}
+
+#' @rdname hm
+#' @export cextremity
+#' @aliases cextremity
+cextremity <- function(x,C=mean(x, na.rm=TRUE),...){
+    # This function calculates the Complex Extremity coefficient
+    CH <- hm(x, C, ...)/mean((x-C)^2, ...)^0.25;
+    return(complex(real=2*(Re(CH)*2)^{log(0.5)/log(2*3^{-0.75})}-1,
+                   imaginary=2*(Im(CH)*2)^{log(0.5)/log(2*3^{-0.75})}-1));
 }
 
 #' Pinball function

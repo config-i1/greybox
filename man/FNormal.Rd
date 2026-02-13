@@ -80,7 +80,10 @@ hist(x)
 \url{https://en.wikipedia.org/wiki/Folded_normal_distribution}.
 }
 }
+\seealso{
+\code{\link[greybox]{Distributions}}
+}
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{distribution}

@@ -71,6 +71,6 @@ Multivariate Regression in Small Samples. Biometrics, 50(1), 226.
 \link[stats]{AIC}, \link[stats]{BIC}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{htest}

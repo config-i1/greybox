@@ -47,6 +47,9 @@
 #' }
 #'
 #' @author Maryclare Griffin and Ivan Svetunkov
+#'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @examples
 #' # Density function values for standard normal distribution
 #' x <- dgnorm(seq(-1, 1, length.out = 100), 0, sqrt(2), 2)

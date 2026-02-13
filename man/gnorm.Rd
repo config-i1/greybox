@@ -91,6 +91,9 @@ Applied Statistics 32.7 (2005): 685-694.
 Sbornik 31.2 (1923):  206-301.
 }
 }
+\seealso{
+\code{\link[greybox]{Distributions}}
+}
 \author{
 Maryclare Griffin and Ivan Svetunkov
 }

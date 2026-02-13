@@ -43,6 +43,8 @@
 #' or a matrix or an array.
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @examples
 #' x <- drectnorm(c(-1000:1000)/200, 0, 1)
 #' plot(c(-1000:1000)/200, x, type="l")

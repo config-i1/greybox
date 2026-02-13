@@ -82,6 +82,58 @@ BICc.default <- function(object, ...){
 }
 
 #' @export
+AICc.greybox <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    obs <- nobs(object);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(object$loss,
+                         "MSE"=switch(object$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(object$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(object$distribution,
+                                      "ds"=1,
+                                      0),
+                         0);
+
+    nparamAll <- nparam(object) + correction;
+
+    IC <- 2*nparamAll - 2*llikelihood + 2 * nparamAll * (nparamAll + 1) / (obs - nparamAll - 1);
+
+    return(IC);
+}
+
+#' @export
+BICc.greybox <- function(object, ...){
+    llikelihood <- logLik(object);
+    llikelihood <- llikelihood[1:length(llikelihood)];
+    obs <- nobs(object);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(object$loss,
+                         "MSE"=switch(object$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(object$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(object$distribution,
+                                      "ds"=1,
+                                      0),
+                         0);
+
+    nparamAll <- nparam(object) + correction;
+
+    IC <- - 2*llikelihood + (nparamAll * log(obs) * obs) / (obs - nparamAll - 1);
+
+    return(IC);
+}
+
+#' @export
 AICc.varest <- function(object, ...){
     llikelihood <- logLik(object);
     llikelihood <- llikelihood[1:length(llikelihood)];
@@ -122,12 +174,26 @@ BICc.varest <- function(object, ...){
 #' @export
 extractAIC.alm <- function(fit, scale=NULL, k=2, ...){
     ellipsis <- list(...);
+
+    # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+    correction <- switch(fit$loss,
+                         "MSE"=switch(fit$distribution,
+                                      "dnorm"=1,
+                                      0),
+                         "MAE"=switch(fit$distribution,
+                                      "dlaplace"=1,
+                                      0),
+                         "HAM"=switch(fit$distribution,
+                                      "ds"=1,
+                                      0),
+                         0);
+
     if(!is.null(ellipsis$ic)){
         IC <- switch(ellipsis$ic,"AIC"=AIC,"BIC"=BIC,"BICc"=BICc,AICc);
-        return(c(nparam(fit),IC(fit)));
+        return(c(nparam(fit)+correction,IC(fit)));
     }
     else{
-        return(c(nparam(fit),k*nparam(fit)-2*logLik(fit)));
+        return(c(nparam(fit)+correction,k*(nparam(fit)+correction)-2*logLik(fit)));
     }
 }
 
@@ -176,239 +242,23 @@ errorType.ets <- function(object, ...){
 #' @export
 logLik.alm <- function(object, ...){
     if(is.occurrence(object$occurrence)){
-        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+nparam(object$occurrence),class="logLik"));
-    }
-    else{
         return(structure(object$logLik,nobs=nobs(object),df=nparam(object),class="logLik"));
     }
-}
-
-
-#' Point likelihood values
-#'
-#' This function returns a vector of logarithms of likelihoods for each observation
-#'
-#' Instead of taking the expected log-likelihood for the whole series, this function
-#' calculates the individual value for each separate observation. Note that these
-#' values are biased, so you would possibly need to take number of degrees of freedom
-#' into account in order to have an unbiased estimator.
-#'
-#' This value is based on the general likelihood (not its concentrated version), so
-#' the sum of these values may slightly differ from the output of logLik.
-#'
-#' @aliases pointLik
-#' @param object Time series model.
-#' @param ...  Some stuff.
-#' @return This function returns a vector.
-#' @template author
-#' @seealso \link[stats]{AIC}, \link[stats]{BIC}
-#' @keywords htest
-#' @examples
-#'
-#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
-#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
-#' colnames(xreg) <- c("y","x1","x2","Noise")
-#' ourModel <- alm(y~x1+x2,as.data.frame(xreg))
-#'
-#' pointLik(ourModel)
-#'
-#' # Bias correction
-#' pointLik(ourModel) - nparam(ourModel)
-#'
-#' # Bias correction in AIC style
-#' 2*(nparam(ourModel)/nobs(ourModel) - pointLik(ourModel))
-#'
-#' # BIC calculation based on pointLik
-#' log(nobs(ourModel))*nparam(ourModel) - 2*sum(pointLik(ourModel))
-#'
-#' @export pointLik
-pointLik <- function(object, ...) UseMethod("pointLik")
-
-#' @export
-pointLik.default <- function(object, ...){
-    likValues <- dnorm(residuals(object), mean=0, sd=sigma(object), log=TRUE);
-
-    return(likValues);
-}
-
-#' @export
-pointLik.alm <- function(object, ...){
-    distribution <- object$distribution;
-    y <- actuals(object);
-    ot <- y!=0;
-    if(is.occurrence(object$occurrence)){
-        otU <- y!=0;
-        y <- y[otU];
-        mu <- object$mu[otU];
-    }
     else{
-        otU <- rep(TRUE, nobs(object));
-        mu <- object$mu;
+        # Correction is needed for the calculation of AIC in case of OLS et al (add scale).
+        correction <- switch(object$loss,
+                             "MSE"=switch(object$distribution,
+                                          "dnorm"=1,
+                                          0),
+                             "MAE"=switch(object$distribution,
+                                          "dlaplace"=1,
+                                          0),
+                             "HAM"=switch(object$distribution,
+                                          "ds"=1,
+                                          0),
+                             0);
+        return(structure(object$logLik,nobs=nobs(object),df=nparam(object)+correction,class="logLik"));
     }
-    scale <- extractScale(object);
-
-    likValues <- vector("numeric",nobs(object));
-    likValues[otU] <- switch(distribution,
-                             "dnorm" = dnorm(y, mean=mu, sd=scale, log=TRUE),
-                             "dlnorm" = dlnorm(y, meanlog=mu, sdlog=scale, log=TRUE),
-                             "dgnorm" = dgnorm(y, mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                             "dlgnorm" = dgnorm(log(y), mu=mu, scale=scale, shape=object$other$shape, log=TRUE),
-                             "dfnorm" = dfnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "drectnorm" = drectnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "dbcnorm" = dbcnorm(y, mu=mu, sigma=scale, lambda=object$other$lambdaBC, log=TRUE),
-                             "dlogitnorm" = dlogitnorm(y, mu=mu, sigma=scale, log=TRUE),
-                             "dexp" = dexp(y, rate=1/mu, log=TRUE),
-                             "dinvgauss" = dinvgauss(y, mean=mu, dispersion=scale/mu, log=TRUE),
-                             "dgamma" = dgamma(y, shape=1/scale, scale=scale*mu, log=TRUE),
-                             "dlaplace" = dlaplace(y, mu=mu, scale=scale, log=TRUE),
-                             "dllaplace" = dlaplace(log(y), mu=mu, scale=scale, log=TRUE),
-                             "dalaplace" = dalaplace(y, mu=mu, scale=scale, alpha=object$other$alpha, log=TRUE),
-                             "dlogis" = dlogis(y, location=mu, scale=scale, log=TRUE),
-                             "dt" = dt(y-mu, df=scale, log=TRUE),
-                             "ds" = ds(y, mu=mu, scale=scale, log=TRUE),
-                             "dls" = ds(log(y), mu=mu, scale=scale, log=TRUE),
-                             "dpois" = dpois(y, lambda=mu, log=TRUE),
-                             "dnbinom" = dnbinom(y, mu=mu, size=object$other$size, log=TRUE),
-                             "dchisq" = dchisq(y, df=object$other$nu, ncp=mu, log=TRUE),
-                             "dbeta" = dbeta(y, shape1=mu, shape2=scale, log=TRUE),
-                             "plogis" = c(plogis(mu[ot], location=0, scale=1, log.p=TRUE),
-                                          plogis(mu[!ot], location=0, scale=1, lower.tail=FALSE, log.p=TRUE)),
-                             "pnorm" = c(pnorm(mu[ot], mean=0, sd=1, log.p=TRUE),
-                                         pnorm(mu[!ot], mean=0, sd=1, lower.tail=FALSE, log.p=TRUE)),
-                             0
-    );
-    if(any(distribution==c("dllaplace","dls","dlgnorm"))){
-        likValues[otU] <- likValues[otU] - log(y);
-    }
-
-    # If this is a mixture model, take the respective probabilities into account (differential entropy)
-    if(is.occurrence(object$occurrence)){
-        likValues[!otU] <- -switch(distribution,
-                                   "dnorm" =,
-                                   "dfnorm" =,
-                                   "dbcnorm" =,
-                                   "dlogitnorm" =,
-                                   "dlnorm" = log(sqrt(2*pi)*scale)+0.5,
-                                   "dexp" = 1,
-                                   "dgnorm" =,
-                                   "dlgnorm" = 1/object$other$shape -
-                                       log(object$other$shape / (2*scale*gamma(1/object$other$shape))),
-                                   "dinvgauss" = 0.5*(log(pi/2)+1+log(scale)),
-                                   "dgamma" = 1/scale + log(scale) + log(gamma(1/scale)) + (1-1/scale)*digamma(1/scale),
-                                   "dlaplace" =,
-                                   "dllaplace" =,
-                                   "dalaplace" = (1 + log(2*scale)),
-                                   "dlogis" = 2,
-                                   "dt" = ((scale+1)/2 *
-                                               (digamma((scale+1)/2)-digamma(scale/2)) +
-                                               log(sqrt(scale) * beta(scale/2,0.5))),
-                                   "ds" = ,
-                                   "dls" = (2 + 2*log(2*scale)),
-                                   "dchisq" = (log(2)*gamma(scale/2)-
-                                                   (1-scale/2)*digamma(scale/2)+
-                                                   scale/2),
-                                   "dbeta" = log(beta(mu,scale))-
-                                       (mu-1)*
-                                       (digamma(mu)-
-                                            digamma(mu+scale))-
-                                       (scale-1)*
-                                       (digamma(scale)-
-                                            digamma(mu+scale)),
-                                   # This is a normal approximation of the real entropy
-                                   "dpois" = 0.5*log(2*pi*scale)+0.5,
-                                   "dnbinom" = log(sqrt(2*pi)*scale)+0.5,
-                                   0
-        );
-
-        likValues <- likValues + pointLik(object$occurrence);
-    }
-
-    return(likValues);
-}
-
-#' @export
-pointLik.ets <- function(object, ...){
-
-    likValues <- pointLik.default(object);
-    if(errorType(object)=="M"){
-        likValues[] <- likValues - log(abs(fitted(object)));
-    }
-    # This correction is needed so that logLik(object) ~ sum(pointLik(object))
-    likValues[] <- likValues + 0.5 * (log(2 * pi) + 1 - log(nobs(object)));
-
-    return(likValues);
-}
-
-#' Point AIC
-#'
-#' This function returns a vector of AIC values for the in-sample observations
-#'
-#' This is based on \link[greybox]{pointLik} function. The formula for this is:
-#' pAIC_t = 2 * k - 2 * T * l_t ,
-#' where k is the number of parameters, T is the number of observations and l_t is
-#' the point likelihood. This way we preserve the property that AIC = mean(pAIC).
-#'
-#' @aliases pAIC
-#' @param object Time series model.
-#' @param ...  Some stuff.
-#' @return The function returns the vector of point AIC values.
-#' @template author
-#' @seealso \link[greybox]{pointLik}
-#' @keywords htest
-#' @examples
-#'
-#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
-#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rnorm(100,0,3),xreg,rnorm(100,300,10))
-#' colnames(xreg) <- c("y","x1","x2","Noise")
-#' ourModel <- alm(y~x1+x2,as.data.frame(xreg))
-#'
-#' pAICValues <- pAIC(ourModel)
-#'
-#' mean(pAICValues)
-#' AIC(ourModel)
-#'
-#' @rdname pointIC
-#' @export pAIC
-pAIC <- function(object, ...) UseMethod("pAIC")
-
-#' @export
-pAIC.default <- function(object, ...){
-    obs <- nobs(object);
-    k <- nparam(object);
-    return(2 * k - 2 * obs * pointLik(object));
-}
-
-#' @rdname pointIC
-#' @export pAICc
-pAICc <- function(object, ...) UseMethod("pAICc")
-
-#' @export
-pAICc.default <- function(object, ...){
-    obs <- nobs(object);
-    k <- nparam(object);
-    return(2 * k - 2 * obs * pointLik(object) + 2 * k * (k + 1) / (obs - k - 1));
-}
-
-#' @rdname pointIC
-#' @export pBIC
-pBIC <- function(object, ...) UseMethod("pBIC")
-
-#' @export
-pBIC.default <- function(object, ...){
-    obs <- nobs(object);
-    k <- nparam(object);
-    return(log(obs) * k - 2 * obs * pointLik(object));
-}
-
-#' @rdname pointIC
-#' @export pBIC
-pBICc <- function(object, ...) UseMethod("pBICc")
-
-#' @export
-pBICc.default <- function(object, ...){
-    obs <- nobs(object);
-    k <- nparam(object);
-    return((k * log(obs) * obs) / (obs - k - 1)  - 2 * obs * pointLik(object));
 }
 
 
@@ -460,6 +310,12 @@ actuals.alm <- function(object, all=TRUE, ...){
     else{
         return(object$data[object$data[,1]!=0,1]);
     }
+}
+
+#' @rdname actuals
+#' @export
+actuals.predict.greybox <- function(object, all=TRUE, ...){
+    return(actuals(object$model, all=all, ...));
 }
 
 #' @export
@@ -719,14 +575,26 @@ nparam.default <- function(object, ...){
 }
 
 #' @export
+nparam.Arima <- function(object, ...){
+    # If this is NA, the model was estimated via CSS
+    if(is.na(logLik(object))){
+        return(length(coef(object)))
+    }
+    else{
+        # Get the df from the likelihood
+        return(nparam(logLik(object)));
+    }
+}
+
+#' @export
 nparam.alm <- function(object, ...){
     # The number of parameters in the model + in the occurrence part
-    # if(!is.null(object$occurrence)){
-    #     return(object$df+object$occurrence$df);
-    # }
-    # else{
+    if(is.occurrence(object$occurrence)){
+        return(object$df+nparam(object$occurrence));
+    }
+    else{
         return(object$df);
-    # }
+    }
 }
 
 #' @export
@@ -765,7 +633,20 @@ nvariate.default <- function(object, ...){
 #' @importFrom stats sigma
 #' @export
 sigma.greybox <- function(object, all=FALSE, ...){
-    return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
+    if(object$loss=="ROLE"){
+        return(sqrt(meanFast(residuals(object)^2,
+                             # df=nobs(object, all=all)-nparam(object),
+                             trim=object$other$trim,
+                             side="both")));
+    }
+    else{
+        return(sqrt(sum(residuals(object)^2)/(nobs(object, all=all)-nparam(object))));
+    }
+}
+
+#' @export
+sigma.Arima <- function(object, ...){
+    return(sqrt(object$sigma2));
 }
 
 #' @export
@@ -1081,7 +962,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
                     vcov <- diag(1e+100,nVariables);
                 }
                 else{
-                    vcov <- FIMatrix;
+                    vcov <- vcovMatrixTry;
                 }
             }
             else{
@@ -1267,11 +1148,11 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 #' \item Squared residuals vs Fitted;
 #' \item Q-Q plot with the specified distribution;
 #' \item Fitted over time;
-#' \item Standardised residuals vs Time;
-#' \item Studentised residuals vs Time;
+#' \item Standardised residuals over observations;
+#' \item Studentised residuals over observations;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals;
-#' \item Cook's distance over time with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+#' \item Cook's distance over observations with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
 #' \item Absolute standardised residuals vs Fitted;
 #' \item Squared standardised residuals vs Fitted;
 #' \item ACF of the squared residuals;
@@ -1313,23 +1194,67 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         on.exit(devAskNewPage(oask));
     }
 
+    # Special treatment for count distributions
+    countDistribution <- any(x$distribution==c("dpois","dnbinom","dbinom","dgeom"));
+
     # Warn if the diagnostis will be done for scale
     if(is.scale(x$scale) && any(which %in% c(2:6,8,9,13:14))){
         message("Note that residuals diagnostics plots are produced for scale model");
+    }
+
+    if(countDistribution && any(which %in% c(3, 9))){
+        warning("Studentised residuals are not supported for count distributions. Switching to standardised.",
+                call.=FALSE);
+        which[which==3] <- 2;
+        which[which==9] <- 8;
     }
 
     # 1. Fitted vs Actuals values
     plot1 <- function(x, ...){
         ellipsis <- list(...);
 
-        # Get the actuals and the fitted values
-        ellipsis$y <- as.vector(actuals(x));
-        if(is.occurrence(x)){
-            if(any(x$distribution==c("plogis","pnorm"))){
-                ellipsis$y <- (ellipsis$y!=0)*1;
+        if(countDistribution){
+            # Get the actuals and the fitted values
+            ellipsis$y <- as.vector(pointLik(x, log=FALSE));
+            if(is.occurrence(x)){
+                if(any(x$distribution==c("plogis","pnorm"))){
+                    ellipsis$y <- (ellipsis$y!=0)*1;
+                }
+            }
+            ellipsis$x <- as.vector(1/fitted(x));
+
+            # Title
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "Probability vs Likelihood";
+            }
+            if(!any(names(ellipsis)=="ylab")){
+                ellipsis$ylab <- paste0("Likelihood of ",all.vars(x$call$formula)[1]);
+            }
+            if(!any(names(ellipsis)=="xlab")){
+                ellipsis$xlab <- "Probability";
             }
         }
-        ellipsis$x <- as.vector(fitted(x));
+        else{
+            # Get the actuals and the fitted values
+            ellipsis$y <- as.vector(actuals(x));
+            if(is.occurrence(x)){
+                if(any(x$distribution==c("plogis","pnorm"))){
+                    ellipsis$y <- (ellipsis$y!=0)*1;
+                }
+            }
+            ellipsis$x <- as.vector(fitted(x));
+
+            # Title
+            if(!any(names(ellipsis)=="main")){
+                ellipsis$main <- "Actuals vs Fitted";
+            }
+            if(!any(names(ellipsis)=="ylab")){
+                ellipsis$ylab <- paste0("Actual ",all.vars(x$call$formula)[1]);
+            }
+            if(!any(names(ellipsis)=="xlab")){
+                ellipsis$xlab <- "Fitted";
+            }
+        }
 
         # If this is a mixture model, remove zeroes
         if(is.occurrence(x$occurrence)){
@@ -1346,20 +1271,9 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$x <- ellipsis$x[!is.na(ellipsis$y)];
             ellipsis$y <- ellipsis$y[!is.na(ellipsis$y)];
         }
-
-        # Title
-        if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Actuals vs Fitted";
-        }
         # If type and ylab are not provided, set them...
         if(!any(names(ellipsis)=="type")){
             ellipsis$type <- "p";
-        }
-        if(!any(names(ellipsis)=="ylab")){
-            ellipsis$ylab <- paste0("Actual ",all.vars(x$call$formula)[1]);
-        }
-        if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Fitted";
         }
         # xlim and ylim
         # if(!any(names(ellipsis)=="xlim")){
@@ -1373,7 +1287,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(a=0,b=1,col="grey",lwd=2,lty=2)
         if(lowess){
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
         }
     }
 
@@ -1431,7 +1345,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$y,statistic), na.rm=TRUE)*1.2;
+            ellipsis$ylim <- range(c(ellipsis$y[is.finite(ellipsis$y)],statistic), na.rm=TRUE)*1.2;
             if(legend){
                 if(legendPosition=="bottomright"){
                     ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
@@ -1442,6 +1356,13 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             }
         }
 
+        # If there are infinite values, mark them on the plot
+        infiniteValues <- any(is.infinite(ellipsis$y));
+        if(infiniteValues){
+            infiniteMarkers <- ellipsis$y[is.infinite(ellipsis$y)];
+            infiniteMarkersIDs <- which(is.infinite(ellipsis$y));
+        }
+
         xRange <- range(ellipsis$x, na.rm=TRUE);
         xRange[1] <- xRange[1] - sd(ellipsis$x, na.rm=TRUE);
         xRange[2] <- xRange[2] + sd(ellipsis$x, na.rm=TRUE);
@@ -1450,7 +1371,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         abline(h=0, col="grey", lty=2);
         polygon(c(xRange,rev(xRange)),c(statistic[1],statistic[1],statistic[2],statistic[2]),
                 col="lightgrey", border=NA, density=10);
-        abline(h=statistic, col="red", lty=2);
+        abline(h=statistic, col=2, lty=2);
         if(length(outliersID)>0){
             points(ellipsis$x[outliersID], ellipsis$y[outliersID], pch=16);
             text(ellipsis$x[outliersID], ellipsis$y[outliersID], labels=outliersID, pos=(ellipsis$y[outliersID]>0)*2+1);
@@ -1461,19 +1382,30 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
                 ellipsis$y <- ellipsis$y[!is.na(ellipsis$x)];
                 ellipsis$x <- ellipsis$x[!is.na(ellipsis$x)];
             }
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
+        }
+        # Markers for infinite values
+        if(infiniteValues){
+            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
+            text(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
+                 labels=infiniteMarkersIDs, pos=1);
         }
 
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
+
             if(lowess){
                 legend(legendPosition,
                        legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds","LOWESS line"),
-                       col=c("red", "black","red"), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
+                       col=c(2, basicColour, 2), lwd=c(1,NA,1), lty=c(2,1,1), pch=c(NA,16,NA));
             }
             else{
                 legend(legendPosition,
                        legend=c(paste0(round(level,3)*100,"% bounds"),"outside the bounds"),
-                       col=c("red", "black"), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
+                       col=c(2, basicColour), lwd=c(1,NA), lty=c(2,1), pch=c(NA,16));
             }
         }
     }
@@ -1527,7 +1459,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
         if(lowess){
-            lines(lowess(ellipsis$x, ellipsis$y), col="red");
+            lines(lowess(ellipsis$x, ellipsis$y), col=2);
         }
     }
 
@@ -1552,154 +1484,207 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Actual Quantile";
         }
 
-        if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","plogis","pnorm"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ plot of normal distribution";
-            }
+        # Number of points for pp-plots
+        nsim <- 200;
 
-            do.call(qqnorm, ellipsis);
-            qqline(ellipsis$y);
-        }
-        else if(x$distribution=="dfnorm"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Folded Normal distribution";
+        # For count distribution, we do manual construction
+        if(countDistribution){
+            if(!any(names(ellipsis)=="xlim")){
+                ellipsis$xlim <- c(0,1);
             }
-            ellipsis$x <- qfnorm(ppoints(500), mu=0, sigma=extractScale(x));
-
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
-        }
-        else if(x$distribution=="drectnorm"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Rectified Normal distribution";
+            if(!any(names(ellipsis)=="ylim")){
+                ellipsis$ylim <- c(0,1);
             }
-            ellipsis$x <- qrectnorm(ppoints(500), mu=0, sigma=extractScale(x));
+            ellipsis$x <- ppoints(nsim);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
-        }
-        else if(any(x$distribution==c("dgnorm","dlgnorm"))){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Generalised Normal distribution";
+            if(x$distribution=="dpois"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Poisson distribution";
+                }
+                # ellipsis$x <- actuals(x)-qpois(ppoints(nobs(x)*100), lambda=x$mu);
+                # ellipsis$x <- qpois(ppoints(nobs(x)*100), lambda=x$mu);
+                # ellipsis$y[] <- actuals(x);
+
+                # Produce matrix of quantiles
+                yQuant <- matrix(qpois(ppoints(nsim), lambda=rep(x$mu, each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
-            ellipsis$x <- qgnorm(ppoints(500), mu=0, scale=extractScale(x), shape=x$other$shape);
+            else if(x$distribution=="dnbinom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Negative Binomial distribution";
+                }
+                # ellipsis$x <- actuals(x)-qnbinom(ppoints(nsim), mu=x$mu, size=extractScale(x));
+                #
+                # do.call(qqplot, ellipsis);
+                # qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
-        }
-        else if(any(x$distribution==c("dlaplace","dllaplace"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Laplace distribution";
+
+                # Produce matrix of quantiles
+                yQuant <- matrix(qnbinom(ppoints(nsim), mu=rep(x$mu, each=nsim),
+                                         size=rep(extractScale(x), each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
+                # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
             }
-            ellipsis$x <- qlaplace(ppoints(500), mu=0, scale=extractScale(x));
+            else if(x$distribution=="dbinom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Binomial distribution";
+                }
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
-        }
-        else if(x$distribution=="dalaplace"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
+                # Produce matrix of quantiles
+                yQuant <- matrix(qbinom(ppoints(nsim), prob=rep(1/(1+x$mu), each=nsim),
+                                         size=rep(x$other$size, each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
-            ellipsis$x <- qalaplace(ppoints(500), mu=0, scale=extractScale(x), alpha=x$other$alpha);
+            else if(x$distribution=="dgeom"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Geometric distribution";
+                }
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
-        }
-        else if(x$distribution=="dlogis"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Logistic distribution";
+                # Produce matrix of quantiles
+                yQuant <- matrix(qgeom(ppoints(nsim), prob=rep(1/(1+x$mu), each=nsim)),
+                                 nrow=nsim, ncol=nobs(x),
+                                 dimnames=list(ppoints(nsim), NULL));
             }
-            ellipsis$x <- qlogis(ppoints(500), location=0, scale=extractScale(x));
+            # Get empirical probabilities
+            ellipsis$y <- apply(matrix(actuals(x), nsim, nobs(x), byrow=T) <= yQuant, 1, sum) / nobs(x);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
+            # Remove zeroes not to contaminate the plot
+            ellipsis$x <- ellipsis$x[ellipsis$y>mean(actuals(x)==0)];
+            ellipsis$y <- ellipsis$y[ellipsis$y>mean(actuals(x)==0)];
+
+            do.call(plot, ellipsis);
+            abline(a=0, b=1);
         }
-        else if(any(x$distribution==c("ds","dls"))){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of S distribution";
+        # For the others, it is just a qqplot
+        else{
+            if(any(x$distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm","plogis","pnorm"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ plot of normal distribution";
+                }
+
+                do.call(qqnorm, ellipsis);
+                qqline(ellipsis$y);
             }
-            ellipsis$x <- qs(ppoints(500), mu=0, scale=extractScale(x));
+            else if(x$distribution=="dfnorm"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Folded Normal distribution";
+                }
+                ellipsis$x <- qfnorm(ppoints(nsim), mu=0, sigma=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
-        }
-        else if(x$distribution=="dt"){
-            # Standardise residuals
-            ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Student's distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qfnorm(p, mu=0, sigma=extractScale(x)));
             }
-            ellipsis$x <- qt(ppoints(500), df=extractScale(x));
+            else if(x$distribution=="drectnorm"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Rectified Normal distribution";
+                }
+                ellipsis$x <- qrectnorm(ppoints(nsim), mu=0, sigma=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
-        }
-        else if(x$distribution=="dinvgauss"){
-            # Transform residuals for something meaningful
-            # This is not 100% accurate, because the dispersion should change as well as mean...
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qrectnorm(p, mu=0, sigma=extractScale(x)));
             }
-            ellipsis$x <- qinvgauss(ppoints(500), mean=1, dispersion=extractScale(x));
+            else if(any(x$distribution==c("dgnorm","dlgnorm"))){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Generalised Normal distribution";
+                }
+                ellipsis$x <- qgnorm(ppoints(nsim), mu=0, scale=extractScale(x), shape=x$other$shape);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
-        }
-        else if(x$distribution=="dgamma"){
-            # Transform residuals for something meaningful
-            # This is not 100% accurate, because the scale should change together with mean...
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Gamma distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qgnorm(p, mu=0, scale=extractScale(x), shape=x$other$shape));
             }
-            ellipsis$x <- qgamma(ppoints(500), shape=1/extractScale(x), scale=extractScale(x));
+            else if(any(x$distribution==c("dlaplace","dllaplace"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Laplace distribution";
+                }
+                ellipsis$x <- qlaplace(ppoints(nsim), mu=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
-        }
-        else if(x$distribution=="dexp"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Exponential distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qlaplace(p, mu=0, scale=extractScale(x)));
             }
-            ellipsis$x <- qexp(ppoints(500), rate=x$scale);
+            else if(x$distribution=="dalaplace"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- paste0("QQ-plot of Asymmetric Laplace distribution with alpha=",round(x$other$alpha,3));
+                }
+                ellipsis$x <- qalaplace(ppoints(nsim), mu=0, scale=extractScale(x), alpha=x$other$alpha);
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
-        }
-        else if(x$distribution=="dchisq"){
-            message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
-        }
-        else if(x$distribution=="dbeta"){
-            message("Sorry, but we don't produce QQ plots for the Beta distribution");
-        }
-        else if(x$distribution=="dpois"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Poisson distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qalaplace(p, mu=0, scale=extractScale(x), alpha=x$other$alpha));
             }
-            # ellipsis$x <- actuals(x)-qpois(ppoints(nobs(x)*100), lambda=x$mu);
-            ellipsis$x <- qpois(ppoints(nobs(x)*100), lambda=x$mu);
-            ellipsis$y[] <- actuals(x);
+            else if(x$distribution=="dlogis"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Logistic distribution";
+                }
+                ellipsis$x <- qlogis(ppoints(nsim), location=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            abline(a=0,b=1);
-            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu)-actuals(x));
-            # qqline(ellipsis$y, distribution=function(p) qpois(p, lambda=x$mu));
-            # message("Sorry, but we don't produce QQ plots for the Poisson distribution");
-        }
-        else if(x$distribution=="dnbinom"){
-            if(!any(names(ellipsis)=="main")){
-                ellipsis$main <- "QQ-plot of Negative Binomial distribution";
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qlogis(p, location=0, scale=extractScale(x)));
             }
-            ellipsis$x <- actuals(x)-qnbinom(ppoints(500), mu=x$mu, size=extractScale(x));
+            else if(any(x$distribution==c("ds","dls"))){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of S distribution";
+                }
+                ellipsis$x <- qs(ppoints(nsim), mu=0, scale=extractScale(x));
 
-            do.call(qqplot, ellipsis);
-            qqline(ellipsis$y, distribution=function(p) qnbinom(p, mu=x$mu, size=extractScale(x))-actuals(x));
-            # message("Sorry, but we don't produce QQ plots for the Negative Binomial distribution");
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qs(p, mu=0, scale=extractScale(x)));
+            }
+            else if(x$distribution=="dt"){
+                # Standardise residuals
+                ellipsis$y[] <- ellipsis$y / sd(ellipsis$y);
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Student's distribution";
+                }
+                ellipsis$x <- qt(ppoints(nsim), df=extractScale(x));
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qt(p, df=extractScale(x)));
+            }
+            else if(x$distribution=="dinvgauss"){
+                # Transform residuals for something meaningful
+                # This is not 100% accurate, because the dispersion should change as well as mean...
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Inverse Gaussian distribution";
+                }
+                ellipsis$x <- qinvgauss(ppoints(nsim), mean=1, dispersion=extractScale(x));
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qinvgauss(p, mean=1, dispersion=extractScale(x)));
+            }
+            else if(x$distribution=="dgamma"){
+                # Transform residuals for something meaningful
+                # This is not 100% accurate, because the scale should change together with mean...
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Gamma distribution";
+                }
+                ellipsis$x <- qgamma(ppoints(nsim), shape=1/extractScale(x), scale=extractScale(x));
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qgamma(p, shape=1/extractScale(x), scale=extractScale(x)));
+            }
+            else if(x$distribution=="dexp"){
+                if(!any(names(ellipsis)=="main")){
+                    ellipsis$main <- "QQ-plot of Exponential distribution";
+                }
+                ellipsis$x <- qexp(ppoints(nsim), rate=x$scale);
+
+                do.call(qqplot, ellipsis);
+                qqline(ellipsis$y, distribution=function(p) qexp(p, rate=x$scale));
+            }
+            else if(x$distribution=="dchisq"){
+                message("Sorry, but we don't produce QQ plots for the Chi-Squared distribution");
+            }
+            else if(x$distribution=="dbeta"){
+                message("Sorry, but we don't produce QQ plots for the Beta distribution");
+            }
         }
     }
 
@@ -1750,10 +1735,15 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Start plotting
         do.call(plot,ellipsis);
-        lines(yFitted, col="purple");
+        lines(yFitted, col=2);
+
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
             legend(legendPosition,legend=c("Actuals","Fitted"),
-                   col=c("black","purple"), lwd=rep(1,2), lty=c(1,1));
+                   col=c(basicColour,2), lwd=rep(1,2), lty=c(1,1));
         }
     }
 
@@ -1781,11 +1771,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- paste0(yName," Residuals vs Time");
+            ellipsis$main <- paste0(yName," Residuals over observations");
         }
 
         if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Time";
+            ellipsis$xlab <- "Observations";
         }
         if(!any(names(ellipsis)=="ylab")){
             ellipsis$ylab <- paste0(yName," Residuals");
@@ -1807,13 +1797,20 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         }
 
         if(!any(names(ellipsis)=="ylim")){
-            ellipsis$ylim <- range(c(ellipsis$x,statistic),na.rm=TRUE)*1.2;
+            ellipsis$ylim <- range(c(ellipsis$x[is.finite(ellipsis$x)],statistic),na.rm=TRUE)*1.2;
         }
 
         if(legend){
             legendPosition <- "topright";
             ellipsis$ylim[2] <- ellipsis$ylim[2] + 0.2*diff(ellipsis$ylim);
             ellipsis$ylim[1] <- ellipsis$ylim[1] - 0.2*diff(ellipsis$ylim);
+        }
+
+        # If there are infinite values, mark them on the plot
+        infiniteValues <- any(is.infinite(ellipsis$x));
+        if(infiniteValues){
+            infiniteMarkers <- ellipsis$x[is.infinite(ellipsis$x)];
+            infiniteMarkersIDs <- which(is.infinite(ellipsis$x));
         }
 
         # Start plotting
@@ -1834,17 +1831,29 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             if(any(is.na(ellipsis$x))){
                 ellipsis$x[is.na(ellipsis$x)] <- mean(ellipsis$x, na.rm=TRUE);
             }
-            lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col="red");
+            lines(lowess(c(1:length(ellipsis$x)),ellipsis$x), col=2);
         }
         abline(h=0, col="grey", lty=2);
-        abline(h=statistic[1], col="red", lty=2);
-        abline(h=statistic[2], col="red", lty=2);
+        abline(h=statistic[1], col=2, lty=2);
+        abline(h=statistic[2], col=2, lty=2);
         polygon(c(1:nobs(x), c(nobs(x):1)),
                 c(rep(statistic[1],nobs(x)), rep(statistic[2],nobs(x))),
                 col="lightgrey", border=NA, density=10);
+
+        # Markers for infinite values
+        if(infiniteValues){
+            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
+            text(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
+                 labels=infiniteMarkersIDs, pos=1);
+        }
         if(legend){
+            basicColour <- ellipsis$col;
+            if(is.null(basicColour)){
+                basicColour <- 1;
+            }
+
             legend(legendPosition,legend=c("Residuals",paste0(level*100,"% prediction interval")),
-                   col=c("black","red"), lwd=rep(1,3), lty=c(1,1,2));
+                   col=c(basicColour,2), lwd=rep(1,3), lty=c(1,1,2));
         }
     }
 
@@ -1911,8 +1920,8 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
         ellipsis$type <- "h"
 
         do.call(plot,ellipsis);
-        abline(h=0, col="black", lty=1);
-        abline(h=statistic, col="red", lty=2);
+        abline(h=0, col=1, lty=1);
+        abline(h=statistic, col=2, lty=2);
         if(any(ellipsis$x>statistic[2] | ellipsis$x<statistic[1])){
             outliers <- which(ellipsis$x >statistic[2] | ellipsis$x <statistic[1]);
             points(outliers, ellipsis$x[outliers], pch=16);
@@ -1924,7 +1933,7 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
     plot8 <- function(x, ...){
         ellipsis <- list(...);
         if(!any(names(ellipsis)=="main")){
-            ellipsis$main <- "Cook's distance over Time";
+            ellipsis$main <- "Cook's distance over observations";
         }
 
         # If type and ylab are not provided, set them...
@@ -1935,24 +1944,41 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             ellipsis$ylab <- "Cook's distance";
         }
         if(!any(names(ellipsis)=="xlab")){
-            ellipsis$xlab <- "Time";
+            ellipsis$xlab <- "Observation";
         }
 
         # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
         ellipsis$x <- abs(cooks.distance(x));
         thresholdsF <- qf(c(0.5,0.75,0.95), nparam(x), nobs(x)-nparam(x))
-        thresholdsColours <- c("red","red","red")
+        thresholdsColours <- c(2,2,2)
         thresholdsLty <- c(3,2,5)
         thresholdsLwd <- c(1,1,2)
-        outliers <- which(ellipsis$x>=thresholdsF[2]);
+        outliersID <- which(ellipsis$x>=thresholdsF[2]);
+
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- range(c(ellipsis$x[is.finite(ellipsis$x)], thresholdsF));
+        }
+
+        # If there are infinite values, mark them on the plot
+        infiniteValues <- any(is.infinite(ellipsis$x));
+        if(infiniteValues){
+            infiniteMarkers <- ellipsis$x[is.infinite(ellipsis$x)];
+            infiniteMarkersIDs <- which(is.infinite(ellipsis$x));
+        }
 
         # Start plotting
         do.call(plot,ellipsis);
         for(i in 1:length(thresholdsF)){
             abline(h=thresholdsF[i], col=thresholdsColours[i], lty=thresholdsLty[i], lwd=thresholdsLwd[i]);
         }
-        if(length(outliers)>0){
-            text(outliers, ellipsis$x[outliers], labels=outliers, pos=2);
+        if(length(outliersID)>0){
+            text(outliersID, ellipsis$x[outliersID], labels=outliersID, pos=2);
+        }
+        # Markers for infinite values
+        if(infiniteValues){
+            points(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
+            text(infiniteMarkersIDs, ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
+                 labels=infiniteMarkersIDs, pos=1);
         }
         if(legend){
             legend("topright",
@@ -2007,10 +2033,28 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
             }
         }
 
+        if(!any(names(ellipsis)=="ylim")){
+            ellipsis$ylim <- range(ellipsis$y[is.finite(ellipsis$y)]);
+        }
+
+        # If there are infinite values, mark them on the plot
+        infiniteValues <- any(is.infinite(ellipsis$y));
+        if(infiniteValues){
+            infiniteMarkers <- ellipsis$y[is.infinite(ellipsis$y)];
+            infiniteMarkersIDs <- which(is.infinite(ellipsis$y));
+        }
+
         do.call(plot,ellipsis);
         abline(h=0, col="grey", lty=2);
         if(lowess){
-            lines(lowess(ellipsis$x[!is.na(ellipsis$y)], ellipsis$y[!is.na(ellipsis$y)]), col="red");
+            lines(lowess(ellipsis$x[!is.na(ellipsis$y)], ellipsis$y[!is.na(ellipsis$y)]), col=2);
+        }
+
+        # Markers for infinite values
+        if(infiniteValues){
+            points(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1, pch=24, bg=2);
+            text(ellipsis$x[infiniteMarkersIDs], ellipsis$ylim[(infiniteMarkers>0)+1]+0.1,
+                 labels=infiniteMarkersIDs, pos=1);
         }
     }
 
@@ -2233,7 +2277,7 @@ plot.rollingOrigin <- function(x, ...){
                                        max(unlist(lapply(x,max,na.rm=T)),na.rm=T),
                                        na.rm=TRUE),
          type="l", ...);
-    abline(v=roStart, col="red", lwd=2);
+    abline(v=roStart, col=2, lwd=2);
     for(j in 1:thingsToPlot){
         colCurrent <- rgb((j-1)/thingsToPlot,0,(thingsToPlot-j+1)/thingsToPlot,1);
         for(i in 1:roh){
@@ -2377,8 +2421,10 @@ print.summary.alm <- function(x, ...){
                       "dgamma" = "Gamma",
                       "dexp" = "Exponential",
                       "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
+                      "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbinom" = paste0("Binomial with size=",x$other$size),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2459,8 +2505,10 @@ print.summary.scale <- function(x, ...){
                       "dgamma" = "Gamma",
                       "dexp" = "Exponential",
                       "dchisq" = paste0("Chi-Squared with nu=",round(x$other$nu,digits)),
+                      "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = paste0("Negative Binomial with size=",round(x$other$size,digits)),
+                      "dbinom" = paste0("Binomial with size=",x$other$size),
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2518,8 +2566,10 @@ print.summary.greybox <- function(x, ...){
                       "dgamma" = "Gamma",
                       "dexp" = "Exponential",
                       "dchisq" = "Chi-Squared",
+                      "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dnbinom" = "Binomial",
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2574,8 +2624,10 @@ print.summary.greyboxC <- function(x, ...){
                       "dgamma" = "Gamma",
                       "dexp" = "Exponential",
                       "dchisq" = "Chi-Squared",
+                      "dgeom" = "Geometric",
                       "dpois" = "Poisson",
                       "dnbinom" = "Negative Binomial",
+                      "dnbinom" = "Binomial",
                       "dbeta" = "Beta",
                       "plogis" = "Cumulative logistic",
                       "pnorm" = "Cumulative normal"
@@ -2650,7 +2702,7 @@ hatvalues.greybox <- function(model, ...){
         xreg <- model$data[,-1,drop=FALSE];
     }
     # Hatvalues for different distributions
-    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
+    if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dbinom","dpois"))){
         hatValue <- hat(xreg);
     }
     else{
@@ -2701,7 +2753,7 @@ rstandard.greybox <- function(model, ...){
     # If it is scale model, there's no need to divide by scale anymore
     if(!is.scale(model)){
         # The proper residuals with leverage are currently done only for normal-based distributions
-        if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm","dnbinom","dpois"))){
+        if(any(model$distribution==c("dt","dnorm","dlnorm","dbcnorm","dlogitnorm"))){
             errors[] <- errors / (extractScale(model)*sqrt(1-hatvalues(model)));
         }
         else if(any(model$distribution==c("ds","dls"))){
@@ -2716,6 +2768,9 @@ rstandard.greybox <- function(model, ...){
         }
         else if(any(model$distribution==c("dfnorm","drectnorm"))){
             errors[residsToGo] <- (errors[residsToGo]) / sqrt(extractScale(model)^2 * obs / df);
+        }
+        else if(any(model$distribution==c("dpois","dnbinom","dbinom","dgeom"))){
+            errors[residsToGo] <- qnorm(pointLikCumulative(model));
         }
         else{
             errors[residsToGo] <- (errors[residsToGo] - mean(errors[residsToGo])) / (extractScale(model) * obs / df);
@@ -2795,6 +2850,10 @@ rstudent.greybox <- function(model, ...){
             rstudentised[i] <- errors[i] / mean(errors[-i]);
         }
     }
+    # We don't do studentised residuals for count distributions
+    else if(any(model$distribution==c("dpois","dnbinom","dbinom","dgeom"))){
+        rstudentised[residsToGo] <- qnorm(pointLikCumulative(model));
+    }
     else{
         for(i in which(residsToGo)){
             rstudentised[i] <- errors[i] / sqrt(sum(errors[-i]^2) / df);
@@ -2820,121 +2879,6 @@ cooks.distance.greybox <- function(model, ...){
     errors <- rstandard(model);
 
     return(errors^2 / nParam * hatValues/(1-hatValues));
-}
-
-#' Outlier detection and matrix creation
-#'
-#' Function detects outliers and creates a matrix with dummy variables. Only point
-#' outliers are considered (no level shifts).
-#'
-#' The detection is done based on the type of distribution used and confidence level
-#' specified by user.
-#'
-#' @template author
-#'
-#' @param object Model estimated using one of the functions of smooth package.
-#' @param level Confidence level to use. Everything that is outside the constructed
-#' bounds based on that is flagged as outliers.
-#' @param type Type of residuals to use: either standardised or studentised.
-#' @param ... Other parameters. Not used yet.
-#' @return The class "outlierdummy", which contains the list:
-#' \itemize{
-#' \item outliers - the matrix with the dummy variables, flagging outliers;
-#' \item statistic - the value of the statistic for the normalised variable;
-#' \item id - the ids of the outliers (which observations have them);
-#' \item level - the confidence level used in the process;
-#' \item type - the type of the residuals used.
-#' }
-#'
-#' @seealso \link[stats]{influence.measures}
-#' @examples
-#'
-#' # Generate the data with S distribution
-#' xreg <- cbind(rnorm(100,10,3),rnorm(100,50,5))
-#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rs(100,0,3),xreg)
-#' colnames(xreg) <- c("y","x1","x2")
-#'
-#' # Fit the normal distribution model
-#' ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
-#'
-#' # Detect outliers
-#' xregOutlierDummy <- outlierdummy(ourModel)
-#'
-#' @rdname outlierdummy
-#' @export outlierdummy
-outlierdummy <-  function(object, ...) UseMethod("outlierdummy")
-
-#' @rdname outlierdummy
-#' @export
-outlierdummy.default <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
-    # Function returns the matrix of dummies with outliers
-    type <- match.arg(type);
-    errors <- switch(type,"rstandard"=rstandard(object),"rstudent"=rstudent(object));
-    statistic <- qnorm(c((1-level)/2, (1+level)/2), 0, 1);
-    outliersID <- which(errors>statistic[2] | errors <statistic[1]);
-    outliersNumber <- length(outliersID);
-    if(outliersNumber>0){
-        outliers <- matrix(0, nobs(object), outliersNumber,
-                           dimnames=list(rownames(object$data),
-                                         paste0("outlier",c(1:outliersNumber))));
-        outliers[cbind(outliersID,c(1:outliersNumber))] <- 1;
-    }
-    else{
-        outliers <- NULL;
-    }
-
-    return(structure(list(outliers=outliers, statistic=statistic, id=outliersID,
-                          level=level, type=type),
-                     class="outlierdummy"));
-}
-
-#' @rdname outlierdummy
-#' @export
-outlierdummy.alm <- function(object, level=0.999, type=c("rstandard","rstudent"), ...){
-    # Function returns the matrix of dummies with outliers
-    type <- match.arg(type);
-    errors <- switch(type,"rstandard"=rstandard(object),"rstudent"=rstudent(object));
-    statistic <- switch(object$distribution,
-                        "dlaplace"=,
-                        "dllaplace"=qlaplace(c((1-level)/2, (1+level)/2), 0, 1),
-                        "dalaplace"=qalaplace(c((1-level)/2, (1+level)/2), 0, 1, object$other$alpha),
-                        "dlogis"=qlogis(c((1-level)/2, (1+level)/2), 0, 1),
-                        "dt"=qt(c((1-level)/2, (1+level)/2), nobs(object)-nparam(object)),
-                        "dgnorm"=,
-                        "dlgnorm"=qgnorm(c((1-level)/2, (1+level)/2), 0, 1, object$other$shape),
-                        "ds"=,
-                        "dls"=qs(c((1-level)/2, (1+level)/2), 0, 1),
-                        # In the next one, the scale is debiased, taking n-k into account
-                        "dinvgauss"=qinvgauss(c((1-level)/2, (1+level)/2), mean=1,
-                                              dispersion=extractScale(object) * nobs(object) /
-                                                  (nobs(object)-nparam(object))),
-                        "dgamma"=qgamma(c((1-level)/2, (1+level)/2), shape=1/extractScale(object), scale=extractScale(object)),
-                        "dexp"=qexp(c((1-level)/2, (1+level)/2), rate=1),
-                        "dfnorm"=qfnorm(c((1-level)/2, (1+level)/2), 0, 1),
-                        "drectnorm"=qrectnorm(c((1-level)/2, (1+level)/2), 0, 1),
-                        qnorm(c((1-level)/2, (1+level)/2), 0, 1));
-    outliersID <- which(errors>statistic[2] | errors<statistic[1]);
-    outliersNumber <- length(outliersID);
-    if(outliersNumber>0){
-        outliers <- matrix(0, nobs(object), outliersNumber,
-                           dimnames=list(rownames(object$data),
-                                         paste0("outlier",c(1:outliersNumber))));
-        outliers[cbind(outliersID,c(1:outliersNumber))] <- 1;
-    }
-    else{
-        outliers <- NULL;
-    }
-
-    return(structure(list(outliers=outliers, statistic=statistic, id=outliersID,
-                          level=level, type=type),
-                     class="outlierdummy"));
-}
-
-#' @export
-print.outlierdummy <- function(x, ...){
-    cat(paste0("Number of identified outliers: ", length(x$id),
-               "\nConfidence level: ",x$level,
-               "\nType of residuals: ",x$type, "\n"));
 }
 
 #### Summary ####
@@ -3209,12 +3153,35 @@ setMethod("extract", signature=className("summary.alm","greybox"), definition=ex
 setMethod("extract", signature=className("summary.greybox","greybox"), definition=extract.summary.greybox)
 setMethod("extract", signature=className("summary.greyboxC","greybox"), definition=extract.summary.greybox)
 
+#' @importFrom xtable xtable
+#' @export
+xtable::xtable
+
+#' @export
+xtable.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    greyboxSummary <- summary(x);
+    return(do.call("xtable", list(x=greyboxSummary,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}
+
+#' @export
+xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
+                           display = NULL, auto = FALSE, ...){
+    # Substitute class with lm
+    class(x) <- "summary.lm";
+    return(do.call("xtable", list(x=x,
+                                  caption=caption, label=label, align=align, digits=digits,
+                                  display=display, auto=auto, ...)));
+}
+
 #### Predictions and forecasts ####
 
 #' @param occurrence If occurrence was provided, then a user can provide a vector of future
 #' values via this variable.
 #' @rdname predict.greybox
-#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp
+#' @importFrom stats predict qchisq qlnorm qlogis qpois qnbinom qbeta qgamma qexp qgeom qbinom
 #' @importFrom statmod qinvgauss
 #' @export
 predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
@@ -3242,7 +3209,7 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
         greyboxForecast <- predict.greybox(object, newdata, interval, level, side=side, ...);
     }
     else{
-        greyboxForecast <- predict.almari(object, newdata, interval, level, side=side, ...);
+        greyboxForecast <- predict_almari(object, newdata, interval, level, side=side, ...);
     }
     greyboxForecast$location <- greyboxForecast$mean;
     if(interval!="none"){
@@ -3628,6 +3595,19 @@ predict.alm <- function(object, newdata=NULL, interval=c("none", "confidence", "
             greyboxForecast$upper[] <- exp(greyboxForecast$upper);
         }
     }
+    else if(object$distribution=="dbinom"){
+        greyboxForecast$mean <- 1/(1+exp(greyboxForecast$mean));
+        greyboxForecast$scale <- object$other$size;
+        if(interval=="prediction"){
+            greyboxForecast$lower[] <- qbinom(levelLow,prob=greyboxForecast$mean,size=greyboxForecast$scale);
+            greyboxForecast$upper[] <- qbinom(levelUp,prob=greyboxForecast$mean,size=greyboxForecast$scale);
+        }
+        else if(interval=="confidence"){
+            greyboxForecast$lower[] <- exp(greyboxForecast$lower);
+            greyboxForecast$upper[] <- exp(greyboxForecast$upper);
+        }
+        greyboxForecast$mean <- greyboxForecast$mean * object$other$size;
+    }
     else if(object$distribution=="dbeta"){
         greyboxForecast$shape1 <- greyboxForecast$mean;
         greyboxForecast$shape2 <- greyboxForecast$variances;
@@ -3975,7 +3955,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
 }
 
 # The internal function for the predictions from the model with ARI
-predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
+predict_almari <- function(object, newdata=NULL, interval=c("none", "confidence", "prediction"),
                             level=0.95, side=c("both","upper","lower"), ...){
     interval <- match.arg(interval);
     side <- match.arg(side);
@@ -4056,8 +4036,6 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         matrixOfxreg <- matrixOfxreg[,parametersNames,drop=FALSE];
     }
 
-    h <- nrow(matrixOfxreg);
-
     if(object$distribution=="dbeta"){
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
@@ -4075,8 +4053,8 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
 
     if(!is.matrix(matrixOfxreg)){
         matrixOfxreg <- matrix(matrixOfxreg,ncol=1);
-        h <- nrow(matrixOfxreg);
     }
+    h <- nrow(matrixOfxreg);
 
     if(h==1){
         matrixOfxreg <- matrix(matrixOfxreg, nrow=1);
@@ -4108,7 +4086,7 @@ predict.almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         }
 
         # Transform the lagged response variables
-        if(any(object$distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom"))){
+        if(any(object$distribution==c("dlnorm","dllaplace","dls","dpois","dnbinom","dbinom"))){
             if(any(y==0) & !is.occurrence(object$occurrence)){
                 # Use Box-Cox if there are zeroes
                 matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)] <- (matrixOfxregFull[,nonariParametersNumber+c(1:ariOrder)]^0.01-1)/0.01;
@@ -4359,25 +4337,54 @@ forecast.alm <- function(object, newdata=NULL, h=NULL, ...){
     return(predict(object, newdata, ...));
 }
 
-#' @importFrom xtable xtable
+#' @importFrom generics accuracy
 #' @export
-xtable::xtable
+generics::accuracy
 
+#' Error measures for an estimated model
+#'
+#' Function produces error measures for the provided object and the holdout values of the
+#' response variable. Note that instead of parameters \code{x}, \code{test}, the function
+#' accepts the vector of values in \code{holdout}. Also, the parameters \code{d} and \code{D}
+#' are not supported - MASE is always calculated via division by first differences.
+#'
+#' The function is a wrapper for the \link[greybox]{measures} function and is implemented
+#' for convenience.
+#'
+#' @template author
+#'
+#' @param object The estimated model or a forecast from the estimated model generated via
+#' either \code{predict()} or \code{forecast()} functions.
+#' @param holdout The vector of values of the response variable in the holdout (test) set.
+#' If not provided, then the function will return the in-sample error measures.
+#' @param ... Other variables passed to the \code{forecast()} function (e.g. \code{newdata}).
+#' @examples
+#'
+#' xreg <- cbind(rlaplace(100,10,3),rnorm(100,50,5))
+#' xreg <- cbind(100+0.5*xreg[,1]-0.75*xreg[,2]+rlaplace(100,0,3),xreg,rnorm(100,300,10))
+#' colnames(xreg) <- c("y","x1","x2","Noise")
+#'
+#' ourModel <- alm(y~x1+x2+trend, xreg, subset=c(1:80), distribution="dlaplace")
+#'  accuracy(predict(ourModel,xreg[-c(1:80),]), xreg[-c(1:80),"y"])
+#' @rdname accuracy
 #' @export
-xtable.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
-                           display = NULL, auto = FALSE, ...){
-    greyboxSummary <- summary(x);
-    return(do.call("xtable", list(x=greyboxSummary,
-                                  caption=caption, label=label, align=align, digits=digits,
-                                  display=display, auto=auto, ...)));
+accuracy.greybox <- function(object, holdout=NULL, ...){
+    if(is.null(holdout)){
+        return(measures(actuals(object), fitted(object), actuals(object)));
+    }
+    else{
+        h <- length(holdout);
+        return(measures(holdout, forecast(object, h=h, ...)$mean, actuals(object)));
+    }
 }
 
+#' @rdname accuracy
 #' @export
-xtable.summary.greybox <- function(x, caption = NULL, label = NULL, align = NULL, digits = NULL,
-                           display = NULL, auto = FALSE, ...){
-    # Substitute class with lm
-    class(x) <- "summary.lm";
-    return(do.call("xtable", list(x=x,
-                                  caption=caption, label=label, align=align, digits=digits,
-                                  display=display, auto=auto, ...)));
+accuracy.predict.greybox <- function(object, holdout=NULL, ...){
+    if(is.null(holdout)){
+        return(accuracy(object$model));
+    }
+    else{
+        return(measures(holdout, object$mean, actuals(object)));
+    }
 }

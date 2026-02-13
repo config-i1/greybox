@@ -7,10 +7,10 @@
 alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "ds", "dgnorm", "dlogis", "dt", "dalaplace", "dlnorm", "dllaplace", "dls",
   "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
-  "dpois", "dnbinom", "dbeta", "dlogitnorm", "plogis", "pnorm"),
-  loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE"),
-  occurrence = c("none", "plogis", "pnorm"), scale = NULL, orders = c(0,
-  0, 0), parameters = NULL, fast = FALSE, ...)
+  "dpois", "dnbinom", "dbinom", "dgeom", "dbeta", "dlogitnorm", "plogis",
+  "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE",
+  "ROLE"), occurrence = c("none", "plogis", "pnorm"), scale = NULL,
+  orders = c(0, 0, 0), parameters = NULL, fast = FALSE, ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -37,13 +37,16 @@ names of distribution functions in R. For example, see \link[stats]{dnorm}.}
 \item{loss}{The type of Loss Function used in optimization. \code{loss} can
 be:
 \itemize{
-\item \code{likelihood} - the model is estimated via the maximisation of the
+\item \code{"likelihood"} - the model is estimated via the maximisation of the
 likelihood of the function specified in \code{distribution};
-\item \code{MSE} (Mean Squared Error),
-\item \code{MAE} (Mean Absolute Error),
-\item \code{HAM} (Half Absolute Moment),
-\item \code{LASSO} - use LASSO to shrink the parameters of the model;
-\item \code{RIDGE} - use RIDGE to shrink the parameters of the model;
+\item \code{"MSE"} (Mean Squared Error),
+\item \code{"MAE"} (Mean Absolute Error),
+\item \code{"HAM"} (Half Absolute Moment),
+\item \code{"LASSO"} - use LASSO to shrink the parameters of the model;
+\item \code{"RIDGE"} - use RIDGE to shrink the parameters of the model;
+\item \code{"ROLE"} - "RObust Likelihood Estimator", which uses trimmed mean in the
+calculation of scale and likelihood. A separate parameter \code{trim} can be provided
+in ellipsis. If not provided, the default value is 0.05;
 }
 In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
 but the parameters are divided by the standard deviations of explanatory variables
@@ -113,7 +116,7 @@ You can also pass parameters to the optimiser:
 should correspond to the explanatory variables. If formula for scale was provided,
 the parameters for that part should follow the parameters for location;
 \item \code{algorithm} - the algorithm to use in optimisation
-(\code{"NLOPT_LN_SBPLX"} by default);
+(\code{"NLOPT_LN_NELDERMEAD"} by default);
 \item \code{maxeval} - maximum number of evaluations to carry out. Default is 40 per
 estimated parameter. In case of LASSO / RIDGE the default is 80 per estimated parameter;
 \item \code{maxtime} - stop, when the optimisation time (in seconds) exceeds this;
@@ -141,12 +144,13 @@ Function returns \code{model} - the final model of the class
 \item scale - the estimated scale parameter of the distribution. If a formula was provided for
 scale, then an object of class "scale" will be returned.
 \item distribution - distribution used in the estimation,
-\item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"}
-and in several other special cases of distribution and loss combinations (e.g. \code{loss="MSE"},
-distribution="dnorm"),
+\item logLik - log-likelihood of the model. Only returned, when \code{loss="likelihood"} or
+\code{loss="ROLE"} and in several special cases of distribution and loss
+combinations (e.g. \code{loss="MSE"}, distribution="dnorm"),
 \item loss - the type of the loss function used in the estimation,
 \item lossFunction - the loss function, if the custom is provided by the user,
 \item lossValue - the value of the loss function,
+\item res - the output of the optimisation (nloptr function),
 \item df.residual - number of degrees of freedom of the residuals of the model,
 \item df - number of degrees of freedom of the model,
 \item call - how the model was called,
@@ -189,6 +193,8 @@ of several non-normal distributions. These include:
 \item \link[stats]{dbeta} - Beta distribution,
 \item \link[stats]{dpois} - Poisson Distribution,
 \item \link[stats]{dnbinom} - Negative Binomial Distribution,
+\item \link[stats]{dbinom} - Binomial Distribution,
+\item \link[stats]{dgeom} - Geometric Distribution,
 \item \link[stats]{plogis} - Cumulative Logistic Distribution,
 \item \link[stats]{pnorm} - Cumulative Normal distribution.
 }
@@ -283,7 +289,7 @@ plot(predict(ourModel,xreg[-c(1:80),],interval="p"))}
 \link[greybox]{xregTransformer}}
 }
 \author{
-Ivan Svetunkov, \email{ivan@svetunkov.ru}
+Ivan Svetunkov, \email{ivan@svetunkov.com}
 }
 \keyword{models}
 \keyword{nonlinear}

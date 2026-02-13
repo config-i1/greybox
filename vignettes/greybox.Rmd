@@ -53,6 +53,7 @@ See discussion of some of these functions in this vignette below.
 4. `association()` - the matrix of measures of association.
 5. `spread()` - function that plots scatter / boxplot / tableplot diagrams between variables depending on the their types.
 6. `determination()` - coefficients of determination for the set of explanatory variables.
+7. `timeboot()` - function that bootstraps series based on the provided data. This is a non-parametric bootstrap, not relying on any model, inspired by Maximum Entropy bootstrap by [Vinod & López-de-Lacalle (2009)](https://www.doi.org/10.18637/jss.v029.i05).
 
 All these functions are discussed in a separate vignette on [marketing analytics tools](maUsingGreybox.html).
 

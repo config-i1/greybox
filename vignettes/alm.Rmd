@@ -302,6 +302,7 @@ Kurtosis of Student t distribution depends on the value of $\nu$, and for the ca
 
 In order to see how this works, we will create the following data:
 ```{r normalDistributionData}
+set.seed(41, kind="L'Ecuyer-CMRG")
 xreg <- cbind(rnorm(200,10,3),rnorm(200,50,5))
 xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(200,0,3),xreg,rnorm(200,300,10))
 colnames(xreg) <- c("y","x1","x2","Noise")
@@ -750,6 +751,8 @@ This group includes:
 
 1. [Poisson distribution](#poisson),
 2. [Negative Binomial distribution](#nbinom),
+3. [Binomial distribution](#binom),
+4. [Geometric distribution](#geom),
 
 These distributions should be used in cases of count data.
 
@@ -777,7 +780,7 @@ legend("topright",legend=c("Poisson(0.1)","Poisson(0.5)","Poisson(1)","Poisson(5
        lwd=1, col=c("black","blue","purple","red"))
 ```
 
-`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful...
+`alm()` with `distribution="dpois"` returns `mu`, `fitted.values` and `scale` equal to $\lambda_t$. The quantiles of distribution in `predict()` method are generated using `qpois()` function from `stats` package. Finally, the returned residuals correspond to $y_t - \mu_t$, which is not really helpful or meaningful.
 
 ### Negative Binomial distribution {#nbinom}
 Negative Binomial distribution implemented in `alm()` is parameterised in terms of mean and variance:
@@ -788,22 +791,77 @@ where $\mu_t = \exp(x_t' B)$ and $\sigma^2$ is estimated separately in the optim
 
 Here are some examples of PMF of Negative Binomial distribution with different sizes and probabilities:
 ```{r pmfNegBin, echo=FALSE}
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.5),type="b",ylim=c(0,0.4),
+plot(seq(0,10,1),dnbinom(seq(0,10,1),3,0.5),type="b",ylim=c(0,0.4),
      xlab="y_t",ylab="Density",main="PMF of Negative Binomial distribution")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.75),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.5),type="b",
      col="blue", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.25),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.75),type="b",
      col="purple", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
 par(new=TRUE)
-plot(seq(0,10,1),dnbinom(seq(0,10,1),3,0.5),type="b",
+plot(seq(0,10,1),dnbinom(seq(0,10,1),5,0.25),type="b",
      col="red", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
-legend("topright",legend=c("NegBin(5,0.5)","NegBin(5,0.9)","NegBin(5,0.1)","NegBin(3,0.5)"),
+legend("topright",legend=c("NegBin(3,0.5)","NegBin(5,0.5)","NegBin(5,0.75)","NegBin(5,0.25)"),
        lwd=1, col=c("black","blue","purple","red"))
 ```
 
 `alm()` with `distribution="dnbinom"` returns $\mu_t$ in `mu` and `fitted.values` and $\sigma^2$ in `scale`. The prediction intervals are produces using `qnbinom()` function. Similarly to Poisson distribution, `resid()` method returns $y_t - \mu_t$. The user can also provide `size` parameter in ellipsis if it is reasonable to assume that it is known.
+
+
+### Binomial distribution {#binom}
+The PMF of Binomial distribution is written as:
+\begin{equation} \label{eq:Bin}
+    P(X=y_t) = \binom{n}{y_t} p_t^y_t (1-p_t)^{n-y_t},
+\end{equation}
+where $n$ is the size parameter, $\mu_t=\exp(x_t' B)$ $p_t = \frac{1}{1+\mu_t}$ and $\mathrm{E}({y}_t) = n \times p_t$. The size parameter is always known and can be calculated as a number of unique values in $y$ minus one. So, if the data takes one of the three values: 0, 1 and 2, the size will be $n=2$. The values of $p_t$ and $n$ are then used in the `dbinom()` function to calculate the log-likelihood.
+
+Visually, the PMF of the Binomial distribution has the following shapes with different values of probability and size:
+```{r pmfBin, echo=FALSE}
+plot(seq(0,10,1),dbinom(seq(0,10,1),3,0.5),type="b",ylim=c(0,0.4),
+     xlab="y_t",ylab="Density",main="PMF of Binomial distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.5),type="b",
+     col="blue", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.75),type="b",
+     col="purple", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dbinom(seq(0,10,1),5,0.25),type="b",
+     col="red", ylim=c(0,0.4), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("Bin(3,0.5)","Bin(5,0.5)","Bin(5,0.75)","Bin(5,0.25)"),
+       lwd=1, col=c("black","blue","purple","red"))
+```
+
+`alm()` with `distribution="dbinom"` returns $\mu_t$ in `mu` and $\mathrm{E}({y}_t)$ in `fitted.values`, the `scale` and `other$size` both contain the same value of $n$. The prediction intervals are produces using `qbinom()` function. `resid()` method returns $y_t - \mathrm{E}({y}_t)$.
+
+
+### Geometric distribution {#geom}
+There is also Geometric distribution implemented in `alm()`. It has the following PMF:
+\begin{equation} \label{eq:Geom}
+    P(X=y_t) = (1-p_t)^{y_t} p_t,
+\end{equation}
+where $p_t = \frac{1}{1+\exp(x_t' B)}$. The conditional expectation in this model is calculated as $\mu_t = \frac{1}{p_t} - 1 = \exp(x_t' B)$. The probability is used in the calculation of the log-likelihood via the `dgeom()` function.
+
+Several PMFs of the Geometric distribution are shown in the following figure:
+```{r pmfGeom, echo=FALSE}
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.25),type="b",ylim=c(0,1),
+     xlab="y_t",ylab="Density",main="PMF of Geometric distribution")
+par(new=TRUE)
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.5),type="b",
+     col="blue", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+plot(seq(0,10,1),dgeom(seq(0,10,1),0.75),type="b",
+     col="purple", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+par(new=TRUE)
+# plot(seq(0,10,1),dgeom(seq(0,10,1),0.9),type="b",
+#      col="red", ylim=c(0,1), axes=FALSE, xlab="", ylab="")
+legend("topright",legend=c("Geom(0.25)","Geom(0.5)","Geom(0.75)"),
+       lwd=1, col=c("black","blue","purple"))
+```
+
+`alm()` with `distribution="dgeom"` returns $\mu_t$ in `mu` and in `fitted.values`. The `scale` does not contain anything useful, because the Geometric distribution has a time varying variance, which depends on the probability. The prediction intervals are produces using `qgeom()` function. Similarly to the other count distribution, `resid()` method returns $y_t - \mu_t$.
+
 
 ### An example of application
 Round up the response variable for the next example:
@@ -907,6 +965,10 @@ Finally, mixture distribution models can be used in `alm()` by defining `distrib
 
 As an example of mixture model, let's generate some data:
 ```{r mixtureExampleData}
+set.seed(42, kind="L'Ecuyer-CMRG")
+xreg <- cbind(rnorm(200,10,3),rnorm(200,50,5))
+xreg <- cbind(500+0.5*xreg[,1]-0.75*xreg[,2]+rs(200,0,3),xreg,rnorm(200,300,10))
+colnames(xreg) <- c("y","x1","x2","Noise")
 xreg[,1] <- round(exp(xreg[,1]-400) / (1 + exp(xreg[,1]-400)),0) * xreg[,1]
 # Sometimes the generated data contains huge values
 xreg[is.nan(xreg[,1]),1] <- 0;
@@ -1019,9 +1081,9 @@ As mentioned earlier, depending on the distribution, we would have slight differ
 4. [Generalised Normal](#gnormal) and [Log-Generalised Normal](#lgnormal) distributions. Logarithms of absolute residuals in the power of $\beta$ are used in the initialisation, $\hat{\sigma}_t^{\frac{1}{\beta}}$ is used in the density function;
 5. [Gamma distribution](#gamma). Logarithms of squared residuals minus one ($\log(e_t-1)^2$) are used in the initialisation. This is needed in order to get to the estimate of the variance in the residuals, as the distribution assumes in `alm()` that $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function;
 6. Inverse Gaussian distribution. The residuals are transformed according to the formula: $\log\left(\frac{(e_t-1)^2}{e_t}\right)$, which (similarly to Gamma distribution) is motivated by the assumption of $\mathrm{E}(e_t)=1$. $\hat{\sigma}_t$ is used in the density function.
-7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily has a good reason and is done for fail-safe purposes.
+7. All the other distributions rely on logarithms of absolute residuals and use $\hat{\sigma}_t$. This does not necessarily have a good reason and is done for fail-safe purposes.
 
-Note that the scale model is currently a new experimental feature, so it might not produce perfect results. Let me know if you have ideas of how to improve it via [https://github.com/config-i1/greybox/issues](https://github.com/config-i1/greybox/issues).
+Note that the scale model is a relatively new feature, so it might not produce perfect results. Let me know if you have ideas of how to improve it via [https://github.com/config-i1/greybox/issues](https://github.com/config-i1/greybox/issues).
 
 
 # Using different loss functions {#losses}
@@ -1033,7 +1095,7 @@ There are several loss functions implemented in the function and there is an opt
 
 The likelihoods of the distributions above are maximised, when the respective losses are minimised, so all the inference discussed above hold in these three situations. In all the other cases, the `alm()` function will not return `logLik` and might complain that the derivations can be misleading.
 
-Also, when `loss="likelihood"` the number of estimated parameters includes the scale of distribution (e.g. standard deviation in case of Normal distribution), but it is not counted in the number of parameters of all the other losses.
+Also, when `loss="likelihood"` (and for the three cases above) the number of estimated parameters includes the scale of distribution (e.g. standard deviation in case of Normal distribution), but it is not counted in the number of parameters of all the other losses.
 
 Finally, we can provide custom loss functions. Here is an example:
 ```{r}
@@ -1071,6 +1133,6 @@ There are several parameters in the optimiser that can be regulated by the user.
 8. `ftol_abs` - the stopping criterion in case of the absolute change in the loss function (the default is 0 - not used);
 9. `print_level` - the level of output for the optimiser (0 by default). If equal to 41, then the detailed results of the optimisation are returned.
 
-You can read more about these parameters by running the function {nloptr.print.options()} form the `nloptr` package. Typically, if your model does not work as expected, you might need to tune some of these parameters in order to make sure that the optimum of the loss is reached to the satisfactory extent.
+You can read more about these parameters by running the function `nloptr.print.options()` form the `nloptr` package. Typically, if your model does not work as expected, you might need to tune some of these parameters in order to make sure that the optimum of the loss is reached to the satisfactory extent.
 
 # References

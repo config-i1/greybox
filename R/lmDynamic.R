@@ -25,6 +25,10 @@
 #' one are produced and then combined.
 #' @param silent If \code{FALSE}, then nothing is silent, everything is printed
 #' out. \code{TRUE} means that nothing is produced.
+#' @param formula If provided, then the selection will be done from the listed
+#' variables in the formula after all the necessary transformations.
+#' @param subset an optional vector specifying a subset of observations to be
+#' used in the fitting process.
 #' @param distribution Distribution to pass to \code{alm()}. See \link[greybox]{alm}
 #' for details.
 #' @param parallel If \code{TRUE}, then the model fitting is done in parallel.
@@ -85,6 +89,7 @@
 #' @importFrom stats lowess
 #' @export lmDynamic
 lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
+                      formula=NULL, subset=NULL,
                       distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                      "dlnorm","dllaplace","dls","dlgnorm","dbcnorm","dfnorm",
                                      "dinvgauss","dgamma",
@@ -105,6 +110,40 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     loss <- "likelihood";
     if(is.null(ellipsis$loss)){
        ellipsis$loss <- loss;
+    }
+
+    # Use formula to form the data frame for further selection
+    if(!is.null(formula) || !is.null(subset)){
+        # If subset is provided, but not formula, generate one
+        if(is.null(formula)){
+            formula <- as.formula(paste0(colnames(data)[1],"~."));
+        }
+
+        # Do model.frame manipulations
+        mf <- match.call(expand.dots = FALSE);
+        mf <- mf[c(1L, match(c("formula", "data", "subset"), names(mf), 0L))];
+        mf$drop.unused.levels <- TRUE;
+        mf[[1L]] <- quote(stats::model.frame);
+
+        if(!is.data.frame(data)){
+            mf$data <- as.data.frame(data);
+        }
+        # Evaluate data frame to do transformations of variables
+        data <- eval(mf, parent.frame());
+        responseName <- colnames(data)[1];
+
+        # Remove variables that have "-x" in the formula
+        dataTerms <- terms(data);
+        data <- data[,c(responseName, colnames(attr(dataTerms,"factors")))];
+        ## We do it this way to avoid factors expansion into dummies at this stage
+    }
+
+    # Check, whether the response is numeric
+    if(!is.numeric(data[[1]])){
+        warning(paste0("The response variable is not numeric! ",
+                       "We will make it numeric, but we cannot promise anything."),
+                call.=FALSE);
+        data[[1]] <- as.numeric(data[[1]]);
     }
 
     # If they asked for parallel, make checks and try to do that
@@ -736,7 +775,7 @@ lmDynamic <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                                  ICType=ic, df.residual=mean(df), df=sum(apply(importance,2,mean))+1, importance=importance,
                                  call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                                  coefficientsDynamic=parametersWeighted, df.residualDynamic=df, dfDynamic=apply(importance,1,sum)+1,
-                                 weights=pICWeights, other=other, f=f,
+                                 weights=pICWeights, other=other, f=f, loss=loss,
                                  timeElapsed=Sys.time()-startTime),
                             class=c("greyboxD","alm","greybox"));
 

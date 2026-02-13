@@ -56,6 +56,8 @@
 #' \url{https://en.wikipedia.org/wiki/Folded_normal_distribution}.
 #' }
 #'
+#' @seealso \code{\link[greybox]{Distributions}}
+#'
 #' @rdname FNormal
 #' @importFrom stats optim pnorm qnorm rnorm
 #' @aliases FNormal dfnorm

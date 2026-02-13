@@ -8,6 +8,9 @@
 #' then boxplots (with grey dots corresponding to mean values) are constructed. Finally,
 #' for the two categorical variables the tableplot is returned (see
 #' \link[greybox]{tableplot} function for the details). All of this is packed in a matrix.
+#' The colours in the plot can be changed by defining a different palette via the
+#' \code{palette()} function, in which case spread() will use the first four colours
+#' in the pallete.
 #'
 #' See details in the vignette "Marketing analytics with greybox":
 #' \code{vignette("maUsingGreybox","greybox")}
@@ -83,6 +86,9 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
         }
     }
 
+    # Set the palette for the plots
+    paletteBasic <- paletteDetector(c("black","grey41","grey","lightgrey"));
+
     if(log){
         if(any(data[numericData]<=0)){
             warning("Some variables have non-positive data, so logarithms cannot be produced for them.",call.=FALSE);
@@ -102,10 +108,10 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
 
     if(nVariables==1){
         if(numericData[1]){
-            hist(data[[1]], main=mainTitle);
+            hist(data[[1]], main=mainTitle, col=paletteBasic[4]);
         }
         else{
-            barplot(table(data[[1]]), col="white");
+            barplot(table(data[[1]]), col=paletteBasic[4]);
         }
     }
     else{
@@ -117,16 +123,22 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 if(i==j){
                     if(histograms){
                         if(numericData[i]){
-                            hist(data[[i]], main="", axes=FALSE);
+                            histPlotted <- hist(data[[i]], main="", axes=FALSE, col=paletteBasic[4]);
+                            histPlottedX <- histPlotted$breaks;
+                            histPlottedYRange <- range(histPlotted$counts);
                         }
                         else{
-                            barplot(table(data[[i]]), main="", axes=FALSE, axisnames=FALSE, col="white");
+                            dataTable <- table(data[[i]]);
+                            histPlottedX <- barplot(dataTable, main="", axes=FALSE,
+                                                    axisnames=FALSE, col=paletteBasic[4]);
+                            histPlottedYRange <- range(dataTable);
                         }
                     }
                     else{
                         if(numericData[i]){
                             midPoint <- (max(data[[i]], na.rm=TRUE)+min(data[[i]], na.rm=TRUE))/2;
-                            plot(data[[i]], data[[i]], col="white", axes=FALSE);
+                            plot(0, 0, col="white", axes=FALSE,
+                                 xlim=range(data[[i]]), ylim=range(data[[i]]));
                             text(midPoint,midPoint,variablesNames[i],cex=1.5);
                         }
                         else{
@@ -140,29 +152,31 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 }
                 else{
                     if(numericData[i] && numericData[j]){
-                        plot(data[[i]],data[[j]], main="", axes=FALSE);
+                        plot(data[[i]],data[[j]], main="", axes=FALSE, col=paletteBasic[1]);
                         if(lowess){
-                            lines(lowess(data[[i]], data[[j]]), col="darkgrey", lty=2, lwd=2);
+                            # Get the default delta, but use na.rm to get rid of NAs
+                            delta <- 0.01 * diff(range(data[[i]], na.rm=TRUE));
+                            lowessLine <-lowess(data[[i]], data[[j]], delta=delta);
+                            lines(lowessLine, col=paletteBasic[3], lty=2, lwd=2);
                         }
                     }
                     else if(numericData[i]){
-                        # boxplot(as.formula(paste0(variablesNames[i],"~",variablesNames[j])),data,horizontal=TRUE, main="", axes=FALSE);
                         boxplot(as.formula(paste0("`",variablesNames[i],"`~`",variablesNames[j],"`")),
-                                data, horizontal=TRUE, main="", axes=FALSE);
+                                data, horizontal=TRUE, main="", axes=FALSE, col=paletteBasic[4]);
                         if(lowess){
                             lines(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                                  c(1:length(levels(data[[j]]))), col="darkgrey", lty=2, lwd=2);
+                                  c(1:length(levels(data[[j]]))), col=paletteBasic[3], lty=2, lwd=2);
                         }
                         points(tapply(data[[i]],data[[j]],mean,na.rm=TRUE),
-                               c(1:length(levels(data[[j]]))), pch=19, col="darkgrey");
+                               c(1:length(levels(data[[j]]))), pch=19, col=paletteBasic[3]);
                     }
                     else if(numericData[j]){
-                        # boxplot(as.formula(paste0(variablesNames[j],"~",variablesNames[i])),data, main="", axes=FALSE);
-                        boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),data, main="", axes=FALSE);
+                        boxplot(as.formula(paste0("`",variablesNames[j],"`~`",variablesNames[i],"`")),
+                                data, main="", axes=FALSE, col=paletteBasic[4]);
                         if(lowess){
-                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col="darkgrey", lty=2, lwd=2);
+                            lines(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), col=paletteBasic[3], lty=2, lwd=2);
                         }
-                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col="darkgrey");
+                        points(tapply(data[[j]],data[[i]],mean,na.rm=TRUE), pch=19, col=paletteBasic[3]);
                     }
                     else{
                         tableplot(data[[i]],data[[j]], labels=FALSE, legend=FALSE, main="", axes=FALSE);
@@ -172,7 +186,8 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 # Add axis and labels if this is the first element
                 if(i==1){
                     if(histograms){
-                        mtext(variablesNames[nVariables-j+1], side=2, at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
+                        mtext(variablesNames[nVariables-j+1], side=2,
+                              at=(j-0.35)/nVariables, line=1, adj=1, outer=TRUE);
                     }
                     else{
                         if(numericData[j]){
@@ -207,8 +222,16 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                     }
                     else{
                         uniqueValues <- levels(data[[j]]);
-                        axis(4, at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                             labels=sort(uniqueValues,na.last=TRUE));
+                        # The last element in the matrix is special in case of histogram
+                        if(j==nVariables){
+                            axis(4, at=seq(histPlottedYRange[1],histPlottedYRange[2]-0.5,
+                                           length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues,na.last=TRUE));
+                        }
+                        else{
+                            axis(4, at=seq(1,length(uniqueValues), length.out=length(uniqueValues)),
+                                 labels=sort(uniqueValues,na.last=TRUE));
+                        }
                     }
                 }
 
@@ -219,9 +242,15 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                 axis(1);
             }
             else{
-                uniqueValues <- levels(unique(data[[i]]));
-                axis(1,at=seq(1,length(uniqueValues),length.out=length(uniqueValues)),
-                     labels=uniqueValues);
+                if(i==nVariables && histograms){
+                    uniqueValues <- levels(unique(data[[i]]));
+                    axis(1,at=histPlottedX, labels=uniqueValues);
+                }
+                else{
+                    uniqueValues <- levels(unique(data[[i]]));
+                    axis(1,at=seq(1,length(uniqueValues), length.out=length(uniqueValues)),
+                         labels=uniqueValues);
+                }
             }
             if(histograms){
                 mtext(variablesNames[i], side=3, at=(i-0.5)/nVariables, line=1, outer=TRUE);
