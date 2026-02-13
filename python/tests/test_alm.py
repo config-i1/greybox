@@ -113,6 +113,34 @@ class TestALM:
         assert "ALM" in repr_str
         assert "dnorm" in repr_str
 
+    def test_alm_nlopt_kargs(self):
+        """Test ALM with custom nlopt_kargs."""
+        import csv
+        data = {}
+        with open('/tmp/mtcars.csv', 'r') as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+        for key in rows[0].keys():
+            data[key] = [float(row[key]) for row in rows]
+        
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm",
+            loss="likelihood",
+            nlopt_kargs={
+                "algorithm": "NLOPT_LN_SBPLX",
+                "maxeval": 100,
+                "xtol_rel": 1e-4
+            }
+        )
+        model.fit(X, y)
+
+        assert model.intercept_ is not None
+        assert model.coef_ is not None
+        assert model.log_lik_ is not None
+        assert model.nlopt_result_ is not None
+
 
 class TestALMMtcars:
     """Tests comparing Python ALM with R alm() using mtcars dataset.
@@ -146,7 +174,8 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", maxiter=1000)
+        model = ALM(distribution="dnorm", loss="likelihood",
+                   nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -179,7 +208,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt + hp", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", maxiter=1000)
+        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -210,7 +239,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlaplace", loss="likelihood", maxiter=1000)
+        model = ALM(distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -238,7 +267,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="MSE", maxiter=1000)
+        model = ALM(distribution="dnorm", loss="MSE", nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -260,7 +289,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="MAE", maxiter=1000)
+        model = ALM(distribution="dnorm", loss="MAE", nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -283,7 +312,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlogis", loss="likelihood", maxiter=1000)
+        model = ALM(distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -310,7 +339,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dt", loss="likelihood", nu=4, maxiter=1000)
+        model = ALM(distribution="dt", loss="likelihood", nu=4, nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(
@@ -333,7 +362,7 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dgnorm", loss="likelihood", shape=2.0, maxiter=1000)
+        model = ALM(distribution="dgnorm", loss="likelihood", shape=2.0, nlopt_kargs={"maxeval": 1000})
         model.fit(X, y)
 
         np.testing.assert_allclose(

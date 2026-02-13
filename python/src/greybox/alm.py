@@ -6,11 +6,24 @@ to the fit() method.
 """
 
 import numpy as np
-from scipy import optimize
+import nlopt
 
 from .fitters import scaler_internal, extractor_fitted, extractor_residuals
 from .cost_function import cf
 from . import distributions as dist
+
+
+NLOPT_ALGORITHMS = {
+    "NLOPT_LN_NELDERMEAD": nlopt.LN_NELDERMEAD,
+    "NLOPT_LN_SBPLX": nlopt.LN_SBPLX,
+    "NLOPT_LN_COBYLA": nlopt.LN_COBYLA,
+    "NLOPT_LN_BOBYQA": nlopt.LN_BOBYQA,
+    "NLOPT_LN_NEWUOA": nlopt.LN_NEWUOA,
+    "NLOPT_LN_PRAXIS": nlopt.LN_PRAXIS,
+    "NLOPT_LD_LBFGS": nlopt.LD_LBFGS,
+    "NLOPT_LD_SLSQP": nlopt.LD_SLSQP,
+    "NLOPT_LD_MMA": nlopt.LD_MMA,
+}
 
 
 class ALM:
@@ -53,10 +66,16 @@ class ALM:
         L1 regularization parameter for LASSO.
     lambda_l2 : float, optional
         L2 regularization parameter for RIDGE.
-    maxiter : int, default=500
-        Maximum number of optimization iterations.
-    tol : float, default=1e-6
-        Tolerance for convergence.
+    nlopt_kargs : dict, optional
+        Dictionary of nlopt parameters. Options:
+        - "algorithm": str, default="NLOPT_LN_NELDERMEAD"
+        - "maxeval": int, default=40 per parameter
+        - "maxtime": float, default=600 seconds
+        - "xtol_rel": float, default=1e-6
+        - "xtol_abs": float, default=1e-8
+        - "ftol_rel": float, default=1e-4
+        - "ftol_abs": float, default=0
+        - "print_level": int, default=0 (0=none, 3=full)
     verbose : int, default=0
         Verbosity level.
 
@@ -94,6 +113,20 @@ class ALM:
     >>> model = ALM(distribution="dnorm", loss="likelihood")
     >>> model.fit(X, y)
     >>> print(model.coef_)
+
+    >>> # Using nlopt with custom parameters (like R)
+    >>> model = ALM(
+    ...     distribution="dnorm",
+    ...     loss="likelihood",
+    ...     nlopt_kargs={
+    ...         "algorithm": "NLOPT_LN_SBPLX",
+    ...         "maxeval": 1000,
+    ...         "maxtime": 600,
+    ...         "xtol_rel": 1e-8,
+    ...         "print_level": 1
+    ...     }
+    ... )
+    >>> model.fit(X, y)
     """
 
     DISTRIBUTIONS = [
@@ -125,8 +158,7 @@ class ALM:
         trim=0.0,
         lambda_l1=None,
         lambda_l2=None,
-        maxiter=500,
-        tol=1e-6,
+        nlopt_kargs=None,
         verbose=0
     ):
         self.distribution = distribution
@@ -142,8 +174,7 @@ class ALM:
         self.trim = trim
         self.lambda_l1 = lambda_l1
         self.lambda_l2 = lambda_l2
-        self.maxiter = maxiter
-        self.tol = tol
+        self.nlopt_kargs = nlopt_kargs if nlopt_kargs is not None else {}
         self.verbose = verbose
 
         self.coef_ = None
@@ -236,7 +267,11 @@ class ALM:
         ar_order = 0
         i_order = 0
 
-        def objective(B):
+        n_params = n_features
+
+        def objective_func(B, grad):
+            if grad.size > 0:
+                grad[:] = 0
             return cf(
                 B,
                 self.distribution,
@@ -253,21 +288,41 @@ class ALM:
                 size=self.size if self.distribution == "dbinom" else 1.0
             )
 
+        algorithm_name = self.nlopt_kargs.get("algorithm", "NLOPT_LN_NELDERMEAD")
+        if algorithm_name not in NLOPT_ALGORITHMS:
+            raise ValueError(f"Unknown algorithm: {algorithm_name}. Choose from: {list(NLOPT_ALGORITHMS.keys())}")
+
+        algorithm = NLOPT_ALGORITHMS[algorithm_name]
+
+        opt = nlopt.opt(algorithm, n_params)
+
+        opt.set_lower_bounds([-1e10] * n_params)
+        opt.set_upper_bounds([1e10] * n_params)
+        opt.set_min_objective(objective_func)
+
+        opt.set_xtol_rel(self.nlopt_kargs.get("xtol_rel", 1e-6))
+        opt.set_xtol_abs(self.nlopt_kargs.get("xtol_abs", 1e-8))
+        opt.set_ftol_rel(self.nlopt_kargs.get("ftol_rel", 1e-4))
+        opt.set_ftol_abs(self.nlopt_kargs.get("ftol_abs", 0))
+        opt.set_maxeval(self.nlopt_kargs.get("maxeval", 40 * n_params))
+        opt.set_maxtime(self.nlopt_kargs.get("maxtime", 600))
+
+        print_level = self.nlopt_kargs.get("print_level", 0)
+        if self.verbose > 0 or print_level > 0:
+            opt.set_verbose(True)
+
         try:
-            result = optimize.minimize(
-                objective,
-                B_init,
-                method="Nelder-Mead",
-                options={"maxiter": self.maxiter, "xatol": self.tol, "fatol": self.tol}
-            )
-            B_opt = result.x
-            self.n_iter_ = result.nit
-            self._result = result
+            B_opt = opt.optimize(B_init)
+            self.n_iter_ = opt.get_numevals()
+            self._result = opt.last_optimum_value()
+            self.nlopt_result_ = opt.last_optimize_result()
         except Exception as e:
             if self.verbose > 0:
                 print(f"Optimization failed: {e}")
             B_opt = B_init
             self.n_iter_ = 0
+            self._result = None
+            self.nlopt_result_ = None
 
         if n_features > 0:
             self.intercept_ = B_opt[0]
@@ -303,7 +358,7 @@ class ALM:
             self.lambda_bc if self.distribution == "dbcnorm" else 0.0
         )
 
-        self.loss_value_ = objective(B_opt)
+        self.loss_value_ = objective_func(B_opt, np.zeros(n_params))
 
         if self.loss == "likelihood":
             self.log_lik_ = -self.loss_value_
@@ -430,8 +485,7 @@ class ALM:
             "trim": self.trim,
             "lambda_l1": self.lambda_l1,
             "lambda_l2": self.lambda_l2,
-            "maxiter": self.maxiter,
-            "tol": self.tol,
+            "nlopt_kargs": self.nlopt_kargs,
             "verbose": self.verbose
         }
 

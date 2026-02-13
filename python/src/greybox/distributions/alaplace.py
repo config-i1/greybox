@@ -82,10 +82,22 @@ def qalaplace(p, mu=0, scale=1, alpha=0.5):
         Quantile values.
     """
     p = np.asarray(p)
-    indicator = (p <= alpha).astype(float)
-    result = mu + scale / (indicator - alpha) * np.log((1 - indicator - p) / (1 - indicator - alpha))
-    result = np.where(p == 0, -np.inf, result)
-    result = np.where(p == 1, np.inf, result)
+    result = np.empty_like(p, dtype=float)
+    
+    mask_0 = (p == 0)
+    mask_1 = (p == 1)
+    mask_mid = ~(mask_0 | mask_1)
+    
+    result[mask_0] = -np.inf
+    result[mask_1] = np.inf
+    
+    if np.any(mask_mid):
+        p_mid = p[mask_mid]
+        indicator = (p_mid <= alpha).astype(float)
+        result[mask_mid] = mu + scale / (indicator - alpha) * np.log(
+            (1 - indicator - p_mid) / (1 - indicator - alpha)
+        )
+    
     return result
 
 
