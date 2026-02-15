@@ -5,6 +5,10 @@ Users should first use the formula module to get X and y, then pass them
 to the fit() method.
 """
 
+from typing import Literal
+
+import time as time_module
+
 import numpy as np
 import nlopt
 from scipy import stats
@@ -12,6 +16,7 @@ from scipy import stats
 from .fitters import scaler_internal, extractor_fitted, extractor_residuals
 from .cost_function import cf
 from . import distributions as dist
+from .methods.summary import SummaryResult
 
 
 class PredictionResult:
@@ -225,9 +230,13 @@ class ALM:
         self.aic_ = None
         self.bic_ = None
         self.n_iter_ = None
+        self.time_elapsed_ = None
         self._result = None
         self._n_features = None
         self._X_train_ = None
+        self._y_train_ = None
+        self._formula_ = None
+        self._feature_names = None
         self.df_residual_ = None
 
     def _validate_params(self):
@@ -246,7 +255,7 @@ class ALM:
         if not isinstance(self.orders, (tuple, list)) or len(self.orders) != 3:
             raise ValueError("orders must be a tuple of 3 integers (p, d, q)")
 
-    def fit(self, X, y):
+    def fit(self, X, y, formula=None, feature_names=None):
         """Fit the ALM model.
 
         Parameters
@@ -256,13 +265,21 @@ class ALM:
             as first column if you want an intercept.
         y : array-like of shape (n_samples,)
             Target values.
+        formula : str, optional
+            Formula string used to generate X and y. Stored for reference.
+        feature_names : list of str, optional
+            Names for feature columns. If provided, used in print output.
 
         Returns
         -------
         self : ALM
             Fitted estimator.
         """
+        start_time = time_module.time()
+
         self._validate_params()
+        self._formula_ = formula
+        self._feature_names = feature_names
 
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float)
@@ -420,11 +437,58 @@ class ALM:
 
         self.df_residual_ = n_samples - n_params
         self._X_train_ = X.copy()
+        self._y_train_ = y.copy()
+
+        scale = scaler_internal(
+            B_opt,
+            self.distribution,
+            y,
+            X,
+            fitter_return["mu"],
+            other_val,
+            np.ones(len(y), dtype=bool),
+            self.df_residual_,
+        )
+        self.scale_ = scale
+
         XtX = X.T @ X
         XtX += np.eye(XtX.shape[0]) * 1e-10
         self._XtX_inv_ = np.linalg.inv(XtX)
 
+        self.time_elapsed_ = time_module.time() - start_time
+
         return self
+
+    def vcov(self) -> np.ndarray:
+        """Calculate variance-covariance matrix of parameter estimates.
+
+        Returns the variance-covariance matrix of the parameter estimates,
+        computed as: scale² × (X'X)⁻¹
+
+        Returns
+        -------
+        vcov_matrix : np.ndarray
+            Covariance matrix of shape (n_params, n_params)
+        """
+        if self._X_train_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+
+        X = self._X_train_
+        XtX = X.T @ X
+        XtX_reg = XtX + np.eye(XtX.shape[0]) * 1e-10
+
+        try:
+            XtX_inv = np.linalg.inv(XtX_reg)
+        except np.linalg.LinAlgError:
+            import warnings
+
+            warnings.warn(
+                "Covariance matrix is singular. Results may be inaccurate. "
+                "Using pseudoinverse instead."
+            )
+            XtX_inv = np.linalg.pinv(XtX_reg)
+
+        return (self.scale_**2) * XtX_inv
 
     def _calculate_variance(self, X, interval="confidence"):
         """Calculate conditional variance for prediction intervals.
@@ -441,12 +505,12 @@ class ALM:
         variances : np.ndarray
             Variance values for each observation.
         """
-        leverage = np.diag(X @ self._XtX_inv_ @ X.T)
-        var_ce = leverage * (self.scale_**2)
+        vcov_matrix = self.vcov()
+        variances = np.diag(X @ vcov_matrix @ X.T)
 
         if interval == "prediction":
-            return var_ce + (self.scale_**2)
-        return var_ce
+            return variances + (self.scale_**2)
+        return variances
 
     def _calculate_quantiles(self, mean, variances, interval, level, side):
         """Calculate lower and upper quantiles for prediction intervals.
@@ -491,12 +555,8 @@ class ALM:
             level_low = [(1 - lev) / 2 for lev in level]
             level_up = [(1 + lev) / 2 for lev in level]
 
-        if self.distribution == "dnorm":
-            quantiles_low = stats.norm.ppf(level_low, loc=0, scale=1)
-            quantiles_up = stats.norm.ppf(level_up, loc=0, scale=1)
-        else:
-            quantiles_low = stats.t.ppf(level_low, df=self.df_residual_)
-            quantiles_up = stats.t.ppf(level_up, df=self.df_residual_)
+        quantiles_low = stats.t.ppf(level_low, df=self.df_residual_)
+        quantiles_up = stats.t.ppf(level_up, df=self.df_residual_)
 
         lower = np.zeros((n_obs, n_levels))
         upper = np.zeros((n_obs, n_levels))
@@ -516,20 +576,32 @@ class ALM:
 
         return lower, upper
 
-    def predict(self, X, interval="none", level=0.95, side="both"):
+    def predict(
+        self,
+        X: np.ndarray,
+        interval: Literal["none", "confidence", "prediction"] = "none",
+        level: float | list[float] = 0.95,
+        side: Literal["both", "upper", "lower"] = "both",
+    ) -> PredictionResult:
         """Predict using the fitted model.
 
         Parameters
         ----------
         X : array-like of shape (n_samples, n_features)
             Design matrix. Should have same number of features as training data.
-        interval : str, optional
-            Type of interval: "none", "confidence", or "prediction".
-            Default is "none".
-        level : float or list, optional
-            Confidence level(s) for intervals. Default is 0.95 (95%).
-        side : str, optional
-            Side of interval: "both", "upper", or "lower". Default is "both".
+        interval : {"none", "confidence", "prediction"}, default="none"
+            Type of interval to calculate:
+            - "none": No intervals, return only point forecasts
+            - "confidence": Confidence interval for the mean
+            - "prediction": Prediction interval for new observations
+        level : float or list of float, default=0.95
+            Confidence level(s) for intervals. Can be a single float (e.g., 0.95)
+            or a list of floats (e.g., [0.8, 0.9, 0.95]). Default is 0.95 (95%).
+        side : {"both", "upper", "lower"}, default="both"
+            Side of interval:
+            - "both": Return both lower and upper bounds
+            - "upper": Return only upper bounds
+            - "lower": Return only lower bounds
 
         Returns
         -------
@@ -543,10 +615,12 @@ class ALM:
             raise ValueError("Model not fitted. Call fit() first.")
 
         if interval not in ("none", "confidence", "prediction"):
-            raise ValueError("interval must be 'none', 'confidence', or 'prediction'")
+            raise ValueError(
+                f"interval must be 'none', 'confidence', or 'prediction', got {interval!r}"
+            )
 
         if side not in ("both", "upper", "lower"):
-            raise ValueError("side must be 'both', 'upper', or 'lower'")
+            raise ValueError(f"side must be 'both', 'upper', or 'lower', got {side!r}")
 
         X = np.asarray(X, dtype=float)
         if X.ndim == 1:
@@ -638,6 +712,239 @@ class ALM:
         else:
             raise ValueError(f"Unknown metric: {metric}")
 
+    @property
+    def nobs(self) -> int:
+        """Number of observations.
+
+        Returns
+        -------
+        nobs : int
+            Number of observations used in the model.
+        """
+        if self._X_train_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self._X_train_.shape[0]
+
+    @property
+    def nparam(self) -> int:
+        """Number of parameters.
+
+        Returns
+        -------
+        nparam : int
+            Number of parameters in the model (including intercept and scale).
+        """
+        if self._X_train_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        n_params = self._X_train_.shape[1]
+        if self.distribution not in (
+            "dexp",
+            "dpois",
+            "dgeom",
+            "dbinom",
+            "plogis",
+            "pnorm",
+        ):
+            n_params += 1
+        return n_params
+
+    @property
+    def residuals(self) -> np.ndarray:
+        """Model residuals.
+
+        Returns
+        -------
+        residuals : np.ndarray
+            Residuals (y - fitted values).
+        """
+        if self.residuals_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self.residuals_
+
+    @property
+    def fitted(self) -> np.ndarray:
+        """Fitted values.
+
+        Returns
+        -------
+        fitted : np.ndarray
+            Fitted values (predictions on training data).
+        """
+        if self.fitted_values_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self.fitted_values_
+
+    @property
+    def actuals(self) -> np.ndarray:
+        """Actual values (response variable).
+
+        Returns
+        -------
+        actuals : np.ndarray
+            Actual response values from training data.
+        """
+        if self._y_train_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self._y_train_
+
+    @property
+    def formula(self) -> str | None:
+        """Formula string used to fit the model.
+
+        Returns
+        -------
+        formula : str or None
+            Formula string if provided during fit.
+        """
+        return self._formula_
+
+    @property
+    def sigma(self) -> float:
+        """Scale parameter (sigma).
+
+        Returns
+        -------
+        sigma : float
+            Scale parameter of the model.
+        """
+        if self.scale_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self.scale_
+
+    @property
+    def log_lik(self) -> float:
+        """Log-likelihood of the model.
+
+        Returns
+        -------
+        log_lik : float
+            Log-likelihood value.
+        """
+        if self.log_lik_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+        return self.log_lik_
+
+    def summary(self, level: float = 0.95) -> "SummaryResult":
+        """Model summary.
+
+        Parameters
+        ----------
+        level : float, optional
+            Confidence level for parameter intervals. Default is 0.95.
+
+        Returns
+        -------
+        SummaryResult
+            Summary of the model with coefficient estimates, standard errors,
+            t-statistics, p-values, and confidence intervals.
+        """
+        from .methods.summary import SummaryResult
+
+        if self.coef_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+
+        coefficients = np.concatenate([[self.intercept_], self.coef_])
+        vcov_matrix = self.vcov()
+        se = np.sqrt(np.diag(vcov_matrix))
+        t_stat = coefficients / se
+        p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=self.df_residual_))
+
+        t_crit = stats.t.ppf((1 + level) / 2, df=self.df_residual_)
+        lower_ci = coefficients - t_crit * se
+        upper_ci = coefficients + t_crit * se
+
+        return SummaryResult(
+            coefficients=coefficients,
+            se=se,
+            t_stat=t_stat,
+            p_value=p_value,
+            lower_ci=lower_ci,
+            upper_ci=upper_ci,
+            scale=self.scale_,
+            df_residual=self.df_residual_,
+            distribution=self.distribution,
+            log_lik=self.log_lik_,
+            aic=self.aic_,
+            bic=self.bic_,
+            nobs=self.nobs,
+            nparam=self.nparam,
+        )
+
+    def confint(
+        self,
+        parm: int | list[int] | None = None,
+        level: float = 0.95,
+    ) -> np.ndarray:
+        """Confidence intervals for parameters.
+
+        Parameters
+        ----------
+        parm : int or list of int, optional
+            Which parameters to include. If None, all parameters are included.
+            0 = intercept, 1, 2, ... = coefficients.
+        level : float, optional
+            Confidence level. Default is 0.95.
+
+        Returns
+        -------
+        confint : np.ndarray
+            Array with shape (n_params, 2) containing lower and upper bounds.
+        """
+        if self.coef_ is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+
+        coefficients = np.concatenate([[self.intercept_], self.coef_])
+        vcov_matrix = self.vcov()
+        se = np.sqrt(np.diag(vcov_matrix))
+
+        t_crit = stats.t.ppf((1 + level) / 2, df=self.df_residual_)
+        lower_ci = coefficients - t_crit * se
+        upper_ci = coefficients + t_crit * se
+
+        if parm is not None:
+            if isinstance(parm, int):
+                parm = [parm]
+            lower_ci = lower_ci[parm]
+            upper_ci = upper_ci[parm]
+
+        return np.column_stack([lower_ci, upper_ci])
+
+    def forecast(
+        self,
+        h: int = 1,
+        newdata: np.ndarray | None = None,
+        interval: Literal["none", "confidence", "prediction"] = "none",
+        level: float = 0.95,
+        side: Literal["both", "upper", "lower"] = "both",
+    ) -> PredictionResult:
+        """Forecast future values.
+
+        Parameters
+        ----------
+        h : int
+            Forecast horizon. Not used if newdata is provided.
+        newdata : array-like, optional
+            Future values of exogenous variables.
+        interval : {"none", "confidence", "prediction"}, optional
+            Type of interval to calculate. Default is "none".
+        level : float, optional
+            Confidence level. Default is 0.95.
+        side : {"both", "upper", "lower"}, optional
+            Side of interval. Default is "both".
+
+        Returns
+        -------
+        PredictionResult
+            Forecast results with mean and interval bounds.
+        """
+        if newdata is not None:
+            return self.predict(newdata, interval=interval, level=level, side=side)
+
+        raise NotImplementedError(
+            "Forecasting without newdata requires time series functionality. "
+            "Please provide newdata for exogenous variables."
+        )
+
     def _get_other_parameter(self):
         """Get the additional parameter for distributions that require it."""
         if self.distribution == "dalaplace":
@@ -695,6 +1002,32 @@ class ALM:
             if hasattr(self, key):
                 setattr(self, key, value)
         return self
+
+    def __str__(self):
+        if self.coef_ is None:
+            return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"
+
+        time_str = f"Time elapsed: {self.time_elapsed_:.1f} seconds"
+
+        class_str = f'ALM(distribution="{self.distribution}", loss="{self.loss}")'
+
+        coef_names = ["(Intercept)"]
+        coef_values = [self.intercept_]
+
+        if self.coef_ is not None and len(self.coef_) > 0:
+            n_coefs = len(self.coef_)
+            if self._feature_names is not None and len(self._feature_names) == n_coefs:
+                coef_names.extend(self._feature_names)
+            else:
+                for i in range(n_coefs):
+                    coef_names.append(f"x{i + 1}")
+            coef_values.extend(self.coef_)
+
+        coef_lines = []
+        for name, value in zip(coef_names, coef_values):
+            coef_lines.append(f"{name:>15} {value:>15.8f}")
+
+        return f"{time_str}\n{class_str}\n\nCoefficients:\n" + "\n".join(coef_lines)
 
     def __repr__(self):
         return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"

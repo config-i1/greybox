@@ -10,9 +10,11 @@ def test_ruff_check():
         [sys.executable, "-m", "ruff", "check", "src/greybox/"],
         capture_output=True,
         text=True,
-        cwd="."
+        cwd=".",
     )
-    assert result.returncode == 0, f"ruff check failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, (
+        f"ruff check failed:\n{result.stdout}\n{result.stderr}"
+    )
 
 
 def test_ruff_format():
@@ -21,6 +23,8 @@ def test_ruff_format():
         [sys.executable, "-m", "ruff", "format", "--check", "src/greybox/"],
         capture_output=True,
         text=True,
-        cwd="."
+        cwd=".",
     )
-    assert result.returncode == 0, f"ruff format check failed:\n{result.stdout}\n{result.stderr}"
+    assert result.returncode == 0, (
+        f"ruff format check failed:\n{result.stdout}\n{result.stderr}"
+    )

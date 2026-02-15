@@ -209,6 +209,7 @@ def formula(formula_str, data, return_type="both"):
         return y
 
     X_columns = []
+    var_names = []
     intercept_added = False
 
     for term in terms:
@@ -219,6 +220,7 @@ def formula(formula_str, data, return_type="both"):
         if term == "1" or term == "intercept":
             if not intercept_added:
                 X_columns.append(np.ones(n_obs))
+                var_names.append("(Intercept)")
                 intercept_added = True
             continue
 
@@ -227,24 +229,35 @@ def formula(formula_str, data, return_type="both"):
                 X_columns.append(np.arange(1, n_obs + 1, dtype=float))
             else:
                 X_columns.append(np.array(data_dict["trend"], dtype=float))
+            var_names.append("trend")
             continue
+
+        var_name = term.split("(")[0].split("^")[0].strip()
+        if var_name.startswith("-"):
+            var_name = var_name[1:]
 
         try:
             col = _apply_transformation(term, data_dict, n_obs)
             X_columns.append(col)
+            var_names.append(var_name)
         except ValueError:
             raise
 
     if not intercept_added:
         X_columns.insert(0, np.ones(n_obs))
+        var_names.insert(0, "(Intercept)")
 
     if not X_columns:
         X = np.ones((n_obs, 1))
     else:
         X = np.column_stack(X_columns)
 
+    coef_names = [n for n in var_names if n != "(Intercept)"]
+
     if return_type == "X":
         return X
+    elif return_type == "variables":
+        return coef_names
 
     return y, X
 

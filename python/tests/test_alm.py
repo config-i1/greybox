@@ -10,9 +10,9 @@ class TestFormula:
 
     def test_formula_with_response(self):
         """Test formula with response variable."""
-        data = {'y': [1, 2, 3], 'x1': [4, 5, 6], 'x2': [7, 8, 9]}
+        data = {"y": [1, 2, 3], "x1": [4, 5, 6], "x2": [7, 8, 9]}
         y, X = formula("y ~ x1 + x2", data)
-        
+
         assert np.array_equal(y, np.array([1, 2, 3]))
         assert X.shape == (3, 3)
         assert np.all(X[:, 0] == 1)
@@ -21,9 +21,9 @@ class TestFormula:
 
     def test_formula_without_response(self):
         """Test formula without response variable."""
-        data = {'y': [1, 2, 3], 'x1': [4, 5, 6], 'x2': [7, 8, 9]}
+        data = {"y": [1, 2, 3], "x1": [4, 5, 6], "x2": [7, 8, 9]}
         X = formula("~ x1 + x2", data, return_type="X")
-        
+
         assert X.shape == (3, 3)
         assert np.all(X[:, 0] == 1)
         assert np.array_equal(X[:, 1], np.array([4, 5, 6]))
@@ -31,75 +31,79 @@ class TestFormula:
 
     def test_formula_intercept_only(self):
         """Test formula with intercept only."""
-        data = {'y': [1, 2, 3], 'x1': [4, 5, 6]}
+        data = {"y": [1, 2, 3], "x1": [4, 5, 6]}
         y, X = formula("y ~ 1", data)
-        
+
         assert np.array_equal(y, np.array([1, 2, 3]))
         assert X.shape == (3, 1)
         assert np.all(X == 1)
 
     def test_formula_terms(self):
         """Test formula terms extraction."""
-        data = {'y': [1, 2, 3], 'x1': [4, 5, 6]}
+        data = {"y": [1, 2, 3], "x1": [4, 5, 6]}
         terms = formula("y ~ x1", data, return_type="terms")
-        
-        assert terms == ['x1']
+
+        assert terms == ["x1"]
 
     def test_formula_trend_not_in_data(self):
         """Test formula with trend not in data - should auto-generate."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("y ~ x + trend", data)
-        
+
         assert y is not None
         assert X.shape == (5, 3)
         np.testing.assert_array_equal(X[:, 2], np.array([1, 2, 3, 4, 5]))
 
     def test_formula_trend_in_data(self):
         """Test formula with trend in data - should use provided values."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5], 'trend': [10, 20, 30, 40, 50]}
+        data = {
+            "y": [1, 2, 3, 4, 5],
+            "x": [1, 2, 3, 4, 5],
+            "trend": [10, 20, 30, 40, 50],
+        }
         y, X = formula("y ~ x + trend", data)
-        
+
         assert X.shape == (5, 3)
         np.testing.assert_array_equal(X[:, 2], np.array([10, 20, 30, 40, 50]))
 
     def test_formula_log_y(self):
         """Test formula with log(y) on LHS."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("log(y) ~ x", data)
-        
+
         expected_y = np.log([1, 2, 3, 4, 5])
         np.testing.assert_array_almost_equal(y, expected_y)
 
     def test_formula_polynomial(self):
         """Test formula with polynomial terms."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("y ~ x + x^2 + x^3", data)
-        
+
         assert X.shape == (5, 4)
         np.testing.assert_array_equal(X[:, 2], np.array([1, 4, 9, 16, 25]))  # x^2
         np.testing.assert_array_equal(X[:, 3], np.array([1, 8, 27, 64, 125]))  # x^3
 
     def test_formula_log_x(self):
         """Test formula with log(x) transformation."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("y ~ log(x)", data)
-        
+
         expected_log_x = np.log([1, 2, 3, 4, 5])
         np.testing.assert_array_almost_equal(X[:, 1], expected_log_x)
 
     def test_formula_sqrt(self):
         """Test formula with sqrt transformation."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("y ~ sqrt(x)", data)
-        
+
         expected_sqrt_x = np.sqrt([1, 2, 3, 4, 5])
         np.testing.assert_array_almost_equal(X[:, 1], expected_sqrt_x)
 
     def test_formula_I_protected(self):
         """Test formula with I() protected expression."""
-        data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
         y, X = formula("y ~ I(x^2)", data)
-        
+
         assert X.shape == (5, 2)
         np.testing.assert_array_equal(X[:, 1], np.array([1, 4, 9, 16, 25]))
 
@@ -114,20 +118,22 @@ class TestALM:
 
     def test_alm_fit_predict(self):
         """Test ALM model fit and predict."""
-        data = {'y': [1.0, 2.0, 3.0, 4.0, 5.0], 
-                'x1': [1.0, 2.0, 3.0, 4.0, 5.0], 
-                'x2': [2.0, 3.0, 4.0, 5.0, 6.0]}
+        data = {
+            "y": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "x1": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "x2": [2.0, 3.0, 4.0, 5.0, 6.0],
+        }
         y, X = formula("y ~ x1 + x2", data)
-        
+
         model = ALM(distribution="dnorm", loss="likelihood")
         model.fit(X, y)
-        
+
         assert model.intercept_ is not None
         assert model.coef_ is not None
         assert model.scale_ is not None
         assert model.log_lik_ is not None
         assert model.aic_ is not None
-        
+
         y_pred = model.predict(X)
         assert y_pred.mean.shape == y.shape
 
@@ -135,7 +141,7 @@ class TestALM:
         """Test ALM get_params."""
         model = ALM(distribution="dgamma", loss="MSE")
         params = model.get_params()
-        
+
         assert params["distribution"] == "dgamma"
         assert params["loss"] == "MSE"
 
@@ -143,23 +149,25 @@ class TestALM:
         """Test ALM set_params."""
         model = ALM()
         model.set_params(distribution="dlogis", loss="MAE")
-        
+
         assert model.distribution == "dlogis"
         assert model.loss == "MAE"
 
     def test_alm_score(self):
         """Test ALM score method."""
-        data = {'y': [1.0, 2.0, 3.0, 4.0, 5.0], 
-                'x1': [1.0, 2.0, 3.0, 4.0, 5.0], 
-                'x2': [2.0, 3.0, 4.0, 5.0, 6.0]}
+        data = {
+            "y": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "x1": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "x2": [2.0, 3.0, 4.0, 5.0, 6.0],
+        }
         y, X = formula("y ~ x1 + x2", data)
-        
+
         model = ALM(distribution="dnorm", loss="likelihood")
         model.fit(X, y)
-        
+
         score_mse = model.score(X, y, metric="MSE")
         score_r2 = model.score(X, y, metric="R2")
-        
+
         assert score_mse >= 0
         assert score_r2 <= 1.1
 
@@ -167,20 +175,21 @@ class TestALM:
         """Test ALM repr."""
         model = ALM(distribution="dnorm", loss="likelihood")
         repr_str = repr(model)
-        
+
         assert "ALM" in repr_str
         assert "dnorm" in repr_str
 
     def test_alm_nlopt_kargs(self):
         """Test ALM with custom nlopt_kargs."""
         import csv
+
         data = {}
-        with open('/tmp/mtcars.csv', 'r') as f:
+        with open("/tmp/mtcars.csv", "r") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
         for key in rows[0].keys():
             data[key] = [float(row[key]) for row in rows]
-        
+
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -189,8 +198,8 @@ class TestALM:
             nlopt_kargs={
                 "algorithm": "NLOPT_LN_SBPLX",
                 "maxeval": 100,
-                "xtol_rel": 1e-4
-            }
+                "xtol_rel": 1e-4,
+            },
         )
         model.fit(X, y)
 
@@ -198,6 +207,236 @@ class TestALM:
         assert model.coef_ is not None
         assert model.log_lik_ is not None
         assert model.nlopt_result_ is not None
+
+
+class TestALMProperties:
+    """Tests for ALM properties."""
+
+    @staticmethod
+    def load_mtcars():
+        """Load mtcars data from CSV."""
+        import csv
+
+        data = {}
+        with open("/tmp/mtcars.csv", "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        for key in rows[0].keys():
+            data[key] = [float(row[key]) for row in rows]
+        return data
+
+    def test_alm_nobs(self):
+        """Test ALM nobs property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        assert model.nobs == 32
+
+    def test_alm_nparam(self):
+        """Test ALM nparam property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        assert model.nparam == 3
+
+    def test_alm_nparam_without_scale(self):
+        """Test ALM nparam for distributions without scale."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dpois", loss="likelihood")
+        model.fit(X, y)
+
+        assert model.nparam == 2
+
+    def test_alm_sigma(self):
+        """Test ALM sigma property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        np.testing.assert_allclose(model.sigma, model.scale_)
+
+    def test_alm_residuals(self):
+        """Test ALM residuals property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        residuals = model.residuals
+        assert residuals is not None
+        assert len(residuals) == 32
+
+    def test_alm_fitted(self):
+        """Test ALM fitted property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        fitted = model.fitted
+        assert fitted is not None
+        assert len(fitted) == 32
+
+    def test_alm_log_lik(self):
+        """Test ALM log_lik property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        assert model.log_lik is not None
+        np.testing.assert_allclose(model.log_lik, model.log_lik_)
+
+    def test_alm_actuals(self):
+        """Test ALM actuals property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        actuals = model.actuals
+        assert actuals is not None
+        assert len(actuals) == 32
+
+    def test_alm_formula(self):
+        """Test ALM formula property."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y, formula="mpg ~ wt")
+
+        assert model.formula == "mpg ~ wt"
+
+    def test_alm_formula_none(self):
+        """Test ALM formula property when not provided."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        assert model.formula is None
+
+
+class TestALMSummary:
+    """Tests for ALM summary method."""
+
+    @staticmethod
+    def load_mtcars():
+        """Load mtcars data from CSV."""
+        import csv
+
+        data = {}
+        with open("/tmp/mtcars.csv", "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        for key in rows[0].keys():
+            data[key] = [float(row[key]) for row in rows]
+        return data
+
+    def test_alm_summary(self):
+        """Test ALM summary method."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        summary = model.summary()
+
+        assert summary is not None
+        assert hasattr(summary, "coefficients")
+        assert hasattr(summary, "se")
+        assert hasattr(summary, "t_stat")
+        assert hasattr(summary, "p_value")
+        assert hasattr(summary, "lower_ci")
+        assert hasattr(summary, "upper_ci")
+        assert len(summary.coefficients) == 2
+
+    def test_alm_summary_with_level(self):
+        """Test ALM summary with custom confidence level."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        summary = model.summary(level=0.99)
+
+        assert summary is not None
+
+
+class TestALMConfint:
+    """Tests for ALM confint method."""
+
+    @staticmethod
+    def load_mtcars():
+        """Load mtcars data from CSV."""
+        import csv
+
+        data = {}
+        with open("/tmp/mtcars.csv", "r") as f:
+            reader = csv.DictReader(f)
+            rows = list(reader)
+
+        for key in rows[0].keys():
+            data[key] = [float(row[key]) for row in rows]
+        return data
+
+    def test_alm_confint(self):
+        """Test ALM confint method."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        ci = model.confint()
+
+        assert ci is not None
+        assert ci.shape == (2, 2)
+
+    def test_alm_confint_custom_level(self):
+        """Test ALM confint with custom level."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        ci = model.confint(level=0.99)
+
+        assert ci is not None
+
+    def test_alm_confint_specific_params(self):
+        """Test ALM confint for specific parameters."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(distribution="dnorm", loss="likelihood")
+        model.fit(X, y)
+
+        ci = model.confint(parm=1)
+
+        assert ci is not None
+        assert ci.shape == (1, 2)
 
 
 class TestALMMtcars:
@@ -211,11 +450,12 @@ class TestALMMtcars:
     def load_mtcars():
         """Load mtcars data from CSV."""
         import csv
+
         data = {}
-        with open('/tmp/mtcars.csv', 'r') as f:
+        with open("/tmp/mtcars.csv", "r") as f:
             reader = csv.DictReader(f)
             rows = list(reader)
-        
+
         for key in rows[0].keys():
             data[key] = [float(row[key]) for row in rows]
         return data
@@ -232,25 +472,22 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood",
-                   nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 37.29, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 37.29, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.34, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.95, rtol=2e-1,
-            err_msg="Scale doesn't match R"
+            model.scale_, 2.95, rtol=2e-1, err_msg="Scale doesn't match R"
         )
         np.testing.assert_allclose(
-            model.log_lik_, -80.01, rtol=1e-1,
-            err_msg="Log-likelihood doesn't match R"
+            model.log_lik_, -80.01, rtol=1e-1, err_msg="Log-likelihood doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_two_predictors(self):
@@ -266,24 +503,22 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt + hp", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 37.23, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 37.23, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -3.88, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -3.88, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[1], -0.032, rtol=2e-1,
-            err_msg="hp coefficient doesn't match R"
+            model.coef_[1], -0.032, rtol=2e-1, err_msg="hp coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.47, rtol=2e-1,
-            err_msg="Scale doesn't match R"
+            model.scale_, 2.47, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dlaplace(self):
@@ -297,20 +532,19 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 34.33, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 34.33, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -4.56, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -4.56, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.32, rtol=2e-1,
-            err_msg="Scale doesn't match R"
+            model.scale_, 2.32, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_mse(self):
@@ -329,12 +563,10 @@ class TestALMMtcars:
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 37.29, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 37.29, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.34, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_mae(self):
@@ -351,12 +583,10 @@ class TestALMMtcars:
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 35.6, rtol=2e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 35.6, rtol=2e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -4.9, rtol=2e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -4.9, rtol=2e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dlogis(self):
@@ -370,20 +600,19 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 36.73, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 36.73, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.26, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -5.26, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 1.63, rtol=2e-1,
-            err_msg="Scale doesn't match R"
+            model.scale_, 1.63, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dt(self):
@@ -397,16 +626,16 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dt", loss="likelihood", nu=4, nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dt", loss="likelihood", nu=4, nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 37.0, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 37.0, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.3, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dgnorm(self):
@@ -420,16 +649,19 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dgnorm", loss="likelihood", shape=2.0, nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dgnorm",
+            loss="likelihood",
+            shape=2.0,
+            nlopt_kargs={"maxeval": 1000},
+        )
         model.fit(X, y)
 
         np.testing.assert_allclose(
-            model.intercept_, 37.0, rtol=1e-1,
-            err_msg="Intercept doesn't match R"
+            model.intercept_, 37.0, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.3, rtol=1e-1,
-            err_msg="wt coefficient doesn't match R"
+            model.coef_[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_predict_intervals(self):
@@ -471,7 +703,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         result = model.predict(X, interval="confidence", level=0.95, side="upper")
@@ -485,7 +719,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         result = model.predict(X, interval="confidence", level=0.95, side="lower")
@@ -499,7 +735,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         levels = [0.80, 0.90, 0.95]
@@ -515,7 +753,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dlaplace", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         result = model.predict(X, interval="confidence", level=0.95)
@@ -531,7 +771,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dlogis", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         result = model.predict(X, interval="prediction", level=0.95)
@@ -547,7 +789,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt + hp", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         result = model.predict(X)
@@ -560,7 +804,9 @@ class TestALMMtcars:
         data = self.load_mtcars()
         y, X = formula("mpg ~ wt", data)
 
-        model = ALM(distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000})
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
         model.fit(X, y)
 
         conf_result = model.predict(X, interval="confidence", level=0.95)
@@ -571,3 +817,466 @@ class TestALMMtcars:
 
         assert pred_width > conf_width
 
+    def test_alm_vcov_compare_r(self):
+        """Test that vcov() matches R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        vcov_result = model.vcov()
+
+        r_vcov = np.array([[3.647053, -1.0403720], [-1.040372, 0.3233731]])
+
+        np.testing.assert_allclose(vcov_result, r_vcov, rtol=1e-5)
+
+    def test_alm_predict_intervals_compare_r_confidence(self):
+        """Test confidence intervals match R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95)
+
+        r_mean = np.array(
+            [
+                23.282611,
+                21.919770,
+                24.885952,
+                20.102650,
+                18.900144,
+                18.793255,
+                18.205363,
+                20.236262,
+                20.450041,
+                18.900144,
+                18.900144,
+                15.533127,
+                17.350247,
+                17.083024,
+                9.226650,
+                8.296712,
+                8.718926,
+                25.527289,
+                28.653805,
+                27.478021,
+                24.111004,
+                18.472586,
+                18.926866,
+                16.762355,
+                16.735633,
+                26.943574,
+                25.847957,
+                29.198941,
+                20.343151,
+                22.480940,
+                18.205363,
+                22.427495,
+            ]
+        )
+
+        r_lower = np.array(
+            [
+                21.964642,
+                20.731082,
+                23.355101,
+                18.982586,
+                17.750512,
+                17.638159,
+                17.012529,
+                19.115752,
+                19.327252,
+                17.750512,
+                17.750512,
+                14.037076,
+                16.081323,
+                15.785754,
+                6.610581,
+                5.496420,
+                6.002595,
+                23.898097,
+                26.479618,
+                25.518698,
+                22.689744,
+                17.298483,
+                17.778531,
+                15.428518,
+                15.398629,
+                25.078492,
+                24.167406,
+                26.922257,
+                19.221743,
+                21.245985,
+                17.012529,
+                21.197394,
+            ]
+        )
+
+        r_upper = np.array(
+            [
+                24.60058,
+                23.10846,
+                26.41680,
+                21.22271,
+                20.04978,
+                19.94835,
+                19.39820,
+                21.35677,
+                21.57283,
+                20.04978,
+                20.04978,
+                17.02918,
+                18.61917,
+                18.38029,
+                11.84272,
+                11.09700,
+                11.43526,
+                27.15648,
+                30.82799,
+                29.43734,
+                25.53226,
+                19.64669,
+                20.07520,
+                18.09619,
+                18.07264,
+                28.80866,
+                27.52851,
+                31.47562,
+                21.46456,
+                23.71589,
+                19.39820,
+                23.65760,
+            ]
+        )
+
+        np.testing.assert_allclose(result.mean, r_mean, rtol=1e-5)
+        np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
+        np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
+
+    def test_alm_predict_intervals_compare_r_prediction(self):
+        """Test prediction intervals match R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        result = model.predict(X, interval="prediction", level=0.95)
+
+        r_lower = np.array(
+            [
+                16.810962,
+                15.473207,
+                18.367616,
+                13.668387,
+                12.460668,
+                12.352801,
+                11.758034,
+                13.801921,
+                14.015303,
+                12.460668,
+                12.460668,
+                9.022876,
+                10.888408,
+                10.615559,
+                2.371797,
+                1.369459,
+                1.825186,
+                18.985159,
+                21.955127,
+                20.845967,
+                17.617532,
+                12.028696,
+                12.487622,
+                10.287456,
+                10.260081,
+                20.338748,
+                19.292848,
+                22.466297,
+                13.908654,
+                16.025685,
+                11.758034,
+                15.973167,
+            ]
+        )
+
+        r_upper = np.array(
+            [
+                29.75426,
+                28.36633,
+                31.40429,
+                26.53691,
+                25.33962,
+                25.23371,
+                24.65269,
+                26.67060,
+                26.88478,
+                25.33962,
+                25.33962,
+                22.04338,
+                23.81209,
+                23.55049,
+                16.08150,
+                15.22397,
+                15.61267,
+                32.06942,
+                35.35248,
+                34.11008,
+                30.60448,
+                24.91648,
+                25.36611,
+                23.23725,
+                23.21119,
+                33.54840,
+                32.40307,
+                35.93158,
+                26.77765,
+                28.93619,
+                24.65269,
+                28.88182,
+            ]
+        )
+
+        np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
+        np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
+
+    def test_alm_predict_intervals_compare_r_multiple_levels(self):
+        """Test multiple confidence levels match R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        levels = [0.80, 0.90, 0.95]
+        result = model.predict(X, interval="confidence", level=levels)
+
+        r_lower_80 = np.array(
+            [
+                22.437508,
+                21.157564,
+                23.904346,
+                19.384447,
+                18.162982,
+                18.052589,
+                17.440499,
+                19.517773,
+                19.730091,
+                18.162982,
+                18.162982,
+                14.573836,
+                16.536593,
+                16.251194,
+                7.549185,
+                6.501120,
+                6.977171,
+                24.482625,
+                27.259682,
+                26.221672,
+                23.199669,
+                17.719733,
+                18.190536,
+                15.907078,
+                15.878325,
+                25.747654,
+                24.770361,
+                27.739095,
+                19.624086,
+                21.689067,
+                17.440499,
+                21.638735,
+            ]
+        )
+
+        r_lower_90 = np.array(
+            [
+                22.187675,
+                20.932237,
+                23.614158,
+                19.172128,
+                17.945058,
+                17.833629,
+                17.214385,
+                19.305370,
+                19.517255,
+                17.945058,
+                17.945058,
+                14.290245,
+                16.296056,
+                16.005284,
+                7.053284,
+                5.970297,
+                6.462264,
+                24.173796,
+                26.847543,
+                25.850263,
+                22.930256,
+                17.497170,
+                17.972857,
+                15.654236,
+                15.624883,
+                25.394109,
+                24.451796,
+                27.307527,
+                19.411512,
+                21.454970,
+                17.214385,
+                21.405557,
+            ]
+        )
+
+        r_lower_95 = np.array(
+            [
+                21.964642,
+                20.731082,
+                23.355101,
+                18.982586,
+                17.750512,
+                17.638159,
+                17.012529,
+                19.115752,
+                19.327252,
+                17.750512,
+                17.750512,
+                14.037076,
+                16.081323,
+                15.785754,
+                6.610581,
+                5.496420,
+                6.002595,
+                23.898097,
+                26.479618,
+                25.518698,
+                22.689744,
+                17.298483,
+                17.778531,
+                15.428518,
+                15.398629,
+                25.078492,
+                24.167406,
+                26.922257,
+                19.221743,
+                21.245985,
+                17.012529,
+                21.197394,
+            ]
+        )
+
+        np.testing.assert_allclose(result.lower[:, 0], r_lower_80, rtol=1e-5)
+        np.testing.assert_allclose(result.lower[:, 1], r_lower_90, rtol=1e-5)
+        np.testing.assert_allclose(result.lower[:, 2], r_lower_95, rtol=1e-5)
+
+    def test_alm_predict_intervals_compare_r_side_upper(self):
+        """Test side='upper' matches R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95, side="upper")
+
+        r_upper = np.array(
+            [
+                24.37755,
+                22.90730,
+                26.15775,
+                21.03317,
+                19.85523,
+                19.75288,
+                19.19634,
+                21.16715,
+                21.38283,
+                19.85523,
+                19.85523,
+                16.77601,
+                18.40444,
+                18.16076,
+                11.40002,
+                10.62313,
+                10.97559,
+                26.88078,
+                30.46007,
+                29.10578,
+                25.29175,
+                19.44800,
+                19.88088,
+                17.87047,
+                17.84638,
+                28.49304,
+                27.24412,
+                31.09035,
+                21.27479,
+                23.50691,
+                19.19634,
+                23.44943,
+            ]
+        )
+
+        assert result.lower is None
+        np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
+
+    def test_alm_predict_intervals_compare_r_side_lower(self):
+        """Test side='lower' matches R exactly."""
+        data = self.load_mtcars()
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", nlopt_kargs={"maxeval": 1000}
+        )
+        model.fit(X, y)
+
+        result = model.predict(X, interval="confidence", level=0.95, side="lower")
+
+        r_lower = np.array(
+            [
+                22.187675,
+                20.932237,
+                23.614158,
+                19.172128,
+                17.945058,
+                17.833629,
+                17.214385,
+                19.305370,
+                19.517255,
+                17.945058,
+                17.945058,
+                14.290245,
+                16.296056,
+                16.005284,
+                7.053284,
+                5.970297,
+                6.462264,
+                24.173796,
+                26.847543,
+                25.850263,
+                22.930256,
+                17.497170,
+                17.972857,
+                15.654236,
+                15.624883,
+                25.394109,
+                24.451796,
+                27.307527,
+                19.411512,
+                21.454970,
+                17.214385,
+                21.405557,
+            ]
+        )
+
+        np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
+        assert result.upper is None
