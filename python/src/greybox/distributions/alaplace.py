@@ -32,9 +32,16 @@ def dalaplace(q, mu=0, scale=1, alpha=0.5, log=False):
     """
     q = np.asarray(q)
     indicator = (q <= mu).astype(float)
-    density = alpha * (1 - alpha) / scale * np.exp(-(q - mu) / scale * (alpha - indicator))
     if log:
-        return np.log(density + 1e-300)
+        return (
+            np.log(alpha)
+            + np.log(1 - alpha)
+            - np.log(scale)
+            - (q - mu) / scale * (alpha - indicator)
+        )
+    density = (
+        alpha * (1 - alpha) / scale * np.exp(-(q - mu) / scale * (alpha - indicator))
+    )
     return density
 
 
@@ -59,7 +66,11 @@ def palaplace(q, mu=0, scale=1, alpha=0.5):
     """
     q = np.asarray(q)
     indicator = (q <= mu).astype(float)
-    return 1 - indicator - (1 - indicator - alpha) * np.exp((indicator - alpha) / scale * (q - mu))
+    return (
+        1
+        - indicator
+        - (1 - indicator - alpha) * np.exp((indicator - alpha) / scale * (q - mu))
+    )
 
 
 def qalaplace(p, mu=0, scale=1, alpha=0.5):
@@ -82,10 +93,22 @@ def qalaplace(p, mu=0, scale=1, alpha=0.5):
         Quantile values.
     """
     p = np.asarray(p)
-    indicator = (p <= alpha).astype(float)
-    result = mu + scale / (indicator - alpha) * np.log((1 - indicator - p) / (1 - indicator - alpha))
-    result = np.where(p == 0, -np.inf, result)
-    result = np.where(p == 1, np.inf, result)
+    result = np.empty_like(p, dtype=float)
+
+    mask_0 = p == 0
+    mask_1 = p == 1
+    mask_mid = ~(mask_0 | mask_1)
+
+    result[mask_0] = -np.inf
+    result[mask_1] = np.inf
+
+    if np.any(mask_mid):
+        p_mid = p[mask_mid]
+        indicator = (p_mid <= alpha).astype(float)
+        result[mask_mid] = mu + scale / (indicator - alpha) * np.log(
+            (1 - indicator - p_mid) / (1 - indicator - alpha)
+        )
+
     return result
 
 

@@ -12,7 +12,7 @@ from .gnorm import qgnorm
 def ds(q, mu=0, scale=1, log=False):
     """S-distribution density.
 
-    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(|mu - x|) / scale)
+    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(abs(mu - x)) / scale)
 
     Parameters
     ----------
@@ -30,9 +30,9 @@ def ds(q, mu=0, scale=1, log=False):
     array
         Density values.
     """
-    density = 1 / (4 * scale**2) * np.exp(-np.sqrt(np.abs(mu - q)) / scale)
     if log:
-        return np.log(density + 1e-300)
+        return -np.log(4) - 2 * np.log(scale) - np.sqrt(np.abs(mu - q)) / scale
+    density = 1 / (4 * scale**2) * np.exp(-np.sqrt(np.abs(mu - q)) / scale)
     return density
 
 

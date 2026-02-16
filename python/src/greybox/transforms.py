@@ -20,10 +20,7 @@ def bc_transform_inv(y: np.ndarray, lambda_bc: float) -> np.ndarray:
 
 
 def mean_fast(
-    x: np.ndarray,
-    df: int | None = None,
-    trim: float = 0.0,
-    side: str = "lower"
+    x: np.ndarray, df: int | None = None, trim: float = 0.0, side: str = "lower"
 ) -> float:
     """Fast mean calculation with optional trimming."""
     if df is None:

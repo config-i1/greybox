@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Beta distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dbeta(q, a=1, b=1, log=False):
     array
         Density values.
     """
-    result = stats.beta.pdf(q, a=a, b=b)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.beta.logpdf(q, a=a, b=b)
+    return stats.beta.pdf(q, a=a, b=b)
 
 
 def pbeta(q, a=1, b=1):

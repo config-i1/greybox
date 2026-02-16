@@ -18,7 +18,7 @@ def _compute_log_lik_array(
     other_val: float,
     occurrence_model: bool,
     size: float,
-    lambda_bc: float
+    lambda_bc: float,
 ) -> np.ndarray:
     """Compute log-likelihood array for a distribution.
 
@@ -63,22 +63,32 @@ def _compute_log_lik_array(
     elif distribution == "dlnorm":
         return dist.dlnorm(y_otU, meanlog=mu_otU, sdlog=scale, log=True)
     elif distribution == "dllaplace":
-        return dist.dllaplace(y_otU, loc=mu_otU, scale=scale, log=True) - np.log(y_otU)
+        return dist.dllaplace(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dls":
-        return dist.dls(y_otU, loc=mu_otU, scale=scale, log=True) - np.log(y_otU)
+        return dist.dls(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dlgnorm":
-        return dist.dlgnorm(y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True) - np.log(y_otU)
+        return dist.dlgnorm(y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True)
     elif distribution == "dbcnorm":
         mask_nonzero = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
-        result[mask_nonzero] = dist.dbcnorm(y_otU[mask_nonzero], mu=mu_otU[mask_nonzero], sigma=scale, lambda_bc=lambda_bc, log=True)
+        result[mask_nonzero] = dist.dbcnorm(
+            y_otU[mask_nonzero],
+            mu=mu_otU[mask_nonzero],
+            sigma=scale,
+            lambda_bc=lambda_bc,
+            log=True,
+        )
         return result
     elif distribution == "dfnorm":
         return dist.dfnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
     elif distribution == "drectnorm":
         return dist.drectnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
     elif distribution == "dinvgauss":
-        return dist.dinvgauss(y_otU, mu=mu_otU, scale=scale / mu_otU, log=True)
+        disp = scale / (mu_otU + 1e-300)
+        lam = 1.0 / (disp + 1e-300)
+        return dist.dinvgauss(
+            y_otU, mu=scale * np.ones_like(y_otU), scale=lam, log=True
+        )
     elif distribution == "dgamma":
         return dist.dgamma(y_otU, shape=1 / scale, scale=scale * mu_otU, log=True)
     elif distribution == "dexp":
@@ -92,22 +102,31 @@ def _compute_log_lik_array(
     elif distribution == "dnbinom":
         return dist.dnbinom(y_otU, mu=mu_otU, size=scale, log=True)
     elif distribution == "dbinom":
-        return dist.dbinom(y_otU.astype(int) - occurrence_model * 1, size=int(size), prob=1 / (mu_otU + 1), log=True)
+        return dist.dbinom(
+            y_otU.astype(int) - occurrence_model * 1,
+            size=int(size),
+            prob=1 / (mu_otU + 1),
+            log=True,
+        )
     elif distribution == "dlogitnorm":
         return dist.dlogitnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
     elif distribution == "dbeta":
         return dist.dbeta(y_otU, a=mu_otU, b=scale, log=True)
     elif distribution == "pnorm":
-        ot = y_otU > dist.pnorm(mu_otU, mean=0, sd=1)
+        ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
-        result[ot] = dist.plogis(mu_otU[ot], location=0, scale=1, log_p=True)
-        result[~ot] = dist.plogis(mu_otU[~ot], location=0, scale=1, log_p=True, lower_tail=False)
+        result[ot] = dist.pnorm(mu_otU[ot], mean=0, sd=1, log_p=True)
+        result[~ot] = dist.pnorm(
+            mu_otU[~ot], mean=0, sd=1, log_p=True, lower_tail=False
+        )
         return result
     elif distribution == "plogis":
-        ot = y_otU > dist.plogis(mu_otU, location=0, scale=1)
+        ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
         result[ot] = dist.plogis(mu_otU[ot], location=0, scale=1, log_p=True)
-        result[~ot] = dist.plogis(mu_otU[~ot], location=0, scale=1, log_p=True, lower_tail=False)
+        result[~ot] = dist.plogis(
+            mu_otU[~ot], location=0, scale=1, log_p=True, lower_tail=False
+        )
         return result
     else:
         return np.zeros_like(y_otU, dtype=float)
@@ -119,7 +138,7 @@ def _entropy_adjustment(
     other_val: float,
     mu: np.ndarray,
     otU: np.ndarray,
-    obs_zero: int
+    obs_zero: int,
 ) -> float:
     """Calculate differential entropy for occurrence model.
 
@@ -155,13 +174,21 @@ def _entropy_adjustment(
     elif distribution == "dlnorm":
         return obs_zero * (np.log(np.sqrt(2 * np.pi) * scale) + 0.5) + np.sum(mu[~otU])
     elif distribution in ("dgnorm", "dlgnorm"):
-        return obs_zero * (1 / other_val - np.log(other_val / (2 * scale * gammaln(1 / other_val))))
+        return obs_zero * (
+            1 / other_val - np.log(other_val / (2 * scale * gammaln(1 / other_val)))
+        )
     elif distribution == "dinvgauss":
-        return 0.5 * (obs_zero * (np.log(np.pi / 2) + 1 + np.log(scale)) - np.sum(np.log(mu[~otU])))
+        return 0.5 * (
+            obs_zero * (np.log(np.pi / 2) + 1 + np.log(scale))
+            - np.sum(np.log(mu[~otU]))
+        )
     elif distribution == "dgamma":
-        return np.sum(gammaln(1 / scale) + (scale * mu_otU) +
-                     (1 - scale * mu_otU) * digamma(scale * mu_otU) +
-                     scale * mu_otU)
+        return np.sum(
+            gammaln(1 / scale)
+            + (scale * mu_otU)
+            + (1 - scale * mu_otU) * digamma(scale * mu_otU)
+            + scale * mu_otU
+        )
     elif distribution == "dexp":
         return obs_zero
     elif distribution == "dls":
@@ -171,15 +198,28 @@ def _entropy_adjustment(
     elif distribution == "dlogis":
         return obs_zero * 2
     elif distribution == "dt":
-        return obs_zero * ((scale + 1) / 2 * (digamma((scale + 1) / 2) - digamma(scale / 2)) +
-                          np.log(np.sqrt(scale) * np.exp(betaln(scale / 2, 0.5))))
+        return obs_zero * (
+            (scale + 1) / 2 * (digamma((scale + 1) / 2) - digamma(scale / 2))
+            + np.log(np.sqrt(scale) * np.exp(betaln(scale / 2, 0.5)))
+        )
     elif distribution == "dchisq":
-        return obs_zero * (np.log(2) * gammaln(scale / 2) - (1 - scale / 2) * digamma(scale / 2) + scale / 2)
+        return obs_zero * (
+            np.log(2) * gammaln(scale / 2)
+            - (1 - scale / 2) * digamma(scale / 2)
+            + scale / 2
+        )
     elif distribution == "dbeta":
-        return (np.sum(np.log(scale) + gammaln(mu_otU) + gammaln(scale) - gammaln(mu_otU + scale)) -
-                (mu_otU - 1) * digamma(mu_otU) -
-                (scale - 1) * digamma(mu_otU + scale) +
-                (mu_otU + scale - 2) * digamma(mu_otU + scale))
+        return (
+            np.sum(
+                np.log(scale)
+                + gammaln(mu_otU)
+                + gammaln(scale)
+                - gammaln(mu_otU + scale)
+            )
+            - (mu_otU - 1) * digamma(mu_otU)
+            - (scale - 1) * digamma(mu_otU + scale)
+            + (mu_otU + scale - 2) * digamma(mu_otU + scale)
+        )
     else:
         return 0.0
 
@@ -206,7 +246,7 @@ def cf(
     loss_function=None,
     lambda_bc: float = 0.0,
     size: float = 1.0,
-    fitter_func=None
+    fitter_func=None,
 ) -> float:
     """Cost function for optimization.
 
@@ -277,13 +317,16 @@ def cf(
     y_otU = y[otU]
 
     fitter_return = fitter(
-        B, distribution, y, matrix_xreg,
+        B,
+        distribution,
+        y,
+        matrix_xreg,
         other=other,
         a_parameter_provided=a_parameter_provided,
         ar_order=ar_order,
         i_order=i_order,
         loss=loss,
-        lambda_val=lambda_val
+        lambda_val=lambda_val,
     )
 
     mu = fitter_return["mu"]
@@ -292,21 +335,43 @@ def cf(
     other_val = fitter_return["other"]
 
     if loss in ("likelihood", "ROLE"):
+        # For dbcnorm, lambda_bc is the "other" param when estimated
+        effective_lambda_bc = (
+            other_val
+            if distribution == "dbcnorm" and not a_parameter_provided
+            else lambda_bc
+        )
         log_lik_array = _compute_log_lik_array(
-            distribution, y_otU, mu_otU, scale, other_val,
-            occurrence_model, size, lambda_bc
+            distribution,
+            y_otU,
+            mu_otU,
+            scale,
+            other_val,
+            occurrence_model,
+            size,
+            effective_lambda_bc,
         )
 
         if loss == "likelihood":
             cf_value = -np.sum(log_lik_array)
         else:
-            cf_value = -mean_fast(-log_lik_array, obs_insample, trim=trim, side="both") * obs_insample
+            cf_value = (
+                -mean_fast(-log_lik_array, obs_insample, trim=trim, side="both")
+                * obs_insample
+            )
 
         if recursive_model and occurrence_model:
-            cf_value += _entropy_adjustment(distribution, scale, other_val, mu, otU, obs_zero)
+            cf_value += _entropy_adjustment(
+                distribution, scale, other_val, mu, otU, obs_zero
+            )
 
     else:
-        y_fitted = extractor_fitted(distribution, mu, scale, lambda_bc)
+        effective_lambda_bc = (
+            other_val
+            if distribution == "dbcnorm" and not a_parameter_provided
+            else lambda_bc
+        )
+        y_fitted = extractor_fitted(distribution, mu, scale, effective_lambda_bc)
 
         if loss == "MSE":
             cf_value = np.mean((y - y_fitted) ** 2)
@@ -315,13 +380,19 @@ def cf(
         elif loss == "HAM":
             cf_value = np.mean(np.sqrt(np.abs(y - y_fitted)))
         elif loss == "LASSO":
-            cf_value = (1 - lambda_val) * np.mean((y - y_fitted) ** 2) + lambda_val * np.sum(np.abs(B))
+            cf_value = (1 - lambda_val) * np.mean(
+                (y - y_fitted) ** 2
+            ) + lambda_val * np.sum(np.abs(B))
         elif loss == "RIDGE":
             B_scaled = B * denominator
             if len(B_scaled) > 1:
-                cf_value = (1 - lambda_val) * np.mean((y - y_fitted) ** 2) + lambda_val * np.sqrt(np.sum(B_scaled[1:] ** 2))
+                cf_value = (1 - lambda_val) * np.mean(
+                    (y - y_fitted) ** 2
+                ) + lambda_val * np.sqrt(np.sum(B_scaled[1:] ** 2))
             else:
-                cf_value = (1 - lambda_val) * np.mean((y - y_fitted) ** 2) + lambda_val * np.sqrt(np.sum(B_scaled ** 2))
+                cf_value = (1 - lambda_val) * np.mean(
+                    (y - y_fitted) ** 2
+                ) + lambda_val * np.sqrt(np.sum(B_scaled**2))
             if lambda_val == 1.0:
                 cf_value = np.mean((y - y_fitted) ** 2)
         elif loss == "custom" and loss_function is not None:

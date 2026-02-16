@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Negative Binomial distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dnbinom(q, mu=1, size=1, log=False):
     array
         Probability mass values.
     """
-    result = stats.nbinom.pmf(q, n=size, p=size/(size+mu))
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.nbinom.logpmf(q, n=size, p=size / (size + mu))
+    return stats.nbinom.pmf(q, n=size, p=size / (size + mu))
 
 
 def pnbinom(q, mu=1, size=1):
@@ -50,7 +48,7 @@ def pnbinom(q, mu=1, size=1):
     array
         CDF values.
     """
-    return stats.nbinom.cdf(q, n=size, p=size/(size+mu))
+    return stats.nbinom.cdf(q, n=size, p=size / (size + mu))
 
 
 def qnbinom(p, mu=1, size=1):
@@ -70,7 +68,7 @@ def qnbinom(p, mu=1, size=1):
     array
         Quantile values.
     """
-    return stats.nbinom.ppf(p, n=size, p=size/(size+mu))
+    return stats.nbinom.ppf(p, n=size, p=size / (size + mu))
 
 
 def rnbinom(n, mu=1, size=1):
@@ -90,4 +88,4 @@ def rnbinom(n, mu=1, size=1):
     array
         Random values.
     """
-    return stats.nbinom.rvs(n=size, p=size/(size+mu), size=n)
+    return stats.nbinom.rvs(n=size, p=size / (size + mu), size=n)

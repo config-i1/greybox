@@ -12,7 +12,8 @@ from scipy import optimize
 def dfnorm(q, mu=0, sigma=1, log=False):
     """Folded Normal distribution density.
 
-    f(x) = 1/sqrt(2*pi*sigma^2) * (exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))
+    f(x) = 1/sqrt(2*pi*sigma^2) * (
+        exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))
 
     Parameters
     ----------
@@ -31,15 +32,24 @@ def dfnorm(q, mu=0, sigma=1, log=False):
         Density values.
     """
     q = np.asarray(q)
-    density = 1 / (np.sqrt(2 * np.pi) * sigma) * (
-        np.exp(-(np.abs(q) - mu)**2 / (2 * sigma**2)) +
-        np.exp(-(np.abs(q) + mu)**2 / (2 * sigma**2))
-    )
-    is_zero = q < 0
-    result = np.where(is_zero, 0.0, np.maximum(density, 1e-300))
+    abs_q = np.abs(q)
     if log:
-        return np.log(result)
-    return result
+        # log(f(x)) = log(exp(a) + exp(b)) - log(sqrt(2*pi)*sigma)
+        # where a = -(|x|-mu)^2/(2*sigma^2), b = -(|x|+mu)^2/(2*sigma^2)
+        a = -((abs_q - mu) ** 2) / (2 * sigma**2)
+        b = -((abs_q + mu) ** 2) / (2 * sigma**2)
+        log_sum = np.logaddexp(a, b)
+        log_density = log_sum - np.log(np.sqrt(2 * np.pi) * sigma)
+        return np.where(q < 0, -np.inf, log_density)
+    density = (
+        1
+        / (np.sqrt(2 * np.pi) * sigma)
+        * (
+            np.exp(-((abs_q - mu) ** 2) / (2 * sigma**2))
+            + np.exp(-((abs_q + mu) ** 2) / (2 * sigma**2))
+        )
+    )
+    return np.where(q < 0, 0.0, density)
 
 
 def pfnorm(q, mu=0, sigma=1):
@@ -60,7 +70,11 @@ def pfnorm(q, mu=0, sigma=1):
         CDF values.
     """
     q = np.asarray(q)
-    result = stats.norm.cdf(q, loc=mu, scale=sigma) + stats.norm.cdf(q, loc=-mu, scale=sigma) - 1
+    result = (
+        stats.norm.cdf(q, loc=mu, scale=sigma)
+        + stats.norm.cdf(q, loc=-mu, scale=sigma)
+        - 1
+    )
     result = np.where(q < 0, 0, result)
     return result
 
@@ -91,6 +105,7 @@ def qfnorm(p, mu=0, sigma=1):
         elif pi == 1:
             result[i] = np.inf
         else:
+
             def objective(x):
                 return pfnorm(x, mu, sigma) - pi
 

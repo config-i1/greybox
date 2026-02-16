@@ -15,7 +15,7 @@ def dllaplace(q, loc=0, scale=1, log=False):
     The density is obtained by transforming a Laplace distribution
     through the exponential function with Jacobian adjustment.
 
-    f(y) = (1/scale) * exp(-(|log(y) - loc| / scale)) / y
+    f(y) = (1/scale) * exp(-(abs(log(y) - loc) / scale)) / y
 
     Parameters
     ----------

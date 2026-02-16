@@ -60,4 +60,5 @@ def qls(p, loc=0, scale=1):
         Quantile values.
     """
     from .s import qs
+
     return np.exp(qs(p, mu=loc, scale=scale))

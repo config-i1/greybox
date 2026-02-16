@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Poisson distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -25,10 +24,9 @@ def dpois(q, mu, log=False):
     array
         Probability mass values.
     """
-    result = stats.poisson.pmf(q, mu=mu)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.poisson.logpmf(q, mu=mu)
+    return stats.poisson.pmf(q, mu=mu)
 
 
 def ppois(q, mu):

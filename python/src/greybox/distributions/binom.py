@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Binomial distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dbinom(q, size=1, prob=0.5, log=False):
     array
         Probability mass values.
     """
-    result = stats.binom.pmf(q, n=size, p=prob)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.binom.logpmf(q, n=size, p=prob)
+    return stats.binom.pmf(q, n=size, p=prob)
 
 
 def pbinom(q, size=1, prob=0.5):

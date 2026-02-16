@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Student's t-distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -29,10 +28,9 @@ def dt(q, df, loc=0, scale=1, log=False):
     array
         Density values.
     """
-    result = stats.t.pdf(q, df=df, loc=loc, scale=scale)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.t.logpdf(q, df=df, loc=loc, scale=scale)
+    return stats.t.pdf(q, df=df, loc=loc, scale=scale)
 
 
 def pt(q, df, loc=0, scale=1):

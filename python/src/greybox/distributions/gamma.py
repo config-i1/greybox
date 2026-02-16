@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Gamma distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dgamma(q, shape=1, scale=1, log=False):
     array
         Density values.
     """
-    result = stats.gamma.pdf(q, a=shape, scale=scale)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.gamma.logpdf(q, a=shape, scale=scale)
+    return stats.gamma.pdf(q, a=shape, scale=scale)
 
 
 def pgamma(q, shape=1, scale=1):

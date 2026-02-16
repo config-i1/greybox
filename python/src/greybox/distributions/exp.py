@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Exponential distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dexp(q, loc=0, scale=1, log=False):
     array
         Density values.
     """
-    result = stats.expon.pdf(q, loc=loc, scale=scale)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.expon.logpdf(q, loc=loc, scale=scale)
+    return stats.expon.pdf(q, loc=loc, scale=scale)
 
 
 def pexp(q, loc=0, scale=1):

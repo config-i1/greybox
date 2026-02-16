@@ -20,11 +20,19 @@ def dgnorm(q, mu=0, scale=1, shape=1, log=False):
     shape = np.where(np.isnan(shape), 0, shape)
     shape = np.where(shape == 0, 1e-10, shape)
 
-    result = (np.exp(-(np.abs(q - mu) / scale)**shape) * shape /
-              (2 * scale * gamma(1 / shape)))
-
     if log:
-        return np.log(result + 1e-300)
+        return (
+            -((np.abs(q - mu) / scale) ** shape)
+            + np.log(shape)
+            - np.log(2 * scale)
+            - np.log(gamma(1 / shape))
+        )
+
+    result = (
+        np.exp(-((np.abs(q - mu) / scale) ** shape))
+        * shape
+        / (2 * scale * gamma(1 / shape))
+    )
     return result
 
 
@@ -41,14 +49,20 @@ def pgnorm(q, mu=0, scale=1, shape=1, lower_tail=True, log_p=False):
     if np.any(shape > 100):
         p = stats.uniform.cdf(q, loc=mu - scale, scale=2 * scale)
     else:
-        p = (1/2 + np.sign(q - mu) *
-             stats.gamma.cdf(np.abs(q - mu)**shape, a=1/shape, scale=(1/scale)**shape) / 2)
+        p = (
+            1 / 2
+            + np.sign(q - mu)
+            * stats.gamma.cdf(
+                np.abs(q - mu) ** shape, a=1 / shape, scale=(1 / scale) ** shape
+            )
+            / 2
+        )
 
     if not lower_tail:
         p = 1 - p
 
     if log_p:
-        p = np.log(p + 1e-300)
+        p = np.log(np.clip(p, 1e-300, None))
 
     return p
 
@@ -71,16 +85,26 @@ def qgnorm(p, mu=0, scale=1, shape=1, lower_tail=True, log_p=False):
 
     if np.all(shape > 100):
         result = stats.uniform.ppf(p, loc=mu - scale, scale=2 * scale)
-    elif np.any((1/scale)**shape < 1e-300):
+    elif np.any((1 / scale) ** shape < 1e-300):
         lambdaScale = np.ceil(scale) / 10
         lambda_val = (scale / lambdaScale) ** shape
-        result = (np.sign(p - 0.5) *
-                  (stats.gamma.ppf(np.abs(p - 0.5) * 2, a=1/shape, scale=lambda_val) ** (1/shape)) *
-                  lambdaScale + mu)
+        result = (
+            np.sign(p - 0.5)
+            * (
+                stats.gamma.ppf(np.abs(p - 0.5) * 2, a=1 / shape, scale=lambda_val)
+                ** (1 / shape)
+            )
+            * lambdaScale
+            + mu
+        )
     else:
-        lambda_val = scale ** shape
-        result = (np.sign(p - 0.5) *
-                  stats.gamma.ppf(np.abs(p - 0.5) * 2, a=1/shape, scale=lambda_val) ** (1/shape) + mu)
+        lambda_val = scale**shape
+        result = (
+            np.sign(p - 0.5)
+            * stats.gamma.ppf(np.abs(p - 0.5) * 2, a=1 / shape, scale=lambda_val)
+            ** (1 / shape)
+            + mu
+        )
 
     return result
 
