@@ -37,6 +37,10 @@ dev = [
     "mypy",
     "black",
 ]
+docs = [
+    "sphinx>=7.0",
+    "sphinx-rtd-theme>=2.0",
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

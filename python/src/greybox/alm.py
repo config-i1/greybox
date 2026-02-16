@@ -19,6 +19,43 @@ from . import distributions as dist
 from .methods.summary import SummaryResult
 
 
+def _numerical_hessian(f, x0, h=None):
+    """Numerical Hessian via central finite differences.
+
+    Matches R's pracma::hessian() with fixed step size.
+
+    Parameters
+    ----------
+    f : callable
+        Scalar function of a vector argument.
+    x0 : np.ndarray
+        Point at which to evaluate the Hessian.
+    h : float, optional
+        Step size. Default: eps^(1/4) matching R.
+
+    Returns
+    -------
+    H : np.ndarray
+        Hessian matrix.
+    """
+    if h is None:
+        h = np.finfo(float).eps ** 0.25
+    n = len(x0)
+    H = np.empty((n, n))
+    hh = np.diag(np.full(n, h))
+    f0 = f(x0)
+    for i in range(n):
+        hi = hh[:, i]
+        H[i, i] = (f(x0 - hi) - 2 * f0 + f(x0 + hi)) / h**2
+        for j in range(i + 1, n):
+            hj = hh[:, j]
+            H[i, j] = (
+                f(x0 + hi + hj) - f(x0 + hi - hj) - f(x0 - hi + hj) + f(x0 - hi - hj)
+            ) / (4 * h**2)
+            H[j, i] = H[i, j]
+    return H
+
+
 class PredictionResult:
     """Prediction result object with mean and interval bounds.
 
@@ -239,6 +276,9 @@ class ALM:
         self._formula_ = None
         self._feature_names = None
         self.df_residual_ = None
+        self._B_opt_ = None
+        self._a_parameter_provided_ = False
+        self._other_val_ = 1.0
 
     def _validate_params(self):
         """Validate input parameters."""
@@ -697,6 +737,11 @@ class ALM:
         XtX += np.eye(XtX.shape[0]) * 1e-10
         self._XtX_inv_ = np.linalg.inv(XtX)
 
+        # Store optimization state for Hessian-based vcov
+        self._B_opt_ = B_opt.copy()
+        self._a_parameter_provided_ = a_parameter_provided
+        self._other_val_ = other_val
+
         self.time_elapsed = time_module.time() - start_time
 
         return self
@@ -704,8 +749,10 @@ class ALM:
     def vcov(self) -> np.ndarray:
         """Calculate variance-covariance matrix of parameter estimates.
 
-        Returns the variance-covariance matrix of the parameter estimates,
-        computed as: sigma² × (X'X)⁻¹ where sigma is the residual standard error.
+        Uses distribution-specific methods matching R's vcov.alm():
+        - Normal-like + likelihood/MSE: sigma^2 * (X'X)^-1
+        - Poisson + likelihood: inverse Fisher information
+        - Everything else: inverse numerical Hessian of cost function
 
         Returns
         -------
@@ -716,21 +763,133 @@ class ALM:
             raise ValueError("Model not fitted. Call fit() first.")
 
         X = self._X_train_
-        XtX = X.T @ X
-        XtX_reg = XtX + np.eye(XtX.shape[0]) * 1e-10
+        n_vars = X.shape[1]
+        distribution = self.distribution
+        loss = self.loss
+
+        # Path 1: Analytical for normal-like distributions with likelihood/MSE
+        normal_like = ("dnorm", "dlnorm", "dbcnorm", "dlogitnorm")
+        if (distribution in normal_like and loss == "likelihood") or loss == "MSE":
+            XtX = X.T @ X
+            try:
+                L = np.linalg.cholesky(XtX)
+                XtX_inv = np.linalg.solve(L.T, np.linalg.solve(L, np.eye(n_vars)))
+            except np.linalg.LinAlgError:
+                XtX_inv = np.linalg.pinv(XtX)
+            return self.sigma**2 * XtX_inv
+
+        # Path 2: Analytical for Poisson with likelihood
+        if distribution == "dpois" and loss == "likelihood":
+            mu = self.fitted
+            FI = np.zeros((n_vars, n_vars))
+            for i in range(len(mu)):
+                xi = X[i]
+                FI += np.outer(xi, xi) * mu[i]
+            try:
+                L = np.linalg.cholesky(FI)
+                return np.linalg.solve(L.T, np.linalg.solve(L, np.eye(n_vars)))
+            except np.linalg.LinAlgError:
+                return np.linalg.pinv(FI)
+
+        # Path 3: Hessian-based for everything else
+        return self._vcov_hessian(X, n_vars)
+
+    def _vcov_hessian(self, X, n_vars):
+        """Compute vcov via numerical Hessian of the cost function."""
+        y = self._y_train_
+        a_parameter_provided = self._a_parameter_provided_
+        other_val = self._other_val_
+
+        # B for the regression coefficients only (not extra param)
+        if (
+            self.distribution
+            in (
+                "dalaplace",
+                "dnbinom",
+                "dchisq",
+                "dfnorm",
+                "drectnorm",
+                "dgnorm",
+                "dlgnorm",
+                "dbcnorm",
+                "dt",
+            )
+            and not a_parameter_provided
+        ):
+            B_reg = self._B_opt_[1:]
+        else:
+            B_reg = self._B_opt_
+
+        lambda_val = (
+            self.lambda_l1
+            if self.loss == "LASSO"
+            else (self.lambda_l2 if self.loss == "RIDGE" else 0.0)
+        )
+        lambda_bc_val = (
+            self.lambda_bc
+            if self.distribution == "dbcnorm" and a_parameter_provided
+            else 0.0
+        )
+
+        def cf_wrapper(B):
+            if (
+                self.distribution
+                in (
+                    "dalaplace",
+                    "dnbinom",
+                    "dchisq",
+                    "dfnorm",
+                    "drectnorm",
+                    "dgnorm",
+                    "dlgnorm",
+                    "dbcnorm",
+                    "dt",
+                )
+                and not a_parameter_provided
+            ):
+                B_full = np.concatenate([[other_val], B])
+            else:
+                B_full = B
+            return cf(
+                B_full,
+                self.distribution,
+                self.loss,
+                y,
+                X,
+                ar_order=0,
+                i_order=0,
+                lambda_val=lambda_val,
+                other=other_val,
+                a_parameter_provided=a_parameter_provided,
+                trim=self.trim,
+                lambda_bc=lambda_bc_val,
+                size=self.size if self.distribution == "dbinom" else 1.0,
+            )
+
+        FI = _numerical_hessian(cf_wrapper, B_reg)
+
+        # Check for broken variables (all-zero or NaN rows)
+        broken = np.all(FI == 0, axis=1) | np.any(np.isnan(FI), axis=1)
+        if np.any(broken):
+            FI = _numerical_hessian(cf_wrapper, B_reg, h=np.finfo(float).eps ** (1 / 6))
 
         try:
-            XtX_inv = np.linalg.inv(XtX_reg)
+            L = np.linalg.cholesky(FI)
+            vcov = np.linalg.solve(L.T, np.linalg.solve(L, np.eye(n_vars)))
         except np.linalg.LinAlgError:
-            import warnings
+            try:
+                vcov = np.linalg.inv(FI)
+            except np.linalg.LinAlgError:
+                vcov = np.linalg.pinv(FI)
 
-            warnings.warn(
-                "Covariance matrix is singular. Results may be inaccurate. "
-                "Using pseudoinverse instead."
-            )
-            XtX_inv = np.linalg.pinv(XtX_reg)
+        # Fix negative diagonal elements
+        neg_diag = np.diag(vcov) < 0
+        if np.any(neg_diag):
+            diag_vals = np.diag(vcov).copy()
+            diag_vals[neg_diag] = np.abs(diag_vals[neg_diag])
+            np.fill_diagonal(vcov, diag_vals)
 
-        return (self.sigma**2) * XtX_inv
+        return vcov
 
     def _calculate_variance(self, X, interval="confidence"):
         """Calculate conditional variance for prediction intervals.
@@ -1075,12 +1234,17 @@ class ALM:
             Residual standard error, computed as sqrt(sum(residuals^2) / (n - k))
             where n is the number of observations and k is the number of parameters
             (including the scale parameter).
+            For dinvgauss/dgamma/dexp, uses (residuals - 1) since residuals are
+            on a multiplicative scale (y/mu), matching R's sigma.alm().
         """
         if self.residuals_ is None:
             raise ValueError("Model not fitted. Call fit() first.")
         n = len(self.residuals_)
         k = self._n_features + 1
-        return np.sqrt(np.sum(self.residuals_**2) / (n - k))
+        resid = self.residuals_
+        if self.distribution in ("dinvgauss", "dgamma", "dexp"):
+            resid = resid - 1
+        return np.sqrt(np.sum(resid**2) / (n - k))
 
     @property
     def coef(self) -> np.ndarray:

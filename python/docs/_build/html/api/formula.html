@@ -1,0 +1,260 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Formula &mdash; greybox 0.1.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=01f34227"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Transforms" href="transforms.html" />
+    <link rel="prev" title="ALM" href="alm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Formula</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.formula.formula"><code class="docutils literal notranslate"><span class="pre">formula()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.formula.expand_formula"><code class="docutils literal notranslate"><span class="pre">expand_formula()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#formula-syntax-reference">Formula Syntax Reference</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#basic-operators">Basic Operators</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#transformations">Transformations</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#polynomial-terms">Polynomial Terms</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#special-variables">Special Variables</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/greybox/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Formula</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/formula.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="formula">
+<h1>Formula<a class="headerlink" href="#formula" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.formula.formula">
+<span class="sig-prename descclassname"><span class="pre">greybox.formula.</span></span><span class="sig-name descname"><span class="pre">formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formula_str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">return_type</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/formula.html#formula"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.formula.formula" title="Link to this definition"></a></dt>
+<dd><p>Parse formula string and return design matrix and/or response.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>formula_str</strong> (<em>str</em>) – Formula string in R-style, e.g., “y ~ x1 + x2” or “~ x1 + x2” (no y).
+Supports transformations: log(x), sqrt(x), x^2, etc.
+Use I() to protect expressions: I(x^2)</p></li>
+<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>DataFrame</em>) – Data containing variables. Can be dict, DataFrame, or dict of arrays.</p></li>
+<li><p><strong>return_type</strong> (<em>str</em><em>, </em><em>optional</em>) – What to return: “both” (default), “X”, “y”, or “terms”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p>“both”: tuple (y, X) where y is 1D array and X is 2D array with intercept</p></li>
+<li><p>”X”: design matrix only</p></li>
+<li><p>”y”: response only</p></li>
+<li><p>”terms”: list of term names</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>Depends on return_type</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x1 + x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">X_no_intercept</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;~ x1 + x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;X&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># With transformations</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="s1">&#39;x&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;log(y) ~ x + x^2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>  <span class="c1"># y is log-transformed, X has x and x^2</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.formula.expand_formula">
+<span class="sig-prename descclassname"><span class="pre">greybox.formula.</span></span><span class="sig-name descname"><span class="pre">expand_formula</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">formula_str</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/formula.html#expand_formula"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.formula.expand_formula" title="Link to this definition"></a></dt>
+<dd><p>Expand formula with interaction terms.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>formula_str</strong> (<em>str</em>) – Formula string, e.g., “y ~ x1 * x2”</p>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Expanded formula with explicit interaction terms.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<section id="formula-syntax-reference">
+<h2>Formula Syntax Reference<a class="headerlink" href="#formula-syntax-reference" title="Link to this heading"></a></h2>
+<section id="basic-operators">
+<h3>Basic Operators<a class="headerlink" href="#basic-operators" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">~</span></code> : Separates response from predictors</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">+</span></code> : Adds a term (include variable)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">-</span></code> : Removes a term</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">0</span></code> or <code class="docutils literal notranslate"><span class="pre">-1</span></code> : Removes intercept</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">1</span></code> : Adds intercept (default)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">*</span></code> : Main effects and interactions (a*b = a + b + a:b)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">:</span></code> : Interaction only</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">I()</span></code> : Protect expression from interpretation</p></li>
+</ul>
+</section>
+<section id="transformations">
+<h3>Transformations<a class="headerlink" href="#transformations" title="Link to this heading"></a></h3>
+<p>Supported transformations in formula terms:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">log(x)</span></code> - Natural logarithm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log10(x)</span></code> - Base 10 logarithm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">log2(x)</span></code> - Base 2 logarithm</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sqrt(x)</span></code> - Square root</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">exp(x)</span></code> - Exponential</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">abs(x)</span></code> - Absolute value</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">sin(x)</span></code>, <code class="docutils literal notranslate"><span class="pre">cos(x)</span></code>, <code class="docutils literal notranslate"><span class="pre">tan(x)</span></code> - Trigonometric</p></li>
+</ul>
+</section>
+<section id="polynomial-terms">
+<h3>Polynomial Terms<a class="headerlink" href="#polynomial-terms" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">I(x^2)</span></code> - Squared term (protected)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">I(x^3)</span></code> - Cubed term</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">poly(x,</span> <span class="pre">2)</span></code> - Polynomial (if supported)</p></li>
+</ul>
+</section>
+<section id="special-variables">
+<h3>Special Variables<a class="headerlink" href="#special-variables" title="Link to this heading"></a></h3>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">trend</span></code> - Linear time trend (1, 2, 3, …)</p></li>
+</ul>
+</section>
+<section id="examples">
+<h3>Examples<a class="headerlink" href="#examples" title="Link to this heading"></a></h3>
+<p>Basic linear regression:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x1 + x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Without intercept:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ 0 + x1 + x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>With log transformation:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;log(y) ~ log(x1) + sqrt(x2)&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Polynomial regression:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x + I(x^2) + I(x^3)&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>Interactions:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x1 * x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>  <span class="c1"># equivalent to x1 + x2 + x1:x2</span>
+</pre></div>
+</div>
+</section>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="alm.html" class="btn btn-neutral float-left" title="ALM" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="transforms.html" class="btn btn-neutral float-right" title="Transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2024, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

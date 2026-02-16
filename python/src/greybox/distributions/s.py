@@ -12,7 +12,7 @@ from .gnorm import qgnorm
 def ds(q, mu=0, scale=1, log=False):
     """S-distribution density.
 
-    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(|mu - x|) / scale)
+    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(abs(mu - x)) / scale)
 
     Parameters
     ----------
