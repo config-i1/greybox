@@ -5,7 +5,7 @@
 
 The package _greybox_ contains functions for model building, which is currently done via the model selection and combinations based on information criteria. The resulting model can then be used in analysis and forecasting.
 
-![hex-sticker of the greybox package for R](https://github.com/config-i1/greybox/blob/master/man/figures/greybox-web.png?raw=true)
+![hex-sticker of the greybox package for R](https://github.com/config-i1/greybox/blob/master/man/figures/greybox-web.png?raw=true) ![hex-sticker of the greybox package for Python](https://github.com/config-i1/greybox/blob/master/python/img/greybox-python-web.png?raw=true)
 
 There are several groups of functions in the package.
 
