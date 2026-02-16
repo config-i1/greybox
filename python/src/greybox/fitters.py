@@ -12,6 +12,36 @@ from .cost_function import cf  # noqa: F401 - re-exported for backwards compatib
 from . import distributions as dist
 
 
+def _plogis_log_residual(y: np.ndarray, mu: np.ndarray) -> np.ndarray:
+    """Numerically stable log-residual for plogis distribution.
+
+    For binary y in {0, 1}:
+      y=1: log((2 + exp(mu)) / exp(mu)) = log1p(2*exp(-mu))
+      y=0: log(1 / (1 + 2*exp(mu)))     = -log1p(2*exp(mu))
+
+    With overflow protection for |mu| > 500.
+    """
+    result = np.empty_like(mu, dtype=float)
+    mask1 = y == 1
+    mask0 = ~mask1
+
+    mu1 = mu[mask1]
+    large_pos = mu1 > 500
+    result_1 = np.empty_like(mu1)
+    result_1[~large_pos] = np.log1p(2.0 * np.exp(-mu1[~large_pos]))
+    result_1[large_pos] = 2.0 * np.exp(-mu1[large_pos])
+    result[mask1] = result_1
+
+    mu0 = mu[mask0]
+    large_pos0 = mu0 > 500
+    result_0 = np.empty_like(mu0)
+    result_0[~large_pos0] = -np.log1p(2.0 * np.exp(mu0[~large_pos0]))
+    result_0[large_pos0] = -(np.log(2.0) + mu0[large_pos0])
+    result[mask0] = result_0
+
+    return result
+
+
 def scaler_internal(
     B: np.ndarray,
     distribution: str,
@@ -132,7 +162,7 @@ def scaler_internal(
         return np.sqrt(mean_fast(q**2))
 
     elif distribution == "plogis":
-        log_term = np.log((1 + y * (1 + np.exp(mu))) / (1 + np.exp(mu) * (2 - y) - y))
+        log_term = _plogis_log_residual(y, mu)
         return np.sqrt(mean_fast(log_term**2))
 
     else:
@@ -277,7 +307,7 @@ def extractor_residuals(
         return dist.qnorm(p, 0, 1)
 
     elif distribution == "plogis":
-        return np.log((1 + y * (1 + np.exp(mu))) / (1 + np.exp(mu) * (2 - y) - y))
+        return _plogis_log_residual(y, mu)
 
     else:
         return y - mu

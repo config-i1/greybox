@@ -354,6 +354,8 @@ class ALM:
             and not a_parameter_provided
         ):
             n_params = n_features + 1
+        elif self.distribution == "dbeta":
+            n_params = 2 * n_features
         else:
             n_params = n_features
 
@@ -463,6 +465,16 @@ class ALM:
                     B_init[1:] = B_init_for_lstsq
                 else:
                     B_init = B_init_for_lstsq
+            except Exception:
+                pass
+        elif self.distribution == "dbeta":
+            y_clip = np.clip(y, 1e-10, 1 - 1e-10)
+            try:
+                B_half = np.linalg.lstsq(X, np.log(y_clip / (1 - y_clip)), rcond=None)[
+                    0
+                ]
+                B_init[:n_features] = B_half
+                B_init[n_features:] = -B_half
             except Exception:
                 pass
         elif (
@@ -609,6 +621,9 @@ class ALM:
             ):
                 self.intercept_ = B_opt[1]
                 self._coef = B_opt[2:] if len(B_opt) > 2 else np.array([])
+            elif self.distribution == "dbeta":
+                self.intercept_ = B_opt[0]
+                self._coef = B_opt[1:n_features] if n_features > 1 else np.array([])
             else:
                 self.intercept_ = B_opt[0]
                 self._coef = B_opt[1:] if len(B_opt) > 1 else np.array([])
@@ -619,6 +634,8 @@ class ALM:
         ):
             B_for_mu = B_opt[1:]
             other_val = B_opt[0]
+        elif self.distribution == "dbeta":
+            B_for_mu = B_opt[:n_features]
         else:
             B_for_mu = B_opt
 
@@ -632,6 +649,8 @@ class ALM:
             "dbinom",
             "dgeom",
         ):
+            mu_computed = np.exp(linear_pred)
+        elif self.distribution == "dbeta":
             mu_computed = np.exp(linear_pred)
         else:
             mu_computed = linear_pred
@@ -680,29 +699,32 @@ class ALM:
 
         if self.loss == "likelihood":
             self.log_lik = -self.loss_value
-            n_params_calc = n_features
-            if self.distribution not in (
-                "dexp",
-                "dpois",
-                "dgeom",
-                "dbinom",
-                "plogis",
-                "pnorm",
-            ):
-                n_params_calc += 1
-            if (
-                self.distribution in distributions_with_extra_param
-                and not a_parameter_provided
-                and self.distribution
-                not in (
-                    "dfnorm",
-                    "drectnorm",
-                    "dt",
-                    "dchisq",
-                    "dnbinom",
-                )
-            ):
-                n_params_calc += 1
+            if self.distribution == "dbeta":
+                n_params_calc = 2 * n_features
+            else:
+                n_params_calc = n_features
+                if self.distribution not in (
+                    "dexp",
+                    "dpois",
+                    "dgeom",
+                    "dbinom",
+                    "plogis",
+                    "pnorm",
+                ):
+                    n_params_calc += 1
+                if (
+                    self.distribution in distributions_with_extra_param
+                    and not a_parameter_provided
+                    and self.distribution
+                    not in (
+                        "dfnorm",
+                        "drectnorm",
+                        "dt",
+                        "dchisq",
+                        "dnbinom",
+                    )
+                ):
+                    n_params_calc += 1
             self.aic = 2 * n_params_calc - 2 * self.log_lik
             self.bic = n_params_calc * np.log(n_samples) - 2 * self.log_lik
 
@@ -817,6 +839,8 @@ class ALM:
             and not a_parameter_provided
         ):
             B_reg = self._B_opt_[1:]
+        elif self.distribution == "dbeta":
+            B_reg = self._B_opt_[:n_vars]
         else:
             B_reg = self._B_opt_
 
@@ -848,6 +872,8 @@ class ALM:
                 and not a_parameter_provided
             ):
                 B_full = np.concatenate([[other_val], B])
+            elif self.distribution == "dbeta":
+                B_full = np.concatenate([B, self._B_opt_[n_vars:]])
             else:
                 B_full = B
             return cf(

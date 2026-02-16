@@ -576,8 +576,11 @@ class TestALMDistributionSmoke:
         mtcars_mod["mpg_scaled"] = (mpg / (max(mpg) + 1)).tolist()
         y, X = formula("mpg_scaled ~ wt", mtcars_mod)
         model = ALM(distribution="dbeta", loss="likelihood")
-        # dbeta currently has issues with scaler_internal - xfail
-        pytest.xfail("dbeta two-part model not fully implemented")
+        model.fit(X, y)
+        assert model.intercept_ is not None
+        assert model.fitted_values_ is not None
+        assert np.all(model.fitted_values_ > 0)
+        assert np.all(model.fitted_values_ < 1)
 
     @pytest.mark.parametrize("distribution", COUNT_DISTRIBUTIONS)
     def test_count_runs(self, mtcars_data, distribution):
