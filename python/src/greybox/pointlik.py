@@ -81,7 +81,7 @@ def point_lik(
 
     elif distribution == "dlnorm":
         sdlog = scale
-        meanlog = mu
+        meanlog = np.log(mu)
         if log:
             lik = stats.lognorm.logpdf(y, s=sdlog, scale=np.exp(meanlog))
         else:

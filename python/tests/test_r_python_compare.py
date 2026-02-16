@@ -44,6 +44,45 @@ from greybox.distributions import (
     qls,
     dlgnorm,
     qlgnorm,
+    dlaplace,
+    plaplace,
+    qlaplace,
+    dlnorm,
+    plnorm,
+    qlnorm,
+    dlogis,
+    qlogis,
+    plogis,
+    dt,
+    pt,
+    qt,
+    dgamma,
+    pgamma,
+    qgamma,
+    dexp,
+    pexp,
+    qexp,
+    dbeta,
+    pbeta,
+    qbeta,
+    dpois,
+    ppois,
+    qpois,
+    dnbinom,
+    pnbinom,
+    qnbinom,
+    dbinom,
+    pbinom,
+    qbinom,
+    dgeom,
+    pgeom,
+    qgeom,
+    dchi2,
+    pchi2,
+    qchi2,
+    dinvgauss,
+    pinvgauss,
+    qinvgauss,
 )
 
 
@@ -634,7 +673,7 @@ class TestLogisticFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         loc, scale = 1.0, 1.0
 
-        py_result = plogis(q, loc=loc, scale=scale)
+        py_result = plogis(q, location=loc, scale=scale)
         r_result = call_r_func("plogis", q, loc, scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -845,7 +884,7 @@ class TestPoissonFuncvsR:
         mu = 3.0
 
         py_result = dpois(q, mu=mu)
-        r_result = call_r_func("dpois", q, lambda_=mu)
+        r_result = call_r_func("dpois", q, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -855,7 +894,7 @@ class TestPoissonFuncvsR:
         mu = 3.0
 
         py_result = dpois(q, mu=mu, log=True)
-        r_result = call_r_func("dpois", q, lambda_=mu, log=True)
+        r_result = call_r_func("dpois", q, mu, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -865,7 +904,7 @@ class TestPoissonFuncvsR:
         mu = 3.0
 
         py_result = ppois(q, mu=mu)
-        r_result = call_r_func("ppois", q, lambda_=mu)
+        r_result = call_r_func("ppois", q, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -875,7 +914,7 @@ class TestPoissonFuncvsR:
         mu = 3.0
 
         py_result = qpois(p, mu=mu)
-        r_result = call_r_func("qpois", p, lambda_=mu)
+        r_result = call_r_func("qpois", p, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
