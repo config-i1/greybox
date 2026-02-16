@@ -67,16 +67,16 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
     PredictResult
         Prediction results with mean, lower, upper bounds, etc.
     """
-    if not hasattr(model, "coef_") or model.coef_ is None:
+    if not hasattr(model, "_coef") or model._coef is None:
         raise ValueError("Model not fitted. Call fit() first.")
 
     X = np.asarray(X, dtype=float)
     if X.ndim == 1:
         X = X.reshape(1, -1)
 
-    if X.shape[1] != len(model.coef_) + 1:
+    if X.shape[1] != len(model.coef) + 1:
         raise ValueError(
-            f"X has {X.shape[1]} columns but model expects {len(model.coef_) + 1}"
+            f"X has {X.shape[1]} columns but model expects {len(model.coef) + 1}"
         )
 
     if interval not in ("none", "confidence", "prediction"):
@@ -103,7 +103,7 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
 
     param_quantiles = stats.t.ppf(level_low + level_up, df=model.df_residual_)
 
-    coef_array = np.concatenate([[model.intercept_], model.coef_])
+    coef_array = np.concatenate([[model.intercept_], model.coef])
     mean = X @ coef_array
 
     variances = None
@@ -111,7 +111,7 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
     upper = None
 
     if interval != "none":
-        variances = np.abs(np.diag(X @ X.T)) * (model.scale_**2)
+        variances = np.abs(np.diag(X @ X.T)) * (model.scale**2)
 
         if interval == "confidence":
             se = np.sqrt(variances)
@@ -125,7 +125,7 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
                 upper[:, i] = upper_i
 
         elif interval == "prediction":
-            sigma_sq = model.scale_**2
+            sigma_sq = model.scale**2
             total_var = variances + sigma_sq
             se = np.sqrt(total_var)
             for i in range(n_levels):
@@ -178,7 +178,7 @@ def predict(
     PredictResult
         Prediction results with mean, lower, upper bounds, etc.
     """
-    if not hasattr(model, "coef_") or model.coef_ is None:
+    if not hasattr(model, "_coef") or model._coef is None:
         raise ValueError("Model not fitted. Call fit() first.")
 
     if interval not in ("none", "confidence", "prediction"):
@@ -250,10 +250,10 @@ def predict(
         if model.distribution == "dnorm":
             if result.lower is not None:
                 result.lower = stats.norm.ppf(
-                    level_low, loc=result.mean, scale=model.scale_
+                    level_low, loc=result.mean, scale=model.scale
                 )
                 result.upper = stats.norm.ppf(
-                    level_up, loc=result.mean, scale=model.scale_
+                    level_up, loc=result.mean, scale=model.scale
                 )
 
     return result

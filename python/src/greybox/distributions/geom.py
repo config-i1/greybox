@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Geometric distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -25,10 +24,9 @@ def dgeom(q, prob=0.5, log=False):
     array
         Probability mass values.
     """
-    result = stats.geom.pmf(q + 1, p=prob)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.geom.logpmf(q + 1, p=prob)
+    return stats.geom.pmf(q + 1, p=prob)
 
 
 def pgeom(q, prob=0.5):

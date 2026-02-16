@@ -404,7 +404,9 @@ def mcor(x: np.ndarray, y: np.ndarray | None = None) -> float:
     return np.sqrt(r_squared)
 
 
-def determination(actual: np.ndarray, predicted: np.ndarray) -> dict[str, float]:
+def determination(
+    actual: np.ndarray, predicted: np.ndarray, k: int = 1
+) -> dict[str, float]:
     """Calculate coefficient of determination (R-squared).
 
     Parameters
@@ -440,7 +442,6 @@ def determination(actual: np.ndarray, predicted: np.ndarray) -> dict[str, float]
         r_squared = 1 - ss_res / ss_tot
 
     n = len(actual)
-    k = 1
     if n - k - 1 > 0:
         adj_r_squared = 1 - (1 - r_squared) * (n - 1) / (n - k - 1)
     else:
@@ -509,7 +510,12 @@ def association(
         elif method == "spearman":
             cor_matrix = stats.spearmanr(x_clean).correlation
         elif method == "kendall":
-            cor_matrix = stats.kendalltau(x_clean).correlation
+            cor_matrix = np.ones((n_vars, n_vars))
+            for i in range(n_vars):
+                for j in range(i + 1, n_vars):
+                    tau, _ = stats.kendalltau(x_clean[:, i], x_clean[:, j])
+                    cor_matrix[i, j] = tau
+                    cor_matrix[j, i] = tau
         else:
             raise ValueError(f"Unknown method: {method}")
 

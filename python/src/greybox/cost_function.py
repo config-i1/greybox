@@ -63,13 +63,11 @@ def _compute_log_lik_array(
     elif distribution == "dlnorm":
         return dist.dlnorm(y_otU, meanlog=mu_otU, sdlog=scale, log=True)
     elif distribution == "dllaplace":
-        return dist.dllaplace(y_otU, loc=mu_otU, scale=scale, log=True) - np.log(y_otU)
+        return dist.dllaplace(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dls":
-        return dist.dls(y_otU, loc=mu_otU, scale=scale, log=True) - np.log(y_otU)
+        return dist.dls(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dlgnorm":
-        return dist.dlgnorm(
-            y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True
-        ) - np.log(y_otU)
+        return dist.dlgnorm(y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True)
     elif distribution == "dbcnorm":
         mask_nonzero = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
@@ -86,7 +84,11 @@ def _compute_log_lik_array(
     elif distribution == "drectnorm":
         return dist.drectnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
     elif distribution == "dinvgauss":
-        return dist.dinvgauss(y_otU, mu=mu_otU, scale=scale / mu_otU, log=True)
+        disp = scale / (mu_otU + 1e-300)
+        lam = 1.0 / (disp + 1e-300)
+        return dist.dinvgauss(
+            y_otU, mu=scale * np.ones_like(y_otU), scale=lam, log=True
+        )
     elif distribution == "dgamma":
         return dist.dgamma(y_otU, shape=1 / scale, scale=scale * mu_otU, log=True)
     elif distribution == "dexp":
@@ -111,15 +113,15 @@ def _compute_log_lik_array(
     elif distribution == "dbeta":
         return dist.dbeta(y_otU, a=mu_otU, b=scale, log=True)
     elif distribution == "pnorm":
-        ot = y_otU > dist.pnorm(mu_otU, mean=0, sd=1)
+        ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
-        result[ot] = dist.plogis(mu_otU[ot], location=0, scale=1, log_p=True)
-        result[~ot] = dist.plogis(
-            mu_otU[~ot], location=0, scale=1, log_p=True, lower_tail=False
+        result[ot] = dist.pnorm(mu_otU[ot], mean=0, sd=1, log_p=True)
+        result[~ot] = dist.pnorm(
+            mu_otU[~ot], mean=0, sd=1, log_p=True, lower_tail=False
         )
         return result
     elif distribution == "plogis":
-        ot = y_otU > dist.plogis(mu_otU, location=0, scale=1)
+        ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
         result[ot] = dist.plogis(mu_otU[ot], location=0, scale=1, log_p=True)
         result[~ot] = dist.plogis(
@@ -333,6 +335,12 @@ def cf(
     other_val = fitter_return["other"]
 
     if loss in ("likelihood", "ROLE"):
+        # For dbcnorm, lambda_bc is the "other" param when estimated
+        effective_lambda_bc = (
+            other_val
+            if distribution == "dbcnorm" and not a_parameter_provided
+            else lambda_bc
+        )
         log_lik_array = _compute_log_lik_array(
             distribution,
             y_otU,
@@ -341,7 +349,7 @@ def cf(
             other_val,
             occurrence_model,
             size,
-            lambda_bc,
+            effective_lambda_bc,
         )
 
         if loss == "likelihood":
@@ -358,7 +366,12 @@ def cf(
             )
 
     else:
-        y_fitted = extractor_fitted(distribution, mu, scale, lambda_bc)
+        effective_lambda_bc = (
+            other_val
+            if distribution == "dbcnorm" and not a_parameter_provided
+            else lambda_bc
+        )
+        y_fitted = extractor_fitted(distribution, mu, scale, effective_lambda_bc)
 
         if loss == "MSE":
             cf_value = np.mean((y - y_fitted) ** 2)

@@ -86,7 +86,7 @@ def stepwise(
 
         selected_vars.append(best_var_to_add)
         all_vars.remove(best_var_to_add)
-        best_ic = best_var_to_add
+        best_ic = best_var_ic
 
         if not silent:
             print(f"Added {best_var_to_add}, IC={best_var_ic:.4f}")
@@ -106,20 +106,20 @@ def stepwise(
 def _get_ic_value(model: ALM, ic_type: str) -> float:
     """Get the IC value from a model."""
     if ic_type == "AIC":
-        return model.aic_ if model.aic_ is not None else np.inf
+        return model.aic if model.aic is not None else np.inf
     elif ic_type == "BIC":
-        return model.bic_ if model.bic_ is not None else np.inf
+        return model.bic if model.bic is not None else np.inf
     elif ic_type == "AICc":
         n = model.nobs
         k = model.nparam
-        aic = model.aic_ if model.aic_ is not None else np.inf
+        aic = model.aic if model.aic is not None else np.inf
         if n - k - 1 > 0:
             return aic + (2 * k**2 + 2 * k) / (n - k - 1)
         return np.inf
     elif ic_type == "BICc":
         n = model.nobs
         k = model.nparam
-        bic = model.bic_ if model.bic_ is not None else np.inf
+        bic = model.bic if model.bic is not None else np.inf
         return bic + k * np.log(n) ** 2 / n
     return np.inf
 
@@ -209,7 +209,7 @@ def lm_combine(
                     "vars": combo,
                     "model": model,
                     "ic": ic_value,
-                    "coef": np.concatenate([[model.intercept_], model.coef_]),
+                    "coef": np.concatenate([[model.intercept_], model.coef]),
                 }
             )
         except Exception:
@@ -242,7 +242,7 @@ def lm_combine(
     ss_tot = np.sum((y_final - np.mean(y_final)) ** 2)
     r_squared = 1 - ss_res / ss_tot
 
-    combined_log_lik = sum(w * m["model"].log_lik_ for w, m in zip(weights, models))
+    combined_log_lik = sum(w * m["model"].log_lik for w, m in zip(weights, models))
 
     importance = np.zeros(n_params)
     for i, model_info in enumerate(models):

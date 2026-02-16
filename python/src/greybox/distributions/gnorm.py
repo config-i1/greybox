@@ -20,14 +20,19 @@ def dgnorm(q, mu=0, scale=1, shape=1, log=False):
     shape = np.where(np.isnan(shape), 0, shape)
     shape = np.where(shape == 0, 1e-10, shape)
 
+    if log:
+        return (
+            -((np.abs(q - mu) / scale) ** shape)
+            + np.log(shape)
+            - np.log(2 * scale)
+            - np.log(gamma(1 / shape))
+        )
+
     result = (
         np.exp(-((np.abs(q - mu) / scale) ** shape))
         * shape
         / (2 * scale * gamma(1 / shape))
     )
-
-    if log:
-        return np.log(result + 1e-300)
     return result
 
 
@@ -57,7 +62,7 @@ def pgnorm(q, mu=0, scale=1, shape=1, lower_tail=True, log_p=False):
         p = 1 - p
 
     if log_p:
-        p = np.log(p + 1e-300)
+        p = np.log(np.clip(p, 1e-300, None))
 
     return p
 

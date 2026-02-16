@@ -219,18 +219,19 @@ class ALM:
         self.nlopt_kargs = nlopt_kargs if nlopt_kargs is not None else {}
         self.verbose = verbose
 
-        self.coef_ = None
-        self.intercept_ = None
-        self.scale_ = None
+        self._coef = None
+        self.scale = None
         self.other_ = None
         self.fitted_values_ = None
         self.residuals_ = None
-        self.loss_value_ = None
-        self.log_lik_ = None
-        self.aic_ = None
-        self.bic_ = None
+        self.loss_value = None
+        self.log_lik = None
+        self.aic = None
+        self.bic = None
+        self.aicc = None
+        self.bicc = None
         self.n_iter_ = None
-        self.time_elapsed_ = None
+        self.time_elapsed = None
         self._result = None
         self._n_features = None
         self._X_train_ = None
@@ -296,35 +297,167 @@ class ALM:
         if not a_parameter_provided:
             other_val = 1.0
 
-        B_init = np.zeros(n_features)
+        distributions_with_extra_param = (
+            "dalaplace",
+            "dnbinom",
+            "dchisq",
+            "dfnorm",
+            "drectnorm",
+            "dgnorm",
+            "dlgnorm",
+            "dbcnorm",
+            "dt",
+        )
 
-        if self.distribution in ("dlnorm", "dllaplace", "dls", "dlgnorm"):
+        if (
+            self.distribution in distributions_with_extra_param
+            and not a_parameter_provided
+        ):
+            n_params = n_features + 1
+        else:
+            n_params = n_features
+
+        B_init = np.zeros(n_params)
+
+        log_link_distributions = (
+            "dinvgauss",
+            "dgamma",
+            "dexp",
+            "dnbinom",
+            "dbinom",
+            "dgeom",
+        )
+
+        if self.distribution in ("plogis", "pnorm"):
+            from .transforms import bc_transform
+
+            y_bc = bc_transform(y, 0.01)
+            try:
+                B_init = np.linalg.lstsq(X, y_bc, rcond=None)[0]
+            except Exception:
+                pass
+        elif self.distribution == "dpois":
+            mu_insample = np.mean(y)
+            try:
+                XtX_mu = X.T @ X * mu_insample
+                B_init_for_lstsq = np.linalg.solve(XtX_mu, X.T @ (y - mu_insample))
+                B_init = B_init_for_lstsq
+            except Exception:
+                try:
+                    y_pos = y[y > 0]
+                    X_pos = X[y > 0]
+                    B_init = np.linalg.lstsq(X_pos, np.log(y_pos), rcond=None)[0]
+                except Exception:
+                    pass
+        elif self.distribution in (
+            "dlnorm",
+            "dllaplace",
+            "dls",
+            "dlgnorm",
+            *log_link_distributions,
+        ):
             y_pos = y[y > 0]
             X_pos = X[y > 0]
             if len(y_pos) > 0:
                 try:
-                    B_init = np.linalg.lstsq(X_pos, np.log(y_pos), rcond=None)[0]
+                    B_init_for_lstsq = np.linalg.lstsq(
+                        X_pos, np.log(y_pos), rcond=None
+                    )[0]
+                    if (
+                        self.distribution in distributions_with_extra_param
+                        and not a_parameter_provided
+                    ):
+                        B_init[1:] = B_init_for_lstsq
+                    else:
+                        B_init = B_init_for_lstsq
                 except Exception:
-                    B_init = np.zeros(n_features)
+                    pass
+        elif self.distribution == "dt":
+            try:
+                B_init_for_lstsq = np.linalg.lstsq(X, y, rcond=None)[0]
+                if not a_parameter_provided:
+                    B_init[0] = 2
+                    B_init[1:] = B_init_for_lstsq
+                else:
+                    B_init = B_init_for_lstsq
+            except Exception:
+                pass
+        elif self.distribution == "dbcnorm":
+            from .transforms import bc_transform
+
+            if not a_parameter_provided:
+                try:
+                    B_init_for_lstsq = np.linalg.lstsq(
+                        X, bc_transform(y, 0.1), rcond=None
+                    )[0]
+                    B_init[0] = 0.1
+                    B_init[1:] = B_init_for_lstsq
+                except Exception:
+                    pass
+            else:
+                try:
+                    B_init = np.linalg.lstsq(
+                        X, bc_transform(y, self.lambda_bc), rcond=None
+                    )[0]
+                except Exception:
+                    pass
+        elif self.distribution == "dchisq":
+            try:
+                B_init_for_lstsq = np.linalg.lstsq(X, np.sqrt(y), rcond=None)[0]
+                if not a_parameter_provided:
+                    B_init[0] = 1
+                    B_init[1:] = B_init_for_lstsq
+                else:
+                    B_init = B_init_for_lstsq
+            except Exception:
+                pass
         elif self.distribution in ("dlogitnorm",):
             y_clip = np.clip(y, 1e-10, 1 - 1e-10)
             y_transformed = np.log(y_clip / (1 - y_clip))
             try:
-                B_init = np.linalg.lstsq(X, y_transformed, rcond=None)[0]
+                B_init_for_lstsq = np.linalg.lstsq(X, y_transformed, rcond=None)[0]
+                if (
+                    self.distribution in distributions_with_extra_param
+                    and not a_parameter_provided
+                ):
+                    B_init[1:] = B_init_for_lstsq
+                else:
+                    B_init = B_init_for_lstsq
             except Exception:
-                B_init = np.zeros(n_features)
+                pass
+        elif (
+            self.distribution in distributions_with_extra_param
+            and not a_parameter_provided
+        ):
+            try:
+                B_init_for_lstsq = np.linalg.lstsq(X, y, rcond=None)[0]
+                B_init[1:] = B_init_for_lstsq
+            except Exception:
+                pass
+            # Set distribution-specific initial values for extra param
+            if self.distribution in ("dfnorm", "drectnorm"):
+                B_init[0] = np.std(y, ddof=1)
+            elif self.distribution == "dalaplace":
+                B_init[0] = 0.5
+            elif self.distribution in ("dgnorm", "dlgnorm"):
+                B_init[0] = 2.0
+            elif self.distribution == "dnbinom":
+                B_init[0] = np.var(y, ddof=1)
         else:
             try:
                 B_init = np.linalg.lstsq(X, y, rcond=None)[0]
             except Exception:
                 B_init = np.zeros(n_features)
 
-        n_params = n_features
+        print_level = self.nlopt_kargs.get("print_level", 0)
+        iteration_count = [0]
+        last_cf_value = [None]
 
         def objective_func(B, grad):
             if grad.size > 0:
                 grad[:] = 0
-            return cf(
+
+            cf_value = cf(
                 B,
                 self.distribution,
                 self.loss,
@@ -338,9 +471,21 @@ class ALM:
                 other=other_val,
                 a_parameter_provided=a_parameter_provided,
                 trim=self.trim,
-                lambda_bc=self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
+                lambda_bc=(
+                    self.lambda_bc
+                    if self.distribution == "dbcnorm" and a_parameter_provided
+                    else 0.0
+                ),
                 size=self.size if self.distribution == "dbinom" else 1.0,
             )
+
+            if print_level > 0:
+                iteration_count[0] += 1
+                last_cf_value[0] = cf_value
+                if iteration_count[0] % print_level == 0:
+                    print(f"Iteration {iteration_count[0]}: B = {B}, CF = {cf_value}")
+
+            return cf_value
 
         algorithm_name = self.nlopt_kargs.get("algorithm", "NLOPT_LN_NELDERMEAD")
         if algorithm_name not in NLOPT_ALGORITHMS:
@@ -352,20 +497,45 @@ class ALM:
 
         opt = nlopt.opt(algorithm, n_params)
 
-        opt.set_lower_bounds([-1e10] * n_params)
-        opt.set_upper_bounds([1e10] * n_params)
+        if (
+            self.distribution in distributions_with_extra_param
+            and not a_parameter_provided
+        ):
+            lower_bounds = [0.0] + [-np.inf] * n_features
+            upper_bounds = [np.inf] * (n_features + 1)
+            if self.distribution in ("dalaplace", "dbcnorm"):
+                upper_bounds[0] = 1.0
+        else:
+            lower_bounds = [-np.inf] * n_params
+            upper_bounds = [np.inf] * n_params
+
+        opt.set_lower_bounds(lower_bounds)
+        opt.set_upper_bounds(upper_bounds)
         opt.set_min_objective(objective_func)
 
         opt.set_xtol_rel(self.nlopt_kargs.get("xtol_rel", 1e-6))
         opt.set_xtol_abs(self.nlopt_kargs.get("xtol_abs", 1e-8))
         opt.set_ftol_rel(self.nlopt_kargs.get("ftol_rel", 1e-4))
         opt.set_ftol_abs(self.nlopt_kargs.get("ftol_abs", 0))
-        opt.set_maxeval(self.nlopt_kargs.get("maxeval", 40 * n_params))
-        opt.set_maxtime(self.nlopt_kargs.get("maxtime", 600))
 
-        print_level = self.nlopt_kargs.get("print_level", 0)
-        if self.verbose > 0 or print_level > 0:
-            opt.set_verbose(True)
+        maxeval = self.nlopt_kargs.get("maxeval")
+
+        if maxeval is None:
+            if (
+                self.distribution in ("dnorm", "dlnorm", "dlogitnorm")
+                and self.loss in ("likelihood", "MSE")
+                and self.orders == (0, 0, 0)
+            ):
+                maxeval = 1
+            else:
+                maxeval = n_params * 40
+            if self.loss in ("LASSO", "RIDGE"):
+                maxeval = n_params * 200
+                if self.lambda_l1 == 1.0 or self.loss == "RIDGE":
+                    maxeval = 1
+
+        opt.set_maxeval(maxeval)
+        opt.set_maxtime(self.nlopt_kargs.get("maxtime", 600))
 
         try:
             B_opt = opt.optimize(B_init)
@@ -380,12 +550,54 @@ class ALM:
             self._result = None
             self.nlopt_result_ = None
 
+        distributions_with_extra_param = (
+            "dalaplace",
+            "dnbinom",
+            "dchisq",
+            "dfnorm",
+            "drectnorm",
+            "dgnorm",
+            "dlgnorm",
+            "dbcnorm",
+            "dt",
+        )
+
         if n_features > 0:
-            self.intercept_ = B_opt[0]
-            self.coef_ = B_opt[1:] if len(B_opt) > 1 else np.array([])
+            if (
+                self.distribution in distributions_with_extra_param
+                and not a_parameter_provided
+            ):
+                self.intercept_ = B_opt[1]
+                self._coef = B_opt[2:] if len(B_opt) > 2 else np.array([])
+            else:
+                self.intercept_ = B_opt[0]
+                self._coef = B_opt[1:] if len(B_opt) > 1 else np.array([])
+
+        if (
+            self.distribution in distributions_with_extra_param
+            and not a_parameter_provided
+        ):
+            B_for_mu = B_opt[1:]
+            other_val = B_opt[0]
+        else:
+            B_for_mu = B_opt
+
+        linear_pred = X @ B_for_mu
+        if self.distribution in (
+            "dinvgauss",
+            "dgamma",
+            "dexp",
+            "dpois",
+            "dnbinom",
+            "dbinom",
+            "dgeom",
+        ):
+            mu_computed = np.exp(linear_pred)
+        else:
+            mu_computed = linear_pred
 
         fitter_return = {
-            "mu": X @ B_opt,
+            "mu": mu_computed,
             "scale": 1.0,
             "other": other_val,
         }
@@ -401,28 +613,34 @@ class ALM:
             np.sum(np.ones(len(y), dtype=bool)),
         )
         fitter_return["scale"] = scale
-        self.scale_ = scale
+        self.scale = scale
         self.other_ = other_val
+
+        lambda_bc_val = (
+            other_val
+            if self.distribution == "dbcnorm" and not a_parameter_provided
+            else (self.lambda_bc if self.distribution == "dbcnorm" else 0.0)
+        )
 
         self.fitted_values_ = extractor_fitted(
             self.distribution,
             fitter_return["mu"],
             scale,
-            self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
+            lambda_bc_val,
         )
 
         self.residuals_ = extractor_residuals(
             self.distribution,
             fitter_return["mu"],
             y,
-            self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
+            lambda_bc_val,
         )
 
-        self.loss_value_ = objective_func(B_opt, np.zeros(n_params))
+        self.loss_value = objective_func(B_opt, np.zeros(n_params))
 
         if self.loss == "likelihood":
-            self.log_lik_ = -self.loss_value_
-            n_params = n_features
+            self.log_lik = -self.loss_value
+            n_params_calc = n_features
             if self.distribution not in (
                 "dexp",
                 "dpois",
@@ -431,11 +649,35 @@ class ALM:
                 "plogis",
                 "pnorm",
             ):
-                n_params += 1
-            self.aic_ = 2 * n_params - 2 * self.log_lik_
-            self.bic_ = n_params * np.log(n_samples) - 2 * self.log_lik_
+                n_params_calc += 1
+            if (
+                self.distribution in distributions_with_extra_param
+                and not a_parameter_provided
+                and self.distribution
+                not in (
+                    "dfnorm",
+                    "drectnorm",
+                    "dt",
+                    "dchisq",
+                    "dnbinom",
+                )
+            ):
+                n_params_calc += 1
+            self.aic = 2 * n_params_calc - 2 * self.log_lik
+            self.bic = n_params_calc * np.log(n_samples) - 2 * self.log_lik
 
-        self.df_residual_ = n_samples - n_params
+            if n_samples - n_params_calc - 1 > 0:
+                self.aicc = self.aic + (2 * n_params_calc * (n_params_calc + 1)) / (
+                    n_samples - n_params_calc - 1
+                )
+                self.bicc = (
+                    self.bic + n_params_calc * (np.log(n_samples) ** 2) / n_samples
+                )
+            else:
+                self.aicc = np.nan
+                self.bicc = np.nan
+
+        self.df_residual_ = n_samples - n_params - 1
         self._X_train_ = X.copy()
         self._y_train_ = y.copy()
 
@@ -447,15 +689,15 @@ class ALM:
             fitter_return["mu"],
             other_val,
             np.ones(len(y), dtype=bool),
-            self.df_residual_,
+            n_samples,
         )
-        self.scale_ = scale
+        self.scale = scale
 
         XtX = X.T @ X
         XtX += np.eye(XtX.shape[0]) * 1e-10
         self._XtX_inv_ = np.linalg.inv(XtX)
 
-        self.time_elapsed_ = time_module.time() - start_time
+        self.time_elapsed = time_module.time() - start_time
 
         return self
 
@@ -463,7 +705,7 @@ class ALM:
         """Calculate variance-covariance matrix of parameter estimates.
 
         Returns the variance-covariance matrix of the parameter estimates,
-        computed as: scale² × (X'X)⁻¹
+        computed as: sigma² × (X'X)⁻¹ where sigma is the residual standard error.
 
         Returns
         -------
@@ -488,7 +730,7 @@ class ALM:
             )
             XtX_inv = np.linalg.pinv(XtX_reg)
 
-        return (self.scale_**2) * XtX_inv
+        return (self.sigma**2) * XtX_inv
 
     def _calculate_variance(self, X, interval="confidence"):
         """Calculate conditional variance for prediction intervals.
@@ -509,7 +751,7 @@ class ALM:
         variances = np.diag(X @ vcov_matrix @ X.T)
 
         if interval == "prediction":
-            return variances + (self.scale_**2)
+            return variances + (self.sigma**2)
         return variances
 
     def _calculate_quantiles(self, mean, variances, interval, level, side):
@@ -631,8 +873,8 @@ class ALM:
                 f"X has {X.shape[1]} features, but model was fitted with {self._n_features}"
             )
 
-        if self.coef_ is not None and len(self.coef_) > 0:
-            B = np.concatenate([[self.intercept_], self.coef_])
+        if self._coef is not None and len(self._coef) > 0:
+            B = np.concatenate([[self.intercept_], self._coef])
         else:
             B = np.array([self.intercept_])
 
@@ -641,7 +883,7 @@ class ALM:
         mean = extractor_fitted(
             self.distribution,
             mu,
-            self.scale_,
+            self.scale,
             self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
@@ -682,8 +924,8 @@ class ALM:
         y_pred = y_pred_result.mean
 
         if metric == "likelihood":
-            if self.log_lik_ is not None:
-                return self.log_lik_
+            if self.log_lik is not None:
+                return self.log_lik
             y = np.asarray(y)
             log_lik = 0.0
             y_otU = (
@@ -698,7 +940,7 @@ class ALM:
             )
             if self.distribution == "dnorm":
                 log_lik = np.sum(
-                    dist.dnorm(y_otU, mean=mu_otU, sd=self.scale_, log=True)
+                    dist.dnorm(y_otU, mean=mu_otU, sd=self.scale, log=True)
                 )
             return log_lik
         elif metric == "MSE":
@@ -788,6 +1030,31 @@ class ALM:
         return self._y_train_
 
     @property
+    def data(self) -> np.ndarray:
+        """Alias for actuals.
+
+        Returns
+        -------
+        data : np.ndarray
+            Original in-sample observations.
+        """
+        return self.actuals
+
+    @property
+    def n_param(self) -> dict:
+        """Parameter count information.
+
+        Returns
+        -------
+        n_param : dict
+            Dictionary containing parameter count information.
+        """
+        return {
+            "number": self.nparam,
+            "df": self.df_residual_,
+        }
+
+    @property
     def formula(self) -> str | None:
         """Formula string used to fit the model.
 
@@ -800,29 +1067,55 @@ class ALM:
 
     @property
     def sigma(self) -> float:
-        """Scale parameter (sigma).
+        """Residual standard error (sigma).
 
         Returns
         -------
         sigma : float
-            Scale parameter of the model.
+            Residual standard error, computed as sqrt(sum(residuals^2) / (n - k))
+            where n is the number of observations and k is the number of parameters
+            (including the scale parameter).
         """
-        if self.scale_ is None:
+        if self.residuals_ is None:
             raise ValueError("Model not fitted. Call fit() first.")
-        return self.scale_
+        n = len(self.residuals_)
+        k = self._n_features + 1
+        return np.sqrt(np.sum(self.residuals_**2) / (n - k))
 
     @property
-    def log_lik(self) -> float:
-        """Log-likelihood of the model.
+    def coef(self) -> np.ndarray:
+        """Estimated coefficients (slope parameters, excluding intercept).
 
         Returns
         -------
-        log_lik : float
-            Log-likelihood value.
+        coef : np.ndarray
+            Coefficient vector (without intercept).
         """
-        if self.log_lik_ is None:
+        if self._coef is None:
             raise ValueError("Model not fitted. Call fit() first.")
-        return self.log_lik_
+        return self._coef
+
+    @property
+    def coefficients(self) -> np.ndarray:
+        """All coefficients including intercept as named vector.
+
+        Returns
+        -------
+        coefficients : np.ndarray
+            Full coefficient vector with names (intercept + slopes).
+        """
+        if self._coef is None:
+            raise ValueError("Model not fitted. Call fit() first.")
+
+        names = ["(Intercept)"]
+        if self._feature_names is not None:
+            names.extend(self._feature_names)
+        else:
+            for i in range(len(self._coef)):
+                names.append(f"x{i + 1}")
+
+        result = np.concatenate([[self.intercept_], self._coef])
+        return result
 
     def summary(self, level: float = 0.95) -> "SummaryResult":
         """Model summary.
@@ -840,10 +1133,10 @@ class ALM:
         """
         from .methods.summary import SummaryResult
 
-        if self.coef_ is None:
+        if self._coef is None:
             raise ValueError("Model not fitted. Call fit() first.")
 
-        coefficients = np.concatenate([[self.intercept_], self.coef_])
+        coefficients = np.concatenate([[self.intercept_], self._coef])
         vcov_matrix = self.vcov()
         se = np.sqrt(np.diag(vcov_matrix))
         t_stat = coefficients / se
@@ -853,6 +1146,10 @@ class ALM:
         lower_ci = coefficients - t_crit * se
         upper_ci = coefficients + t_crit * se
 
+        response_var = "y"
+        if self._formula_ is not None and "~" in self._formula_:
+            response_var = self._formula_.split("~")[0].strip()
+
         return SummaryResult(
             coefficients=coefficients,
             se=se,
@@ -860,14 +1157,19 @@ class ALM:
             p_value=p_value,
             lower_ci=lower_ci,
             upper_ci=upper_ci,
-            scale=self.scale_,
+            scale=self.scale,
             df_residual=self.df_residual_,
             distribution=self.distribution,
-            log_lik=self.log_lik_,
-            aic=self.aic_,
-            bic=self.bic_,
+            log_lik=self.log_lik,
+            aic=self.aic,
+            bic=self.bic,
             nobs=self.nobs,
             nparam=self.nparam,
+            response_variable=response_var,
+            loss=self.loss,
+            aicc=self.aicc,
+            bicc=self.bicc,
+            feature_names=self._feature_names,
         )
 
     def confint(
@@ -890,10 +1192,10 @@ class ALM:
         confint : np.ndarray
             Array with shape (n_params, 2) containing lower and upper bounds.
         """
-        if self.coef_ is None:
+        if self._coef is None:
             raise ValueError("Model not fitted. Call fit() first.")
 
-        coefficients = np.concatenate([[self.intercept_], self.coef_])
+        coefficients = np.concatenate([[self.intercept_], self._coef])
         vcov_matrix = self.vcov()
         se = np.sqrt(np.diag(vcov_matrix))
 
@@ -1004,24 +1306,24 @@ class ALM:
         return self
 
     def __str__(self):
-        if self.coef_ is None:
+        if self._coef is None:
             return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"
 
-        time_str = f"Time elapsed: {self.time_elapsed_:.1f} seconds"
+        time_str = f"Time elapsed: {self.time_elapsed:.1f} seconds"
 
         class_str = f'ALM(distribution="{self.distribution}", loss="{self.loss}")'
 
         coef_names = ["(Intercept)"]
         coef_values = [self.intercept_]
 
-        if self.coef_ is not None and len(self.coef_) > 0:
-            n_coefs = len(self.coef_)
+        if self._coef is not None and len(self._coef) > 0:
+            n_coefs = len(self._coef)
             if self._feature_names is not None and len(self._feature_names) == n_coefs:
                 coef_names.extend(self._feature_names)
             else:
                 for i in range(n_coefs):
                     coef_names.append(f"x{i + 1}")
-            coef_values.extend(self.coef_)
+            coef_values.extend(self._coef)
 
         coef_lines = []
         for name, value in zip(coef_names, coef_values):

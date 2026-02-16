@@ -95,7 +95,7 @@ def outlier_dummy(
     nobs = len(residuals)
     distribution = model.distribution
 
-    scale = model.scale_
+    scale = model.scale
     df_residual = model.df_residual_
 
     if type == "rstandard":

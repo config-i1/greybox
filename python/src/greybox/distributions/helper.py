@@ -1,6 +1,5 @@
 """Helper distribution functions."""
 
-import numpy as np
 from scipy import stats
 
 
@@ -23,13 +22,12 @@ def dnorm(q, mean=0.0, sd=1.0, log=False):
     array
         Density values.
     """
-    result = stats.norm.pdf(q, loc=mean, scale=sd)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.norm.logpdf(q, loc=mean, scale=sd)
+    return stats.norm.pdf(q, loc=mean, scale=sd)
 
 
-def plogis(y, location=0.0, scale=1.0, log_p=False):
+def plogis(y, location=0.0, scale=1.0, log_p=False, lower_tail=True):
     """Logistic distribution CDF.
 
     Parameters
@@ -42,13 +40,23 @@ def plogis(y, location=0.0, scale=1.0, log_p=False):
         Scale parameter.
     log_p : bool
         If True, return log-CDF.
+    lower_tail : bool
+        If True, return lower tail probability.
 
     Returns
     -------
     array
         CDF values.
     """
-    return stats.logistic.cdf(y, loc=location, scale=scale)
+    if log_p:
+        if lower_tail:
+            return stats.logistic.logcdf(y, loc=location, scale=scale)
+        else:
+            return stats.logistic.logsf(y, loc=location, scale=scale)
+    result = stats.logistic.cdf(y, loc=location, scale=scale)
+    if not lower_tail:
+        result = 1 - result
+    return result
 
 
 def pnorm(y, mean=0.0, sd=1.0, log_p=False, lower_tail=True):
@@ -72,11 +80,14 @@ def pnorm(y, mean=0.0, sd=1.0, log_p=False, lower_tail=True):
     array
         CDF values.
     """
+    if log_p:
+        if lower_tail:
+            return stats.norm.logcdf(y, loc=mean, scale=sd)
+        else:
+            return stats.norm.logsf(y, loc=mean, scale=sd)
     result = stats.norm.cdf(y, loc=mean, scale=sd)
     if not lower_tail:
         result = 1 - result
-    if log_p:
-        result = np.log(result + 1e-300)
     return result
 
 

@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Inverse Gaussian distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dinvgauss(q, mu=1, scale=1, log=False):
     array
         Density values.
     """
-    result = stats.invgauss.pdf(q, mu=mu, scale=scale)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.invgauss.logpdf(q, mu=mu, scale=scale)
+    return stats.invgauss.pdf(q, mu=mu, scale=scale)
 
 
 def pinvgauss(q, mu=1, scale=1):

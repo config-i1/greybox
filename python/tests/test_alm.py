@@ -129,10 +129,10 @@ class TestALM:
         model.fit(X, y)
 
         assert model.intercept_ is not None
-        assert model.coef_ is not None
-        assert model.scale_ is not None
-        assert model.log_lik_ is not None
-        assert model.aic_ is not None
+        assert model.coef is not None
+        assert model.scale is not None
+        assert model.log_lik is not None
+        assert model.aic is not None
 
         y_pred = model.predict(X)
         assert y_pred.mean.shape == y.shape
@@ -204,8 +204,8 @@ class TestALM:
         model.fit(X, y)
 
         assert model.intercept_ is not None
-        assert model.coef_ is not None
-        assert model.log_lik_ is not None
+        assert model.coef is not None
+        assert model.log_lik is not None
         assert model.nlopt_result_ is not None
 
 
@@ -264,7 +264,10 @@ class TestALMProperties:
         model = ALM(distribution="dnorm", loss="likelihood")
         model.fit(X, y)
 
-        np.testing.assert_allclose(model.sigma, model.scale_)
+        n = len(y)
+        k = model._n_features + 1
+        expected_sigma = np.sqrt(np.sum(model.residuals_**2) / (n - k))
+        np.testing.assert_allclose(model.sigma, expected_sigma)
 
     def test_alm_residuals(self):
         """Test ALM residuals property."""
@@ -299,7 +302,7 @@ class TestALMProperties:
         model.fit(X, y)
 
         assert model.log_lik is not None
-        np.testing.assert_allclose(model.log_lik, model.log_lik_)
+        np.testing.assert_allclose(model.log_lik, model.log_lik)
 
     def test_alm_actuals(self):
         """Test ALM actuals property."""
@@ -481,13 +484,13 @@ class TestALMMtcars:
             model.intercept_, 37.29, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.95, rtol=2e-1, err_msg="Scale doesn't match R"
+            model.scale, 2.95, rtol=2e-1, err_msg="Scale doesn't match R"
         )
         np.testing.assert_allclose(
-            model.log_lik_, -80.01, rtol=1e-1, err_msg="Log-likelihood doesn't match R"
+            model.log_lik, -80.01, rtol=1e-1, err_msg="Log-likelihood doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_two_predictors(self):
@@ -512,13 +515,13 @@ class TestALMMtcars:
             model.intercept_, 37.23, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -3.88, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -3.88, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[1], -0.032, rtol=2e-1, err_msg="hp coefficient doesn't match R"
+            model.coef[1], -0.032, rtol=2e-1, err_msg="hp coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.47, rtol=2e-1, err_msg="Scale doesn't match R"
+            model.scale, 2.47, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dlaplace(self):
@@ -541,10 +544,10 @@ class TestALMMtcars:
             model.intercept_, 34.33, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -4.56, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -4.56, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 2.32, rtol=2e-1, err_msg="Scale doesn't match R"
+            model.scale, 2.32, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_mse(self):
@@ -566,7 +569,7 @@ class TestALMMtcars:
             model.intercept_, 37.29, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dnorm_mae(self):
@@ -586,7 +589,7 @@ class TestALMMtcars:
             model.intercept_, 35.6, rtol=2e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -4.9, rtol=2e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -4.9, rtol=2e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dlogis(self):
@@ -609,10 +612,10 @@ class TestALMMtcars:
             model.intercept_, 36.73, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.26, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -5.26, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
         np.testing.assert_allclose(
-            model.scale_, 1.63, rtol=2e-1, err_msg="Scale doesn't match R"
+            model.scale, 1.63, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
     def test_alm_mtcars_dt(self):
@@ -635,7 +638,7 @@ class TestALMMtcars:
             model.intercept_, 37.0, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_mtcars_dgnorm(self):
@@ -661,7 +664,7 @@ class TestALMMtcars:
             model.intercept_, 37.0, rtol=1e-1, err_msg="Intercept doesn't match R"
         )
         np.testing.assert_allclose(
-            model.coef_[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
+            model.coef[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
     def test_alm_predict_intervals(self):

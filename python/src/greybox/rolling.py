@@ -121,10 +121,11 @@ def rolling_origin(
     forecasts_dict = {}
     holdout_matrix = np.zeros((origins, h))
 
+    window_size = n - h - (origins - 1) * step
     origin_idx = 0
     for i in range(0, origins * step, step):
         if ci:
-            train_end = i
+            train_end = window_size + i
         else:
             train_end = n - h - (origins - 1 - origin_idx) * step
 

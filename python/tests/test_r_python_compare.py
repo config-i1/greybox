@@ -516,3 +516,613 @@ class TestEdgeCases:
         r_result = call_r_func("dbcnorm", q, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestLaplaceFuncvsR:
+    """Compare Laplace distribution between R and Python."""
+
+    def test_dlaplace(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = dlaplace(q, loc=loc, scale=scale)
+        r_result = call_r_func("dlaplace", q, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dlaplace_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = dlaplace(q, loc=loc, scale=scale, log=True)
+        r_result = call_r_func("dlaplace", q, loc, scale, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_plaplace(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = plaplace(q, loc=loc, scale=scale)
+        r_result = call_r_func("plaplace", q, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qlaplace(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        loc, scale = 1.0, 1.0
+
+        py_result = qlaplace(p, loc=loc, scale=scale)
+        r_result = call_r_func("qlaplace", p, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestLognormFuncvsR:
+    """Compare Log-Normal distribution between R and Python."""
+
+    def test_dlnorm(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        meanlog, sdlog = 0.0, 1.0
+
+        py_result = dlnorm(q, meanlog=meanlog, sdlog=sdlog)
+        r_result = call_r_func("dlnorm", q, meanlog, sdlog)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dlnorm_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        meanlog, sdlog = 0.0, 1.0
+
+        py_result = dlnorm(q, meanlog=meanlog, sdlog=sdlog, log=True)
+        r_result = call_r_func("dlnorm", q, meanlog, sdlog, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_plnorm(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        meanlog, sdlog = 0.0, 1.0
+
+        py_result = plnorm(q, meanlog=meanlog, sdlog=sdlog)
+        r_result = call_r_func("plnorm", q, meanlog, sdlog)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qlnorm(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        meanlog, sdlog = 0.0, 1.0
+
+        py_result = qlnorm(p, meanlog=meanlog, sdlog=sdlog)
+        r_result = call_r_func("qlnorm", p, meanlog, sdlog)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestLogisticFuncvsR:
+    """Compare Logistic distribution between R and Python."""
+
+    def test_dlogis(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = dlogis(q, loc=loc, scale=scale)
+        r_result = call_r_func("dlogis", q, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dlogis_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = dlogis(q, loc=loc, scale=scale, log=True)
+        r_result = call_r_func("dlogis", q, loc, scale, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_plogis(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 1.0, 1.0
+
+        py_result = plogis(q, loc=loc, scale=scale)
+        r_result = call_r_func("plogis", q, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qlogis(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        loc, scale = 1.0, 1.0
+
+        py_result = qlogis(p, loc=loc, scale=scale)
+        r_result = call_r_func("qlogis", p, loc, scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestStudentTFuncvsR:
+    """Compare Student's t-distribution between R and Python.
+
+    Note: R's base dt() does not have loc/scale parameters,
+    so we transform: dt((q-loc)/scale, df) / scale.
+    """
+
+    def test_dt(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val, loc, scale = 5.0, 1.0, 1.0
+
+        py_result = dt(q, df=df_val, loc=loc, scale=scale)
+        r_result = call_r_func("dt", (q - loc) / scale, df_val) / scale
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dt_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val, loc, scale = 5.0, 1.0, 1.0
+
+        py_result = dt(q, df=df_val, loc=loc, scale=scale, log=True)
+        r_result = np.log(
+            call_r_func("dt", (q - loc) / scale, df_val) / scale
+        )
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pt(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val, loc, scale = 5.0, 1.0, 1.0
+
+        py_result = pt(q, df=df_val, loc=loc, scale=scale)
+        r_result = call_r_func("pt", (q - loc) / scale, df_val)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qt(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        df_val, loc, scale = 5.0, 1.0, 1.0
+
+        py_result = qt(p, df=df_val, loc=loc, scale=scale)
+        r_result = call_r_func("qt", p, df_val) * scale + loc
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestGammaFuncvsR:
+    """Compare Gamma distribution between R and Python."""
+
+    def test_dgamma(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        shape, scale = 2.0, 1.0
+
+        py_result = dgamma(q, shape=shape, scale=scale)
+        r_result = call_r_func("dgamma", q, shape, scale=scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dgamma_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        shape, scale = 2.0, 1.0
+
+        py_result = dgamma(q, shape=shape, scale=scale, log=True)
+        r_result = call_r_func("dgamma", q, shape, scale=scale, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pgamma(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        shape, scale = 2.0, 1.0
+
+        py_result = pgamma(q, shape=shape, scale=scale)
+        r_result = call_r_func("pgamma", q, shape, scale=scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qgamma(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        shape, scale = 2.0, 1.0
+
+        py_result = qgamma(p, shape=shape, scale=scale)
+        r_result = call_r_func("qgamma", p, shape, scale=scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestExpFuncvsR:
+    """Compare Exponential distribution between R and Python.
+
+    Note: R uses rate parameterization, Python uses loc/scale.
+    R: dexp(q, rate) = dexp(q-loc, rate=1/scale) for shifted version.
+    """
+
+    def test_dexp(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 0.0, 1.0
+
+        py_result = dexp(q, loc=loc, scale=scale)
+        r_result = call_r_func("dexp", q - loc, rate=1.0 / scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dexp_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 0.0, 1.0
+
+        py_result = dexp(q, loc=loc, scale=scale, log=True)
+        r_result = call_r_func("dexp", q - loc, rate=1.0 / scale, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pexp(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        loc, scale = 0.0, 1.0
+
+        py_result = pexp(q, loc=loc, scale=scale)
+        r_result = call_r_func("pexp", q - loc, rate=1.0 / scale)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qexp(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        loc, scale = 0.0, 1.0
+
+        py_result = qexp(p, loc=loc, scale=scale)
+        r_result = call_r_func("qexp", p, rate=1.0 / scale) + loc
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestBetaFuncvsR:
+    """Compare Beta distribution between R and Python."""
+
+    def test_dbeta(self):
+        """Test density function."""
+        q = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+        a, b = 2.0, 3.0
+
+        py_result = dbeta(q, a=a, b=b)
+        r_result = call_r_func("dbeta", q, a, b)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dbeta_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+        a, b = 2.0, 3.0
+
+        py_result = dbeta(q, a=a, b=b, log=True)
+        r_result = call_r_func("dbeta", q, a, b, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pbeta(self):
+        """Test CDF function."""
+        q = np.array([0.1, 0.3, 0.5, 0.7, 0.9])
+        a, b = 2.0, 3.0
+
+        py_result = pbeta(q, a=a, b=b)
+        r_result = call_r_func("pbeta", q, a, b)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qbeta(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        a, b = 2.0, 3.0
+
+        py_result = qbeta(p, a=a, b=b)
+        r_result = call_r_func("qbeta", p, a, b)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestPoissonFuncvsR:
+    """Compare Poisson distribution between R and Python."""
+
+    def test_dpois(self):
+        """Test probability mass function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu = 3.0
+
+        py_result = dpois(q, mu=mu)
+        r_result = call_r_func("dpois", q, lambda_=mu)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dpois_log(self):
+        """Test probability mass function with log=True."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu = 3.0
+
+        py_result = dpois(q, mu=mu, log=True)
+        r_result = call_r_func("dpois", q, lambda_=mu, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_ppois(self):
+        """Test CDF function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu = 3.0
+
+        py_result = ppois(q, mu=mu)
+        r_result = call_r_func("ppois", q, lambda_=mu)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qpois(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        mu = 3.0
+
+        py_result = qpois(p, mu=mu)
+        r_result = call_r_func("qpois", p, lambda_=mu)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestNbinomFuncvsR:
+    """Compare Negative Binomial distribution between R and Python."""
+
+    def test_dnbinom(self):
+        """Test probability mass function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu, size = 3.0, 5.0
+
+        py_result = dnbinom(q, mu=mu, size=size)
+        r_result = call_r_func("dnbinom", q, mu=mu, size=size)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dnbinom_log(self):
+        """Test probability mass function with log=True."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu, size = 3.0, 5.0
+
+        py_result = dnbinom(q, mu=mu, size=size, log=True)
+        r_result = call_r_func("dnbinom", q, mu=mu, size=size, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pnbinom(self):
+        """Test CDF function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        mu, size = 3.0, 5.0
+
+        py_result = pnbinom(q, mu=mu, size=size)
+        r_result = call_r_func("pnbinom", q, mu=mu, size=size)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qnbinom(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        mu, size = 3.0, 5.0
+
+        py_result = qnbinom(p, mu=mu, size=size)
+        r_result = call_r_func("qnbinom", p, mu=mu, size=size)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestBinomFuncvsR:
+    """Compare Binomial distribution between R and Python."""
+
+    def test_dbinom(self):
+        """Test probability mass function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        size, prob = 10, 0.3
+
+        py_result = dbinom(q, size=size, prob=prob)
+        r_result = call_r_func("dbinom", q, size=size, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dbinom_log(self):
+        """Test probability mass function with log=True."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        size, prob = 10, 0.3
+
+        py_result = dbinom(q, size=size, prob=prob, log=True)
+        r_result = call_r_func("dbinom", q, size=size, prob=prob, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pbinom(self):
+        """Test CDF function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        size, prob = 10, 0.3
+
+        py_result = pbinom(q, size=size, prob=prob)
+        r_result = call_r_func("pbinom", q, size=size, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qbinom(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        size, prob = 10, 0.3
+
+        py_result = qbinom(p, size=size, prob=prob)
+        r_result = call_r_func("qbinom", p, size=size, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestGeomFuncvsR:
+    """Compare Geometric distribution between R and Python.
+
+    Note: Both R and Python use the number of failures before
+    first success parameterization. The Python implementation
+    internally uses q+1 offset to map to scipy's 1-indexed geom.
+    """
+
+    def test_dgeom(self):
+        """Test probability mass function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        prob = 0.3
+
+        py_result = dgeom(q, prob=prob)
+        r_result = call_r_func("dgeom", q, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dgeom_log(self):
+        """Test probability mass function with log=True."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        prob = 0.3
+
+        py_result = dgeom(q, prob=prob, log=True)
+        r_result = call_r_func("dgeom", q, prob=prob, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pgeom(self):
+        """Test CDF function."""
+        q = np.array([0, 1, 2, 3, 5, 10])
+        prob = 0.3
+
+        py_result = pgeom(q, prob=prob)
+        r_result = call_r_func("pgeom", q, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qgeom(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        prob = 0.3
+
+        py_result = qgeom(p, prob=prob)
+        r_result = call_r_func("qgeom", p, prob=prob)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestChisqFuncvsR:
+    """Compare Chi-squared distribution between R and Python."""
+
+    def test_dchi2(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val = 5.0
+
+        py_result = dchi2(q, df=df_val)
+        r_result = call_r_func("dchisq", q, df_val)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dchi2_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val = 5.0
+
+        py_result = dchi2(q, df=df_val, log=True)
+        r_result = call_r_func("dchisq", q, df_val, log=True)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pchi2(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        df_val = 5.0
+
+        py_result = pchi2(q, df=df_val)
+        r_result = call_r_func("pchisq", q, df_val)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qchi2(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        df_val = 5.0
+
+        py_result = qchi2(p, df=df_val)
+        r_result = call_r_func("qchisq", p, df_val)
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestInvGaussFuncvsR:
+    """Compare Inverse Gaussian distribution between R and Python.
+
+    Uses R's statmod::dinvgauss for comparison. The parameterization mapping:
+    Python: dinvgauss(q, mu, scale) uses scipy invgauss(mu=mu, scale=scale)
+    where mean = mu * scale, shape = scale / mu^2.
+    R statmod: dinvgauss(q, mean, dispersion) where dispersion = 1/lambda.
+    Mapping: mean = mu * scale, dispersion = mu (since lambda = scale/mu^2,
+    dispersion = mu^2/scale, but actually dispersion = mean/lambda = mu*scale / (scale/mu^2)... ).
+    We test with mu=1, scale=1 where the mapping is straightforward.
+    """
+
+    def test_dinvgauss(self):
+        """Test density function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        mu, scale = 1.0, 1.0
+
+        py_result = dinvgauss(q, mu=mu, scale=scale)
+        ro.r["library"]("statmod")
+        r_result = call_r_func(
+            "dinvgauss", q, mean=mu * scale, dispersion=mu**3
+        )
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_dinvgauss_log(self):
+        """Test density function with log=True."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        mu, scale = 1.0, 1.0
+
+        py_result = dinvgauss(q, mu=mu, scale=scale, log=True)
+        ro.r["library"]("statmod")
+        r_result = np.log(
+            call_r_func(
+                "dinvgauss", q, mean=mu * scale, dispersion=mu**3
+            )
+        )
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_pinvgauss(self):
+        """Test CDF function."""
+        q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
+        mu, scale = 1.0, 1.0
+
+        py_result = pinvgauss(q, mu=mu, scale=scale)
+        ro.r["library"]("statmod")
+        r_result = call_r_func(
+            "pinvgauss", q, mean=mu * scale, dispersion=mu**3
+        )
+
+        assert_allclose(py_result, r_result, rtol=1e-10)
+
+    def test_qinvgauss(self):
+        """Test quantile function."""
+        p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
+        mu, scale = 1.0, 1.0
+
+        py_result = qinvgauss(p, mu=mu, scale=scale)
+        ro.r["library"]("statmod")
+        r_result = call_r_func(
+            "qinvgauss", p, mean=mu * scale, dispersion=mu**3
+        )
+
+        assert_allclose(py_result, r_result, rtol=1e-10)

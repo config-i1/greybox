@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Chi-squared distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -25,10 +24,9 @@ def dchi2(q, df, log=False):
     array
         Density values.
     """
-    result = stats.chi2.pdf(q, df=df)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.chi2.logpdf(q, df=df)
+    return stats.chi2.pdf(q, df=df)
 
 
 def pchi2(q, df):

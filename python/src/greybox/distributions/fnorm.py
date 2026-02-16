@@ -31,19 +31,24 @@ def dfnorm(q, mu=0, sigma=1, log=False):
         Density values.
     """
     q = np.asarray(q)
+    abs_q = np.abs(q)
+    if log:
+        # log(f(x)) = log(exp(a) + exp(b)) - log(sqrt(2*pi)*sigma)
+        # where a = -(|x|-mu)^2/(2*sigma^2), b = -(|x|+mu)^2/(2*sigma^2)
+        a = -((abs_q - mu) ** 2) / (2 * sigma**2)
+        b = -((abs_q + mu) ** 2) / (2 * sigma**2)
+        log_sum = np.logaddexp(a, b)
+        log_density = log_sum - np.log(np.sqrt(2 * np.pi) * sigma)
+        return np.where(q < 0, -np.inf, log_density)
     density = (
         1
         / (np.sqrt(2 * np.pi) * sigma)
         * (
-            np.exp(-((np.abs(q) - mu) ** 2) / (2 * sigma**2))
-            + np.exp(-((np.abs(q) + mu) ** 2) / (2 * sigma**2))
+            np.exp(-((abs_q - mu) ** 2) / (2 * sigma**2))
+            + np.exp(-((abs_q + mu) ** 2) / (2 * sigma**2))
         )
     )
-    is_zero = q < 0
-    result = np.where(is_zero, 0.0, np.maximum(density, 1e-300))
-    if log:
-        return np.log(result)
-    return result
+    return np.where(q < 0, 0.0, density)
 
 
 def pfnorm(q, mu=0, sigma=1):

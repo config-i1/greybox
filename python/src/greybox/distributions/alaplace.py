@@ -32,11 +32,16 @@ def dalaplace(q, mu=0, scale=1, alpha=0.5, log=False):
     """
     q = np.asarray(q)
     indicator = (q <= mu).astype(float)
+    if log:
+        return (
+            np.log(alpha)
+            + np.log(1 - alpha)
+            - np.log(scale)
+            - (q - mu) / scale * (alpha - indicator)
+        )
     density = (
         alpha * (1 - alpha) / scale * np.exp(-(q - mu) / scale * (alpha - indicator))
     )
-    if log:
-        return np.log(density + 1e-300)
     return density
 
 

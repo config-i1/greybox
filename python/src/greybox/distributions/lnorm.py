@@ -27,10 +27,9 @@ def dlnorm(q, meanlog=0, sdlog=1, log=False):
     array
         Density values.
     """
-    result = stats.lognorm.pdf(q, s=sdlog, scale=np.exp(meanlog))
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.lognorm.logpdf(q, s=sdlog, scale=np.exp(meanlog))
+    return stats.lognorm.pdf(q, s=sdlog, scale=np.exp(meanlog))
 
 
 def plnorm(q, meanlog=0, sdlog=1):

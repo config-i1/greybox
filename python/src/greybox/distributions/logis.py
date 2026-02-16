@@ -4,7 +4,6 @@ Density, cumulative distribution, quantile functions and random number
 generation for the Logistic distribution.
 """
 
-import numpy as np
 from scipy import stats
 
 
@@ -27,10 +26,9 @@ def dlogis(q, loc=0, scale=1, log=False):
     array
         Density values.
     """
-    result = stats.logistic.pdf(q, loc=loc, scale=scale)
     if log:
-        return np.log(result + 1e-300)
-    return result
+        return stats.logistic.logpdf(q, loc=loc, scale=scale)
+    return stats.logistic.pdf(q, loc=loc, scale=scale)
 
 
 def plogis(q, loc=0, scale=1):

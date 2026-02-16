@@ -31,13 +31,18 @@ def drectnorm(q, mu=0, sigma=1, log=False):
         Density values.
     """
     q = np.asarray(q)
-    indicator = (q > 0).astype(float)
+    is_positive = q > 0
+    if log:
+        log_density = np.where(
+            is_positive,
+            stats.norm.logpdf(q, loc=mu, scale=sigma),
+            stats.norm.logcdf(0, loc=mu, scale=sigma),
+        )
+        return log_density
+    indicator = is_positive.astype(float)
     density = indicator * stats.norm.pdf(q, loc=mu, scale=sigma) + (
         1 - indicator
     ) * stats.norm.cdf(0, loc=mu, scale=sigma)
-    density = np.maximum(density, 1e-300)
-    if log:
-        return np.log(density)
     return density
 
 

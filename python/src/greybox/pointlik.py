@@ -7,6 +7,7 @@ import numpy as np
 from scipy import stats
 
 from .alm import ALM
+from . import distributions as dist
 
 
 def point_lik(
@@ -49,9 +50,9 @@ def point_lik(
 
     distribution = model.distribution
     y = model.actuals
-    fitted = model.fitted_values_
-    mu = fitted / model.scale_ if model.scale_ != 1 else fitted
-    scale = model.scale_
+    fitted = model.fitted
+    mu = fitted
+    scale = model.scale
 
     if distribution == "dnorm":
         if log:
@@ -121,10 +122,7 @@ def point_lik(
             lik = stats.nbinom.pmf(np.round(y), n=size, p=p_val)
 
     elif distribution == "dlogitnorm":
-        if log:
-            lik = _logitnorm_logpdf(y, mu=mu, sigma=scale)
-        else:
-            lik = np.exp(_logitnorm_logpdf(y, mu=mu, sigma=scale))
+        lik = dist.dlogitnorm(y, mu=mu, sigma=scale, log=log)
 
     else:
         if log:
@@ -133,16 +131,3 @@ def point_lik(
             lik = stats.norm.pdf(y, loc=mu, scale=scale)
 
     return lik
-
-
-def _logitnorm_logpdf(x, mu, sigma):
-    """Log PDF of logit-normal distribution."""
-    x = np.asarray(x)
-    x = np.clip(x, 1e-10, 1 - 1e-10)
-    logit_x = np.log(x / (1 - x))
-
-    normalization = (
-        np.log(sigma) + 0.5 * np.log(2 * np.pi) + np.log(logit_x - mu) + np.log(1 - x)
-    )
-
-    return -0.5 * ((logit_x - mu) / sigma) ** 2 - normalization
