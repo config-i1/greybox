@@ -517,9 +517,11 @@ class ALM:
                 X,
                 ar_order=0,
                 i_order=0,
-                lambda_val=self.lambda_l1
-                if self.loss == "LASSO"
-                else (self.lambda_l2 if self.loss == "RIDGE" else 0.0),
+                lambda_val=(
+                    self.lambda_l1
+                    if self.loss == "LASSO"
+                    else (self.lambda_l2 if self.loss == "RIDGE" else 0.0)
+                ),
                 other=other_val,
                 a_parameter_provided=a_parameter_provided,
                 trim=self.trim,
@@ -542,7 +544,8 @@ class ALM:
         algorithm_name = self.nlopt_kargs.get("algorithm", "NLOPT_LN_NELDERMEAD")
         if algorithm_name not in NLOPT_ALGORITHMS:
             raise ValueError(
-                f"Unknown algorithm: {algorithm_name}. Choose from: {list(NLOPT_ALGORITHMS.keys())}"
+                f"Unknown algorithm: {algorithm_name}. "
+                f"Choose from: {list(NLOPT_ALGORITHMS.keys())}"
             )
 
         algorithm = NLOPT_ALGORITHMS[algorithm_name]
@@ -1043,7 +1046,8 @@ class ALM:
 
         if interval not in ("none", "confidence", "prediction"):
             raise ValueError(
-                f"interval must be 'none', 'confidence', or 'prediction', got {interval!r}"
+                f"interval must be 'none', 'confidence', "
+                f"or 'prediction', got {interval!r}"
             )
 
         if side not in ("both", "upper", "lower"):
@@ -1055,7 +1059,8 @@ class ALM:
 
         if X.shape[1] != self._n_features:
             raise ValueError(
-                f"X has {X.shape[1]} features, but model was fitted with {self._n_features}"
+                f"X has {X.shape[1]} features, "
+                f"but model was fitted with {self._n_features}"
             )
 
         if self._coef is not None and len(self._coef) > 0:

@@ -12,7 +12,8 @@ from scipy import optimize
 def dfnorm(q, mu=0, sigma=1, log=False):
     """Folded Normal distribution density.
 
-    f(x) = 1/sqrt(2*pi*sigma^2) * (exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))
+    f(x) = 1/sqrt(2*pi*sigma^2) * (
+        exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))
 
     Parameters
     ----------

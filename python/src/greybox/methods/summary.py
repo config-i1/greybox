@@ -3,7 +3,6 @@
 import numpy as np
 from dataclasses import dataclass
 
-
 DISTRIBUTION_NAMES = {
     "dnorm": "Normal",
     "dlaplace": "Laplace",

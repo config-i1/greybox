@@ -8,7 +8,6 @@ them to the model fit method.
 import re
 import numpy as np
 
-
 TRANSFORMATIONS = {
     "log": np.log,
     "log10": np.log10,
@@ -149,7 +148,8 @@ def formula(formula_str, data, return_type="both"):
 
     >>> # With transformations
     >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
-    >>> y, X = formula("log(y) ~ x + x^2", data)  # y is log-transformed, X has x and x^2
+    >>> # y is log-transformed, X has x and x^2
+    >>> y, X = formula("log(y) ~ x + x^2", data)
     """
     formula_str = formula_str.strip()
 

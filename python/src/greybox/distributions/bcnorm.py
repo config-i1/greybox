@@ -12,7 +12,8 @@ from scipy import stats
 def dbcnorm(q, mu=0, sigma=1, lambda_bc=0, log=False):
     """Box-Cox Normal distribution density.
 
-    f(y) = y^(lambda-1) * 1/sqrt(2*pi) * exp(-((y^lambda-1)/lambda - mu)^2 / (2*sigma^2))
+    f(y) = y^(lambda-1) * 1/sqrt(2*pi) * exp(
+        -((y^lambda-1)/lambda - mu)^2 / (2*sigma^2))
 
     Parameters
     ----------
