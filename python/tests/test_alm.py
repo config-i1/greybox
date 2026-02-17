@@ -1,6 +1,7 @@
 """Tests for formula parser and ALM model."""
 
 import numpy as np
+import pytest
 from greybox.formula import formula, expand_formula
 from greybox.alm import ALM
 
@@ -179,16 +180,9 @@ class TestALM:
         assert "ALM" in repr_str
         assert "dnorm" in repr_str
 
-    def test_alm_nlopt_kargs(self):
+    def test_alm_nlopt_kargs(self, mtcars):
         """Test ALM with custom nlopt_kargs."""
-        import csv
-
-        data = {}
-        with open("/tmp/mtcars.csv", "r") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-        for key in rows[0].keys():
-            data[key] = [float(row[key]) for row in rows]
+        data = mtcars.to_dict(orient="list")
 
         y, X = formula("mpg ~ wt", data)
 
@@ -212,23 +206,14 @@ class TestALM:
 class TestALMProperties:
     """Tests for ALM properties."""
 
-    @staticmethod
-    def load_mtcars():
-        """Load mtcars data from CSV."""
-        import csv
+    @pytest.fixture
+    def mtcars_data(self, mtcars):
+        """Load mtcars data."""
+        return mtcars.to_dict(orient="list")
 
-        data = {}
-        with open("/tmp/mtcars.csv", "r") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-
-        for key in rows[0].keys():
-            data[key] = [float(row[key]) for row in rows]
-        return data
-
-    def test_alm_nobs(self):
+    def test_alm_nobs(self, mtcars_data):
         """Test ALM nobs property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -236,9 +221,9 @@ class TestALMProperties:
 
         assert model.nobs == 32
 
-    def test_alm_nparam(self):
+    def test_alm_nparam(self, mtcars_data):
         """Test ALM nparam property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -246,9 +231,9 @@ class TestALMProperties:
 
         assert model.nparam == 3
 
-    def test_alm_nparam_without_scale(self):
+    def test_alm_nparam_without_scale(self, mtcars_data):
         """Test ALM nparam for distributions without scale."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dpois", loss="likelihood")
@@ -256,9 +241,9 @@ class TestALMProperties:
 
         assert model.nparam == 2
 
-    def test_alm_sigma(self):
+    def test_alm_sigma(self, mtcars_data):
         """Test ALM sigma property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -269,9 +254,9 @@ class TestALMProperties:
         expected_sigma = np.sqrt(np.sum(model.residuals_**2) / (n - k))
         np.testing.assert_allclose(model.sigma, expected_sigma)
 
-    def test_alm_residuals(self):
+    def test_alm_residuals(self, mtcars_data):
         """Test ALM residuals property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -281,9 +266,9 @@ class TestALMProperties:
         assert residuals is not None
         assert len(residuals) == 32
 
-    def test_alm_fitted(self):
+    def test_alm_fitted(self, mtcars_data):
         """Test ALM fitted property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -293,9 +278,9 @@ class TestALMProperties:
         assert fitted is not None
         assert len(fitted) == 32
 
-    def test_alm_log_lik(self):
+    def test_alm_log_lik(self, mtcars_data):
         """Test ALM log_lik property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -304,9 +289,9 @@ class TestALMProperties:
         assert model.log_lik is not None
         np.testing.assert_allclose(model.log_lik, model.log_lik)
 
-    def test_alm_actuals(self):
+    def test_alm_actuals(self, mtcars_data):
         """Test ALM actuals property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -316,9 +301,9 @@ class TestALMProperties:
         assert actuals is not None
         assert len(actuals) == 32
 
-    def test_alm_formula(self):
+    def test_alm_formula(self, mtcars_data):
         """Test ALM formula property."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -326,9 +311,9 @@ class TestALMProperties:
 
         assert model.formula == "mpg ~ wt"
 
-    def test_alm_formula_none(self):
+    def test_alm_formula_none(self, mtcars_data):
         """Test ALM formula property when not provided."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -340,23 +325,14 @@ class TestALMProperties:
 class TestALMSummary:
     """Tests for ALM summary method."""
 
-    @staticmethod
-    def load_mtcars():
-        """Load mtcars data from CSV."""
-        import csv
+    @pytest.fixture
+    def mtcars_data(self, mtcars):
+        """Load mtcars data."""
+        return mtcars.to_dict(orient="list")
 
-        data = {}
-        with open("/tmp/mtcars.csv", "r") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-
-        for key in rows[0].keys():
-            data[key] = [float(row[key]) for row in rows]
-        return data
-
-    def test_alm_summary(self):
+    def test_alm_summary(self, mtcars_data):
         """Test ALM summary method."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -373,9 +349,9 @@ class TestALMSummary:
         assert hasattr(summary, "upper_ci")
         assert len(summary.coefficients) == 2
 
-    def test_alm_summary_with_level(self):
+    def test_alm_summary_with_level(self, mtcars_data):
         """Test ALM summary with custom confidence level."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -389,23 +365,14 @@ class TestALMSummary:
 class TestALMConfint:
     """Tests for ALM confint method."""
 
-    @staticmethod
-    def load_mtcars():
-        """Load mtcars data from CSV."""
-        import csv
+    @pytest.fixture
+    def mtcars_data(self, mtcars):
+        """Load mtcars data."""
+        return mtcars.to_dict(orient="list")
 
-        data = {}
-        with open("/tmp/mtcars.csv", "r") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-
-        for key in rows[0].keys():
-            data[key] = [float(row[key]) for row in rows]
-        return data
-
-    def test_alm_confint(self):
+    def test_alm_confint(self, mtcars_data):
         """Test ALM confint method."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -416,9 +383,9 @@ class TestALMConfint:
         assert ci is not None
         assert ci.shape == (2, 2)
 
-    def test_alm_confint_custom_level(self):
+    def test_alm_confint_custom_level(self, mtcars_data):
         """Test ALM confint with custom level."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -428,9 +395,9 @@ class TestALMConfint:
 
         assert ci is not None
 
-    def test_alm_confint_specific_params(self):
+    def test_alm_confint_specific_params(self, mtcars_data):
         """Test ALM confint for specific parameters."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="likelihood")
@@ -449,21 +416,12 @@ class TestALMMtcars:
     results because they are equivalent for Gaussian errors.
     """
 
-    @staticmethod
-    def load_mtcars():
-        """Load mtcars data from CSV."""
-        import csv
+    @pytest.fixture
+    def mtcars_data(self, mtcars):
+        """Load mtcars data."""
+        return mtcars.to_dict(orient="list")
 
-        data = {}
-        with open("/tmp/mtcars.csv", "r") as f:
-            reader = csv.DictReader(f)
-            rows = list(reader)
-
-        for key in rows[0].keys():
-            data[key] = [float(row[key]) for row in rows]
-        return data
-
-    def test_alm_mtcars_dnorm(self):
+    def test_alm_mtcars_dnorm(self, mtcars_data):
         """Test ALM with mtcars: mpg ~ wt, dnorm, likelihood.
 
         R results:
@@ -472,7 +430,7 @@ class TestALMMtcars:
         - scale: 2.95
         - log-likelihood: -80.01
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -493,7 +451,8 @@ class TestALMMtcars:
             model.log_lik, -80.01, rtol=1e-1, err_msg="Log-likelihood doesn't match R"
         )
 
-    def test_alm_mtcars_dnorm_two_predictors(self):
+    def test_alm_mtcars_dnorm_two_predictors(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt + hp, dnorm, likelihood.
 
         R results:
@@ -503,7 +462,7 @@ class TestALMMtcars:
         - scale: 2.47
         - log-likelihood: -74.33
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt + hp", data)
 
         model = ALM(
@@ -524,7 +483,8 @@ class TestALMMtcars:
             model.scale, 2.47, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
-    def test_alm_mtcars_dlaplace(self):
+    def test_alm_mtcars_dlaplace(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dlaplace, likelihood.
 
         R results:
@@ -532,7 +492,7 @@ class TestALMMtcars:
         - wt: -4.56
         - scale: 2.32
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -550,7 +510,8 @@ class TestALMMtcars:
             model.scale, 2.32, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
-    def test_alm_mtcars_dnorm_mse(self):
+    def test_alm_mtcars_dnorm_mse(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dnorm, MSE loss.
 
         For dnorm, likelihood and MSE are equivalent (Gaussian).
@@ -559,7 +520,7 @@ class TestALMMtcars:
         - wt: -5.34
         - scale: 2.95
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="MSE", nlopt_kargs={"maxeval": 1000})
@@ -572,14 +533,15 @@ class TestALMMtcars:
             model.coef[0], -5.34, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
-    def test_alm_mtcars_dnorm_mae(self):
+    def test_alm_mtcars_dnorm_mae(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dnorm, MAE loss.
 
         R results (approximate):
         - Intercept: ~35-36
         - wt: ~-4.8 to -5.0
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(distribution="dnorm", loss="MAE", nlopt_kargs={"maxeval": 1000})
@@ -592,7 +554,8 @@ class TestALMMtcars:
             model.coef[0], -4.9, rtol=2e-1, err_msg="wt coefficient doesn't match R"
         )
 
-    def test_alm_mtcars_dlogis(self):
+    def test_alm_mtcars_dlogis(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dlogis, likelihood.
 
         R results:
@@ -600,7 +563,7 @@ class TestALMMtcars:
         - wt: -5.26
         - scale: 1.63
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -618,7 +581,8 @@ class TestALMMtcars:
             model.scale, 1.63, rtol=2e-1, err_msg="Scale doesn't match R"
         )
 
-    def test_alm_mtcars_dt(self):
+    def test_alm_mtcars_dt(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dt, likelihood.
 
         R results:
@@ -626,7 +590,7 @@ class TestALMMtcars:
         - wt: ~-5.3
         - scale: ~2.9
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -641,7 +605,8 @@ class TestALMMtcars:
             model.coef[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
-    def test_alm_mtcars_dgnorm(self):
+    def test_alm_mtcars_dgnorm(self, mtcars_data):
+        data = mtcars_data
         """Test ALM with mtcars: mpg ~ wt, dgnorm, likelihood.
 
         R results (shape=2):
@@ -649,7 +614,7 @@ class TestALMMtcars:
         - wt: ~-5.3
         - scale: ~2.9
         """
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -667,7 +632,8 @@ class TestALMMtcars:
             model.coef[0], -5.3, rtol=1e-1, err_msg="wt coefficient doesn't match R"
         )
 
-    def test_alm_predict_intervals(self):
+    def test_alm_predict_intervals(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals."""
         np.random.seed(42)
         n = 50
@@ -701,9 +667,10 @@ class TestALMMtcars:
         coverage = np.mean((y >= result_pred.lower) & (y <= result_pred.upper))
         assert 0.85 < coverage < 1.0
 
-    def test_alm_predict_intervals_side_upper(self):
+    def test_alm_predict_intervals_side_upper(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals with side='upper'."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -717,9 +684,10 @@ class TestALMMtcars:
         assert result.upper is not None
         assert np.all(result.mean <= result.upper)
 
-    def test_alm_predict_intervals_side_lower(self):
+    def test_alm_predict_intervals_side_lower(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals with side='lower'."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -733,9 +701,10 @@ class TestALMMtcars:
         assert result.upper is None
         assert np.all(result.lower <= result.mean)
 
-    def test_alm_predict_intervals_multiple_levels(self):
+    def test_alm_predict_intervals_multiple_levels(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals with multiple confidence levels."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -751,9 +720,10 @@ class TestALMMtcars:
         assert result.lower.shape[1] == len(levels)
         assert result.upper.shape[1] == len(levels)
 
-    def test_alm_predict_intervals_dlaplace(self):
+    def test_alm_predict_intervals_dlaplace(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals with dlaplace distribution."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -769,9 +739,10 @@ class TestALMMtcars:
         assert np.all(result.lower <= result.mean)
         assert np.all(result.mean <= result.upper)
 
-    def test_alm_predict_intervals_dlogis(self):
+    def test_alm_predict_intervals_dlogis(self, mtcars_data):
+        data = mtcars_data
         """Test ALM prediction intervals with dlogis distribution."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -787,9 +758,10 @@ class TestALMMtcars:
         assert np.all(result.lower <= result.mean)
         assert np.all(result.mean <= result.upper)
 
-    def test_alm_predict_mean_matches_fitted(self):
+    def test_alm_predict_mean_matches_fitted(self, mtcars_data):
+        data = mtcars_data
         """Test that predict mean matches fitted values."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt + hp", data)
 
         model = ALM(
@@ -802,9 +774,10 @@ class TestALMMtcars:
 
         np.testing.assert_allclose(result.mean, fitted, rtol=1e-5)
 
-    def test_alm_predict_intervals_wider_for_prediction(self):
+    def test_alm_predict_intervals_wider_for_prediction(self, mtcars_data):
+        data = mtcars_data
         """Test that prediction intervals are wider than confidence intervals."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -820,9 +793,10 @@ class TestALMMtcars:
 
         assert pred_width > conf_width
 
-    def test_alm_vcov_compare_r(self):
+    def test_alm_vcov_compare_r(self, mtcars_data):
+        data = mtcars_data
         """Test that vcov() matches R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -836,9 +810,10 @@ class TestALMMtcars:
 
         np.testing.assert_allclose(vcov_result, r_vcov, rtol=1e-5)
 
-    def test_alm_predict_intervals_compare_r_confidence(self):
+    def test_alm_predict_intervals_compare_r_confidence(self, mtcars_data):
+        data = mtcars_data
         """Test confidence intervals match R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -963,9 +938,10 @@ class TestALMMtcars:
         np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
         np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
 
-    def test_alm_predict_intervals_compare_r_prediction(self):
+    def test_alm_predict_intervals_compare_r_prediction(self, mtcars_data):
+        data = mtcars_data
         """Test prediction intervals match R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -1052,9 +1028,10 @@ class TestALMMtcars:
         np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
         np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
 
-    def test_alm_predict_intervals_compare_r_multiple_levels(self):
+    def test_alm_predict_intervals_compare_r_multiple_levels(self, mtcars_data):
+        data = mtcars_data
         """Test multiple confidence levels match R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -1180,9 +1157,10 @@ class TestALMMtcars:
         np.testing.assert_allclose(result.lower[:, 1], r_lower_90, rtol=1e-5)
         np.testing.assert_allclose(result.lower[:, 2], r_lower_95, rtol=1e-5)
 
-    def test_alm_predict_intervals_compare_r_side_upper(self):
+    def test_alm_predict_intervals_compare_r_side_upper(self, mtcars_data):
+        data = mtcars_data
         """Test side='upper' matches R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(
@@ -1232,9 +1210,10 @@ class TestALMMtcars:
         assert result.lower is None
         np.testing.assert_allclose(result.upper, r_upper, rtol=1e-5)
 
-    def test_alm_predict_intervals_compare_r_side_lower(self):
+    def test_alm_predict_intervals_compare_r_side_lower(self, mtcars_data):
+        data = mtcars_data
         """Test side='lower' matches R exactly."""
-        data = self.load_mtcars()
+        data = mtcars_data
         y, X = formula("mpg ~ wt", data)
 
         model = ALM(

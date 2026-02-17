@@ -1,4 +1,7 @@
 """Pytest configuration and fixtures."""
+from pathlib import Path
+
+import pandas
 import pytest
 
 
@@ -10,6 +13,12 @@ def has_rpy2():
         return True
     except Exception:
         return False
+
+
+@pytest.fixture(scope="session")
+def mtcars():
+    """Load mtcars dataset from CSV."""
+    return pandas.read_csv(Path(__file__).parent / "mtcars.csv")
 
 
 pytest.mark.skipif_rpy2 = pytest.mark.skipif(

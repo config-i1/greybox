@@ -3,7 +3,6 @@
 These tests ensure that the Python point_lik() function produces identical
 results to R's pointLik() for various distributions.
 """
-import sys
 
 import numpy as np
 import pytest
@@ -21,21 +20,16 @@ ro.r["library"]("greybox")
 
 
 def _get_mtcars():
-    """Load mtcars dataset from R."""
-    mtcars = ro.r["mtcars"]
-    col_names = list(mtcars.colnames)
-    data = {}
-    for i, name in enumerate(col_names):
-        data[name] = np.array(mtcars.rx2(name))
-    return data
+    """Load mtcars dataset from CSV."""
+    return mtcars.to_dict(orient="list")
 
 
 class TestPointLikVsR:
     """Compare point_lik against R's pointLik."""
 
     @pytest.fixture(autouse=True)
-    def setup(self):
-        self.data = _get_mtcars()
+    def setup(self, mtcars):
+        self.data = mtcars.to_dict(orient="list")
 
     def test_dnorm(self):
         """Test point likelihood for normal distribution."""

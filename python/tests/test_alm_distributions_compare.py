@@ -4,8 +4,8 @@ This module tests that Python ALM produces identical results to R's alm() functi
 for all supported distributions.
 """
 
-import csv
 import subprocess
+
 import numpy as np
 import pytest
 from greybox.formula import formula
@@ -74,13 +74,9 @@ DISTRIBUTION_PARAMS = {
 
 def load_mtcars():
     """Load mtcars data from CSV."""
-    data = {}
-    with open("/tmp/mtcars.csv", "r") as f:
-        reader = csv.DictReader(f)
-        rows = list(reader)
-    for key in rows[0].keys():
-        data[key] = [float(row[key]) for row in rows]
-    return data
+    from pathlib import Path
+    import pandas as pd
+    return pd.read_csv(Path(__file__).parent / "mtcars.csv")
 
 
 def run_r_alm_continuous(distribution, params=None):
