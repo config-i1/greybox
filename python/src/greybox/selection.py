@@ -7,7 +7,9 @@ and forecasting accuracy measures.
 import itertools
 
 import numpy as np
-from typing import Literal, TypedDict
+from typing import Literal, TypedDict, Union
+
+from pandas import DataFrame
 
 from .alm import ALM
 from .formula import formula as formula_func
@@ -20,8 +22,15 @@ class ModelInfo(TypedDict):
     coef: np.ndarray
 
 
+def _convert_to_dict(data: Union[dict, DataFrame]) -> dict:
+    """Convert DataFrame to dict if needed."""
+    if isinstance(data, DataFrame):
+        return data.to_dict(orient="list")
+    return data
+
+
 def stepwise(
-    data: dict,
+    data: Union[dict, DataFrame],
     ic: Literal["AICc", "AIC", "BIC", "BICc"] = "AICc",
     silent: bool = True,
     distribution: str = "dnorm",
@@ -34,7 +43,7 @@ def stepwise(
 
     Parameters
     ----------
-    data : dict
+    data : dict or DataFrame
         Data frame containing dependent variable in the first column and
         the others in the rest.
     ic : {"AICc", "AIC", "BIC", "BICc"}, default="AICc"
@@ -55,11 +64,10 @@ def stepwise(
     ...         'x2': [2, 4, 6, 8, 10]}
     >>> model = stepwise(data)
     """
-    if not isinstance(data, dict):
-        raise ValueError("data must be a dictionary")
+    data_dict = _convert_to_dict(data)
 
-    y_var = list(data.keys())[0]
-    x_vars = list(data.keys())[1:]
+    y_var = list(data_dict.keys())[0]
+    x_vars = list(data_dict.keys())[1:]
 
     if len(x_vars) == 0:
         raise ValueError("Need at least one predictor variable")
@@ -77,7 +85,7 @@ def stepwise(
             formula_str = f"{y_var} ~ " + " + ".join(current_vars)
 
             try:
-                y_fit, X_fit = formula_func(formula_str, data)
+                y_fit, X_fit = formula_func(formula_str, data_dict)
                 model = ALM(distribution=distribution, loss="likelihood")
                 model.fit(X_fit, y_fit)
 
@@ -104,7 +112,7 @@ def stepwise(
     else:
         formula_str = f"{y_var} ~ " + " + ".join(selected_vars)
 
-    y_final, X_final = formula_func(formula_str, data)
+    y_final, X_final = formula_func(formula_str, data_dict)
     final_model = ALM(distribution=distribution, loss="likelihood")
     final_model.fit(X_final, y_final, formula=formula_str)
 
@@ -133,7 +141,7 @@ def _get_ic_value(model: ALM, ic_type: str) -> float:
 
 
 def lm_combine(
-    data: dict,
+    data: Union[dict, DataFrame],
     ic: Literal["AICc", "AIC", "BIC", "BICc"] = "AICc",
     bruteforce: bool = True,
     silent: bool = True,
@@ -146,7 +154,7 @@ def lm_combine(
 
     Parameters
     ----------
-    data : dict
+    data : dict or DataFrame
         Data frame containing dependent variable in the first column and
         the others in the rest.
     ic : {"AICc", "AIC", "BIC", "BICc"}, default="AICc"
@@ -177,11 +185,10 @@ def lm_combine(
     ...         'x2': [2, 4, 6, 8, 10]}
     >>> result = lm_combine(data)
     """
-    if not isinstance(data, dict):
-        raise ValueError("data must be a dictionary")
+    data_dict = _convert_to_dict(data)
 
-    y_var = list(data.keys())[0]
-    x_vars = list(data.keys())[1:]
+    y_var = list(data_dict.keys())[0]
+    x_vars = list(data_dict.keys())[1:]
 
     if len(x_vars) == 0:
         raise ValueError("Need at least one predictor variable")
@@ -194,7 +201,7 @@ def lm_combine(
             for combo in itertools.combinations(x_vars, r):
                 all_combinations.append(list(combo))
     else:
-        stepwise(data, ic=ic, silent=True, distribution=distribution)
+        stepwise(data_dict, ic=ic, silent=True, distribution=distribution)
         included = [x_vars[i] for i in range(len(x_vars))]
         all_combinations = [included]
 
@@ -208,7 +215,7 @@ def lm_combine(
         combo_list: list[str] = list(combo)
         formula_str = f"{y_var} ~ " + " + ".join(combo_list)
         try:
-            y_fit, X_fit = formula_func(formula_str, data)
+            y_fit, X_fit = formula_func(formula_str, data_dict)
             model = ALM(distribution=distribution, loss="likelihood")
             model.fit(X_fit, y_fit)
 
@@ -242,7 +249,7 @@ def lm_combine(
         combined_coef[0] += weights[i] * model_info["coef"][0]
 
     formula_str_final = f"{y_var} ~ " + " + ".join(x_vars)
-    y_final, X_final = formula_func(formula_str_final, data)
+    y_final, X_final = formula_func(formula_str_final, data_dict)
 
     fitted = X_final @ combined_coef
     residuals = y_final - fitted

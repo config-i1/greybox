@@ -8,6 +8,9 @@ import subprocess
 
 import numpy as np
 import pytest
+
+pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
+
 from greybox.formula import formula
 from greybox.alm import ALM
 

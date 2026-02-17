@@ -1,4 +1,5 @@
 """Pytest configuration and fixtures."""
+import shutil
 from pathlib import Path
 
 import pandas
@@ -7,6 +8,8 @@ import pytest
 
 def has_rpy2():
     """Check if rpy2 and R are available."""
+    if shutil.which("R") is None:
+        return False
     try:
         import rpy2.robjects as ro
         ro.r["library"]("greybox")
