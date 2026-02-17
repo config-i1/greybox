@@ -47,8 +47,8 @@ def rolling_origin(
     step: int = 1,
     ci: bool = False,
     co: bool = False,
-    model_fn: Callable[[np.ndarray], Any] = None,
-    predict_fn: Callable[[Any, int], np.ndarray] = None,
+    model_fn: Callable[[np.ndarray], Any] | None = None,
+    predict_fn: Callable[[Any, int], np.ndarray] | None = None,
     silent: bool = True,
 ) -> RollingOriginResult:
     """Rolling Origin Evaluation.

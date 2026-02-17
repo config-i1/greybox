@@ -4,12 +4,20 @@ This module provides functions for stepwise regression, model combination,
 and forecasting accuracy measures.
 """
 
-import numpy as np
-from typing import Literal
 import itertools
+
+import numpy as np
+from typing import Literal, TypedDict
 
 from .alm import ALM
 from .formula import formula as formula_func
+
+
+class ModelInfo(TypedDict):
+    vars: list[str]
+    model: ALM
+    ic: float
+    coef: np.ndarray
 
 
 def stepwise(
@@ -57,7 +65,7 @@ def stepwise(
         raise ValueError("Need at least one predictor variable")
 
     best_ic = np.inf
-    selected_vars = []
+    selected_vars: list[str] = []
     all_vars = x_vars.copy()
 
     while all_vars:
@@ -181,7 +189,7 @@ def lm_combine(
     n_vars = len(x_vars)
 
     if bruteforce:
-        all_combinations = []
+        all_combinations: list[list[str]] = []
         for r in range(1, n_vars + 1):
             for combo in itertools.combinations(x_vars, r):
                 all_combinations.append(list(combo))
@@ -195,9 +203,10 @@ def lm_combine(
                 if list(combo) not in all_combinations:
                     all_combinations.append(list(combo))
 
-    models = []
-    for combo in all_combinations:
-        formula_str = f"{y_var} ~ " + " + ".join(combo)
+    models: list[ModelInfo] = []
+    for combo in all_combinations:  # type: ignore[assignment]
+        combo_list: list[str] = list(combo)
+        formula_str = f"{y_var} ~ " + " + ".join(combo_list)
         try:
             y_fit, X_fit = formula_func(formula_str, data)
             model = ALM(distribution=distribution, loss="likelihood")
@@ -206,7 +215,7 @@ def lm_combine(
             ic_value = _get_ic_value(model, ic)
             models.append(
                 {
-                    "vars": combo,
+                    "vars": combo_list,
                     "model": model,
                     "ic": ic_value,
                     "coef": np.concatenate([[model.intercept_], model.coef]),

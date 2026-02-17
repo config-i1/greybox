@@ -6,7 +6,7 @@ including correlation, association, and accuracy metrics.
 
 import numpy as np
 from scipy import stats
-from typing import Literal
+from typing import Any, Literal
 
 
 def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
@@ -180,7 +180,7 @@ def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
 def mase(
     actual: np.ndarray,
     forecast: np.ndarray,
-    scale: float | None = None,
+    scale: float | np.floating[Any] | None = None,
     na_rm: bool = True,
 ) -> float:
     """Mean Absolute Scaled Error.
