@@ -25,3 +25,12 @@ vignettes/Figs
 inst/doc
 # Rprofile
 .Rprofile
+
+# Python
+*.pyc
+__pycache__/
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.venv/
