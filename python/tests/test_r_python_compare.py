@@ -3,12 +3,14 @@
 These tests ensure that the Python implementations produce identical results
 to the R greybox package functions.
 """
+import sys
 
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
 
-# Import Python distribution functions
+pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
+
 from greybox.distributions import (
     ds,
     ps,

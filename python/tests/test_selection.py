@@ -1,8 +1,11 @@
 """Smoke tests for greybox.selection module."""
+import sys
 
 import numpy as np
 import pytest
 import pandas as pd
+
+pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
 
 import rpy2.robjects as ro
 

@@ -3,10 +3,13 @@
 These tests ensure that the Python point_lik() function produces identical
 results to R's pointLik() for various distributions.
 """
+import sys
 
 import numpy as np
 import pytest
 from numpy.testing import assert_allclose
+
+pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
 
 import rpy2.robjects as ro
 
