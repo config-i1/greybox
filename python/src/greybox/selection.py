@@ -75,6 +75,7 @@ def stepwise(
     best_ic = np.inf
     selected_vars: list[str] = []
     all_vars = x_vars.copy()
+    feature_names: list[str] | None = None
 
     while all_vars:
         best_var_to_add = None
@@ -85,9 +86,13 @@ def stepwise(
             formula_str = f"{y_var} ~ " + " + ".join(current_vars)
 
             try:
-                y_fit, X_fit = formula_func(formula_str, data_dict)
+                y_fit, X_fit = formula_func(formula_str, data_dict, as_dataframe=True)
+                feature_names_loop = list(X_fit.columns)
+                feature_names_loop.remove("(Intercept)")
                 model = ALM(distribution=distribution, loss="likelihood")
-                model.fit(X_fit, y_fit)
+                model.fit(
+                    X_fit, y_fit, formula=formula_str, feature_names=feature_names_loop
+                )
 
                 ic_value = _get_ic_value(model, ic)
 
@@ -109,12 +114,16 @@ def stepwise(
 
     if not selected_vars:
         formula_str = f"{y_var} ~ 1"
+        feature_names = None
     else:
         formula_str = f"{y_var} ~ " + " + ".join(selected_vars)
+        _, X_final_temp = formula_func(formula_str, data_dict, as_dataframe=True)
+        feature_names = list(X_final_temp.columns)
+        feature_names.remove("(Intercept)")
 
-    y_final, X_final = formula_func(formula_str, data_dict)
+    y_final, X_final = formula_func(formula_str, data_dict, as_dataframe=True)
     final_model = ALM(distribution=distribution, loss="likelihood")
-    final_model.fit(X_final, y_final, formula=formula_str)
+    final_model.fit(X_final, y_final, formula=formula_str, feature_names=feature_names)
 
     return final_model
 
@@ -215,9 +224,11 @@ def lm_combine(
         combo_list: list[str] = list(combo)
         formula_str = f"{y_var} ~ " + " + ".join(combo_list)
         try:
-            y_fit, X_fit = formula_func(formula_str, data_dict)
+            y_fit, X_fit = formula_func(formula_str, data_dict, as_dataframe=True)
+            feature_names = list(X_fit.columns)
+            feature_names.remove("(Intercept)")
             model = ALM(distribution=distribution, loss="likelihood")
-            model.fit(X_fit, y_fit)
+            model.fit(X_fit, y_fit, formula=formula_str, feature_names=feature_names)
 
             ic_value = _get_ic_value(model, ic)
             models.append(
@@ -249,7 +260,9 @@ def lm_combine(
         combined_coef[0] += weights[i] * model_info["coef"][0]
 
     formula_str_final = f"{y_var} ~ " + " + ".join(x_vars)
-    y_final, X_final = formula_func(formula_str_final, data_dict)
+    y_final, X_final = formula_func(formula_str_final, data_dict, as_dataframe=True)
+    feature_names_final = list(X_final.columns)
+    feature_names_final.remove("(Intercept)")
 
     fitted = X_final @ combined_coef
     residuals = y_final - fitted
@@ -266,8 +279,15 @@ def lm_combine(
             idx = x_vars.index(var) + 1
             importance[idx] += weights[i] * np.abs(model_info["coef"][j])
 
+    coefficient_names = ["(Intercept)"]
+    if feature_names_final is not None:
+        coefficient_names.extend(feature_names_final)
+
     return {
         "coefficients": combined_coef,
+        "coefficient_names": coefficient_names,
+        "y_variable": y_var,
+        "x_variables": x_vars,
         "fitted": fitted,
         "residuals": residuals,
         "log_lik": combined_log_lik,

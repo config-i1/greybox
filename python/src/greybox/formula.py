@@ -6,7 +6,9 @@ them to the model fit method.
 """
 
 import re
+
 import numpy as np
+import pandas as pd
 
 TRANSFORMATIONS = {
     "log": np.log,
@@ -118,7 +120,7 @@ def _apply_transformation(var_name, data_dict, n_obs):
     raise ValueError(f"Unknown transformation: {transform}")
 
 
-def formula(formula_str, data, return_type="both"):
+def formula(formula_str, data, return_type="both", as_dataframe=True):
     """Parse formula string and return design matrix and/or response.
 
     Parameters
@@ -131,13 +133,17 @@ def formula(formula_str, data, return_type="both"):
         Data containing variables. Can be dict, DataFrame, or dict of arrays.
     return_type : str, optional
         What to return: "both" (default), "X", "y", or "terms".
+    as_dataframe : bool, optional
+        If True, return pandas DataFrames instead of numpy arrays.
+        This preserves variable names in column names. Default is True.
 
     Returns
     -------
-    Depends on return_type:
-        - "both": tuple (y, X) where y is 1D array and X is 2D array with intercept
-        - "X": design matrix only
-        - "y": response only
+    Depends on return_type and as_dataframe:
+        - "both": tuple (y, X) where y is 1D array (or DataFrame)
+          and X is 2D array (or DataFrame) with intercept
+        - "X": design matrix only (or DataFrame if as_dataframe=True)
+        - "y": response only (or DataFrame if as_dataframe=True)
         - "terms": list of term names
 
     Examples
@@ -150,6 +156,10 @@ def formula(formula_str, data, return_type="both"):
     >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
     >>> # y is log-transformed, X has x and x^2
     >>> y, X = formula("log(y) ~ x + x^2", data)
+
+    >>> # Return as DataFrames with column names
+    >>> y, X = formula("y ~ x1 + x2", data, as_dataframe=True)
+    >>> print(X.columns)  # ['(Intercept)', 'x1', 'x2']
     """
     formula_str = formula_str.strip()
 
@@ -253,6 +263,28 @@ def formula(formula_str, data, return_type="both"):
         X = np.column_stack(X_columns)
 
     coef_names = [n for n in var_names if n != "(Intercept)"]
+
+    if as_dataframe:
+        X_df = pd.DataFrame(X, columns=var_names)
+
+        if return_type == "X":
+            return X_df
+        elif return_type == "variables":
+            return coef_names
+
+        y_name = None
+        if has_response and lhs:
+            transform, base_var, _ = _parse_transformation(lhs)
+            y_name = base_var
+
+        if y_name is not None:
+            y_df = pd.Series(y, name=y_name)
+        elif y is not None:
+            y_df = pd.Series(y, name="y")
+        else:
+            y_df = None
+
+        return y_df, X_df
 
     if return_type == "X":
         return X

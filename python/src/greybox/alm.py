@@ -10,6 +10,7 @@ from typing import Literal
 import time as time_module
 
 import numpy as np
+import pandas as pd
 import nlopt
 from scipy import stats
 
@@ -275,6 +276,7 @@ class ALM:
         self._y_train_ = None
         self._formula_ = None
         self._feature_names = None
+        self._response_name = None
         self.df_residual_ = None
         self._B_opt_ = None
         self._a_parameter_provided_ = False
@@ -319,8 +321,22 @@ class ALM:
         start_time = time_module.time()
 
         self._validate_params()
+
+        X_is_dataframe = isinstance(X, pd.DataFrame)
+        y_is_series = isinstance(y, pd.Series)
+
+        if feature_names is None and X_is_dataframe:
+            feature_names = list(X.columns)
+            if "(Intercept)" in feature_names:
+                feature_names.remove("(Intercept)")
+
+        response_name = None
+        if y_is_series and y.name is not None:
+            response_name = y.name
+
         self._formula_ = formula
         self._feature_names = feature_names
+        self._response_name = response_name
 
         X = np.asarray(X, dtype=float)
         y = np.asarray(y, dtype=float)
@@ -1342,7 +1358,9 @@ class ALM:
         upper_ci = coefficients + t_crit * se
 
         response_var = "y"
-        if self._formula_ is not None and "~" in self._formula_:
+        if self._response_name is not None:
+            response_var = self._response_name
+        elif self._formula_ is not None and "~" in self._formula_:
             response_var = self._formula_.split("~")[0].strip()
 
         return SummaryResult(

@@ -16,9 +16,10 @@ class TestFormula:
 
         assert np.array_equal(y, np.array([1, 2, 3]))
         assert X.shape == (3, 3)
-        assert np.all(X[:, 0] == 1)
-        assert np.array_equal(X[:, 1], np.array([4, 5, 6]))
-        assert np.array_equal(X[:, 2], np.array([7, 8, 9]))
+        X_np = np.asarray(X)
+        assert np.all(X_np[:, 0] == 1)
+        assert np.array_equal(X_np[:, 1], np.array([4, 5, 6]))
+        assert np.array_equal(X_np[:, 2], np.array([7, 8, 9]))
 
     def test_formula_without_response(self):
         """Test formula without response variable."""
@@ -26,9 +27,10 @@ class TestFormula:
         X = formula("~ x1 + x2", data, return_type="X")
 
         assert X.shape == (3, 3)
-        assert np.all(X[:, 0] == 1)
-        assert np.array_equal(X[:, 1], np.array([4, 5, 6]))
-        assert np.array_equal(X[:, 2], np.array([7, 8, 9]))
+        X_np = np.asarray(X)
+        assert np.all(X_np[:, 0] == 1)
+        assert np.array_equal(X_np[:, 1], np.array([4, 5, 6]))
+        assert np.array_equal(X_np[:, 2], np.array([7, 8, 9]))
 
     def test_formula_intercept_only(self):
         """Test formula with intercept only."""
@@ -37,7 +39,8 @@ class TestFormula:
 
         assert np.array_equal(y, np.array([1, 2, 3]))
         assert X.shape == (3, 1)
-        assert np.all(X == 1)
+        X_np = np.asarray(X)
+        assert np.all(X_np == 1)
 
     def test_formula_terms(self):
         """Test formula terms extraction."""
@@ -53,7 +56,8 @@ class TestFormula:
 
         assert y is not None
         assert X.shape == (5, 3)
-        np.testing.assert_array_equal(X[:, 2], np.array([1, 2, 3, 4, 5]))
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 2], np.array([1, 2, 3, 4, 5]))
 
     def test_formula_trend_in_data(self):
         """Test formula with trend in data - should use provided values."""
@@ -65,7 +69,8 @@ class TestFormula:
         y, X = formula("y ~ x + trend", data)
 
         assert X.shape == (5, 3)
-        np.testing.assert_array_equal(X[:, 2], np.array([10, 20, 30, 40, 50]))
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 2], np.array([10, 20, 30, 40, 50]))
 
     def test_formula_log_y(self):
         """Test formula with log(y) on LHS."""
@@ -81,8 +86,9 @@ class TestFormula:
         y, X = formula("y ~ x + x^2 + x^3", data)
 
         assert X.shape == (5, 4)
-        np.testing.assert_array_equal(X[:, 2], np.array([1, 4, 9, 16, 25]))  # x^2
-        np.testing.assert_array_equal(X[:, 3], np.array([1, 8, 27, 64, 125]))  # x^3
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 2], np.array([1, 4, 9, 16, 25]))  # x^2
+        np.testing.assert_array_equal(X_np[:, 3], np.array([1, 8, 27, 64, 125]))  # x^3
 
     def test_formula_log_x(self):
         """Test formula with log(x) transformation."""
@@ -90,7 +96,8 @@ class TestFormula:
         y, X = formula("y ~ log(x)", data)
 
         expected_log_x = np.log([1, 2, 3, 4, 5])
-        np.testing.assert_array_almost_equal(X[:, 1], expected_log_x)
+        X_np = np.asarray(X)
+        np.testing.assert_array_almost_equal(X_np[:, 1], expected_log_x)
 
     def test_formula_sqrt(self):
         """Test formula with sqrt transformation."""
@@ -98,7 +105,8 @@ class TestFormula:
         y, X = formula("y ~ sqrt(x)", data)
 
         expected_sqrt_x = np.sqrt([1, 2, 3, 4, 5])
-        np.testing.assert_array_almost_equal(X[:, 1], expected_sqrt_x)
+        X_np = np.asarray(X)
+        np.testing.assert_array_almost_equal(X_np[:, 1], expected_sqrt_x)
 
     def test_formula_I_protected(self):
         """Test formula with I() protected expression."""
@@ -106,7 +114,8 @@ class TestFormula:
         y, X = formula("y ~ I(x^2)", data)
 
         assert X.shape == (5, 2)
-        np.testing.assert_array_equal(X[:, 1], np.array([1, 4, 9, 16, 25]))
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 1], np.array([1, 4, 9, 16, 25]))
 
     def test_expand_formula(self):
         """Test formula expansion."""
