@@ -180,9 +180,6 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
     if not formula_str:
         formula_str = "1"
 
-    terms = _parse_formula_terms(formula_str)
-    rhs_terms = terms.copy()
-
     if isinstance(data, dict):
         data_dict = data
     else:
@@ -191,6 +188,90 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
         except AttributeError:
             raise ValueError("data must be dict or DataFrame")
 
+    # Handle "." as "use all variables"
+    if "." in formula_str:
+        # Get all variables from data
+        all_vars = set(data_dict.keys())
+
+        # Get response variable from LHS if present
+        response_var = None
+        if lhs:
+            transform, base_var, _ = _parse_transformation(lhs)
+            response_var = base_var
+            if response_var and response_var in all_vars:
+                all_vars.remove(response_var)
+
+        # Parse the formula string to find explicit inclusions and exclusions
+        # Handle transformations: log(wt), sqrt(x), etc.
+        excluded_vars = set()
+        mentioned_vars = set()
+
+        # Normalize the formula string: replace "-" with " - " and "+" with " + "
+        formula_for_parsing = formula_str.replace("-", " - ").replace("+", " + ")
+        tokens = formula_for_parsing.split()
+
+        # First pass: identify excluded and mentioned variables
+        i = 0
+        while i < len(tokens):
+            token = tokens[i].strip()
+            if not token or token in (".", "+"):
+                i += 1
+                continue
+            if token == "-":
+                # Next token is excluded
+                i += 1
+                if i < len(tokens):
+                    excluded_token = tokens[i].strip()
+                    if excluded_token:
+                        # Extract base variable name (handle transformations)
+                        transform, base_var, _ = _parse_transformation(excluded_token)
+                        excluded_vars.add(base_var)
+                i += 1
+                continue
+            # This is a term - extract base variable
+            transform, base_var, _ = _parse_transformation(token)
+            mentioned_vars.add(base_var)
+            i += 1
+
+        # Remove excluded vars from all_vars
+        all_vars = all_vars - excluded_vars
+
+        # Remove mentioned vars from all_vars (they're already in the formula)
+        for var in mentioned_vars:
+            if var in all_vars:
+                all_vars.remove(var)
+
+        # Build the new formula string
+        # Collect original terms (without ".") from tokens
+        original_terms = []
+        i = 0
+        while i < len(tokens):
+            token = tokens[i].strip()
+            # Skip empty tokens and "."
+            if not token or token == ".":
+                i += 1
+                continue
+            # Handle "-" by skipping it and the next variable
+            if token == "-":
+                i += 2  # Skip "-" and the following variable
+                continue
+            # Skip standalone "+"
+            if token == "+":
+                i += 1
+                continue
+            # This is a term to include
+            original_terms.append(token)
+            i += 1
+
+        # Add remaining variables from data
+        remaining_vars = sorted(list(all_vars))
+        original_terms.extend(remaining_vars)
+
+        formula_str = " + ".join(original_terms)
+
+    terms = _parse_formula_terms(formula_str)
+    rhs_terms = terms.copy()
+
     n_obs = len(next(iter(data_dict.values())))
 
     if return_type == "terms":
@@ -198,20 +279,48 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
 
     y = None
     if has_response and lhs:
-        transform, base_var, _ = _parse_transformation(lhs)
-        if base_var not in data_dict:
-            raise ValueError(f"Response variable '{base_var}' not found in data")
-        y_data = np.array(data_dict[base_var], dtype=float)
+        transform, base_var, is_protected = _parse_transformation(lhs)
 
-        if transform is None:
+        # Handle I() wrapper specially - extract base variable from inside
+        if is_protected:
+            # For I(var), extract var and check if it exists
+            inner_transform, inner_base, _ = _parse_transformation(base_var)
+            if inner_transform is not None:
+                # I(sqrt(y)) or I(y^2) - use the inner base variable
+                if inner_base not in data_dict:
+                    raise ValueError(
+                        f"Response variable '{inner_base}' not found in data"
+                    )
+                y_data = np.array(data_dict[inner_base], dtype=float)
+                if inner_transform.startswith("^"):
+                    power = int(inner_transform.split()[1])
+                    y = y_data**power
+                elif inner_transform in TRANSFORMATIONS:
+                    y = TRANSFORMATIONS[inner_transform](y_data)
+            else:
+                # Just I(y) - use y directly
+                if base_var not in data_dict:
+                    raise ValueError(
+                        f"Response variable '{base_var}' not found in data"
+                    )
+                y_data = np.array(data_dict[base_var], dtype=float)
+                y = y_data
+        elif transform is not None:
+            if base_var not in data_dict:
+                raise ValueError(f"Response variable '{base_var}' not found in data")
+            y_data = np.array(data_dict[base_var], dtype=float)
+            if transform is None:
+                y = y_data
+            elif transform.startswith("^"):
+                power = int(transform.split()[1])
+                y = y_data**power
+            elif transform in TRANSFORMATIONS:
+                y = TRANSFORMATIONS[transform](y_data)
+        else:
+            if lhs not in data_dict:
+                raise ValueError(f"Response variable '{lhs}' not found in data")
+            y_data = np.array(data_dict[lhs], dtype=float)
             y = y_data
-        elif transform == "I":
-            y = y_data
-        elif transform.startswith("^"):
-            power = int(transform.split()[1])
-            y = y_data**power
-        elif transform in TRANSFORMATIONS:
-            y = TRANSFORMATIONS[transform](y_data)
 
         terms = rhs_terms
 
@@ -242,7 +351,8 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
             var_names.append("trend")
             continue
 
-        var_name = term.split("(")[0].split("^")[0].strip()
+        # Use the full term as the variable name (preserves transformations)
+        var_name = term.strip()
         if var_name.startswith("-"):
             var_name = var_name[1:]
 
@@ -274,8 +384,7 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
 
         y_name = None
         if has_response and lhs:
-            transform, base_var, _ = _parse_transformation(lhs)
-            y_name = base_var
+            y_name = lhs.strip() if lhs else None
 
         if y_name is not None:
             y_df = pd.Series(y, name=y_name)
