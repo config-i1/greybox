@@ -24,6 +24,13 @@ library(greybox)
 
 ALM stands for "Augmented Linear Model". The word "augmented" is used to reflect that the model introduces aspects that extend beyond the basic linear model. In some special cases `alm()` resembles the `glm()` function from stats package, but with a higher focus on forecasting rather than on hypothesis testing. You will not get p-values anywhere from the `alm()` function and won't see $R^2$ in the outputs. The maximum what you can count on is having confidence intervals for the parameters or for the regression line. The other important difference from `glm()` is the availability of distributions that are not supported by `glm()` (for example, Folded Normal or Box-Cox Normal distributions) and it allows optimising non-standard parameters (e.g. $\lambda$ in Asymmetric Laplace distribution). Finally, `alm()` supports different loss functions via the `loss` parameter, so you can estimate parameters of your model via, for example, likelihood maximisation or via minimisation of MSE / MAE, using LASSO / RIDGE or by minimising a loss provided by user.
 
+The function also supports ARIMA(p,d,0) elements and the inclusion of lagged explanatory variables via the backshift operator, implemented in the `B(x, k)` function. Here is an example of a simple ARDL(1,1) model:
+
+```{r ardl11}
+ardlModel <- alm(drivers~kms + B(kms,1), data=Seatbelts, orders=c(1,0,0))
+summary(ardlModel)
+```
+
 Although `alm()` supports various loss functions, the core of the function is the likelihood approach. By default the estimation of parameters in the model is done via the maximisation of likelihood function of a selected distribution. The calculation of the standard errors is done based on the calculation of hessian of the distribution. And in the centre of all of that are information criteria that can be used for the models comparison.
 
 This vignette contains the following sections:

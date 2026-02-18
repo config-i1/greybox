@@ -53,7 +53,8 @@
 #'
 #' @param formula an object of class "formula" (or one that can be coerced to
 #' that class): a symbolic description of the model to be fitted. Can also include
-#' \code{trend}, which would add the global trend.
+#' \code{trend}, which would add the global trend. Also accepts backshift operator to
+#' introduce lags/leads of variables, e.g. `y~x+B(x,1)`.
 #' @param data a data frame or a matrix, containing the variables in the model.
 #' @param subset an optional vector specifying a subset of observations to be
 #' used in the fitting process.
@@ -232,7 +233,12 @@
 #' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dalaplace")}
 #'
 #' # An example with AR(1) order
-#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), distribution="dnorm", orders=c(1,0,0))
+#' \donttest{ourModel <- alm(y~x1+x2, xreg, subset=c(1:80), orders=c(1,0,0))
+#' summary(ourModel)
+#' plot(predict(ourModel,xreg[-c(1:80),]))}
+#'
+#' # AR(1) with distributed lags for x1 (ARDL)
+#' \donttest{ourModel <- alm(y~x1+x2+B(x1,1), xreg, subset=c(1:80), orders=c(1,0,0))
 #' summary(ourModel)
 #' plot(predict(ourModel,xreg[-c(1:80),]))}
 #'
