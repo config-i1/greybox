@@ -125,20 +125,20 @@ spread <- function(data, histograms=FALSE, log=FALSE, lowess=FALSE, ...){
                         if(numericData[i]){
                             histPlotted <- hist(data[[i]], main="", axes=FALSE, col=paletteBasic[4]);
                             histPlottedX <- histPlotted$breaks;
-                            histPlottedYRange <- range(histPlotted$counts);
+                            histPlottedYRange <- range(histPlotted$counts, na.rm=TRUE);
                         }
                         else{
                             dataTable <- table(data[[i]]);
                             histPlottedX <- barplot(dataTable, main="", axes=FALSE,
                                                     axisnames=FALSE, col=paletteBasic[4]);
-                            histPlottedYRange <- range(dataTable);
+                            histPlottedYRange <- range(dataTable, na.rm=TRUE);
                         }
                     }
                     else{
                         if(numericData[i]){
                             midPoint <- (max(data[[i]], na.rm=TRUE)+min(data[[i]], na.rm=TRUE))/2;
                             plot(0, 0, col="white", axes=FALSE,
-                                 xlim=range(data[[i]]), ylim=range(data[[i]]));
+                                 xlim=range(data[[i]], na.rm=TRUE), ylim=range(data[[i]], na.rm=TRUE));
                             text(midPoint,midPoint,variablesNames[i],cex=1.5);
                         }
                         else{
