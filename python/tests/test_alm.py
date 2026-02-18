@@ -4,6 +4,22 @@ import numpy as np
 import pytest
 from greybox.formula import formula, expand_formula
 from greybox.alm import ALM
+from scipy.special import erfc
+
+
+def my_transform(x):
+    """Custom transformation function for testing."""
+    return x * 2
+
+
+def transform_a(x):
+    """Custom transformation function A for testing."""
+    return x + 10
+
+
+def transform_b(x):
+    """Custom transformation function B for testing."""
+    return x * 2
 
 
 class TestFormula:
@@ -121,6 +137,60 @@ class TestFormula:
         """Test formula expansion."""
         expanded = expand_formula("y ~ x1 * x2")
         assert "x1:x2" in expanded
+
+    def test_formula_custom_function(self):
+        """Test formula with a user-defined custom function."""
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
+        y, X = formula("y ~ my_transform(x)", data)
+
+        expected = np.array([2, 4, 6, 8, 10])
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 1], expected)
+
+    def test_formula_imported_function(self):
+        """Test formula with a function imported from scipy.special."""
+        data = {"y": [1, 2, 3, 4, 5], "x": [0.5, 1.0, 1.5, 2.0, 2.5]}
+        y, X = formula("y ~ erfc(x)", data)
+
+        expected = erfc([0.5, 1.0, 1.5, 2.0, 2.5])
+        X_np = np.asarray(X)
+        np.testing.assert_array_almost_equal(X_np[:, 1], expected)
+
+    def test_formula_custom_function_lhs(self):
+        """Test formula with custom function on LHS (response variable)."""
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
+        y, X = formula("my_transform(y) ~ x", data)
+
+        expected_y = np.array([2, 4, 6, 8, 10])
+        np.testing.assert_array_equal(y, expected_y)
+
+    def test_formula_custom_function_I_wrapper(self):
+        """Test formula with I() wrapper containing custom function."""
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
+        y, X = formula("y ~ I(my_transform(x))", data)
+
+        expected = np.array([2, 4, 6, 8, 10])
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 1], expected)
+
+    def test_formula_multiple_custom_functions(self):
+        """Test formula with multiple custom functions."""
+        data = {"y": [1, 2, 3, 4, 5], "x": [1, 2, 3, 4, 5]}
+        y, X = formula("y ~ transform_a(x) + transform_b(x)", data)
+
+        X_np = np.asarray(X)
+        np.testing.assert_array_equal(X_np[:, 1], np.array([11, 12, 13, 14, 15]))
+        np.testing.assert_array_equal(X_np[:, 2], np.array([2, 4, 6, 8, 10]))
+
+    def test_formula_unknown_function_error(self):
+        """Test that unknown functions raise a helpful error."""
+        data = {"y": [1, 2, 3], "x": [1, 2, 3]}
+
+        with pytest.raises(ValueError) as excinfo:
+            formula("y ~ nonexistent_func(x)", data)
+
+        assert "Unknown function 'nonexistent_func'" in str(excinfo.value)
+        assert "not a callable function" not in str(excinfo.value)
 
 
 class TestALM:

@@ -5,6 +5,7 @@ Users can call the formula function to get X (design matrix) and y, then pass
 them to the model fit method.
 """
 
+import inspect
 import re
 
 import numpy as np
@@ -23,13 +24,35 @@ TRANSFORMATIONS = {
 }
 
 
-def _parse_transformation(term):
+def _get_caller_globals():
+    """Get globals from the caller's caller (the user's code).
+
+    Returns
+    -------
+    dict
+        Global namespace from the user's code.
+    """
+    frame = inspect.currentframe()
+    if frame is None:
+        return {}
+    try:
+        caller_frame = frame.f_back.f_back
+        if caller_frame is not None:
+            return caller_frame.f_globals
+        return {}
+    finally:
+        del frame
+
+
+def _parse_transformation(term, caller_globals=None):
     """Parse a term to check if it contains a transformation.
 
     Parameters
     ----------
     term : str
         Term to parse, e.g., "log(x)", "x^2", "I(x+y)"
+    caller_globals : dict, optional
+        Global namespace from user's code to resolve custom functions.
 
     Returns
     -------
@@ -37,6 +60,11 @@ def _parse_transformation(term):
         - transformation: str or None (e.g., "log", "sqrt", "^2")
         - variable: str (the base variable name)
         - is_protected: bool (True if wrapped in I())
+
+    Raises
+    ------
+    ValueError
+        If the term looks like a function call but the function is not defined.
     """
     term = term.strip()
 
@@ -50,6 +78,31 @@ def _parse_transformation(term):
         if match:
             return (func_name, match.group(1), False)
 
+    func_pattern = r"^([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]+)\)$"
+    func_match = re.match(func_pattern, term)
+    if func_match:
+        func_name = func_match.group(1)
+        if func_name in TRANSFORMATIONS:
+            return (func_name, func_match.group(2), False)
+        if caller_globals and func_name in caller_globals:
+            if callable(caller_globals[func_name]):
+                return (func_name, func_match.group(2), False)
+            else:
+                raise ValueError(f"'{func_name}' is not a callable function")
+        raise ValueError(
+            f"Unknown function '{func_name}' in transformation '{term}'. "
+            f"Either use a built-in transformation (log, sqrt, exp, etc.) "
+            f"or make sure '{func_name}' is defined or imported in your global scope."
+        )
+
+    if caller_globals:
+        pattern = r"([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]+)\)"
+        match = re.match(pattern, term)
+        if match:
+            func_name = match.group(1)
+            if func_name in caller_globals and callable(caller_globals[func_name]):
+                return (func_name, match.group(2), False)
+
     if "^" in term:
         parts = term.split("^")
         if len(parts) == 2:
@@ -62,7 +115,7 @@ def _parse_transformation(term):
     return (None, term, False)
 
 
-def _apply_transformation(var_name, data_dict, n_obs):
+def _apply_transformation(var_name, data_dict, n_obs, caller_globals=None):
     """Apply transformation to a variable.
 
     Parameters
@@ -73,16 +126,21 @@ def _apply_transformation(var_name, data_dict, n_obs):
         Data dictionary.
     n_obs : int
         Number of observations.
+    caller_globals : dict, optional
+        Global namespace from user's code to resolve custom functions.
 
     Returns
     -------
     np.ndarray
         Transformed variable values.
     """
-    transform, base_var, is_protected = _parse_transformation(var_name)
+    if caller_globals is None:
+        caller_globals = {}
+
+    transform, base_var, is_protected = _parse_transformation(var_name, caller_globals)
 
     if transform == "I":
-        inner_transform, inner_base, _ = _parse_transformation(base_var)
+        inner_transform, inner_base, _ = _parse_transformation(base_var, caller_globals)
         if inner_base in data_dict:
             base_data = np.array(data_dict[inner_base], dtype=float)
         else:
@@ -95,6 +153,8 @@ def _apply_transformation(var_name, data_dict, n_obs):
             return base_data**power
         if inner_transform in TRANSFORMATIONS:
             return TRANSFORMATIONS[inner_transform](base_data)
+        if inner_transform in caller_globals:
+            return caller_globals[inner_transform](base_data)
         return base_data
 
     if base_var == "trend":
@@ -117,7 +177,12 @@ def _apply_transformation(var_name, data_dict, n_obs):
     if transform in TRANSFORMATIONS:
         return TRANSFORMATIONS[transform](base_data)
 
-    raise ValueError(f"Unknown transformation: {transform}")
+    if transform in caller_globals:
+        return caller_globals[transform](base_data)
+
+    raise ValueError(f"Unknown transformation: '{transform}'. "
+                    f"If '{transform}' is a function you defined or imported, "
+                    f"make sure it is available in the global scope where formula() is called.")
 
 
 def formula(formula_str, data, return_type="both", as_dataframe=True):
@@ -160,6 +225,20 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
     >>> # Return as DataFrames with column names
     >>> y, X = formula("y ~ x1 + x2", data, as_dataframe=True)
     >>> print(X.columns)  # ['(Intercept)', 'x1', 'x2']
+
+    >>> # With custom functions (defined or imported in your global scope)
+    >>> def my_transform(x):
+    ...     return x * 2
+    >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
+    >>> y, X = formula("y ~ my_transform(x)", data)
+
+    >>> # With imported functions (e.g., from scipy)
+    >>> from scipy.special import erfc
+    >>> data = {'y': [1, 2, 3], 'x': [0.5, 1.0, 1.5]}
+    >>> y, X = formula("y ~ erfc(x)", data)
+
+    >>> # Custom function on LHS (response variable)
+    >>> y, X = formula("my_transform(y) ~ x", data)
     """
     formula_str = formula_str.strip()
 
@@ -188,6 +267,8 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
         except AttributeError:
             raise ValueError("data must be dict or DataFrame")
 
+    caller_globals = _get_caller_globals()
+
     # Handle "." as "use all variables"
     if "." in formula_str:
         # Get all variables from data
@@ -196,7 +277,7 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
         # Get response variable from LHS if present
         response_var = None
         if lhs:
-            transform, base_var, _ = _parse_transformation(lhs)
+            transform, base_var, _ = _parse_transformation(lhs, caller_globals)
             response_var = base_var
             if response_var and response_var in all_vars:
                 all_vars.remove(response_var)
@@ -224,12 +305,12 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
                     excluded_token = tokens[i].strip()
                     if excluded_token:
                         # Extract base variable name (handle transformations)
-                        transform, base_var, _ = _parse_transformation(excluded_token)
+                        transform, base_var, _ = _parse_transformation(excluded_token, caller_globals)
                         excluded_vars.add(base_var)
                 i += 1
                 continue
             # This is a term - extract base variable
-            transform, base_var, _ = _parse_transformation(token)
+            transform, base_var, _ = _parse_transformation(token, caller_globals)
             mentioned_vars.add(base_var)
             i += 1
 
@@ -279,12 +360,12 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
 
     y = None
     if has_response and lhs:
-        transform, base_var, is_protected = _parse_transformation(lhs)
+        transform, base_var, is_protected = _parse_transformation(lhs, caller_globals)
 
         # Handle I() wrapper specially - extract base variable from inside
         if is_protected:
             # For I(var), extract var and check if it exists
-            inner_transform, inner_base, _ = _parse_transformation(base_var)
+            inner_transform, inner_base, _ = _parse_transformation(base_var, caller_globals)
             if inner_transform is not None:
                 # I(sqrt(y)) or I(y^2) - use the inner base variable
                 if inner_base not in data_dict:
@@ -297,6 +378,8 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
                     y = y_data**power
                 elif inner_transform in TRANSFORMATIONS:
                     y = TRANSFORMATIONS[inner_transform](y_data)
+                elif inner_transform in caller_globals:
+                    y = caller_globals[inner_transform](y_data)
             else:
                 # Just I(y) - use y directly
                 if base_var not in data_dict:
@@ -316,6 +399,8 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
                 y = y_data**power
             elif transform in TRANSFORMATIONS:
                 y = TRANSFORMATIONS[transform](y_data)
+            elif transform in caller_globals:
+                y = caller_globals[transform](y_data)
         else:
             if lhs not in data_dict:
                 raise ValueError(f"Response variable '{lhs}' not found in data")
@@ -357,7 +442,7 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
             var_name = var_name[1:]
 
         try:
-            col = _apply_transformation(term, data_dict, n_obs)
+            col = _apply_transformation(term, data_dict, n_obs, caller_globals)
             X_columns.append(col)
             var_names.append(var_name)
         except ValueError:
