@@ -1161,18 +1161,6 @@ alm <- function(formula, data, subset, na.action,
 
     responseName <- all.vars(formula)[1];
 
-    # Check if formula contains B() terms
-    formula_str <- paste(deparse(formula), collapse="");
-    if (grepl("B\\([^)]+\\)", formula_str)){
-        mf <- lag_model_matrix(mf, formula);
-
-        # almCalled <- do.call("lag_lm_base", listToCall);
-        # almCalled$call$formula <- cl$formula;
-        # almCalled$call$data <- dataSubstitute;
-        #
-        # return(almCalled);
-    }
-
     # Make recursive fitted for missing values in case of occurrence model.
     recursiveModel <- occurrenceModel && ariModel;
     # In case of plogis and pnorm, all the ARI values need to be refitted
@@ -2313,185 +2301,59 @@ meanFast <- function(x, df=length(x), trim=0, side="lower"){
     }
 }
 
-# The internal function to check for B(x, 1) for lagged variables
-lag_lm_base <- function(formula, data, ...) {
-    data <- as.data.frame(data)
-
-    trm <- terms(formula)
-    vars <- attr(trm, "term.labels")
-    response <- attr(trm, "variables")[[2]]
-    lhs <- as.character(response)
-
-    # Simplified pattern: B(varname, k)
-    # Use \\( and \\) for literal parens, simpler capture groups
-    b_pattern <- "^B\\(([[:alnum:]_]+)[[:space:]]*,[[:space:]]*([+-]?[0-9]+)\\)$"
-
-    map_new <- list()
-
-    for (term in vars) {
-        term_clean <- trimws(term)
-
-        if (grepl(b_pattern, term_clean)) {
-            m <- regexec(b_pattern, term_clean)[[1]]
-            if (m[1] == -1) next
-
-            # m[2] is first capture (variable name)
-            # m[3] is second capture (lag number)
-            var_start <- m[2]
-            var_len   <- attr(m, "match.length")[2]
-            lag_start <- m[3]
-            lag_len   <- attr(m, "match.length")[3]
-
-            var <- substr(term_clean, var_start, var_start + var_len - 1)
-            k   <- as.integer(substr(term_clean, lag_start, lag_start + lag_len - 1))
-
-            if (!var %in% names(data)) {
-                stop("Variable '", var, "' not in data; available: ",
-                     paste(names(data), collapse = ", "))
-            }
-
-            # Create column name
-            if (k == 0) {
-                new_col <- var
-            } else if (k > 0) {
-                new_col <- paste0(var, "_lag_", k)
-            } else {
-                new_col <- paste0(var, "_lead_", abs(k))
-            }
-
-            # Create lagged/lead column
-            n <- nrow(data)
-            col_vals <- rep(NA_real_, n)
-
-            if (k == 0) {
-                col_vals <- data[[var]]
-            } else if (k > 0) {
-                # Lag: shift forward
-                if (k < n) {
-                    col_vals[(k + 1):n] <- data[[var]][1:(n - k)]
-                }
-            } else {
-                # Lead: shift backward
-                ak <- abs(k)
-                if (ak < n) {
-                    col_vals[1:(n - ak)] <- data[[var]][(ak + 1):n]
-                }
-            }
-
-            data[[new_col]] <- col_vals
-            map_new[[term_clean]] <- new_col
-        }
+#' Create Lagged or Lead Variables for Time Series Regression
+#'
+#' `B()` acts as a backshift operator and creates lagged (past values) or
+#' lead (future values) versions of a variable for use in regression formulas.
+#' This function is designed to work within R formula syntax, similar
+#' to how `I()` or `log()` work.
+#'
+#' The function calls for the `xregExpander()` to create lags/leads. So, you can pass
+#' additional parameters to it via ellipsis.
+#'
+#' @param x A numeric vector or time series variable to be lagged or lead
+#' @param k An integer specifying the lag order:
+#'   \itemize{
+#'     \item Positive values (e.g., `k = 1`) create lags (past values)
+#'     \item Negative values (e.g., `k = -1`) create leads (future values)
+#'     \item Zero (`k = 0`) returns the original variable unchanged
+#'   }
+#' @param ... Parameters passed to `xregExpander()`.
+#'
+#' @return A numeric vector of the same length as `x`. The missing values
+#' are treated by the `xregExpander()`. By default they are extrapolated
+#' (\code{gaps="auto"}).
+#'
+#' @details
+#' When `k > 0` (lag), the function shifts values forward in time, so `B(x, 1)`
+#' at time `t` contains the value of `x` at time `t-1`.
+#'
+#' When `k < 0` (lead), the function shifts values backward in time, so `B(x, -1)`
+#' at time `t` contains the value of `x` at time `t+1`.
+#'
+#' @examples
+#' # Create sample time series data
+#' y = rnorm(10)
+#'
+#' # Create lags
+#' B(y, 1)
+#'
+#' # Create leads
+#' B(y, -1)
+#'
+#'
+#' @seealso,
+#' \code{\link[greybox]{xregExpander}} for data frame lag operations
+#' \code{\link[stats]{lag}} for time series lag (different behavior)
+#'
+#' @export
+B <- function(x, k, ...) {
+    n <- length(x)
+    if (k == 0) {
+        return(x)
     }
-
-    # Rebuild RHS
-    rhs_new <- sapply(vars, function(x) {
-        x_clean <- trimws(x)
-        if (x_clean %in% names(map_new)) {
-            map_new[[x_clean]]
-        } else {
-            x_clean
-        }
-    })
-
-    # Build formula
-    f <- reformulate(termlabels = rhs_new, response = lhs);
-    listToCall <- list(...);
-    listToCall$formula <- f;
-    listToCall$data <- data;
-
-    return(do.call("alm", listToCall));
-}
-
-
-lag_model_matrix <- function(mf, formula) {
-
-    # Extract formula and terms from model frame attributes
-    trm <- terms(formula)
-    vars <- attr(trm, "term.labels")
-    lhs <- all.vars(formula)[1]
-
-    # Safe extraction of intercept - default to TRUE if NULL
-    has_intercept <- attr(trm, "intercept")
-    if (is.null(has_intercept)) {
-        has_intercept <- 1L
+    else{
+        return(xregExpander(x, -k, ...)[,-1])
     }
-
-    # Convert model frame to plain data frame for manipulation
-    data <- as.data.frame(mf$data)
-
-    # Pattern: B(varname, k) - use TWO backslashes in R string
-    b_pattern <- "^B\\(([[:alnum:]_]+)[[:space:]]*,[[:space:]]*([+-]?[0-9]+)\\)$"
-
-    map_new <- list()
-
-    for (term in vars) {
-        term_clean <- trimws(term)
-
-        if (grepl(b_pattern, term_clean)) {
-            m <- regexec(b_pattern, term_clean)[[1]]
-            if (m[1] == -1) next
-
-            var_start <- m[2]
-            var_len   <- attr(m, "match.length")[2]
-            lag_start <- m[3]
-            lag_len   <- attr(m, "match.length")[3]
-
-            var <- substr(term_clean, var_start, var_start + var_len - 1)
-            k   <- as.integer(substr(term_clean, lag_start, lag_start + lag_len - 1))
-
-            if (!var %in% names(data)) {
-                stop("Variable '", var, "' not in model frame; available: ",
-                     paste(names(data), collapse = ", "))
-            }
-
-            # Create column name
-            if (k == 0) {
-                new_col <- var
-            } else if (k > 0) {
-                new_col <- paste0(var, "_lag_", k)
-            } else {
-                new_col <- paste0(var, "_lead_", abs(k))
-            }
-
-            # Create lagged/lead column
-            n <- nrow(data)
-            col_vals <- rep(NA_real_, n)
-
-            if (k == 0) {
-                col_vals <- data[[var]]
-            } else if (k > 0) {
-                if (k < n) {
-                    col_vals[(k + 1):n] <- data[[var]][1:(n - k)]
-                }
-            } else {
-                ak <- abs(k)
-                if (ak < n) {
-                    col_vals[1:(n - ak)] <- data[[var]][(ak + 1):n]
-                }
-            }
-
-            data[[new_col]] <- col_vals
-            map_new[[term_clean]] <- new_col
-        }
-    }
-
-    # Rebuild RHS with transformed terms - force character vector
-    rhs_new <- vapply(vars, function(x) {
-        x_clean <- trimws(x)
-        if (x_clean %in% names(map_new)) {
-            map_new[[x_clean]]
-        } else {
-            x_clean
-        }
-    }, FUN.VALUE = character(1), USE.NAMES = FALSE)
-
-    # Build new formula
-    f <- reformulate(termlabels = rhs_new, response = lhs,
-                     intercept=as.logical(has_intercept))
-
-    # Create new model frame with transformed columns and remove NAs
-    mf_new <- model.frame(f, data = data, na.action = na.omit)
-
-    return(mf_new);
 }
 
