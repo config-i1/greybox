@@ -1164,8 +1164,7 @@ alm <- function(formula, data, subset, na.action,
     # Check if formula contains B() terms
     formula_str <- paste(deparse(formula), collapse="");
     if (grepl("B\\([^)]+\\)", formula_str)){
-
-        mf <- lag_model_matrix(mf);
+        mf <- lag_model_matrix(mf, formula);
 
         # almCalled <- do.call("lag_lm_base", listToCall);
         # almCalled$call$formula <- cl$formula;
@@ -2404,13 +2403,12 @@ lag_lm_base <- function(formula, data, ...) {
 }
 
 
-lag_model_matrix <- function(mf) {
-    # Extract formula and terms from model frame attributes
-    trm <- attr(mf, "terms")
-    formula <- attr(trm, "formula")
+lag_model_matrix <- function(mf, formula) {
 
+    # Extract formula and terms from model frame attributes
+    trm <- terms(formula)
     vars <- attr(trm, "term.labels")
-    lhs <- all.vars(mf$formula)[1]
+    lhs <- all.vars(formula)[1]
 
     # Safe extraction of intercept - default to TRUE if NULL
     has_intercept <- attr(trm, "intercept")
@@ -2421,7 +2419,7 @@ lag_model_matrix <- function(mf) {
     # Convert model frame to plain data frame for manipulation
     data <- as.data.frame(mf$data)
 
-    # Pattern: B(varname, k)
+    # Pattern: B(varname, k) - use TWO backslashes in R string
     b_pattern <- "^B\\(([[:alnum:]_]+)[[:space:]]*,[[:space:]]*([+-]?[0-9]+)\\)$"
 
     map_new <- list()
@@ -2489,7 +2487,7 @@ lag_model_matrix <- function(mf) {
 
     # Build new formula
     f <- reformulate(termlabels = rhs_new, response = lhs,
-                     intercept = as.logical(has_intercept))
+                     intercept=as.logical(has_intercept))
 
     # Create new model frame with transformed columns and remove NAs
     mf_new <- model.frame(f, data = data, na.action = na.omit)
