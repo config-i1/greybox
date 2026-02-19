@@ -12,6 +12,39 @@ The package _greybox_ contains functions for model building, which is currently 
 
 There are several groups of functions in the package.
 
+## R Package
+
+### Installation
+
+The stable version of the package is available on CRAN, so you can install it by running:
+```r
+install.packages("greybox")
+```
+
+A recent, development version, is available via github and can be installed using "remotes" in R. First make sure that you have remotes:
+```r
+if (!require("remotes")){install.packages("remotes")}
+```
+
+and after that run:
+```r
+remotes::install_github("config-i1/greybox")
+```
+
+## Python Package
+
+A Python port of greybox is available in the [`python/`](python/) subdirectory. It provides a scikit-learn-style API with support for 26+ distributions and R-style formula syntax.
+
+### Installation
+
+```bash
+pip install greybox
+```
+
+## Supported functions
+
+See [https://github.com/config-i1/greybox/wiki](wiki) for full documentation, examples, and supported distributions.
+
 ### Regression model functions
 1. alm - Augmented Linear (regression) Model that implements likelihood estimation of parameters for Normal, Laplace, Asymmetric Laplace, Logistic, Student's t, S, Generalised Normal, Folded Normal, Log Normal, Box-Cox Normal, Logit Normal, Inverse Gaussian, Gamma, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to `glm()` function, but with a different set of distributions and with a focus on forecasting.
 2. sm - Scale Model which constructs a regression for scale parameter of a distribution (e.g. for variance in normal distribution). Works like a method applied to already existing model (lm / alm).
@@ -68,14 +101,3 @@ There are several groups of functions in the package.
 
 ### Experimental functions:
 1. lmDynamic - linear regression with time varying parameters based on pAIC.
-
-## Installation
-
-The stable version of the package is available on CRAN, so you can install it by running:
-> install.packages("greybox")
-
-A recent, development version, is available via github and can be installed using "remotes" in R. First make sure that you have remotes:
-> if (!require("remotes")){install.packages("remotes")}
-
-and after that run:
-> remotes::install_github("config-i1/greybox")

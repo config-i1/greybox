@@ -258,6 +258,18 @@ class TestALM:
 
         assert "ALM" in repr_str
         assert "dnorm" in repr_str
+        assert "fitted=False" in repr_str
+
+        # Fitted model repr
+        data = {
+            "y": [1.0, 2.0, 3.0, 4.0, 5.0],
+            "x1": [1.0, 2.0, 3.0, 4.0, 5.0],
+        }
+        y, X = formula("y ~ x1", data)
+        model.fit(X, y)
+        repr_str = repr(model)
+        assert "fitted=True" in repr_str
+        assert "dnorm" in repr_str
 
     def test_alm_nlopt_kargs(self, mtcars):
         """Test ALM with custom nlopt_kargs."""
@@ -745,6 +757,101 @@ class TestALMMtcars:
 
         coverage = np.mean((y >= result_pred.lower) & (y <= result_pred.upper))
         assert 0.85 < coverage < 1.0
+
+    def test_predict_result_level_and_variances(self):
+        """Test that PredictionResult carries level, variances, side, interval."""
+        np.random.seed(42)
+        n = 50
+        X = np.column_stack([np.ones(n), np.random.normal(0, 1, n)])
+        y = X @ [1, 2] + np.random.normal(0, 0.5, n)
+
+        model = ALM(distribution="dnorm")
+        model.fit(X, y)
+
+        # With interval: level and variances populated
+        result = model.predict(X[:5], interval="prediction", level=0.95)
+        assert result.level == 0.95
+        assert result.variances is not None
+        assert result.variances.shape == (5,)
+        assert np.all(result.variances > 0)
+        assert result.side == "both"
+        assert result.interval == "prediction"
+
+        # Without interval: level stored, variances is None
+        result_none = model.predict(X[:5])
+        assert result_none.variances is None
+        assert result_none.level == 0.95
+        assert result_none.side == "both"
+        assert result_none.interval == "none"
+
+        # __repr__ returns DataFrame repr
+        repr_str = repr(result)
+        assert "mean" in repr_str
+
+        # __len__ works
+        assert len(result) == 5
+
+        # to_dataframe works
+        df = result.to_dataframe()
+        assert "mean" in df.columns
+        assert "lower" in df.columns
+        assert "upper" in df.columns
+        assert len(df) == 5
+
+        # DataFrame-like properties
+        assert result.shape == (5, 3)
+        assert "mean" in result.columns
+
+    def test_predict_result_loglik_and_distribution(self):
+        """Test ALM loglik, distribution_, loss_ properties."""
+        np.random.seed(42)
+        n = 50
+        X = np.column_stack([np.ones(n), np.random.normal(0, 1, n)])
+        y = X @ [1, 2] + np.random.normal(0, 0.5, n)
+
+        model = ALM(distribution="dnorm")
+        model.fit(X, y)
+
+        assert model.loglik is not None
+        assert model.loglik == model.log_lik
+        assert model.distribution_ == "dnorm"
+        assert model.loss_ == "likelihood"
+
+    def test_alm_str_output(self):
+        """Test that str(model) produces ADAM-style output."""
+        np.random.seed(42)
+        n = 50
+        X = np.column_stack([np.ones(n), np.random.normal(0, 1, n)])
+        y = X @ [1, 2] + np.random.normal(0, 0.5, n)
+
+        model = ALM(distribution="dnorm")
+        model.fit(X, y)
+
+        s = str(model)
+        assert "Time elapsed:" in s
+        assert "Model estimated: ALM(dnorm)" in s
+        assert "Distribution assumed in the model: Normal" in s
+        assert "Loss function type: likelihood" in s
+        assert "Information criteria:" in s
+        assert "AIC" in s
+        assert "Sample size:" in s
+
+    def test_alm_summary_has_time_elapsed(self):
+        """Test that summary() output includes time elapsed."""
+        np.random.seed(42)
+        n = 50
+        X = np.column_stack([np.ones(n), np.random.normal(0, 1, n)])
+        y = X @ [1, 2] + np.random.normal(0, 0.5, n)
+
+        model = ALM(distribution="dnorm")
+        model.fit(X, y)
+
+        summary = model.summary()
+        s = str(summary)
+        assert "Time elapsed:" in s
+        # Coefficient table still present
+        assert "Coefficients:" in s
+        assert "(Intercept)" in s
 
     def test_alm_predict_intervals_side_upper(self, mtcars_data):
         data = mtcars_data

@@ -1,36 +1,51 @@
 Metadata-Version: 2.4
 Name: greybox
-Version: 0.1.0
+Version: 1.0.0
 Summary: Toolbox for model building and forecasting
 Author-email: Ivan Svetunkov <ivan@svetunkov.com>
 License: LGPL-2.1
-Classifier: Development Status :: 3 - Alpha
+Project-URL: Homepage, https://github.com/config-i1/greybox
+Project-URL: Repository, https://github.com/config-i1/greybox
+Project-URL: Documentation, https://config-i1.github.io/greybox/
+Project-URL: Issues, https://github.com/config-i1/greybox/issues
+Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Science/Research
 Classifier: License :: OSI Approved :: GNU Lesser General Public License v2.1 (LGPL-2.1)
-Classifier: Programming Language :: Python :: 3
-Classifier: Programming Language :: Python :: 3.8
 Classifier: Programming Language :: Python :: 3.9
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
 Classifier: Topic :: Scientific/Engineering :: Mathematics
 Requires-Python: >=3.8
 Description-Content-Type: text/markdown
-Requires-Dist: numpy
-Requires-Dist: scipy
-Requires-Dist: pandas
+License-File: LICENSE
+Requires-Dist: numpy>=1.20.0
+Requires-Dist: scipy>=1.7.0
+Requires-Dist: pandas>=1.3.0
+Requires-Dist: nlopt>=2.7.0
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: flake8; extra == "dev"
 Requires-Dist: mypy; extra == "dev"
 Requires-Dist: black; extra == "dev"
+Requires-Dist: ruff; extra == "dev"
+Requires-Dist: pandas>=1.3.0; extra == "dev"
 Provides-Extra: docs
 Requires-Dist: sphinx>=7.0; extra == "docs"
 Requires-Dist: sphinx-rtd-theme>=2.0; extra == "docs"
+Dynamic: license-file
 
-# Greybox
+# greybox
 
-Python port of the R package `greybox` - a toolbox for model building and forecasting.
+[![PyPI version](https://img.shields.io/pypi/v/greybox.svg)](https://pypi.org/project/greybox/)
+[![Python CI](https://github.com/config-i1/greybox/actions/workflows/python-test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/python-test.yml)
+[![Python versions](https://img.shields.io/pypi/pyversions/greybox.svg)](https://pypi.org/project/greybox/)
+[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+
+Python port of the [R greybox package](https://cran.r-project.org/package=greybox) — a toolbox for regression model building and forecasting.
+
+![hex-sticker of the greybox package for Python](https://github.com/config-i1/greybox/blob/master/python/img/greybox-python-web.png?raw=true)
 
 ## Installation
 
@@ -38,16 +53,62 @@ Python port of the R package `greybox` - a toolbox for model building and foreca
 pip install greybox
 ```
 
+## Quick Example
+
+```python
+import numpy as np
+import pandas as pd
+from greybox import ALM, formula
+
+# Generate sample data
+np.random.seed(42)
+n = 200
+data = pd.DataFrame({
+    "y": np.random.normal(10, 2, n),
+    "x1": np.random.normal(5, 1, n),
+    "x2": np.random.normal(3, 1, n),
+})
+data["y"] = 2 + 0.5 * data["x1"] - 0.3 * data["x2"] + np.random.normal(0, 1, n)
+
+# Parse formula and fit model
+result = formula("y ~ x1 + x2", data=data)
+model = ALM(distribution="dnorm")
+model.fit(result.data, result.formula)
+
+# Summary
+print(model.summary())
+
+# Predict with intervals
+pred = model.predict(result.data, interval="prediction", level=0.95)
+print(pred.mean[:5])
+```
+
+## Supported Distributions
+
+| Category | Distributions |
+|----------|--------------|
+| **Continuous** | `dnorm`, `dlaplace`, `ds`, `dgnorm`, `dlgnorm`, `dfnorm`, `drectnorm`, `dt` |
+| **Positive** | `dlnorm`, `dinvgauss`, `dgamma`, `dexp`, `dchisq` |
+| **Count** | `dpois`, `dnbinom`, `dgeom` |
+| **Bounded** | `dbeta`, `dlogitnorm`, `dbcnorm` |
+| **CDF-based** | `pnorm`, `plogis` |
+| **Other** | `dalaplace`, `dbinom` |
+
 ## Features
 
-- Regression Models: Advanced Linear Model (ALM), Scale Model (SM), Dynamic Linear Regression
-- Model Selection: Stepwise regression based on information criteria, partial correlations
-- Variable Processing: Lag/lead expansion, mathematical transformations, cross-product generation
-- Forecasting: Rolling origin evaluation, point forecasts
-- Statistical Measures: AIC, BIC, determination coefficients, association measures
-- Bootstrap Methods: Parameter bootstrap, bootstrap for time series
-- Distributions: Normal, Laplace, LogitNormal, Beta-Normal, etc.
+- **ALM (Augmented Linear Model)**: Likelihood-based regression with 26 distributions
+- **Formula parser**: R-style formulas (`y ~ x1 + x2`, `log(y) ~ .`, `y ~ 0 + x1`)
+- **Model selection**: `stepwise()` IC-based variable selection with partial correlations
+- **Model combination**: `lm_combine()` weighted model averaging based on IC
+- **Accuracy measures**: MAE, MSE, RMSE, MAPE, MASE, MPE, sMAPE, and more
+- **Variable processing**: `xreg_expander` (lags/leads), `xreg_multiplier` (interactions), `temporal_dummy`
+- **27 distribution families**: Each with density, CDF, quantile, and random generation functions
+
+## Links
+
+- [GitHub repository](https://github.com/config-i1/greybox)
+- [R package on CRAN](https://cran.r-project.org/package=greybox)
 
 ## License
 
-LGPL-2.1
+[LGPL-2.1](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)

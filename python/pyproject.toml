@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+requires = ["setuptools>=45", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -13,9 +13,10 @@ authors = [
     {name = "Ivan Svetunkov", email = "ivan@svetunkov.com"},
 ]
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU Lesser General Public License v2.1 (LGPL-2.1)",
+    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
@@ -42,6 +43,12 @@ docs = [
     "sphinx>=7.0",
     "sphinx-rtd-theme>=2.0",
 ]
+
+[project.urls]
+Homepage = "https://github.com/config-i1/greybox"
+Repository = "https://github.com/config-i1/greybox"
+Documentation = "https://config-i1.github.io/greybox/"
+Issues = "https://github.com/config-i1/greybox/issues"
 
 [tool.setuptools.packages.find]
 where = ["src"]

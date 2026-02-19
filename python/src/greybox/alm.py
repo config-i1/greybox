@@ -58,7 +58,10 @@ def _numerical_hessian(f, x0, h=None):
 
 
 class PredictionResult:
-    """Prediction result object with mean and interval bounds.
+    """Prediction result object with mean, interval bounds, and metadata.
+
+    Supports DataFrame-like access: indexing by column name, len(),
+    iteration, and conversion to pandas DataFrame via to_dataframe().
 
     Attributes
     ----------
@@ -68,12 +71,90 @@ class PredictionResult:
         Lower prediction bounds.
     upper : np.ndarray or None
         Upper prediction bounds.
+    level : float or list[float] or None
+        Confidence level(s) used for the intervals.
+    variances : np.ndarray or None
+        Variance estimates for each observation.
+    side : str
+        Side of interval: "both", "upper", or "lower".
+    interval : str
+        Type of interval: "none", "confidence", or "prediction".
     """
 
-    def __init__(self):
-        self.mean = None
-        self.lower = None
-        self.upper = None
+    __slots__ = ("mean", "lower", "upper", "level", "variances", "side", "interval")
+
+    def __init__(
+        self,
+        mean=None,
+        lower=None,
+        upper=None,
+        level=None,
+        variances=None,
+        side="both",
+        interval="none",
+    ):
+        self.mean = mean
+        self.lower = lower
+        self.upper = upper
+        self.level = level
+        self.variances = variances
+        self.side = side
+        self.interval = interval
+
+    def to_dataframe(self) -> pd.DataFrame:
+        """Convert to a pandas DataFrame.
+
+        Returns
+        -------
+        pd.DataFrame
+            DataFrame with 'mean' column and optional 'lower'/'upper'
+            columns (or 'lower_0', 'upper_0', etc. for multiple levels).
+        """
+        data = {"mean": self.mean}
+        if self.lower is not None:
+            if self.lower.ndim == 1:
+                data["lower"] = self.lower
+            else:
+                for i in range(self.lower.shape[1]):
+                    data[f"lower_{i}"] = self.lower[:, i]
+        if self.upper is not None:
+            if self.upper.ndim == 1:
+                data["upper"] = self.upper
+            else:
+                for i in range(self.upper.shape[1]):
+                    data[f"upper_{i}"] = self.upper[:, i]
+        return pd.DataFrame(data)
+
+    def __repr__(self):
+        return repr(self.to_dataframe())
+
+    def __len__(self):
+        if self.mean is not None:
+            return len(self.mean)
+        return 0
+
+    def __getitem__(self, key):
+        return self.to_dataframe()[key]
+
+    @property
+    def columns(self):
+        """Column names of the DataFrame representation."""
+        return self.to_dataframe().columns
+
+    @property
+    def shape(self):
+        """Shape of the DataFrame representation."""
+        return self.to_dataframe().shape
+
+    @property
+    def index(self):
+        """Index of the DataFrame representation."""
+        return self.to_dataframe().index
+
+    @property
+    def values(self):
+        """Values of the DataFrame representation."""
+        return self.to_dataframe().values
 
 
 NLOPT_ALGORITHMS = {
@@ -258,18 +339,18 @@ class ALM:
         self.verbose = verbose
 
         self._coef = None
-        self.scale = None
+        self._scale = None
         self.other_ = None
         self.fitted_values_ = None
         self.residuals_ = None
-        self.loss_value = None
-        self.log_lik = None
-        self.aic = None
-        self.bic = None
-        self.aicc = None
-        self.bicc = None
+        self._loss_value = None
+        self._log_lik = None
+        self._aic = None
+        self._bic = None
+        self._aicc = None
+        self._bicc = None
         self.n_iter_ = None
-        self.time_elapsed = None
+        self._time_elapsed = None
         self.ic_values = None
         self._result = None
         self._n_features = None
@@ -278,7 +359,7 @@ class ALM:
         self._formula_ = None
         self._feature_names = None
         self._response_name = None
-        self.df_residual_ = None
+        self._df_residual = None
         self._B_opt_ = None
         self._a_parameter_provided_ = False
         self._other_val_ = 1.0
@@ -692,7 +773,7 @@ class ALM:
             np.sum(np.ones(len(y), dtype=bool)),
         )
         fitter_return["scale"] = scale
-        self.scale = scale
+        self._scale = scale
         self.other_ = other_val
 
         lambda_bc_val = (
@@ -715,10 +796,10 @@ class ALM:
             lambda_bc_val,
         )
 
-        self.loss_value = objective_func(B_opt, np.zeros(n_params))
+        self._loss_value = objective_func(B_opt, np.zeros(n_params))
 
         if self.loss == "likelihood":
-            self.log_lik = -self.loss_value
+            self._log_lik = -self._loss_value
             if self.distribution == "dbeta":
                 n_params_calc = 2 * n_features
             else:
@@ -745,21 +826,21 @@ class ALM:
                     )
                 ):
                     n_params_calc += 1
-            self.aic = 2 * n_params_calc - 2 * self.log_lik
-            self.bic = n_params_calc * np.log(n_samples) - 2 * self.log_lik
+            self._aic = 2 * n_params_calc - 2 * self._log_lik
+            self._bic = n_params_calc * np.log(n_samples) - 2 * self._log_lik
 
             if n_samples - n_params_calc - 1 > 0:
-                self.aicc = self.aic + (2 * n_params_calc * (n_params_calc + 1)) / (
+                self._aicc = self._aic + (2 * n_params_calc * (n_params_calc + 1)) / (
                     n_samples - n_params_calc - 1
                 )
-                self.bicc = (
-                    self.bic + n_params_calc * (np.log(n_samples) ** 2) / n_samples
+                self._bicc = (
+                    self._bic + n_params_calc * (np.log(n_samples) ** 2) / n_samples
                 )
             else:
-                self.aicc = np.nan
-                self.bicc = np.nan
+                self._aicc = np.nan
+                self._bicc = np.nan
 
-        self.df_residual_ = n_samples - n_params - 1
+        self._df_residual = n_samples - n_params - 1
         self._X_train_ = X.copy()
         self._y_train_ = y.copy()
 
@@ -773,7 +854,7 @@ class ALM:
             np.ones(len(y), dtype=bool),
             n_samples,
         )
-        self.scale = scale
+        self._scale = scale
 
         XtX = X.T @ X
         XtX += np.eye(XtX.shape[0]) * 1e-10
@@ -784,7 +865,7 @@ class ALM:
         self._a_parameter_provided_ = a_parameter_provided
         self._other_val_ = other_val
 
-        self.time_elapsed = time_module.time() - start_time
+        self._time_elapsed = time_module.time() - start_time
 
         return self
 
@@ -1094,6 +1175,7 @@ class ALM:
             self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
+        variances = None
         if interval == "none":
             lower = None
             upper = None
@@ -1103,12 +1185,15 @@ class ALM:
                 mean, variances, interval, level, side
             )
 
-        result = PredictionResult()
-        result.mean = mean
-        result.lower = lower
-        result.upper = upper
-
-        return result
+        return PredictionResult(
+            mean=mean,
+            lower=lower,
+            upper=upper,
+            level=level,
+            variances=variances,
+            side=side,
+            interval=interval,
+        )
 
     def score(self, X, y, metric="likelihood"):
         """Calculate model score.
@@ -1295,6 +1380,76 @@ class ALM:
         return np.sqrt(np.sum(resid**2) / (n - k))
 
     @property
+    def loglik(self) -> float | None:
+        """Log-likelihood (ADAM-compatible name).
+
+        Returns
+        -------
+        loglik : float or None
+            Log-likelihood value.
+        """
+        return self._log_lik
+
+    @property
+    def log_lik(self) -> float | None:
+        """Log-likelihood (backward-compatible alias for loglik)."""
+        return self.loglik
+
+    @property
+    def aic(self) -> float | None:
+        """Akaike Information Criterion."""
+        return self._aic
+
+    @property
+    def aicc(self) -> float | None:
+        """Corrected Akaike Information Criterion."""
+        return self._aicc
+
+    @property
+    def bic(self) -> float | None:
+        """Bayesian Information Criterion."""
+        return self._bic
+
+    @property
+    def bicc(self) -> float | None:
+        """Corrected Bayesian Information Criterion."""
+        return self._bicc
+
+    @property
+    def loss_value(self) -> float | None:
+        """Final value of the loss function."""
+        return self._loss_value
+
+    @property
+    def scale(self) -> float | None:
+        """Scale parameter."""
+        return self._scale
+
+    @property
+    def time_elapsed(self) -> float | None:
+        """Time elapsed during model fitting (seconds)."""
+        return self._time_elapsed
+
+    @time_elapsed.setter
+    def time_elapsed(self, value: float):
+        self._time_elapsed = value
+
+    @property
+    def df_residual_(self) -> int | None:
+        """Residual degrees of freedom."""
+        return self._df_residual
+
+    @property
+    def distribution_(self) -> str:
+        """Distribution name (ADAM convention with trailing _)."""
+        return self.distribution
+
+    @property
+    def loss_(self) -> str:
+        """Loss function name (ADAM convention with trailing _)."""
+        return self.loss
+
+    @property
     def coef(self) -> np.ndarray:
         """Estimated coefficients (slope parameters, excluding intercept).
 
@@ -1384,6 +1539,7 @@ class ALM:
             aicc=self.aicc,
             bicc=self.bicc,
             feature_names=self._feature_names,
+            time_elapsed=self.time_elapsed,
         )
 
     def confint(
@@ -1424,42 +1580,6 @@ class ALM:
             upper_ci = upper_ci[parm]
 
         return np.column_stack([lower_ci, upper_ci])
-
-    def forecast(
-        self,
-        h: int = 1,
-        newdata: np.ndarray | None = None,
-        interval: Literal["none", "confidence", "prediction"] = "none",
-        level: float = 0.95,
-        side: Literal["both", "upper", "lower"] = "both",
-    ) -> PredictionResult:
-        """Forecast future values.
-
-        Parameters
-        ----------
-        h : int
-            Forecast horizon. Not used if newdata is provided.
-        newdata : array-like, optional
-            Future values of exogenous variables.
-        interval : {"none", "confidence", "prediction"}, optional
-            Type of interval to calculate. Default is "none".
-        level : float, optional
-            Confidence level. Default is 0.95.
-        side : {"both", "upper", "lower"}, optional
-            Side of interval. Default is "both".
-
-        Returns
-        -------
-        PredictionResult
-            Forecast results with mean and interval bounds.
-        """
-        if newdata is not None:
-            return self.predict(newdata, interval=interval, level=level, side=side)
-
-        raise NotImplementedError(
-            "Forecasting without newdata requires time series functionality. "
-            "Please provide newdata for exogenous variables."
-        )
 
     def _get_other_parameter(self):
         """Get the additional parameter for distributions that require it."""
@@ -1520,30 +1640,43 @@ class ALM:
         return self
 
     def __str__(self):
+        from .methods.summary import DISTRIBUTION_NAMES
+
         if self._coef is None:
-            return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"
+            return repr(self)
 
-        time_str = f"Time elapsed: {self.time_elapsed:.1f} seconds"
+        dist_name = DISTRIBUTION_NAMES.get(self.distribution, self.distribution)
 
-        class_str = f'ALM(distribution="{self.distribution}", loss="{self.loss}")'
+        lines = []
+        lines.append(f"Time elapsed: {self.time_elapsed:.2f} seconds")
+        lines.append(f"Model estimated: ALM({self.distribution})")
+        lines.append(f"Distribution assumed in the model: {dist_name}")
+        lines.append(
+            f"Loss function type: {self.loss}"
+            + (
+                f"; Loss function value: {self.loss_value:.4f}"
+                if self.loss_value is not None
+                else ""
+            )
+        )
+        lines.append("")
+        lines.append(f"Sample size: {self.nobs}")
+        lines.append(f"Number of estimated parameters: {self.nparam}")
+        lines.append(f"Number of degrees of freedom: {self.df_residual_}")
 
-        coef_names = ["(Intercept)"]
-        coef_values = [self.intercept_]
+        if self.aic is not None:
+            lines.append("")
+            lines.append("Information criteria:")
+            ic_header = f"{'AIC':>10}{'AICc':>10}{'BIC':>10}{'BICc':>10}"
+            lines.append(ic_header)
+            aicc = self.aicc if self.aicc is not None else np.nan
+            bicc = self.bicc if self.bicc is not None else np.nan
+            ic_vals = f"{self.aic:>10.4f}{aicc:>10.4f}{self.bic:>10.4f}{bicc:>10.4f}"
+            lines.append(ic_vals)
 
-        if self._coef is not None and len(self._coef) > 0:
-            n_coefs = len(self._coef)
-            if self._feature_names is not None and len(self._feature_names) == n_coefs:
-                coef_names.extend(self._feature_names)
-            else:
-                for i in range(n_coefs):
-                    coef_names.append(f"x{i + 1}")
-            coef_values.extend(self._coef)
-
-        coef_lines = []
-        for name, value in zip(coef_names, coef_values):
-            coef_lines.append(f"{name:>15} {value:>15.8f}")
-
-        return f"{time_str}\n{class_str}\n\nCoefficients:\n" + "\n".join(coef_lines)
+        return "\n".join(lines)
 
     def __repr__(self):
-        return f"ALM(distribution={self.distribution!r}, loss={self.loss!r})"
+        if self._coef is not None:
+            return f"ALM(distribution={self.distribution!r}, fitted=True)"
+        return f"ALM(distribution={self.distribution!r}, fitted=False)"

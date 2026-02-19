@@ -11,8 +11,34 @@ from greybox.measures import (
     mape,
     mase,
     accuracy,
+    me,
+    rmsse,
+    same,
+    rmae,
+    rrmse,
+    rame,
+    smse,
+    spis,
+    sce,
+    gmrae,
+    measures,
+)
+from greybox.association import (
     determination,
     association,
+)
+from greybox.hm import (
+    hm,
+    ham,
+    asymmetry,
+    extremity,
+    cextremity,
+)
+from greybox.quantile_measures import (
+    pinball,
+    mis,
+    smis,
+    rmis,
 )
 
 # Simple test arrays
@@ -125,24 +151,37 @@ class TestAccuracy:
 
 
 class TestDetermination:
-    def test_perfect_fit(self):
-        a = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
-        result = determination(a, a)
-        np.testing.assert_almost_equal(result["r2"], 1.0)
+    def test_single_variable(self):
+        x = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        result = determination(x)
+        np.testing.assert_almost_equal(result[0], 0.0)
 
-    def test_basic(self):
-        result = determination(actual, predicted)
-        ss_res = np.sum((actual - predicted) ** 2)
-        ss_tot = np.sum((actual - np.mean(actual)) ** 2)
-        expected_r2 = 1 - ss_res / ss_tot
-        np.testing.assert_almost_equal(result["r2"], expected_r2)
+    def test_multiple_variables(self):
+        np.random.seed(42)
+        x1 = np.random.normal(10, 3, 100)
+        x2 = np.random.normal(50, 5, 100)
+        x3 = 100 + 0.5 * x1 - 0.75 * x2 + np.random.normal(0, 3, 100)
+        xreg = np.column_stack([x3, x1, x2])
+        result = determination(xreg)
+        assert len(result) == 3
+        assert result[0] > result[1]
+        assert result[0] > result[2]
 
-    def test_adj_r2(self):
-        result = determination(actual, predicted, k=1)
-        n = 5
-        k = 1
-        expected_adj = 1 - (1 - result["r2"]) * (n - 1) / (n - k - 1)
-        np.testing.assert_almost_equal(result["adjR2"], expected_adj)
+    def test_perfect_correlation(self):
+        x1 = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        x2 = 2 * x1
+        xreg = np.column_stack([x1, x2])
+        result = determination(xreg)
+        np.testing.assert_almost_equal(result[0], 1.0)
+        np.testing.assert_almost_equal(result[1], 1.0)
+
+    def test_bruteforce_false(self):
+        np.random.seed(42)
+        x1 = np.random.normal(10, 3, 50)
+        x2 = np.random.normal(50, 5, 50)
+        xreg = np.column_stack([x1, x2])
+        result = determination(xreg, bruteforce=False)
+        assert len(result) == 2
 
 
 class TestAssociation:
@@ -170,3 +209,120 @@ class TestAssociation:
         y = np.array([2, 4, 6, 8, 10])
         result = association(x, y)
         assert result["value"].shape == (2, 2)
+
+
+class TestME:
+    def test_basic(self):
+        result = me(actual, predicted)
+        expected = np.mean(actual - predicted)
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestMIS:
+    def test_basic(self):
+        act = np.array([1.0, 2.0, 3.0, 4.0, 5.0])
+        lower = np.array([0.5, 1.5, 2.5, 3.5, 4.5])
+        upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])
+        result = mis(act, lower, upper, level=0.95)
+        assert result > 0
+
+
+class TestRMAE:
+    def test_basic(self):
+        result = rmae(actual, predicted, actual - 0.1)
+        assert result > 0
+
+    def test_length_mismatch(self):
+        with pytest.raises(ValueError):
+            rmae(np.array([1, 2]), np.array([1, 2]), np.array([1]))
+
+
+class TestRMSSE:
+    def test_with_scale(self):
+        result = rmsse(actual, predicted, scale=1.0)
+        expected = np.sqrt(mse(actual, predicted))
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestSAME:
+    def test_with_scale(self):
+        result = same(actual, predicted, scale=1.0)
+        expected = np.abs(me(actual, predicted))
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestSMSE:
+    def test_basic(self):
+        result = smse(actual, predicted, scale=1.0)
+        expected = mse(actual, predicted)
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestSPIS:
+    def test_basic(self):
+        result = spis(actual, predicted, scale=1.0)
+        expected = np.sum(np.cumsum(predicted - actual))
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestSCE:
+    def test_basic(self):
+        result = sce(actual, predicted, scale=1.0)
+        expected = np.sum(actual - predicted)
+        np.testing.assert_almost_equal(result, expected)
+
+
+class TestGMRAE:
+    def test_different(self):
+        result = gmrae(actual, predicted, actual - 0.1)
+        assert result > 0
+
+
+class TestMeasures:
+    def test_basic(self):
+        result = measures(actual, predicted, actual[:-2])
+        assert "ME" in result
+        assert "MAE" in result
+        assert "MASE" in result
+        assert "rMAE" in result
+
+
+class TestPinball:
+    def test_quantile(self):
+        result = pinball(actual, predicted, level=0.5)
+        assert result >= 0
+
+    def test_expectile(self):
+        result = pinball(actual, predicted, level=0.5, loss=2)
+        assert result >= 0
+
+    def test_invalid_loss(self):
+        with pytest.raises(ValueError):
+            pinball(actual, predicted, level=0.5, loss=3)
+
+
+class TestHalfMoment:
+    def test_hm(self):
+        x = np.array([1, 2, 3, 4, 5])
+        result = hm(x)
+        assert isinstance(result, complex)
+
+    def test_ham(self):
+        x = np.array([1, 2, 3, 4, 5])
+        result = ham(x)
+        assert result >= 0
+
+    def test_asymmetry(self):
+        x = np.array([1, 2, 3, 4, 5])
+        result = asymmetry(x)
+        assert isinstance(result, (int, float, np.floating))
+
+    def test_extremity(self):
+        x = np.array([1, 2, 3, 4, 5])
+        result = extremity(x)
+        assert isinstance(result, (int, float, np.floating))
+
+    def test_cextremity(self):
+        x = np.array([1, 2, 3, 4, 5])
+        result = cextremity(x)
+        assert isinstance(result, complex)
