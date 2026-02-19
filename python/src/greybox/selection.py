@@ -34,7 +34,7 @@ def _prepare_data(
     data: Union[dict, DataFrame],
     formula_str: Optional[str] = None,
     subset: Optional[Any] = None,
-) -> tuple[dict, str, list[bool]]:
+) -> tuple[dict, str, np.ndarray]:
     """Prepare data for stepwise selection.
 
     Parameters
@@ -338,8 +338,8 @@ def stepwise(
             best_ic_not_found = False
             break
 
-        max_assoc = -1
-        new_element = None
+        max_assoc: float = -1.0
+        new_element: str | None = None
         for var in available_vars:
             if var in associations and associations[var] > max_assoc:
                 max_assoc = associations[var]
@@ -395,8 +395,8 @@ def stepwise(
 
     elapsed_time = time.time() - start_time
 
-    final_model.ICs = all_ics
-    final_model.timeElapsed = elapsed_time
+    final_model.ic_values = all_ics
+    final_model.time_elapsed = elapsed_time
 
     return final_model
 

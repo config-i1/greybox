@@ -37,8 +37,8 @@ class TestStepwise:
 
         model = stepwise(data, ic="AICc", silent=True)
         assert model is not None
-        assert hasattr(model, "ICs")
-        assert len(model.ICs) >= 2
+        assert hasattr(model, "ic_values")
+        assert len(model.ic_values) >= 2
 
     def test_stepwise_with_noise(self):
         """Test stepwise correctly ignores noise variable."""
@@ -60,8 +60,8 @@ class TestStepwise:
         model = stepwise(data, ic="AICc", silent=True)
         assert model is not None
 
-    def test_stepwise_ICs_attribute(self):
-        """Test that ICs attribute is properly set."""
+    def test_stepwise_ic_values_attribute(self):
+        """Test that ic_values attribute is properly set."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
@@ -71,19 +71,19 @@ class TestStepwise:
         data = {"y": y.tolist(), "x1": x1.tolist(), "x2": x2.tolist()}
 
         model = stepwise(data, ic="AICc", silent=True)
-        assert hasattr(model, "ICs")
-        assert isinstance(model.ICs, list)
-        assert len(model.ICs) > 0
-        assert all(isinstance(ic, (float, np.floating)) for ic in model.ICs)
+        assert hasattr(model, "ic_values")
+        assert isinstance(model.ic_values, list)
+        assert len(model.ic_values) > 0
+        assert all(isinstance(ic, (float, np.floating)) for ic in model.ic_values)
 
-    def test_stepwise_timeElapsed_attribute(self):
-        """Test that timeElapsed attribute is properly set."""
+    def test_stepwise_time_elapsed_attribute(self):
+        """Test that time_elapsed attribute is properly set."""
         data = {"y": list(range(1, 11)), "x1": list(range(1, 11))}
 
         model = stepwise(data, ic="AICc", silent=True)
-        assert hasattr(model, "timeElapsed")
-        assert isinstance(model.timeElapsed, float)
-        assert model.timeElapsed >= 0
+        assert hasattr(model, "time_elapsed")
+        assert isinstance(model.time_elapsed, float)
+        assert model.time_elapsed >= 0
 
     def test_stepwise_ic_types(self):
         """Test stepwise with different IC types."""
@@ -97,7 +97,7 @@ class TestStepwise:
         for ic_type in ["AICc", "AIC", "BIC", "BICc"]:
             model = stepwise(data, ic=ic_type, silent=True)
             assert model is not None
-            assert hasattr(model, "ICs")
+            assert hasattr(model, "ic_values")
 
     def test_stepwise_silent_output(self, capsys):
         """Test that silent=False produces output."""

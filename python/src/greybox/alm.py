@@ -270,6 +270,7 @@ class ALM:
         self.bicc = None
         self.n_iter_ = None
         self.time_elapsed = None
+        self.ic_values = None
         self._result = None
         self._n_features = None
         self._X_train_ = None
