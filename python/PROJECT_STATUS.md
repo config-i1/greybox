@@ -6,11 +6,11 @@ Python port of the R `greybox` package — a toolbox for regression model buildi
 
 ## Test Status
 
-- **Total Tests**: 337
+- **Total Tests**: 348
 - **Failing**: 0
 - **xfail**: 0
 - **Runtime**: ~13 seconds
-- **Coverage**: Formula parsing, ALM fitting (all 26 distributions), prediction intervals, model selection, accuracy measures, variable processing, R-vs-Python comparison tests
+- **Coverage**: Formula parsing (with custom functions), ALM fitting (all 26 distributions), prediction intervals, model selection, accuracy measures, variable processing, R-vs-Python comparison tests
 
 ## Main Features Implemented
 
@@ -30,7 +30,7 @@ Python port of the R `greybox` package — a toolbox for regression model buildi
    - Cumulative: `pnorm`, `plogis`
 
 3. **Model Selection**
-   - `stepwise()` — stepwise regression (AIC, AICc, BIC, BICc)
+   - `stepwise()` — stepwise regression using partial correlations (matching R implementation)
    - `lm_combine()` — model combination via IC weights
 
 4. **Variable Processing**
@@ -43,16 +43,23 @@ Python port of the R `greybox` package — a toolbox for regression model buildi
    - Point forecasts with confidence/prediction intervals (t-distribution based)
    - Rolling origin evaluation for time series cross-validation
 
-6. **Accuracy Measures**
+6. **Formula System**
+   - R-style formula parsing (`y ~ x1 + x2`)
+   - Built-in transformations: log, log10, log2, sqrt, exp, abs, sin, cos, tan
+   - Custom functions: Use any user-defined or imported function in formulas
+   - I() wrapper for protected expressions
+   - Polynomial terms (x^2, x^3)
+
+7. **Accuracy Measures**
    - MAE, MSE, RMSE, MPE, MAPE, MASE, accuracy
 
-7. **Association & Correlation**
+8. **Association & Correlation**
    - `association` — measures of association for different variable types
    - `pcor` — partial correlations
    - `mcor` — multiple correlation
 
-8. **Model Methods**
-   - `predict()`, `summary()`, `confint()`, `forecast()`
+9. **Model Methods**
+   - `predict()`, `summary()`, `confint()`
    - Properties: `coef`, `vcov`, `nobs`, `nparam`, `residuals`, `fitted`, `actuals`, `sigma`, `log_lik`, `formula`
    - `determination` — R-squared and adjusted R-squared
    - `outlier_dummy` — outlier detection and dummy variable creation
@@ -116,7 +123,7 @@ python/src/greybox/
 |---|---|---|
 | `alm()` | `ALM` class | Implemented |
 | `sm()` (scale model) | — | Not implemented |
-| `stepwise()` | `stepwise()` | Implemented |
+| `stepwise()` | `stepwise()` | Implemented (matches R algorithm) |
 | `lmCombine()` | `lm_combine()` | Implemented |
 | `lmDynamic()` | — | Not implemented |
 
@@ -155,7 +162,7 @@ python/src/greybox/
 | R function | Python equivalent | Status |
 |---|---|---|
 | `predict.alm()` | `ALM.predict()` | Implemented |
-| `forecast.alm()` | `ALM.forecast()` | Implemented |
+| `forecast.alm()` | — | Not implemented |
 | `ro()` (rolling origin) | `rolling.ro()` | Implemented |
 
 ### Accuracy Measures
@@ -290,6 +297,27 @@ from greybox.selection import stepwise
 data = {'y': [1, 2, 3, 4, 5], 'x1': [1, 2, 3, 4, 5],
         'x2': [2, 4, 6, 8, 10], 'x3': [3, 6, 9, 12, 15]}
 model = stepwise(data, ic="AICc")
+
+# Access IC values and timing
+print(model.ic_values)      # List of IC values at each step
+print(model.time_elapsed)  # Time taken for selection
+```
+
+### Formula with Custom Functions
+```python
+from greybox.formula import formula
+import numpy as np
+from scipy.special import erfc
+
+# User-defined function
+def my_transform(x):
+    return x * 2
+
+# Or use imported functions directly
+data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
+y, X = formula("y ~ my_transform(x)", data)  # Custom function
+y, X = formula("y ~ erfc(x)", data)           # Imported function
+y, X = formula("my_transform(y) ~ x", data)  # Custom function on LHS
 ```
 
 ### Accuracy Measures

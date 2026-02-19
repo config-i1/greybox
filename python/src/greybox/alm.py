@@ -1425,42 +1425,6 @@ class ALM:
 
         return np.column_stack([lower_ci, upper_ci])
 
-    def forecast(
-        self,
-        h: int = 1,
-        newdata: np.ndarray | None = None,
-        interval: Literal["none", "confidence", "prediction"] = "none",
-        level: float = 0.95,
-        side: Literal["both", "upper", "lower"] = "both",
-    ) -> PredictionResult:
-        """Forecast future values.
-
-        Parameters
-        ----------
-        h : int
-            Forecast horizon. Not used if newdata is provided.
-        newdata : array-like, optional
-            Future values of exogenous variables.
-        interval : {"none", "confidence", "prediction"}, optional
-            Type of interval to calculate. Default is "none".
-        level : float, optional
-            Confidence level. Default is 0.95.
-        side : {"both", "upper", "lower"}, optional
-            Side of interval. Default is "both".
-
-        Returns
-        -------
-        PredictionResult
-            Forecast results with mean and interval bounds.
-        """
-        if newdata is not None:
-            return self.predict(newdata, interval=interval, level=level, side=side)
-
-        raise NotImplementedError(
-            "Forecasting without newdata requires time series functionality. "
-            "Please provide newdata for exogenous variables."
-        )
-
     def _get_other_parameter(self):
         """Get the additional parameter for distributions that require it."""
         if self.distribution == "dalaplace":
