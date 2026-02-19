@@ -299,7 +299,7 @@ class LmCombineResult:
 
     def predict(
         self,
-        X: np.ndarray | None = None,
+        X: np.ndarray | DataFrame | dict | None = None,
         interval: str = "none",
         level: float | list[float] = 0.95,
         side: str = "both",
@@ -308,9 +308,9 @@ class LmCombineResult:
 
         Parameters
         ----------
-        X : array-like or None
-            Design matrix (with intercept column).
-            If None, returns training fitted values.
+        X : array-like, dict, DataFrame, or None
+            Design matrix (with intercept column), dict/DataFrame of new data,
+            or None to return training fitted values.
         interval : str, default="none"
             "none", "confidence", or "prediction".
         level : float or list of float, default=0.95
@@ -330,7 +330,32 @@ class LmCombineResult:
                 interval=interval,
             )
 
-        X = np.asarray(X, dtype=float)
+        # Handle dict or DataFrame input - convert to design matrix using stored formula
+        if isinstance(X, (dict, DataFrame)):
+            # Get formula - use stored formula or build from coefficient names
+            formula_str = self._formula
+            if formula_str is None:
+                # Build formula from coefficient names if not stored
+                if hasattr(self, 'coefficient_names') and self.coefficient_names:
+                    formula_str = "y ~ " + " + ".join(
+                        name for name in self.coefficient_names if name != "(Intercept)"
+                    )
+                else:
+                    raise ValueError(
+                        "Cannot convert dict/DataFrame to design matrix: "
+                        "no formula stored in model. Please pass a design matrix (np.ndarray) "
+                        "with intercept as first column."
+                    )
+            
+            # Convert dict to the format expected by formula
+            data_dict = X if isinstance(X, dict) else X.to_dict(orient='list')
+            # Add a dummy y variable for formula parsing (will be ignored)
+            data_dict = {k: np.asarray(v) for k, v in data_dict.items()}
+            _, X_design = formula_func(formula_str, data_dict, as_dataframe=True)
+            X = np.asarray(X_design, dtype=float)
+        else:
+            X = np.asarray(X, dtype=float)
+
         if X.ndim == 1:
             X = X.reshape(1, -1)
 
@@ -1099,7 +1124,7 @@ def _combine_fitted(
 def CALM(
     data: Union[dict, DataFrame],
     ic: Literal["AICc", "AIC", "BIC", "BICc"] = "AICc",
-    bruteforce: bool = True,
+    bruteforce: bool = False,
     silent: bool = True,
     distribution: str = "dnorm",
     **kwargs,
@@ -1120,7 +1145,7 @@ def CALM(
         the others in the rest.
     ic : {"AICc", "AIC", "BIC", "BICc"}, default="AICc"
         Information criterion to use.
-    bruteforce : bool, default=True
+    bruteforce : bool, default=False
         If True, all possible models are generated and combined.
         Otherwise the best model is found via stepwise, then if <14
         parameters recurses with bruteforce on selected vars, else
