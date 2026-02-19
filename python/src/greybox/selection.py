@@ -157,13 +157,17 @@ def _get_ic_function(ic: str):
     if ic == "AIC":
         return lambda log_lik, df: -2 * log_lik + 2 * df
     elif ic == "BIC":
-        return lambda log_lik, df: -2 * log_lik + df * np.log(
-            len(log_lik) if hasattr(log_lik, "__len__") else 1
+        return lambda log_lik, df: (
+            -2 * log_lik
+            + df * np.log(len(log_lik) if hasattr(log_lik, "__len__") else 1)
         )
     elif ic == "AICCC":
         n = 1
-        return lambda log_lik, df: -2 * log_lik + 2 * df + (
-            2 * df * (df + 1)) / (n - df - 1) if n - df - 1 > 0 else np.inf
+        return lambda log_lik, df: (
+            -2 * log_lik + 2 * df + (2 * df * (df + 1)) / (n - df - 1)
+            if n - df - 1 > 0
+            else np.inf
+        )
     else:
         return lambda log_lik, df: -2 * log_lik + 2 * df
 
@@ -210,7 +214,7 @@ def _calculate_ic(
             return -2 * log_lik + 2 * k + (2 * k**2 + 2 * k) / (n - k - 1)
         return np.inf
     elif ic_type == "BICC":
-        return -2 * log_lik + k * np.log(n) + k * np.log(n)**2 / n
+        return -2 * log_lik + k * np.log(n) + k * np.log(n) ** 2 / n
     return np.inf
 
 
@@ -281,14 +285,10 @@ def stepwise(
     if df is None:
         df = 0
 
-    data_dict, response_name, rows_selected = _prepare_data(
-        data, formula, subset
-    )
+    data_dict, response_name, rows_selected = _prepare_data(data, formula, subset)
 
     data_dict = {k: np.array(v) for k, v in data_dict.items()}
-    n_obs = int(np.sum(rows_selected))
 
-    y_values = data_dict[response_name][rows_selected]
     x_vars = [k for k in data_dict.keys() if k != response_name]
 
     if len(x_vars) == 0:
@@ -298,13 +298,8 @@ def stepwise(
 
     if len(x_vars) == 0:
         raise ValueError(
-            "None of exogenous variables has variability. "
-            "There's nothing to select!"
+            "None of exogenous variables has variability. There's nothing to select!"
         )
-
-    use_alm = distribution != "dnorm" or occurrence != "none" or len(kwargs) > 0
-
-    ic_func = _get_ic_function(ic)
 
     selected_vars: list[str] = []
     all_ics: list[float] = []
@@ -357,9 +352,7 @@ def stepwise(
         test_formula = best_formula + f" + {new_element}"
 
         try:
-            y_fit, X_fit = formula_func(
-                test_formula, data_dict, as_dataframe=True
-            )
+            y_fit, X_fit = formula_func(test_formula, data_dict, as_dataframe=True)
             feature_names = [c for c in X_fit.columns if c != "(Intercept)"]
 
             model = ALM(distribution=distribution, loss="likelihood", **kwargs)
@@ -368,8 +361,8 @@ def stepwise(
             current_ic = _calculate_ic(model, ic, df)
 
             if not silent:
-                print(f"Step {m-1}. Formula: {test_formula}, IC: {current_ic:.4f}")
-                print(f"Correlations: ")
+                print(f"Step {m - 1}. Formula: {test_formula}, IC: {current_ic:.4f}")
+                print("Correlations: ")
                 for var in available_vars:
                     print(f"  {var}: {associations.get(var, 0):.3f}")
                 print()

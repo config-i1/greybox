@@ -180,9 +180,12 @@ def _apply_transformation(var_name, data_dict, n_obs, caller_globals=None):
     if transform in caller_globals:
         return caller_globals[transform](base_data)
 
-    raise ValueError(f"Unknown transformation: '{transform}'. "
-                    f"If '{transform}' is a function you defined or imported, "
-                    f"make sure it is available in the global scope where formula() is called.")
+    raise ValueError(
+        f"Unknown transformation: '{transform}'. "
+        f"If '{transform}' is a function you defined or imported, "
+        f"make sure it is available in the global scope where formula() "
+        f"is called."
+    )
 
 
 def formula(formula_str, data, return_type="both", as_dataframe=True):
@@ -304,8 +307,9 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
                 if i < len(tokens):
                     excluded_token = tokens[i].strip()
                     if excluded_token:
-                        # Extract base variable name (handle transformations)
-                        transform, base_var, _ = _parse_transformation(excluded_token, caller_globals)
+                        transform, base_var, _ = _parse_transformation(
+                            excluded_token, caller_globals
+                        )
                         excluded_vars.add(base_var)
                 i += 1
                 continue
@@ -362,10 +366,10 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
     if has_response and lhs:
         transform, base_var, is_protected = _parse_transformation(lhs, caller_globals)
 
-        # Handle I() wrapper specially - extract base variable from inside
         if is_protected:
-            # For I(var), extract var and check if it exists
-            inner_transform, inner_base, _ = _parse_transformation(base_var, caller_globals)
+            inner_transform, inner_base, _ = _parse_transformation(
+                base_var, caller_globals
+            )
             if inner_transform is not None:
                 # I(sqrt(y)) or I(y^2) - use the inner base variable
                 if inner_base not in data_dict:
