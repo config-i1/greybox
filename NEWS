@@ -1,8 +1,9 @@
-greybox v2.0.7 (Release data: 2026-02-18)
+greybox v2.0.7 (Release data: 2026-02-19)
 ==============
 
 Changes:
 * Backshift operator B(x, p) that can be used in regression models.
+* Renamed lmCombine() into calm() (combine alm). The old name is kept for backwards compatability.
 
 Bugfixes:
 * delta parameter calculation in lowess for spread() was not working in case of missing values. Fixed this.

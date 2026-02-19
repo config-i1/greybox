@@ -86,4 +86,4 @@ B <- function(x, k, ...) {
 #         m[s + 1L] <- beta_s + acc
 #     }
 #     m
-}
+# }

@@ -34,7 +34,7 @@ The package includes the following functions for models construction:
 
 1. [alm()](alm.html) - Augmented Linear Model. This is something similar to GLM, but with a focus on forecasting and the information criteria usage for time series. It also supports mixture distribution models for the intermittent data and allows adding trend to the data via the formula.
 2. [stepwise()](#stepwise) - select the linear model with the lowest IC from all the possible in the provided data. Uses partial correlations. Works fast;
-3. [lmCombine()](#lmCombine) - combine the linear models into one using IC weights;
+3. [calm()](#calm) - combine the linear models into one using IC weights;
 4. [lmDynamic()](#lmDynamic) - produce model with dynamic weights and time varying parameters based on point IC weight.
 
 See discussion of some of these functions in this vignette below.
@@ -59,7 +59,7 @@ All these functions are discussed in a separate vignette on [marketing analytics
 
 
 ## Methods
-The following methods can be applied to the models, produced by `alm()`, `stepwise()`, `lmCombine()` and `lmDynamic()`:
+The following methods can be applied to the models, produced by `alm()`, `stepwise()`, `calm()` and `lmDynamic()`:
 
 1. `logLik()` - extracts log-likelihood.
 2. `AIC()`, `AICc()`, `BIC()`, `BICc()` - calculates the respective information criteria.
@@ -168,20 +168,20 @@ texreg::htmlreg(ourModel)
 
 Similarly, you can produce pdf tables via `texreg()` function from that package. Alternatively, you can use `kable()` function from `knitr` package on the summary to get a table for LaTeX / HTML.
 
-## lmCombine {#lmCombine}
+## calm {#calm}
 
-`lmCombine()` function creates a pool of linear models using `lm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteforce` parameter.
+`calm()` function creates a pool of linear models using `alm()`, writes down the parameters, standard errors and information criteria and then combines the models using IC weights. The resulting model is of the class "lm.combined". The speed of the function deteriorates exponentially with the increase of the number of variables $k$ in the dataset, because the number of combined models is equal to $2^k$. The advanced mechanism that uses `stepwise()` and removes a large chunk of redundant models is also implemented in the function and can be switched using `bruteforce` parameter.
 
 Here's an example of the reduced data with combined model and the parameter `bruteforce=TRUE`:
 ```{r BJcombine1}
-ourModel <- lmCombine(BJxreg[,-c(3:7,18:22)],bruteforce=TRUE)
+ourModel <- calm(BJxreg[,-c(3:7,18:22)],bruteforce=TRUE)
 summary(ourModel)
 ```
 `summary()` function provides the table with the parameters, their standard errors, their relative importance and the 95% confidence intervals. Relative importance indicates in how many cases the variable was included in the model with high weight. So, in the example above variables xLag5, xLag4, xLag3 were included in the models with the highest weights, while all the others were in the models with lower ones. This may indicate that only these variables are needed for the purposes of analysis and forecasting.
 
 The more realistic situation is when the number of variables is high. In the following example we use the data with 21 variables. So if we use brute force and estimate every model in the dataset, we will end up with $2^{21}$ = `2^21` combinations of models, which is not possible to estimate in the adequate time. That is why we use `bruteforce=FALSE`:
 ```{r BJcombine2}
-ourModel <- lmCombine(BJxreg,bruteforce=FALSE)
+ourModel <- calm(BJxreg,bruteforce=FALSE)
 summary(ourModel)
 ```
 In this case first, the `stepwise()` function is used, which finds the best model in the pool. Then each variable that is not in the model is added to the model and then removed iteratively. IC, parameters values and standard errors are all written down for each of these expanded models. Finally, in a similar manner each variable is removed from the optimal model and then added back. As a result the pool of combined models becomes much smaller than it could be in case of the brute force, but it contains only meaningful models, that are close to the optimal. The rationale for this is that the marginal contribution of variables deteriorates with the increase of the number of parameters in case of the stepwise function, and the IC weights become close to each other around the optimal model. So, whenever the models are combined, there is a lot of redundant models with very low weights. By using the mechanism described above we remove those redundant models.
@@ -197,7 +197,7 @@ As an example, let's split the whole sample with Box-Jenkins data into in-sample
 ```{r BJcombine3}
 BJInsample <- BJxreg[1:130,];
 BJHoldout <- BJxreg[-(1:130),];
-ourModel <- lmCombine(BJInsample,bruteforce=FALSE)
+ourModel <- calm(BJInsample,bruteforce=FALSE)
 ```
 A summary and a plot of the model:
 ```{r BJcombinePlot}

@@ -1,7 +1,8 @@
 #' Combine regressions based on information criteria
 #'
 #' Function combines parameters of linear regressions of the first variable
-#' on all the other provided data.
+#' on all the other provided data. This is done based on the \code{alm}, so
+#' the function Combines ALM.
 #'
 #' The algorithm uses alm() to fit different models and then combines the models
 #' based on the selected IC. The parameters are combined so that if they are not
@@ -66,7 +67,7 @@
 #' inSample <- xreg[1:80,]
 #' outSample <- xreg[-c(1:80),]
 #' # Combine all the possible models
-#' ourModel <- lmCombine(inSample,bruteforce=TRUE)
+#' ourModel <- calm(inSample,bruteforce=TRUE)
 #' predict(ourModel,outSample)
 #' plot(predict(ourModel,outSample))
 #'
@@ -77,19 +78,20 @@
 #' inSample <- xreg[1:40,]
 #' outSample <- xreg[-c(1:40),]
 #' # Combine only the models close to the optimal
-#' ourModel <- lmCombine(inSample, ic="BICc",bruteforce=FALSE)
+#' ourModel <- calm(inSample, ic="BICc",bruteforce=FALSE)
 #' summary(ourModel)
 #' plot(predict(ourModel, outSample))
 #'
 #' # Combine in parallel - should increase speed in case of big data
-#' \dontrun{ourModel <- lmCombine(inSample, ic="BICc", bruteforce=TRUE, parallel=TRUE)
+#' \dontrun{ourModel <- calm(inSample, ic="BICc", bruteforce=TRUE, parallel=TRUE)
 #' summary(ourModel)
 #' plot(predict(ourModel, outSample))}
 #'
 #' @importFrom stats dnorm
 #'
-#' @export lmCombine
-lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
+#' @rdname calm
+#' @export calm
+calm <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent=TRUE,
                       formula=NULL, subset=NULL,
                       distribution=c("dnorm","dlaplace","ds","dgnorm","dlogis","dt","dalaplace",
                                      "dlnorm","dllaplace","dls","dlgnorm","dbcnorm",
@@ -238,7 +240,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
     #         useALM <- TRUE;
     #         rowsSelected <- rowsSelected | (data[,1]!=0);
     #
-    #         occurrenceModel <- lmCombine(data, ic=ic, bruteforce=bruteforce, silent=silent,
+    #         occurrenceModel <- calm(data, ic=ic, bruteforce=bruteforce, silent=silent,
     #                                      distribution=occurrence, parallel=parallel, ...);
     #         occurrenceModel$call <- cl;
     #     }
@@ -431,7 +433,7 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
         if(nparam(ourModel)<14){
             listToCall$data <- listToCall$data[,c(responseName,bestExoNames),drop=FALSE];
             colnames(listToCall$data) <- c(responseNameOriginal,bestExoNamesOriginal);
-            ourModel <- lmCombine(listToCall$data, ic=ic,
+            ourModel <- calm(listToCall$data, ic=ic,
                                    bruteforce=TRUE, silent=silent, distribution=distribution, parallel=parallel, ...);
             ourModel$call <- cl;
             return(ourModel);
@@ -745,4 +747,12 @@ lmCombine <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, s
                             class=c("greyboxC","alm","greybox"));
 
     return(finalModel);
+}
+
+
+#' @rdname calm
+#' @export
+lmCombine <- function(...){
+    warning("You are using the old name of the function. Don't worry and just the new one - \"calm()\".");
+    return(calm(...));
 }
