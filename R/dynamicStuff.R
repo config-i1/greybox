@@ -54,9 +54,36 @@ B <- function(x, k, ...) {
     }
 }
 
-# Function to calculate the dynamic multipliers.
-# Do this recursively to avoid complications?
-# dynmult <- function(object, parm){
-#     ariPolynomial <- object$other$polynomial
-#     coefDyn <- coef(object)[parm]
-# }
+# Dynamic multipliers for ARDL(p, k)
+# @param phi Numeric vector of AR coefficients (phi_1, ..., phi_p).
+# @param beta Numeric vector of DL coefficients for x (beta_0, ..., beta_k).
+# @param k_horiz Integer, number of dynamic multipliers to return (m_0, ..., m_{k_horiz-1}).
+# @return Numeric vector of length k_horiz with dynamic multipliers.
+# dynmult <- function(phi, beta, k_horiz) {
+#     # Function to calculate the dynamic multipliers.
+#     # Do this recursively to avoid complications?
+#     p <- length(phi)
+#     # treat beta_s = 0 for s > length(beta)-1
+#     max_beta_idx <- length(beta) - 1L
+#
+#     m <- numeric(k_horiz)
+#     if (k_horiz < 1L) return(m)
+#
+#     # s = 0
+#     m[1] <- beta[1]  # beta_0
+#
+#     if (k_horiz == 1L) return(m)
+#
+#     for (s in 1:(k_horiz - 1L)) {
+#         # beta_s (0 if s > max_beta_idx)
+#         beta_s <- if (s <= max_beta_idx) beta[s + 1L] else 0
+#
+#         # sum_{i=1}^{min(p,s)} phi_i * m_{s-i}
+#         acc <- 0
+#         for (i in 1:min(p, s)) {
+#             acc <- acc + phi[i] * m[s - i + 1L]
+#         }
+#         m[s + 1L] <- beta_s + acc
+#     }
+#     m
+}
