@@ -5,45 +5,9 @@ and predict.alm methods.
 """
 
 import numpy as np
-from dataclasses import dataclass
 from scipy import stats
 
-
-@dataclass
-class PredictResult:
-    """Prediction result object.
-
-    Attributes
-    ----------
-    mean : np.ndarray
-        Predicted values (point forecasts).
-    lower : np.ndarray or None
-        Lower prediction bounds.
-    upper : np.ndarray or None
-        Upper prediction bounds.
-    level : list
-        Confidence levels used.
-    variances : np.ndarray or None
-        Variance values.
-    newdata_provided : bool
-        Whether new data was provided.
-    distribution : str
-        Distribution used in the model.
-    scale : np.ndarray or None
-        Scale values (for occurrence models).
-    occurrence : PredictResult or None
-        Occurrence model predictions (if applicable).
-    """
-
-    mean: np.ndarray
-    lower: np.ndarray | None
-    upper: np.ndarray | None
-    level: list
-    variances: np.ndarray | None
-    newdata_provided: bool
-    distribution: str
-    scale: np.ndarray | None = None
-    occurrence: "PredictResult | None" = None
+from .alm import PredictionResult
 
 
 def predict_basic(model, X, interval="none", level=0.95, side="both"):
@@ -64,7 +28,7 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
 
     Returns
     -------
-    PredictResult
+    PredictionResult
         Prediction results with mean, lower, upper bounds, etc.
     """
     if not hasattr(model, "_coef") or model._coef is None:
@@ -137,14 +101,14 @@ def predict_basic(model, X, interval="none", level=0.95, side="both"):
                 lower[:, i] = lower_i
                 upper[:, i] = upper_i
 
-    return PredictResult(
+    return PredictionResult(
         mean=mean,
         lower=lower,
         upper=upper,
-        level=level_low + level_up,
+        level=level,
         variances=variances,
-        newdata_provided=False,
-        distribution=model.distribution,
+        side=side,
+        interval=interval,
     )
 
 
@@ -175,7 +139,7 @@ def predict(
 
     Returns
     -------
-    PredictResult
+    PredictionResult
         Prediction results with mean, lower, upper bounds, etc.
     """
     if not hasattr(model, "_coef") or model._coef is None:
@@ -194,9 +158,7 @@ def predict(
 
     if newdata is None:
         X = model._X_train_
-        newdata_provided = False
     else:
-        newdata_provided = True
         from .formula import formula
 
         if isinstance(newdata, dict):
@@ -220,7 +182,6 @@ def predict(
         X = X.reshape(1, -1)
 
     result = predict_basic(model, X, interval, level, side)
-    result.newdata_provided = newdata_provided
 
     h = X.shape[0]
 

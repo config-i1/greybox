@@ -98,6 +98,7 @@ class SummaryResult:
     aicc: float | None = None
     bicc: float | None = None
     feature_names: list | None = None
+    time_elapsed: float | None = None
 
     def __str__(self) -> str:
         """String representation of summary."""
@@ -116,6 +117,9 @@ class SummaryResult:
         col2 = f"Upper {level_high:.1f}%"
 
         lines = []
+        if self.time_elapsed is not None:
+            lines.append(f"Time elapsed: {self.time_elapsed:.2f} seconds")
+            lines.append("")
         lines.append(f"Response variable: {self.response_variable}")
         lines.append(f"Distribution used in the estimation: {dist_name}")
         lines.append(f"Loss function used in estimation: {self.loss}")

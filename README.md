@@ -74,13 +74,19 @@ There are several groups of functions in the package.
 ### Installation
 
 The stable version of the package is available on CRAN, so you can install it by running:
-> install.packages("greybox")
+```r
+install.packages("greybox")
+```
 
 A recent, development version, is available via github and can be installed using "remotes" in R. First make sure that you have remotes:
-> if (!require("remotes")){install.packages("remotes")}
+```r
+if (!require("remotes")){install.packages("remotes")}
+```
 
 and after that run:
-> remotes::install_github("config-i1/greybox")
+```r
+remotes::install_github("config-i1/greybox")
+```
 
 ## Python Package
 

@@ -80,8 +80,7 @@ class TestStepwise:
         # All keys are strings, all values are floats
         assert all(isinstance(k, str) for k in model.ic_values.keys())
         assert all(
-            isinstance(v, (float, np.floating))
-            for v in model.ic_values.values()
+            isinstance(v, (float, np.floating)) for v in model.ic_values.values()
         )
 
     def test_stepwise_time_elapsed_attribute(self):
@@ -235,8 +234,7 @@ class TestStepwise:
         assert list(model.ic_values.keys())[0] == "Intercept"
         assert all(isinstance(k, str) for k in model.ic_values.keys())
         assert all(
-            isinstance(v, (float, np.floating))
-            for v in model.ic_values.values()
+            isinstance(v, (float, np.floating)) for v in model.ic_values.values()
         )
         assert isinstance(model.time_elapsed, float)
         assert model.time_elapsed >= 0
@@ -420,9 +418,7 @@ class TestLmCombine:
 
         result = lm_combine(data, ic="AICc")
         expected_df = n - np.sum(result["importance"]) - 1
-        np.testing.assert_allclose(
-            result["df_residual"], expected_df, rtol=1e-10
-        )
+        np.testing.assert_allclose(result["df_residual"], expected_df, rtol=1e-10)
 
     def test_lm_combine_coefficient_names(self):
         """Test coefficient names match variable names."""
@@ -463,9 +459,7 @@ class TestLmCombine:
         data = {"y": y, "x1": x1}
 
         result = lm_combine(data, ic="AICc", distribution="dnorm")
-        np.testing.assert_allclose(
-            result["residuals"], y - result["mu"], atol=1e-12
-        )
+        np.testing.assert_allclose(result["residuals"], y - result["mu"], atol=1e-12)
 
     def test_lm_combine_dnorm_fitted_equals_mu(self):
         """Test that for dnorm, fitted = mu."""
@@ -476,9 +470,7 @@ class TestLmCombine:
         data = {"y": y, "x1": x1}
 
         result = lm_combine(data, ic="AICc", distribution="dnorm")
-        np.testing.assert_allclose(
-            result["fitted"], result["mu"], atol=1e-12
-        )
+        np.testing.assert_allclose(result["fitted"], result["mu"], atol=1e-12)
 
     def test_lm_combine_ic_types(self):
         """Test lm_combine with different IC types."""
@@ -507,9 +499,7 @@ class TestLmCombine:
         # Should have n_vars + 2 columns (vars + IC weights + ICs)
         assert combo.shape[1] == 4  # 2 vars + weights + ICs
         # Column names should match
-        assert result["combination_col_names"] == [
-            "x1", "x2", "IC weights", "AICc"
-        ]
+        assert result["combination_col_names"] == ["x1", "x2", "IC weights", "AICc"]
         # Row names
         assert len(result["combination_row_names"]) == combo.shape[0]
 
@@ -622,6 +612,20 @@ class TestLmCombinePrintSummary:
         s = str(result)
         assert "Time elapsed:" in s
         assert "seconds" in s
+
+    def test_print_contains_model_info(self, result):
+        """Test str(result) contains ADAM-style model info."""
+        s = str(result)
+        assert "Model estimated: lm_combine(AICc)" in s
+        assert "Distribution assumed in the model:" in s
+        assert "Loss function type: likelihood" in s
+
+    def test_repr(self, result):
+        """Test LmCombineResult repr."""
+        r = repr(result)
+        assert "LmCombineResult" in r
+        assert "IC_type='AICc'" in r
+        assert "fitted=True" in r
 
     def test_summary_contains_all_sections(self, result):
         """Test summary output contains all expected sections."""
@@ -738,6 +742,27 @@ class TestLmCombineALMCompat:
         assert pred.lower is not None
         assert pred.upper is None
 
+    def test_predict_level_and_variances(self, setup):
+        """predict() populates level and variances fields."""
+        result, X, y, x1, x2 = setup
+
+        # With intervals
+        pred = result.predict(X[:5], interval="prediction", level=0.90)
+        assert pred.level == [0.9]
+        assert pred.variances is not None
+        assert pred.variances.shape == (5,)
+        assert np.all(pred.variances > 0)
+
+        # Without intervals
+        pred_none = result.predict(X[:5])
+        assert pred_none.level == 0.95  # default (not wrapped)
+        assert pred_none.variances is None
+
+        # No-args predict (training fitted)
+        pred_train = result.predict()
+        assert pred_train.level == 0.95  # default
+        assert pred_train.variances is None
+
     def test_predict_wrong_shape(self, setup):
         """predict with wrong X shape raises ValueError."""
         result, X, y, x1, x2 = setup
@@ -817,9 +842,7 @@ class TestLmCombineALMCompat:
         """coef returns slopes only (no intercept)."""
         result, X, y, x1, x2 = setup
         assert len(result.coef) == 2  # x1, x2
-        np.testing.assert_array_equal(
-            result.coef, result.coefficients[1:]
-        )
+        np.testing.assert_array_equal(result.coef, result.coefficients[1:])
 
     def test_intercept_property(self, setup):
         """intercept_ is a single float."""
@@ -883,6 +906,30 @@ class TestLmCombineALMCompat:
         result, X, y, x1, x2 = setup
         assert result.df_residual_ == result.df_residual
 
+    def test_loglik_property(self, setup):
+        """loglik returns same as log_lik."""
+        result, X, y, x1, x2 = setup
+        assert result.loglik == result.log_lik
+        assert isinstance(result.loglik, float)
+
+    def test_distribution_underscore(self, setup):
+        """distribution_ returns distribution name."""
+        result, X, y, x1, x2 = setup
+        assert result.distribution_ == "dnorm"
+
+    def test_loss_underscore(self, setup):
+        """loss_ returns 'likelihood'."""
+        result, X, y, x1, x2 = setup
+        assert result.loss_ == "likelihood"
+
+    def test_n_param_property(self, setup):
+        """n_param returns dict with number and df."""
+        result, X, y, x1, x2 = setup
+        np_dict = result.n_param
+        assert "number" in np_dict
+        assert "df" in np_dict
+        assert np_dict["number"] == result.nparam
+
     def test_private_attrs_not_in_keys(self, setup):
         """Private attrs don't show in keys()."""
         result, X, y, x1, x2 = setup
@@ -903,8 +950,7 @@ class TestLmCombineRComparison:
         """Skip tests if rpy2 or R greybox not available."""
         pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
 
-    def _run_r_lm_combine(self, y, x_dict, ic="AICc",
-                          distribution="dnorm"):
+    def _run_r_lm_combine(self, y, x_dict, ic="AICc", distribution="dnorm"):
         """Run R's lmCombine and return results as a dict."""
         import rpy2.robjects as ro
 
@@ -968,25 +1014,33 @@ class TestLmCombineRComparison:
 
         # Coefficients
         np.testing.assert_allclose(
-            py_result["coefficients"], r_result["coefficients"],
-            rtol=0.05, atol=0.5,
+            py_result["coefficients"],
+            r_result["coefficients"],
+            rtol=0.05,
+            atol=0.5,
         )
 
         # Importance
         np.testing.assert_allclose(
-            py_result["importance"], r_result["importance"],
-            rtol=0.05, atol=0.05,
+            py_result["importance"],
+            r_result["importance"],
+            rtol=0.05,
+            atol=0.05,
         )
 
         # IC (weighted average)
         np.testing.assert_allclose(
-            py_result["IC"], r_result["IC"], rtol=0.05,
+            py_result["IC"],
+            r_result["IC"],
+            rtol=0.05,
         )
 
         # Fitted values
         np.testing.assert_allclose(
-            py_result["fitted"], r_result["fitted"],
-            rtol=0.05, atol=1.0,
+            py_result["fitted"],
+            r_result["fitted"],
+            rtol=0.05,
+            atol=1.0,
         )
 
         # vcov shape and approximate values
@@ -994,7 +1048,8 @@ class TestLmCombineRComparison:
 
         # df_residual
         np.testing.assert_allclose(
-            py_result["df_residual"], r_result["df_residual"],
+            py_result["df_residual"],
+            r_result["df_residual"],
             rtol=0.05,
         )
 
@@ -1018,14 +1073,18 @@ class TestLmCombineRComparison:
 
         # Coefficients
         np.testing.assert_allclose(
-            py_result["coefficients"], r_result["coefficients"],
-            rtol=0.05, atol=0.3,
+            py_result["coefficients"],
+            r_result["coefficients"],
+            rtol=0.05,
+            atol=0.3,
         )
 
         # Importance
         np.testing.assert_allclose(
-            py_result["importance"], r_result["importance"],
-            rtol=0.1, atol=0.05,
+            py_result["importance"],
+            r_result["importance"],
+            rtol=0.1,
+            atol=0.05,
         )
 
         # x3 (noise) should have lower importance than x1 and x2
@@ -1049,11 +1108,14 @@ class TestLmCombineRComparison:
         assert py_result["combination"].shape[0] == 2
 
         np.testing.assert_allclose(
-            py_result["coefficients"], r_result["coefficients"],
-            rtol=0.05, atol=0.1,
+            py_result["coefficients"],
+            r_result["coefficients"],
+            rtol=0.05,
+            atol=0.1,
         )
         np.testing.assert_allclose(
-            py_result["importance"], r_result["importance"],
+            py_result["importance"],
+            r_result["importance"],
             rtol=0.05,
         )
 
@@ -1072,10 +1134,14 @@ class TestLmCombineRComparison:
         py_result = lm_combine(py_data, ic="BIC", distribution="dnorm")
 
         np.testing.assert_allclose(
-            py_result["coefficients"], r_result["coefficients"],
-            rtol=0.05, atol=0.3,
+            py_result["coefficients"],
+            r_result["coefficients"],
+            rtol=0.05,
+            atol=0.3,
         )
         np.testing.assert_allclose(
-            py_result["importance"], r_result["importance"],
-            rtol=0.1, atol=0.05,
+            py_result["importance"],
+            r_result["importance"],
+            rtol=0.1,
+            atol=0.05,
         )

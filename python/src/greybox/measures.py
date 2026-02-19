@@ -1,21 +1,128 @@
-"""Statistical measures for model evaluation.
+"""Statistical error measures for model evaluation.
 
-This module provides functions for calculating various statistical measures
-including correlation, association, and accuracy metrics.
+This module provides functions for calculating various statistical error measures
+for point and interval forecasts. The functions include:
+
+Error measures:
+- ME - Mean Error
+- MAE - Mean Absolute Error
+- MSE - Mean Squared Error
+- MRE - Mean Root Error (Kourentzes, 2014)
+- MIS - Mean Interval Score (Gneiting & Raftery, 2007)
+- MPE - Mean Percentage Error
+- MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for critique)
+- MASE - Mean Absolute Scaled Error (Hyndman & Koehler, 2006)
+- RMSSE - Root Mean Squared Scaled Error (used in M5 Competition)
+- SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias)
+- rMAE - Relative Mean Absolute Error (Davydenko & Fildes, 2013)
+- rRMSE - Relative Root Mean Squared Error
+- rAME - Relative Absolute Mean Error
+- rMIS - Relative Mean Interval Score
+- sMSE - Scaled Mean Squared Error (Petropoulos & Kourentzes, 2015)
+- sPIS - Scaled Periods-In-Stock (Wallstrom & Segerstedt, 2010)
+- sCE - Scaled Cumulative Error
+- sMIS - Scaled Mean Interval Score
+- GMRAE - Geometric Mean Relative Absolute Error
+
+References
+----------
+- Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias.
+  https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/
+- Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
+  https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/
+- Fildes R. (1992). The evaluation of extrapolative forecasting methods.
+  International Journal of Forecasting, 8, pp.81-98.
+- Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.
+  International Journal of Forecasting, 22, pp.679-688.
+- Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.
+  Journal of the Operational Research Society, 66, pp.914-924.
+- Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements
+  and techniques for intermittent demand. International Journal of Production Economics,
+  128, pp.625-636.
+- Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy: The Case Of
+  Judgmental Adjustments To Sku-Level Demand Forecasts. International Journal of
+  Forecasting, 29(3), 510-522.
+- Gneiting, T., & Raftery, A. E. (2007). Strictly proper scoring rules, prediction,
+  and estimation. Journal of the American Statistical Association, 102(477), 359-378.
 """
 
 import numpy as np
-from scipy import stats
 from typing import Any, Literal
 
+from greybox.hm import asymmetry
 
-def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
-    """Mean Absolute Error.
+
+def _validate_inputs(
+    actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
+    """Validate and clean actual and forecast inputs."""
+    actual = np.asarray(actual, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+
+    if len(actual) != len(forecast):
+        raise ValueError("Lengths of actual and forecast must match")
+
+    if na_rm:
+        mask = ~(np.isnan(actual) | np.isnan(forecast))
+        actual = actual[mask]
+        forecast = forecast[mask]
+
+    return actual, forecast
+
+
+def me(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
+    """Mean Error (ME).
+
+    The ME measures the average bias in forecasts. A positive value indicates
+    forecasts are on average too high (over-forecasting), while a negative
+    value indicates forecasts are on average too low (under-forecasting).
+
+    Formula:
+        ME = mean(actual - forecast)
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Mean Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
+    >>> me(actual, forecast)
+    -0.1
+
+    References
+    ----------
+    Basic measure, see e.g. Hyndman & Koehler (2006).
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+    return np.mean(actual - forecast)
+
+
+def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
+    """Mean Absolute Error (MAE).
+
+    The MAE measures the average magnitude of errors without considering
+    direction. It is robust to outliers and gives a direct interpretation
+    in the same units as the data.
+
+    Formula:
+        MAE = mean(|actual - forecast|)
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
@@ -31,28 +138,29 @@ def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
     >>> mae(actual, forecast)  # doctest: +ELLIPSIS
+    0.18
+
+    References
+    ----------
+    See e.g. Hyndman & Koehler (2006).
     """
-    actual = np.asarray(actual, dtype=float)
-    forecast = np.asarray(forecast, dtype=float)
-
-    if len(actual) != len(forecast):
-        raise ValueError("Lengths of actual and forecast must match")
-
-    if na_rm:
-        mask = ~(np.isnan(actual) | np.isnan(forecast))
-        actual = actual[mask]
-        forecast = forecast[mask]
-
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
     return np.mean(np.abs(actual - forecast))
 
 
 def mse(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
-    """Mean Squared Error.
+    """Mean Squared Error (MSE).
+
+    The MSE measures the average squared difference between actual and forecast.
+    It penalizes larger errors more heavily than MAE.
+
+    Formula:
+        MSE = mean((actual - forecast)^2)
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
@@ -68,28 +176,29 @@ def mse(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
     >>> mse(actual, forecast)
+    0.038
+
+    References
+    ----------
+    See e.g. Hyndman & Koehler (2006).
     """
-    actual = np.asarray(actual, dtype=float)
-    forecast = np.asarray(forecast, dtype=float)
-
-    if len(actual) != len(forecast):
-        raise ValueError("Lengths of actual and forecast must match")
-
-    if na_rm:
-        mask = ~(np.isnan(actual) | np.isnan(forecast))
-        actual = actual[mask]
-        forecast = forecast[mask]
-
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
     return np.mean((actual - forecast) ** 2)
 
 
-def rmse(actual, forecast, na_rm=True):
-    """Root Mean Squared Error.
+def rmse(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
+    """Root Mean Squared Error (RMSE).
+
+    The RMSE is the square root of MSE. It is in the same units as the data,
+    making it more interpretable than MSE while still penalizing larger errors.
+
+    Formula:
+        RMSE = sqrt(MSE) = sqrt(mean((actual - forecast)^2))
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
@@ -99,32 +208,55 @@ def rmse(actual, forecast, na_rm=True):
     -------
     float
         Root Mean Squared Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
+    >>> rmse(actual, forecast)  # doctest: +ELLIPSIS
+    0.194...
+
+    References
+    ----------
+    See e.g. Hyndman & Koehler (2006).
     """
     return np.sqrt(mse(actual, forecast, na_rm))
 
 
 def mpe(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
-    """Mean Percentage Error.
+    """Mean Percentage Error (MPE).
+
+    The MPE measures the average percentage error. Like ME, it can detect
+    bias but expresses it as a percentage. However, it is undefined when
+    actual values are zero.
+
+    Formula:
+        MPE = mean((actual - forecast) / actual) * 100
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
-        Remove NA values.
+        Remove NA values and zero actuals.
 
     Returns
     -------
     float
-        Mean Percentage Error.
+        Mean Percentage Error (in percentage points).
 
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
     >>> mpe(actual, forecast)
+    -4.466666666666667
+
+    References
+    ----------
+    See e.g. Hyndman & Koehler (2006).
     """
     actual = np.asarray(actual, dtype=float)
     forecast = np.asarray(forecast, dtype=float)
@@ -141,27 +273,41 @@ def mpe(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
 
 
 def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
-    """Mean Absolute Percentage Error.
+    """Mean Absolute Percentage Error (MAPE).
+
+    The MAPE measures the average absolute percentage error. It is scale-independent
+    and expressed as a percentage, making it easy to interpret across different
+    contexts. However, it is undefined when actual values are zero and can be
+    heavily influenced by small actual values.
+
+    Formula:
+        MAPE = mean(|actual - forecast| / actual) * 100
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
-        Remove NA values.
+        Remove NA values and zero actuals.
 
     Returns
     -------
     float
-        Mean Absolute Percentage Error.
+        Mean Absolute Percentage Error (in percentage points).
 
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
     >>> mape(actual, forecast)
+    14.933333333333332
+
+    References
+    ----------
+    See Svetunkov, I. (2017) for a critique of MAPE:
+    https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/
     """
     actual = np.asarray(actual, dtype=float)
     forecast = np.asarray(forecast, dtype=float)
@@ -183,16 +329,28 @@ def mase(
     scale: float | np.floating[Any] | None = None,
     na_rm: bool = True,
 ) -> float:
-    """Mean Absolute Scaled Error.
+    """Mean Absolute Scaled Error (MASE).
+
+    The MASE scales the MAE by the average error of a naive (random walk)
+    forecast. This makes it scale-independent and allows comparison across
+    different time series. A MASE < 1 means the forecast is better than
+    the naive forecast; MASE > 1 means worse.
+
+    Formula:
+        MASE = MAE / scale
+        where scale = mean(|actual[t] - actual[t-1]|) by default
 
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     scale : float, optional
-        Scale parameter. If None, uses mean absolute deviation.
+        Scale parameter. If None, uses mean absolute difference of consecutive
+        actual values (naive forecast error). Typical values include:
+        - mean absolute deviation of in-sample one step ahead naive error
+        - mean absolute value of the in-sample actuals
     na_rm : bool, default=True
         Remove NA values.
 
@@ -207,17 +365,15 @@ def mase(
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
     ...                      6.0, 7.1, 8.0, 9.2, 10.1])
     >>> mase(actual, forecast)
+    >>> # With custom scale
+    >>> mase(actual, forecast, scale=1.0)
+
+    References
+    ----------
+    Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.
+    International Journal of Forecasting, 22, pp.679-688.
     """
-    actual = np.asarray(actual, dtype=float)
-    forecast = np.asarray(forecast, dtype=float)
-
-    if len(actual) != len(forecast):
-        raise ValueError("Lengths of actual and forecast must match")
-
-    if na_rm:
-        mask = ~(np.isnan(actual) | np.isnan(forecast))
-        actual = actual[mask]
-        forecast = forecast[mask]
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
 
     if scale is None:
         scale = np.mean(np.abs(np.diff(actual)))
@@ -226,6 +382,530 @@ def mase(
         return np.nan
 
     return np.mean(np.abs(actual - forecast)) / scale
+
+
+def rmsse(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    scale: float | np.floating[Any] | None = None,
+    na_rm: bool = True,
+) -> float:
+    """Root Mean Squared Scaled Error (RMSSE).
+
+    The RMSSE is similar to MASE but uses MSE instead of MAE. It was
+    developed for the M5 Competition.
+
+    Formula:
+        RMSSE = sqrt(MSE / scale)
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    scale : float, optional
+        Scale parameter. If None, uses mean squared difference of consecutive
+        actual values. Typical value: mean(diff(actual)^2).
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Root Mean Squared Scaled Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> rmsse(actual, forecast)
+
+    References
+    ----------
+    Used in M5 Competition.
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+
+    if scale is None:
+        scale = np.mean(np.diff(actual) ** 2)
+
+    if scale == 0:
+        return np.nan
+
+    return np.sqrt(np.mean((actual - forecast) ** 2) / scale)
+
+
+def same(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    scale: float | np.floating[Any] | None = None,
+    na_rm: bool = True,
+) -> float:
+    """Scaled Absolute Mean Error (SAME).
+
+    SAME is similar to MASE but uses Mean Error (ME) instead of MAE.
+    It measures bias rather than absolute error.
+
+    Formula:
+        SAME = |ME| / scale
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    scale : float, optional
+        Scale parameter. If None, uses mean absolute difference of consecutive
+        actual values.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Scaled Absolute Mean Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> same(actual, forecast)
+
+    References
+    ----------
+    See Petropoulos & Kourentzes (2015).
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+
+    if scale is None:
+        scale = np.mean(np.abs(np.diff(actual)))
+
+    if scale == 0:
+        return np.nan
+
+    return np.abs(np.mean(actual - forecast)) / scale
+
+
+def rmae(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    benchmark: np.ndarray,
+    na_rm: bool = True,
+) -> float:
+    """Relative Mean Absolute Error (rMAE).
+
+    The rMAE compares the MAE of a forecast to a benchmark forecast.
+    Values < 1 indicate the forecast is better than the benchmark;
+    values > 1 indicate worse.
+
+    Formula:
+        rMAE = MAE(forecast) / MAE(benchmark)
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    benchmark : np.ndarray
+        Benchmark forecast values (e.g., naive or mean forecast).
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Relative Mean Absolute Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
+    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
+    >>> rmae(actual, forecast, benchmark)
+
+    References
+    ----------
+    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy:
+    The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
+    International Journal of Forecasting, 29(3), 510-522.
+    """
+    actual = np.asarray(actual, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+    benchmark = np.asarray(benchmark, dtype=float)
+
+    lengths = [len(actual), len(forecast), len(benchmark)]
+    if len(set(lengths)) > 1:
+        raise ValueError("Lengths of actual, forecast, and benchmark must match")
+
+    if na_rm:
+        mask = ~(np.isnan(actual) | np.isnan(forecast) | np.isnan(benchmark))
+        actual = actual[mask]
+        forecast = forecast[mask]
+        benchmark = benchmark[mask]
+
+    if np.all(forecast == benchmark):
+        return 1.0
+
+    return mae(actual, forecast, na_rm=False) / mae(actual, benchmark, na_rm=False)
+
+
+def rrmse(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    benchmark: np.ndarray,
+    na_rm: bool = True,
+) -> float:
+    """Relative Root Mean Squared Error (rRMSE).
+
+    The rRMSE compares the RMSE of a forecast to a benchmark forecast.
+
+    Formula:
+        rRMSE = RMSE(forecast) / RMSE(benchmark)
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    benchmark : np.ndarray
+        Benchmark forecast values.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Relative Root Mean Squared Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
+    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
+    >>> rrmse(actual, forecast, benchmark)
+
+    References
+    ----------
+    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.
+    """
+    actual = np.asarray(actual, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+    benchmark = np.asarray(benchmark, dtype=float)
+
+    lengths = [len(actual), len(forecast), len(benchmark)]
+    if len(set(lengths)) > 1:
+        raise ValueError("Lengths of actual, forecast, and benchmark must match")
+
+    if na_rm:
+        mask = ~(np.isnan(actual) | np.isnan(forecast) | np.isnan(benchmark))
+        actual = actual[mask]
+        forecast = forecast[mask]
+        benchmark = benchmark[mask]
+
+    if np.all(forecast == benchmark):
+        return 1.0
+
+    return rmse(actual, forecast, na_rm=False) / rmse(actual, benchmark, na_rm=False)
+
+
+def rame(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    benchmark: np.ndarray,
+    na_rm: bool = True,
+) -> float:
+    """Relative Absolute Mean Error (rAME).
+
+    The rAME compares the absolute Mean Error (bias) of a forecast to
+    a benchmark forecast. It measures relative bias.
+
+    Formula:
+        rAME = |ME(forecast)| / |ME(benchmark)|
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    benchmark : np.ndarray
+        Benchmark forecast values.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Relative Absolute Mean Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
+    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
+    >>> rame(actual, forecast, benchmark)
+
+    References
+    ----------
+    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.
+    """
+    actual = np.asarray(actual, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+    benchmark = np.asarray(benchmark, dtype=float)
+
+    lengths = [len(actual), len(forecast), len(benchmark)]
+    if len(set(lengths)) > 1:
+        raise ValueError("Lengths of actual, forecast, and benchmark must match")
+
+    if na_rm:
+        mask = ~(np.isnan(actual) | np.isnan(forecast) | np.isnan(benchmark))
+        actual = actual[mask]
+        forecast = forecast[mask]
+        benchmark = benchmark[mask]
+
+    if np.all(forecast == benchmark):
+        return 1.0
+
+    return np.abs(me(actual, forecast, na_rm=False)) / np.abs(
+        me(actual, benchmark, na_rm=False)
+    )
+
+
+def smse(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    scale: float | np.floating[Any],
+    na_rm: bool = True,
+) -> float:
+    """Scaled Mean Squared Error (sMSE).
+
+    The sMSE scales the MSE by a scale parameter. Note that the scale
+    should be a squared value (e.g., mean of squared actuals).
+
+    Formula:
+        sMSE = MSE / scale
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    scale : float
+        Scale parameter. Should typically be a squared value
+        (e.g., mean(actual)^2 or mean(abs(actual[actual!=0]))^2).
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Scaled Mean Squared Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> scale = np.mean(np.abs(actual)) ** 2
+    >>> smse(actual, forecast, scale)
+
+    References
+    ----------
+    Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.
+    Journal of the Operational Research Society, 66, pp.914-924.
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+
+    if scale == 0:
+        return np.nan
+
+    return np.mean((actual - forecast) ** 2) / scale
+
+
+def spis(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    scale: float | np.floating[Any],
+    na_rm: bool = True,
+) -> float:
+    """Scaled Periods-In-Stock (sPIS).
+
+    The sPIS measures the cumulative inventory performance over time.
+    It is useful for intermittent demand forecasting.
+
+    Formula:
+        sPIS = sum(cumsum(forecast - actual)) / scale
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    scale : float
+        Scale parameter (typically mean of non-zero actuals).
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Scaled Periods-In-Stock.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> scale = np.mean(np.abs(actual[actual != 0]))
+    >>> spis(actual, forecast, scale)
+
+    References
+    ----------
+    Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements
+    and techniques for intermittent demand. International Journal of Production
+    Economics, 128, pp.625-636.
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+
+    if scale == 0:
+        return np.nan
+
+    cumsum_errors = np.cumsum(forecast - actual)
+    return np.sum(cumsum_errors, axis=0) / scale
+
+
+def sce(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    scale: float | np.floating[Any],
+    na_rm: bool = True,
+) -> float:
+    """Scaled Cumulative Error (sCE).
+
+    The sCE measures the cumulative forecast error scaled by a parameter.
+    It can detect systematic bias over time.
+
+    Formula:
+        sCE = sum(actual - forecast) / scale
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    scale : float
+        Scale parameter.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Scaled Cumulative Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> scale = np.mean(np.abs(actual[actual != 0]))
+    >>> sce(actual, forecast, scale)
+
+    References
+    ----------
+    Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.
+    """
+    actual, forecast = _validate_inputs(actual, forecast, na_rm)
+
+    if scale == 0:
+        return np.nan
+
+    return np.sum(actual - forecast, axis=0) / scale
+
+
+def gmrae(
+    actual: np.ndarray,
+    forecast: np.ndarray,
+    benchmark: np.ndarray,
+    na_rm: bool = True,
+) -> float:
+    """Geometric Mean Relative Absolute Error (GMRAE).
+
+    The GMRAE compares the absolute errors of a forecast to a benchmark
+    using geometric mean. It is robust to extreme values.
+
+    Formula:
+        GMRAE = exp(mean(log(|error| / |benchmark_error|)))
+
+    Parameters
+    ----------
+    actual : np.ndarray
+        Actual (observed) values.
+    forecast : np.ndarray
+        Forecasted values.
+    benchmark : np.ndarray
+        Benchmark forecast values.
+    na_rm : bool, default=True
+        Remove NA values.
+
+    Returns
+    -------
+    float
+        Geometric Mean Relative Absolute Error.
+
+    Examples
+    --------
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
+    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
+    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
+    >>> gmrae(actual, forecast, benchmark)
+
+    References
+    ----------
+    See Davydenko & Fildes (2013).
+    """
+    actual = np.asarray(actual, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+    benchmark = np.asarray(benchmark, dtype=float)
+
+    lengths = [len(actual), len(forecast), len(benchmark)]
+    if len(set(lengths)) > 1:
+        raise ValueError("Lengths of actual, forecast, and benchmark must match")
+
+    if na_rm:
+        mask = ~(np.isnan(actual) | np.isnan(forecast) | np.isnan(benchmark))
+        actual = actual[mask]
+        forecast = forecast[mask]
+        benchmark = benchmark[mask]
+
+    errors = actual - forecast
+    benchmark_errors = actual - benchmark
+
+    ratios = np.abs(errors) / np.abs(benchmark_errors)
+    valid_mask = ~np.isnan(ratios) & (np.abs(benchmark_errors) > 0)
+    ratios = ratios[valid_mask]
+
+    if len(ratios) == 0:
+        return np.nan
+
+    return np.exp(np.mean(np.log(ratios)))
 
 
 def accuracy(
@@ -238,7 +918,7 @@ def accuracy(
     Parameters
     ----------
     actual : np.ndarray
-        Actual values.
+        Actual (observed) values.
     forecast : np.ndarray
         Forecasted values.
     na_rm : bool, default=True
@@ -256,7 +936,7 @@ def accuracy(
     >>> accuracy(actual, forecast)
     """
     return {
-        "ME": np.mean(actual - forecast),
+        "ME": me(actual, forecast, na_rm),
         "MAE": mae(actual, forecast, na_rm),
         "MSE": mse(actual, forecast, na_rm),
         "RMSE": rmse(actual, forecast, na_rm),
@@ -266,265 +946,106 @@ def accuracy(
     }
 
 
-def pcor(
-    x: np.ndarray,
-    y: np.ndarray | None = None,
-    method: Literal["pearson", "spearman", "kendall"] = "pearson",
+def measures(
+    holdout: np.ndarray,
+    forecast: np.ndarray,
+    actual: np.ndarray,
+    digits: int | None = None,
+    benchmark: Literal["naive", "mean"] = "naive",
 ) -> dict:
-    """Calculate partial correlations.
+    """Calculate comprehensive error measures for forecasts.
 
-    Function calculates partial correlations between the provided variables.
-    The calculation is done based on multiple linear regressions.
-
-    Parameters
-    ----------
-    x : np.ndarray
-        DataFrame or matrix with numeric values.
-    y : np.ndarray, optional
-        The numerical variable. If provided, calculates partial correlation
-        between each column of x and y.
-    method : {"pearson", "spearman", "kendall"}, default="pearson"
-        Which method to use for calculation.
-
-    Returns
-    -------
-    dict
-        Dictionary containing:
-        - value: matrix of partial correlation coefficients
-        - p.value: p-values for the coefficients
-        - method: method used
-
-    Examples
-    --------
-    >>> x = np.array([[1, 2, 3], [2, 4, 6], [3, 6, 9], [4, 8, 12], [5, 10, 15]]
-    ... )
-    >>> result = pcor(x)
-    """
-    x = np.asarray(x, dtype=float)
-
-    if x.ndim == 1:
-        x = x.reshape(-1, 1)
-
-    if y is not None:
-        y = np.asarray(y, dtype=float)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        x = np.column_stack([x, y])
-
-    n_obs, n_vars = x.shape
-
-    if n_vars < 2:
-        raise ValueError("Need at least 2 variables")
-
-    mask = ~np.isnan(np.all(x, axis=1))
-    x_clean = x[mask]
-
-    if len(x_clean) < 3:
-        raise ValueError("Not enough observations")
-
-    cor_matrix = np.corrcoef(x_clean, rowvar=False)
-
-    try:
-        cor_inv = np.linalg.inv(cor_matrix)
-    except np.linalg.LinAlgError:
-        cor_inv = np.linalg.pinv(cor_matrix)
-
-    pcor_matrix = np.zeros_like(cor_matrix)
-    for i in range(n_vars):
-        for j in range(n_vars):
-            if i == j:
-                pcor_matrix[i, j] = 1.0
-            else:
-                pcor_matrix[i, j] = -cor_inv[i, j] / np.sqrt(
-                    cor_inv[i, i] * cor_inv[j, j]
-                )
-
-    df = len(x_clean) - n_vars
-    t_stat = pcor_matrix * np.sqrt(df / (1 - pcor_matrix**2))
-    t_stat = np.where(np.eye(n_vars, dtype=bool), 0, t_stat)
-    p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=df))
-    p_value = np.where(np.eye(n_vars, dtype=bool), np.nan, p_value)
-
-    return {"value": pcor_matrix, "p.value": p_value, "method": method}
-
-
-def mcor(x: np.ndarray, y: np.ndarray | None = None) -> float:
-    """Calculate multiple correlation coefficient.
-
-    Function returns the multiple correlation coefficient between a set
-    of variables and a dependent variable.
+    This function calculates multiple error measures using holdout (test) data,
+    forecasted values, and in-sample (training) data for scale calculation.
 
     Parameters
     ----------
-    x : np.ndarray
-        Matrix of independent variables.
-    y : np.ndarray
-        The dependent variable.
-
-    Returns
-    -------
-    float
-        Multiple correlation coefficient.
-
-    Examples
-    --------
-    >>> x = np.array([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]])
-    >>> y = np.array([3, 6, 9, 12, 15])
-    >>> mcor(x, y)
-    """
-    x = np.asarray(x, dtype=float)
-    y = np.asarray(y, dtype=float)
-
-    if x.ndim == 1:
-        x = x.reshape(-1, 1)
-
-    mask = ~(np.isnan(np.any(x, axis=1)) | np.isnan(y))
-    x_clean = x[mask]
-    y_clean = y[mask]
-
-    if len(y_clean) < 3:
-        raise ValueError("Not enough observations")
-
-    x_with_intercept = np.column_stack([np.ones(len(x_clean)), x_clean])
-
-    try:
-        coeffs = np.linalg.lstsq(x_with_intercept, y_clean, rcond=None)[0]
-    except np.linalg.LinAlgError:
-        return np.nan
-
-    y_pred = x_with_intercept @ coeffs
-
-    ss_res = np.sum((y_clean - y_pred) ** 2)
-    ss_tot = np.sum((y_clean - np.mean(y_clean)) ** 2)
-
-    if ss_tot == 0:
-        return np.nan
-
-    r_squared = 1 - ss_res / ss_tot
-    return np.sqrt(r_squared)
-
-
-def determination(
-    actual: np.ndarray, predicted: np.ndarray, k: int = 1
-) -> dict[str, float]:
-    """Calculate coefficient of determination (R-squared).
-
-    Parameters
-    ----------
+    holdout : np.ndarray
+        The vector of holdout (test) actual values.
+    forecast : np.ndarray
+        The vector of forecasts produced by a model.
     actual : np.ndarray
-        Actual values.
-    predicted : np.ndarray
-        Predicted values.
+        The vector of actual in-sample (training) values.
+    digits : int, optional
+        Number of digits for rounding. If None, no rounding is done.
+    benchmark : {"naive", "mean"}, default="naive"
+        Benchmark method for relative measures:
+        - "naive": Use last value repeated (random walk)
+        - "mean": Use arithmetic mean of the series
 
     Returns
     -------
     dict
-        Dictionary containing R-squared and adjusted R-squared.
+        Dictionary containing error measures:
+        - ME: Mean Error
+        - MAE: Mean Absolute Error
+        - MSE: Mean Squared Error
+        - MPE: Mean Percentage Error
+        - MAPE: Mean Absolute Percentage Error
+        - sCE: Scaled Cumulative Error
+        - sMAE: Scaled Mean Absolute Error (MASE with mean scale)
+        - sMSE: Scaled Mean Squared Error
+        - MASE: Mean Absolute Scaled Error (with diff scale)
+        - RMSSE: Root Mean Squared Scaled Error
+        - SAME: Scaled Absolute Mean Error
+        - rMAE: Relative Mean Absolute Error
+        - rRMSE: Relative Root Mean Squared Error
+        - rAME: Relative Absolute Mean Error
+        - asymmetry: Asymmetry coefficient
+        - sPIS: Scaled Periods-In-Stock
 
     Examples
     --------
-    >>> actual = np.array([1, 2, 3, 4, 5])
-    >>> predicted = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> determination(actual, predicted)
-    """
-    actual = np.asarray(actual, dtype=float)
-    predicted = np.asarray(predicted, dtype=float)
+    >>> np.random.seed(42)
+    >>> actual = np.random.normal(10, 2, 100)
+    >>> forecast = np.full(10, np.mean(actual[:90]))
+    >>> measures(actual[91:], forecast, actual[:90], digits=5)
 
-    if len(actual) != len(predicted):
-        raise ValueError("Lengths of actual and predicted must match")
-
-    ss_res = np.sum((actual - predicted) ** 2)
-    ss_tot = np.sum((actual - np.mean(actual)) ** 2)
-
-    if ss_tot == 0:
-        r_squared = np.nan
-    else:
-        r_squared = 1 - ss_res / ss_tot
-
-    n = len(actual)
-    if n - k - 1 > 0:
-        adj_r_squared = 1 - (1 - r_squared) * (n - 1) / (n - k - 1)
-    else:
-        adj_r_squared = np.nan
-
-    return {"r2": r_squared, "adjR2": adj_r_squared}
-
-
-def association(
-    x: np.ndarray,
-    y: np.ndarray | None = None,
-    method: str = "auto",
-) -> dict:
-    """Calculate measures of association.
-
-    Function returns the matrix of measures of association for different types
-    of variables.
-
-    Parameters
+    References
     ----------
-    x : np.ndarray
-        DataFrame or matrix.
-    y : np.ndarray, optional
-        The numerical variable.
-    method : str, default="auto"
-        Method to use: "auto", "pearson", "spearman", "kendall", "cramer".
-        "auto" selects based on variable types.
-
-    Returns
-    -------
-    dict
-        Dictionary containing:
-        - value: matrix of association coefficients
-        - p.value: p-values
-        - type: matrix of types of measures used
-
-    Examples
-    --------
-    >>> x = np.array([[1, 2, 3], [2, 4, 6], [3, 6, 9]])
-    >>> result = association(x)
+    See individual function references:
+    - Hyndman & Koehler (2006) for MASE, RMSSE
+    - Petropoulos & Kourentzes (2015) for sMSE, sCE, sPIS
+    - Davydenko & Fildes (2013) for rMAE, rRMSE, rAME
     """
-    x = np.asarray(x, dtype=float)
+    holdout = np.asarray(holdout, dtype=float)
+    forecast = np.asarray(forecast, dtype=float)
+    actual = np.asarray(actual, dtype=float)
 
-    if x.ndim == 1:
-        x = x.reshape(-1, 1)
+    h = len(holdout)
 
-    if y is not None:
-        y = np.asarray(y, dtype=float)
-        if y.ndim == 1:
-            y = y.reshape(-1, 1)
-        x = np.column_stack([x, y])
-
-    n_obs, n_vars = x.shape
-
-    if n_vars < 2:
-        raise ValueError("Need at least 2 variables")
-
-    mask = ~np.isnan(np.all(x, axis=1))
-    x_clean = x[mask]
-
-    if method == "auto":
-        cor_matrix = np.corrcoef(x_clean, rowvar=False)
+    if benchmark == "naive":
+        benchmark_forecast = np.full(h, actual[-1])
     else:
-        if method == "pearson":
-            cor_matrix = np.corrcoef(x_clean, rowvar=False)
-        elif method == "spearman":
-            cor_matrix = stats.spearmanr(x_clean).correlation
-        elif method == "kendall":
-            cor_matrix = np.ones((n_vars, n_vars))
-            for i in range(n_vars):
-                for j in range(i + 1, n_vars):
-                    tau, _ = stats.kendalltau(x_clean[:, i], x_clean[:, j])
-                    cor_matrix[i, j] = tau
-                    cor_matrix[j, i] = tau
-        else:
-            raise ValueError(f"Unknown method: {method}")
+        benchmark_forecast = np.full(h, np.mean(actual))
 
-    df = len(x_clean) - 2
-    t_stat = cor_matrix * np.sqrt(df / (1 - cor_matrix**2 + 1e-10))
-    t_stat = np.where(np.eye(n_vars, dtype=bool), 0, t_stat)
-    p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=df))
-    p_value = np.where(np.eye(n_vars, dtype=bool), np.nan, p_value)
+    nonzero_mask = actual != 0
+    mean_abs_actual = (
+        np.mean(np.abs(actual[nonzero_mask])) if np.any(nonzero_mask) else np.nan
+    )
+    mean_abs_diff = np.mean(np.abs(np.diff(actual)))
 
-    type_matrix = np.full((n_vars, n_vars), "pearson")
+    error_measures = {
+        "ME": me(holdout, forecast),
+        "MAE": mae(holdout, forecast),
+        "MSE": mse(holdout, forecast),
+        "MPE": mpe(holdout, forecast),
+        "MAPE": mape(holdout, forecast),
+        "sCE": sce(holdout, forecast, mean_abs_actual),
+        "sMAE": mase(holdout, forecast, np.mean(np.abs(actual))),
+        "sMSE": smse(holdout, forecast, mean_abs_actual**2),
+        "MASE": mase(holdout, forecast, mean_abs_diff),
+        "RMSSE": rmsse(holdout, forecast, np.mean(np.diff(actual) ** 2)),
+        "SAME": same(holdout, forecast, mean_abs_diff),
+        "rMAE": rmae(holdout, forecast, benchmark_forecast),
+        "rRMSE": rrmse(holdout, forecast, benchmark_forecast),
+        "rAME": rame(holdout, forecast, benchmark_forecast),
+        "asymmetry": asymmetry(holdout - forecast),
+        "sPIS": spis(holdout, forecast, mean_abs_actual),
+    }
 
-    return {"value": cor_matrix, "p.value": p_value, "type": type_matrix}
+    if digits is not None:
+        for key in error_measures:
+            error_measures[key] = round(error_measures[key], digits)
+
+    return error_measures

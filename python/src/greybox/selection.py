@@ -126,27 +126,79 @@ class LmCombineResult:
         self._X_train = kwargs.pop("X_train", None)
         self._formula = kwargs.pop("formula_str", None)
         self._vcov_matrix = kwargs.pop("vcov", None)
+        self._fitted = kwargs.pop("fitted", None)
+        self._residuals = kwargs.pop("residuals", None)
+        self._coefficients = kwargs.pop("coefficients", None)
+        self._time_elapsed = kwargs.pop("time_elapsed", 0.0)
+        self._log_lik = kwargs.pop("log_lik", None)
         for key, val in kwargs.items():
             setattr(self, key, val)
 
+    # Map public dict keys to private attribute names
+    _PRIVATE_MAP = {
+        "vcov": "_vcov_matrix",
+        "fitted": "_fitted",
+        "residuals": "_residuals",
+        "coefficients": "_coefficients",
+        "time_elapsed": "_time_elapsed",
+        "log_lik": "_log_lik",
+    }
+
     def __getitem__(self, key: str) -> Any:
         """Dict-like access for backwards compat."""
-        if key == "vcov":
-            return self._vcov_matrix
+        if key in self._PRIVATE_MAP:
+            return getattr(self, self._PRIVATE_MAP[key])
         return getattr(self, key)
 
     def __contains__(self, key: object) -> bool:
-        if key == "vcov":
-            return self._vcov_matrix is not None
+        if key in self._PRIVATE_MAP:
+            attr = self._PRIVATE_MAP[key]  # type: ignore[arg-type]
+            return getattr(self, attr) is not None
         return hasattr(self, key)  # type: ignore[arg-type]
 
     def keys(self) -> list[str]:
         public = [k for k in self.__dict__ if not k.startswith("_")]
-        if self._vcov_matrix is not None:
-            public.append("vcov")
+        # Add back keys that are stored privately but publicly accessible
+        for pub_key, priv_attr in self._PRIVATE_MAP.items():
+            if getattr(self, priv_attr, None) is not None:
+                public.append(pub_key)
         return public
 
     # --- Properties for ALM compatibility ---
+
+    @property
+    def coefficients(self) -> np.ndarray:
+        """Combined coefficients."""
+        return self._coefficients
+
+    @property
+    def fitted(self) -> np.ndarray:
+        """Fitted values."""
+        return self._fitted
+
+    @property
+    def residuals(self) -> np.ndarray:
+        """Model residuals."""
+        return self._residuals
+
+    @property
+    def log_lik(self) -> float:
+        """Combined log-likelihood."""
+        return self._log_lik
+
+    @property
+    def loglik(self) -> float:
+        """Log-likelihood (ADAM-compatible name)."""
+        return self._log_lik
+
+    @property
+    def time_elapsed(self) -> float:
+        """Time elapsed during computation (seconds)."""
+        return self._time_elapsed
+
+    @time_elapsed.setter
+    def time_elapsed(self, value: float):
+        self._time_elapsed = value
 
     @property
     def nobs(self) -> int:
@@ -191,6 +243,29 @@ class LmCombineResult:
     @property
     def bicc(self) -> float:
         return self.bic + self.nparam * np.log(self.n_obs) ** 2 / self.n_obs
+
+    @property
+    def distribution_(self) -> str:
+        """Distribution name (ADAM convention with trailing _)."""
+        return self.distribution
+
+    @property
+    def loss_(self) -> str:
+        """Loss function name (ADAM convention with trailing _)."""
+        return "likelihood"
+
+    @property
+    def loss_value(self) -> float:
+        """Loss function value."""
+        return -self._log_lik if self._log_lik is not None else None
+
+    @property
+    def n_param(self) -> dict:
+        """Parameter count information."""
+        return {
+            "number": self.nparam,
+            "df": self.df_residual,
+        }
 
     @property
     def actuals(self) -> np.ndarray:
@@ -248,11 +323,12 @@ class LmCombineResult:
         PredictionResult
         """
         if X is None:
-            result = PredictionResult()
-            result.mean = self.fitted
-            result.lower = None
-            result.upper = None
-            return result
+            return PredictionResult(
+                mean=self.fitted,
+                level=level,
+                side=side,
+                interval=interval,
+            )
 
         X = np.asarray(X, dtype=float)
         if X.ndim == 1:
@@ -267,6 +343,7 @@ class LmCombineResult:
         mu = _combine_mu(self.distribution, X, self.coefficients)
         mean = _combine_fitted(self.distribution, mu, self.scale)
 
+        variances = None
         if interval == "none":
             lower = None
             upper = None
@@ -310,11 +387,15 @@ class LmCombineResult:
             elif side == "lower":
                 upper = None
 
-        result = PredictionResult()
-        result.mean = mean
-        result.lower = lower
-        result.upper = upper
-        return result
+        return PredictionResult(
+            mean=mean,
+            lower=lower,
+            upper=upper,
+            level=level,
+            variances=variances,
+            side=side,
+            interval=interval,
+        )
 
     def confint(
         self,
@@ -383,22 +464,27 @@ class LmCombineResult:
         else:
             raise ValueError(f"Unknown metric: {metric}")
 
+    def __repr__(self) -> str:
+        return f"LmCombineResult(IC_type={self.IC_type!r}, fitted=True)"
+
     def __str__(self) -> str:
-        """Print method matching R's print.greybox."""
+        """Print method matching ADAM-style output."""
+        dist_name = DISTRIBUTION_NAMES.get(self.distribution, self.distribution)
+
         lines = []
-        elapsed = getattr(self, "time_elapsed", 0.0)
-        lines.append(f"Time elapsed: {elapsed:.2f} seconds")
+        lines.append(f"Time elapsed: {self.time_elapsed:.2f} seconds")
+        lines.append(f"Model estimated: lm_combine({self.IC_type})")
+        lines.append(f"Distribution assumed in the model: {dist_name}")
+        lines.append("Loss function type: likelihood")
         lines.append("")
 
-        coef = getattr(self, "coefficients", np.array([]))
+        coef = self.coefficients
         names = getattr(self, "coefficient_names", [])
 
         lines.append("Coefficients:")
-        # Header: names
         name_widths = [max(len(n), 12) for n in names]
         header = "  ".join(f"{n:>{w}}" for n, w in zip(names, name_widths))
         lines.append(header)
-        # Values
         vals = "  ".join(f"{c:>{w}.7f}" for c, w in zip(coef, name_widths))
         lines.append(vals)
 
