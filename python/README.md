@@ -1,5 +1,7 @@
 # Greybox
 
+[![Python CI](https://github.com/config-i1/greybox/actions/workflows/python-test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/python-test.yml)
+
 Python port of the R package `greybox` - a toolbox for model building and forecasting.
 
 ![hex-sticker of the greybox package for Python](https://github.com/config-i1/greybox/blob/master/python/img/greybox-python-web.png?raw=true)
