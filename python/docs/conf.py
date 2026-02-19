@@ -6,10 +6,10 @@ import sys
 sys.path.insert(0, os.path.abspath("../src"))
 
 project = "greybox"
-copyright = "2024, Ivan Svetunkov"
+copyright = "2025, Ivan Svetunkov"
 author = "Ivan Svetunkov"
 
-release = "0.1.0"
+release = "1.0.0"
 
 extensions = [
     "sphinx.ext.autodoc",

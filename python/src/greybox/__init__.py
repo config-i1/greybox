@@ -1,6 +1,6 @@
 """Greybox - Toolbox for model building and forecasting."""
 
-__version__ = "0.1.0"
+__version__ = "1.0.0"
 
 from .alm import ALM
 from .formula import formula, expand_formula

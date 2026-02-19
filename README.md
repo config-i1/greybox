@@ -69,7 +69,9 @@ There are several groups of functions in the package.
 ### Experimental functions:
 1. lmDynamic - linear regression with time varying parameters based on pAIC.
 
-## Installation
+## R Package
+
+### Installation
 
 The stable version of the package is available on CRAN, so you can install it by running:
 > install.packages("greybox")
@@ -79,3 +81,15 @@ A recent, development version, is available via github and can be installed usin
 
 and after that run:
 > remotes::install_github("config-i1/greybox")
+
+## Python Package
+
+A Python port of greybox is available in the [`python/`](python/) subdirectory. It provides a scikit-learn-style API with support for 26+ distributions and R-style formula syntax.
+
+### Installation
+
+```bash
+pip install greybox
+```
+
+See [python/README.md](python/README.md) for full documentation, examples, and supported distributions.
