@@ -38,6 +38,7 @@ class TestStepwise:
         model = stepwise(data, ic="AICc", silent=True)
         assert model is not None
         assert hasattr(model, "ic_values")
+        assert isinstance(model.ic_values, dict)
         assert len(model.ic_values) >= 2
 
     def test_stepwise_with_noise(self):
@@ -61,7 +62,7 @@ class TestStepwise:
         assert model is not None
 
     def test_stepwise_ic_values_attribute(self):
-        """Test that ic_values attribute is properly set."""
+        """Test that ic_values attribute is a dict with step names."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
@@ -72,9 +73,16 @@ class TestStepwise:
 
         model = stepwise(data, ic="AICc", silent=True)
         assert hasattr(model, "ic_values")
-        assert isinstance(model.ic_values, list)
+        assert isinstance(model.ic_values, dict)
         assert len(model.ic_values) > 0
-        assert all(isinstance(ic, (float, np.floating)) for ic in model.ic_values)
+        # First key should always be "Intercept"
+        assert list(model.ic_values.keys())[0] == "Intercept"
+        # All keys are strings, all values are floats
+        assert all(isinstance(k, str) for k in model.ic_values.keys())
+        assert all(
+            isinstance(v, (float, np.floating))
+            for v in model.ic_values.values()
+        )
 
     def test_stepwise_time_elapsed_attribute(self):
         """Test that time_elapsed attribute is properly set."""
@@ -155,6 +163,83 @@ class TestStepwise:
         assert isinstance(model, ALM)
         assert hasattr(model, "coef")
         assert hasattr(model, "intercept_")
+
+    def test_stepwise_alm_compatibility(self):
+        """Test that stepwise result supports all key ALM properties/methods."""
+        np.random.seed(42)
+        n = 100
+        x1 = np.random.normal(10, 3, n)
+        x2 = np.random.normal(50, 5, n)
+        y = 100 + 0.5 * x1 - 0.75 * x2 + np.random.normal(0, 3, n)
+
+        data = {"y": y.tolist(), "x1": x1.tolist(), "x2": x2.tolist()}
+        model = stepwise(data, ic="AICc", silent=True)
+
+        from greybox.alm import ALM
+
+        # isinstance check
+        assert isinstance(model, ALM)
+
+        # Core properties
+        assert model.coef is not None
+        assert isinstance(model.intercept_, (float, np.floating))
+        assert model.nobs == n
+        assert model.nparam > 0
+
+        # Residuals, fitted, actuals
+        assert model.residuals is not None
+        assert len(model.residuals) == n
+        assert model.fitted is not None
+        assert len(model.fitted) == n
+        assert model.actuals is not None
+        assert len(model.actuals) == n
+
+        # Variance and log-likelihood
+        assert isinstance(model.sigma, (float, np.floating))
+        assert isinstance(model.log_lik, (float, np.floating))
+        assert model.formula is not None
+
+        # Variance-covariance matrix
+        vcov = model.vcov()
+        assert vcov is not None
+        assert vcov.ndim == 2
+
+        # Summary
+        summary = model.summary()
+        assert summary is not None
+        assert str(summary)  # should be printable
+
+        # Confidence intervals
+        ci = model.confint()
+        assert ci is not None
+
+        # Predict — include intercept column to match fitted design matrix
+        X_pred = np.column_stack([np.ones(5), x1[:5], x2[:5]])
+        pred = model.predict(X_pred)
+        assert pred is not None
+        assert hasattr(pred, "mean")
+        assert len(pred.mean) == 5
+
+        # Score (sklearn-compatible)
+        score = model.score(X_pred, y[:5])
+        assert isinstance(score, float)
+
+        # Information criteria
+        assert isinstance(model.aic, (float, np.floating))
+        assert isinstance(model.bic, (float, np.floating))
+        assert isinstance(model.aicc, (float, np.floating))
+        assert isinstance(model.bicc, (float, np.floating))
+
+        # Stepwise-specific attributes
+        assert isinstance(model.ic_values, dict)
+        assert list(model.ic_values.keys())[0] == "Intercept"
+        assert all(isinstance(k, str) for k in model.ic_values.keys())
+        assert all(
+            isinstance(v, (float, np.floating))
+            for v in model.ic_values.values()
+        )
+        assert isinstance(model.time_elapsed, float)
+        assert model.time_elapsed >= 0
 
 
 class TestLmCombine:

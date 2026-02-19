@@ -271,8 +271,10 @@ def stepwise(
     -------
     ALM
         The final fitted model with additional attributes:
-        - ICs: list of IC values at each step
-        - timeElapsed: time taken for calculation
+        - ic_values: dict[str, float] mapping step names to IC values
+          (e.g. {"Intercept": 150.3, "x1": 140.2, "x2": 138.1}).
+          Keys are in insertion order (Python 3.7+).
+        - time_elapsed: float, seconds taken for calculation
 
     Examples
     --------
@@ -302,7 +304,7 @@ def stepwise(
         )
 
     selected_vars: list[str] = []
-    all_ics: list[float] = []
+    all_ics: dict[str, float] = {}
 
     formula_str = f"{response_name} ~ 1"
     y_fit, X_fit = formula_func(formula_str, data_dict, as_dataframe=True)
@@ -313,7 +315,7 @@ def stepwise(
 
     current_ic = _calculate_ic(model, ic, df)
     best_ic = current_ic
-    all_ics.append(current_ic)
+    all_ics["Intercept"] = current_ic
 
     residuals = np.array(y_fit) - np.array(model.fitted)
     if len(residuals.shape) > 1:
@@ -377,7 +379,7 @@ def stepwise(
                 if len(residuals.shape) > 1:
                     residuals = residuals.flatten()
 
-            all_ics.append(current_ic)
+            all_ics[new_element] = current_ic
             m += 1
 
         except Exception as e:

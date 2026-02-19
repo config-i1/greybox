@@ -69,6 +69,7 @@ jobs:
   publish:
     needs: build
     runs-on: ubuntu-latest
+    environment: pypi
 
     steps:
       - name: Download artifacts
