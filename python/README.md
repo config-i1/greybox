@@ -61,7 +61,7 @@ print(pred.mean[:5])
 - **ALM (Augmented Linear Model)**: Likelihood-based regression with 26 distributions
 - **Formula parser**: R-style formulas (`y ~ x1 + x2`, `log(y) ~ .`, `y ~ 0 + x1`)
 - **Model selection**: `stepwise()` IC-based variable selection with partial correlations
-- **Model combination**: `lm_combine()` weighted model averaging based on IC
+- **Model combination**: `CALM()` Combine ALM models based on IC weights
 - **Accuracy measures**: MAE, MSE, RMSE, MAPE, MASE, MPE, sMAPE, and more
 - **Variable processing**: `xreg_expander` (lags/leads), `xreg_multiplier` (interactions), `temporal_dummy`
 - **27 distribution families**: Each with density, CDF, quantile, and random generation functions

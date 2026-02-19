@@ -27,7 +27,7 @@ Model Selection
 ---------------
 
 * :func:`greybox.stepwise` - Stepwise IC-based variable selection
-* :func:`greybox.lm_combine` - Model combination based on IC weights
+* :func:`greybox.CALM` - Combine ALM models based on IC weights
 
 Accuracy Measures
 -----------------

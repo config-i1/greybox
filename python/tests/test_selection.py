@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import pandas as pd
 
-from greybox.selection import stepwise, lm_combine, LmCombineResult
+from greybox.selection import stepwise, lm_combine, CALM, LmCombineResult
 
 
 class TestStepwise:
@@ -616,7 +616,7 @@ class TestLmCombinePrintSummary:
     def test_print_contains_model_info(self, result):
         """Test str(result) contains ADAM-style model info."""
         s = str(result)
-        assert "Model estimated: lm_combine(AICc)" in s
+        assert "Model estimated: CALM(AICc)" in s
         assert "Distribution assumed in the model:" in s
         assert "Loss function type: likelihood" in s
 
@@ -1145,3 +1145,58 @@ class TestLmCombineRComparison:
             rtol=0.1,
             atol=0.05,
         )
+
+
+class TestCALM:
+    """Tests for CALM function (renamed from lm_combine)."""
+
+    def test_calm_basic(self):
+        """Test CALM with simple data."""
+        np.random.seed(42)
+        x1 = np.random.normal(0, 1, 100)
+        x2 = np.random.normal(0, 1, 100)
+        y = 1 + 2 * x1 + 0.5 * x2 + np.random.normal(0, 1, 100)
+
+        data = {"y": y, "x1": x1, "x2": x2}
+        result = CALM(data, ic="AICc", silent=True)
+
+        assert result is not None
+        assert hasattr(result, "coefficients")
+        assert hasattr(result, "importance")
+
+    def test_calm_vs_lm_combine(self):
+        """Test that CALM gives same results as lm_combine."""
+        np.random.seed(42)
+        x1 = np.random.normal(0, 1, 50)
+        x2 = np.random.normal(0, 1, 50)
+        y = 1 + 2 * x1 + 0.5 * x2 + np.random.normal(0, 1, 50)
+
+        data = {"y": y, "x1": x1, "x2": x2}
+
+        result_calm = CALM(data, ic="AICc", silent=True)
+        with pytest.warns(FutureWarning):
+            result_lm_combine = lm_combine(data, ic="AICc", silent=True)
+
+        np.testing.assert_allclose(
+            result_calm["coefficients"],
+            result_lm_combine["coefficients"],
+            rtol=1e-10,
+        )
+        np.testing.assert_allclose(
+            result_calm["importance"],
+            result_lm_combine["importance"],
+            rtol=1e-10,
+        )
+
+    def test_lm_combine_deprecation_warning(self):
+        """Test that lm_combine issues a FutureWarning."""
+        np.random.seed(42)
+        x1 = np.random.normal(0, 1, 50)
+        y = 1 + 2 * x1 + np.random.normal(0, 1, 50)
+
+        data = {"y": y, "x1": x1}
+
+        with pytest.warns(FutureWarning, match="lm_combine is deprecated"):
+            result = lm_combine(data, ic="AICc", silent=True)
+
+        assert result is not None

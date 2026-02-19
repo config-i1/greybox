@@ -26,7 +26,7 @@ class ModelInfo(TypedDict):
 
 
 class LmCombineSummary:
-    """Summary of lm_combine result, matching R's summary.greyboxC."""
+    """Summary of CALM result, matching R's summary.greyboxC."""
 
     def __init__(
         self,
@@ -114,7 +114,7 @@ class LmCombineSummary:
 
 
 class LmCombineResult:
-    """Result of lm_combine, with print and summary support.
+    """Result of CALM, with print and summary support.
 
     Supports dict-like access for backwards compatibility and
     ALM-compatible interface (predict, score, confint, properties).
@@ -473,7 +473,7 @@ class LmCombineResult:
 
         lines = []
         lines.append(f"Time elapsed: {self.time_elapsed:.2f} seconds")
-        lines.append(f"Model estimated: lm_combine({self.IC_type})")
+        lines.append(f"Model estimated: CALM({self.IC_type})")
         lines.append(f"Distribution assumed in the model: {dist_name}")
         lines.append("Loss function type: likelihood")
         lines.append("")
@@ -1096,7 +1096,7 @@ def _combine_fitted(
         return mu.copy()
 
 
-def lm_combine(
+def CALM(
     data: Union[dict, DataFrame],
     ic: Literal["AICc", "AIC", "BIC", "BICc"] = "AICc",
     bruteforce: bool = True,
@@ -1104,7 +1104,7 @@ def lm_combine(
     distribution: str = "dnorm",
     **kwargs,
 ) -> LmCombineResult:
-    """Combine regressions based on information criteria.
+    """Combine ALM models based on information criteria.
 
     Function combines parameters of linear regressions of the first variable
     on all the other provided data. The algorithm uses ALM to fit different
@@ -1157,7 +1157,7 @@ def lm_combine(
     --------
     >>> data = {'y': [1, 2, 3, 4, 5], 'x1': [1, 2, 3, 4, 5],
     ...         'x2': [2, 4, 6, 8, 10]}
-    >>> result = lm_combine(data)
+    >>> result = CALM(data)
     """
     start_time = time.time()
 
@@ -1220,7 +1220,7 @@ def lm_combine(
             for name in selected_names:
                 if name in data_dict:
                     subset_data[name] = data_dict[name]
-            return lm_combine(
+            return CALM(
                 subset_data,
                 ic=ic,
                 bruteforce=True,
@@ -1474,3 +1474,52 @@ def lm_combine(
         X_train=X_matrix,
         formula_str=formula_full,
     )
+
+
+def lm_combine(
+    data: Union[dict, DataFrame],
+    ic: Literal["AICc", "AIC", "BIC", "BICc"] = "AICc",
+    bruteforce: bool = True,
+    silent: bool = True,
+    distribution: str = "dnorm",
+    **kwargs,
+) -> LmCombineResult:
+    """Combine regressions based on information criteria.
+
+    .. deprecated::
+        Use :func:`CALM` instead. This function will be removed in a future version.
+
+    Parameters
+    ----------
+    data : dict or DataFrame
+        Data frame containing dependent variable in the first column and
+        the others in the rest.
+    ic : {"AICc", "AIC", "BIC", "BICc"}, default="AICc"
+        Information criterion to use.
+    bruteforce : bool, default=True
+        If True, all possible models are generated and combined.
+    silent : bool, default=True
+        If False, then progress is printed.
+    distribution : str, default="dnorm"
+        Distribution to use for the ALM model.
+    **kwargs
+        Additional arguments passed to ALM().
+
+    Returns
+    -------
+    LmCombineResult
+        Combined model result.
+
+    Examples
+    --------
+    >>> data = {'y': [1, 2, 3, 4, 5], 'x1': [1, 2, 3, 4, 5],
+    ...         'x2': [2, 4, 6, 8, 10]}
+    >>> result = lm_combine(data)  # Deprecated, use CALM instead
+    """
+    import warnings
+    warnings.warn(
+        "lm_combine is deprecated, use CALM instead",
+        FutureWarning,
+        stacklevel=2
+    )
+    return CALM(data, ic, bruteforce, silent, distribution, **kwargs)

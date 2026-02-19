@@ -12,9 +12,10 @@ The package _greybox_ contains functions for model building, which is currently 
 
 There are several groups of functions in the package.
 
-## R Package
+## Installation
+[https://github.com/config-i1/greybox/wiki/Installation](Installation) wiki explains how the package can be installed in R/Python.
 
-### Installation
+### R Package
 
 The stable version of the package is available on CRAN, so you can install it by running:
 ```r
@@ -35,8 +36,6 @@ remotes::install_github("config-i1/greybox")
 
 A Python port of greybox is available in the [`python/`](python/) subdirectory. It provides a scikit-learn-style API with support for 26+ distributions and R-style formula syntax.
 
-### Installation
-
 ```bash
 pip install greybox
 ```
@@ -49,7 +48,7 @@ See [https://github.com/config-i1/greybox/wiki](wiki) for full documentation, ex
 1. alm - Augmented Linear (regression) Model that implements likelihood estimation of parameters for Normal, Laplace, Asymmetric Laplace, Logistic, Student's t, S, Generalised Normal, Folded Normal, Log Normal, Box-Cox Normal, Logit Normal, Inverse Gaussian, Gamma, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to `glm()` function, but with a different set of distributions and with a focus on forecasting.
 2. sm - Scale Model which constructs a regression for scale parameter of a distribution (e.g. for variance in normal distribution). Works like a method applied to already existing model (lm / alm).
 3. stepwise - function implements stepwise IC based on partial correlations for the location model.
-4. lmCombine - function combines the regression models from the provided data, based on IC weights and returns the combined alm object.
+4. calm - function combines the regression models (alm) from the provided data, based on IC weights and returns the combined alm object.
 
 ### Exogenous variables transformation functions
 1. xregExpander - function produces lags and leads of the provided data.
