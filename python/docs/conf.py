@@ -62,4 +62,3 @@ epub_exclude_files = ["search.html"]
 language = "en"
 
 master_doc = "index"
-

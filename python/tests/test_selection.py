@@ -942,15 +942,15 @@ class TestCALMALMCompat:
         assert "vcov" in k
 
 
-class TestLmCombineRComparison:
-    """Tests comparing Python lm_combine against R calm."""
+class TestCALMRComparison:
+    """Tests comparing Python CALM against R calm."""
 
     @pytest.fixture(autouse=True)
     def _check_rpy2(self):
         """Skip tests if rpy2 or R greybox not available."""
         pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
 
-    def _run_r_lm_combine(self, y, x_dict, ic="AICc", distribution="dnorm"):
+    def _run_r_calm(self, y, x_dict, ic="AICc", distribution="dnorm", bruteforce=True):
         """Run R's calm and return results as a dict."""
         import rpy2.robjects as ro
 
@@ -966,10 +966,11 @@ class TestLmCombineRComparison:
         ro.globalenv["mydata"] = r_data
         ro.globalenv["my_ic"] = ic
         ro.globalenv["my_dist"] = distribution
+        ro.globalenv["my_bruteforce"] = bruteforce
 
         r("""
-        result <- lmCombine(mydata, ic=my_ic, bruteforce=TRUE,
-                            silent=TRUE, distribution=my_dist)
+        result <- calm(mydata, ic=my_ic, bruteforce=my_bruteforce,
+                       silent=TRUE, distribution=my_dist)
         """)
 
         # Extract results
@@ -1009,10 +1010,8 @@ class TestLmCombineRComparison:
         x_dict = {"x1": x1, "x2": x2}
         py_data = {"y": y, "x1": x1, "x2": x2}
 
-        r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = CALM(
-            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
-        )
+        r_result = self._run_r_calm(y, x_dict, ic="AICc")
+        py_result = CALM(py_data, ic="AICc", bruteforce=True, distribution="dnorm")
 
         # Coefficients
         np.testing.assert_allclose(
@@ -1067,10 +1066,8 @@ class TestLmCombineRComparison:
         x_dict = {"x1": x1, "x2": x2, "x3": x3}
         py_data = {"y": y, "x1": x1, "x2": x2, "x3": x3}
 
-        r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = CALM(
-            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
-        )
+        r_result = self._run_r_calm(y, x_dict, ic="AICc")
+        py_result = CALM(py_data, ic="AICc", bruteforce=True, distribution="dnorm")
 
         # 8 models for 3 variables
         assert py_result["combination"].shape[0] == 8
@@ -1105,10 +1102,8 @@ class TestLmCombineRComparison:
         x_dict = {"x1": x1}
         py_data = {"y": y, "x1": x1}
 
-        r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = CALM(
-            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
-        )
+        r_result = self._run_r_calm(y, x_dict, ic="AICc")
+        py_result = CALM(py_data, ic="AICc", bruteforce=True, distribution="dnorm")
 
         # 2 models
         assert py_result["combination"].shape[0] == 2
@@ -1136,10 +1131,8 @@ class TestLmCombineRComparison:
         x_dict = {"x1": x1, "x2": x2}
         py_data = {"y": y, "x1": x1, "x2": x2}
 
-        r_result = self._run_r_lm_combine(y, x_dict, ic="BIC")
-        py_result = CALM(
-            py_data, ic="BIC", bruteforce=True, distribution="dnorm"
-        )
+        r_result = self._run_r_calm(y, x_dict, ic="BIC")
+        py_result = CALM(py_data, ic="BIC", bruteforce=True, distribution="dnorm")
 
         np.testing.assert_allclose(
             py_result["coefficients"],
@@ -1152,6 +1145,44 @@ class TestLmCombineRComparison:
             r_result["importance"],
             rtol=0.1,
             atol=0.05,
+        )
+
+    def test_compare_bruteforce_false(self):
+        """Compare Python vs R calm with bruteforce=FALSE."""
+        np.random.seed(42)
+        n = 80
+        x1 = np.random.normal(10, 3, n)
+        x2 = np.random.normal(50, 5, n)
+        x3 = np.random.normal(0, 1, n)
+        y = 100 + 0.5 * x1 - 0.75 * x2 + np.random.normal(0, 3, n)
+
+        x_dict = {"x1": x1, "x2": x2, "x3": x3}
+        py_data = {"y": y, "x1": x1, "x2": x2, "x3": x3}
+
+        r_result = self._run_r_calm(y, x_dict, ic="AICc", bruteforce=False)
+        py_result = CALM(py_data, ic="AICc", bruteforce=False, distribution="dnorm")
+
+        # Coefficients
+        np.testing.assert_allclose(
+            py_result["coefficients"],
+            r_result["coefficients"],
+            rtol=0.05,
+            atol=0.5,
+        )
+
+        # Importance
+        np.testing.assert_allclose(
+            py_result["importance"],
+            r_result["importance"],
+            rtol=0.05,
+            atol=0.05,
+        )
+
+        # IC (weighted average)
+        np.testing.assert_allclose(
+            py_result["IC"],
+            r_result["IC"],
+            rtol=0.05,
         )
 
 

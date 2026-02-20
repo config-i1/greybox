@@ -79,6 +79,7 @@ def load_mtcars():
     """Load mtcars data from CSV."""
     from pathlib import Path
     import pandas as pd
+
     return pd.read_csv(Path(__file__).parent / "mtcars.csv")
 
 
@@ -233,9 +234,7 @@ class TestContinuousDistributionsVsR:
     @pytest.mark.parametrize("distribution", CONTINUOUS_DISTRIBUTIONS)
     def test_distribution_against_r(self, mtcars_data, distribution):
         y, X = formula("mpg ~ wt + am + vs", mtcars_data)
-        var_names = formula(
-            "mpg ~ wt + am + vs", mtcars_data, return_type="variables"
-        )
+        var_names = formula("mpg ~ wt + am + vs", mtcars_data, return_type="variables")
 
         params = DISTRIBUTION_PARAMS.get(distribution, {})
 
@@ -367,14 +366,10 @@ class TestBoundedDistributionsVsR:
         mtcars_mod["mpg_scaled"] = (mpg / (max(mpg) + 1)).tolist()
 
         y, X = formula("mpg_scaled ~ wt", mtcars_mod)
-        var_names = formula(
-            "mpg_scaled ~ wt", mtcars_mod, return_type="variables"
-        )
+        var_names = formula("mpg_scaled ~ wt", mtcars_mod, return_type="variables")
 
         model = create_alm_model(distribution)
-        model.fit(
-            X, y, formula="mpg_scaled ~ wt", feature_names=var_names
-        )
+        model.fit(X, y, formula="mpg_scaled ~ wt", feature_names=var_names)
 
         r_result = run_r_alm_bounded(distribution)
 
@@ -428,9 +423,7 @@ class TestCountDistributionsVsR:
     @pytest.mark.parametrize("distribution", COUNT_DISTRIBUTIONS)
     def test_distribution_against_r(self, mtcars_data, distribution):
         y, X = formula("carb ~ wt + hp", mtcars_data)
-        var_names = formula(
-            "carb ~ wt + hp", mtcars_data, return_type="variables"
-        )
+        var_names = formula("carb ~ wt + hp", mtcars_data, return_type="variables")
 
         params = DISTRIBUTION_PARAMS.get(distribution, {})
 

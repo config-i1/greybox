@@ -1,4 +1,5 @@
 """Pytest configuration and fixtures."""
+
 import shutil
 from pathlib import Path
 
@@ -12,6 +13,7 @@ def has_rpy2():
         return False
     try:
         import rpy2.robjects as ro
+
         ro.r["library"]("greybox")
         return True
     except Exception:

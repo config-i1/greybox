@@ -3,6 +3,7 @@
 These tests ensure that the Python implementations produce identical results
 to the R greybox package functions.
 """
+
 import sys
 
 import numpy as np
@@ -714,9 +715,7 @@ class TestStudentTFuncvsR:
         df_val, loc, scale = 5.0, 1.0, 1.0
 
         py_result = dt(q, df=df_val, loc=loc, scale=scale, log=True)
-        r_result = np.log(
-            call_r_func("dt", (q - loc) / scale, df_val) / scale
-        )
+        r_result = np.log(call_r_func("dt", (q - loc) / scale, df_val) / scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -1121,9 +1120,7 @@ class TestInvGaussFuncvsR:
 
         py_result = dinvgauss(q, mu=mu, scale=scale)
         ro.r["library"]("statmod")
-        r_result = call_r_func(
-            "dinvgauss", q, mean=mu * scale, dispersion=mu**3
-        )
+        r_result = call_r_func("dinvgauss", q, mean=mu * scale, dispersion=mu**3)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -1135,9 +1132,7 @@ class TestInvGaussFuncvsR:
         py_result = dinvgauss(q, mu=mu, scale=scale, log=True)
         ro.r["library"]("statmod")
         r_result = np.log(
-            call_r_func(
-                "dinvgauss", q, mean=mu * scale, dispersion=mu**3
-            )
+            call_r_func("dinvgauss", q, mean=mu * scale, dispersion=mu**3)
         )
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -1149,9 +1144,7 @@ class TestInvGaussFuncvsR:
 
         py_result = pinvgauss(q, mu=mu, scale=scale)
         ro.r["library"]("statmod")
-        r_result = call_r_func(
-            "pinvgauss", q, mean=mu * scale, dispersion=mu**3
-        )
+        r_result = call_r_func("pinvgauss", q, mean=mu * scale, dispersion=mu**3)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
 
@@ -1162,8 +1155,6 @@ class TestInvGaussFuncvsR:
 
         py_result = qinvgauss(p, mu=mu, scale=scale)
         ro.r["library"]("statmod")
-        r_result = call_r_func(
-            "qinvgauss", p, mean=mu * scale, dispersion=mu**3
-        )
+        r_result = call_r_func("qinvgauss", p, mean=mu * scale, dispersion=mu**3)
 
         assert_allclose(py_result, r_result, rtol=1e-10)

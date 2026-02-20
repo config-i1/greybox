@@ -678,9 +678,11 @@ def rame(
     if np.all(forecast == benchmark):
         return 1.0
 
-    return np.abs(me(actual, forecast, na_rm=False)) / np.abs(
-        me(actual, benchmark, na_rm=False)
-    )
+    me_benchmark = me(actual, benchmark, na_rm=False)
+    if me_benchmark == 0:
+        return np.inf
+
+    return np.abs(me(actual, forecast, na_rm=False)) / np.abs(me_benchmark)
 
 
 def smse(
