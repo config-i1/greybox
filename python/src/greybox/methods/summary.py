@@ -150,9 +150,12 @@ class SummaryResult:
         ic_values.append(self.bic)
         ic_values.append(self.bicc if self.bicc is not None else np.nan)
 
+        ic_header = f"{'':>5}"
         ic_line = f"{'':>5}"
         for name, val in zip(ic_names, ic_values):
+            ic_header += f"{name:>12}"
             ic_line += f"{val:>12.4f}"
+        lines.append(ic_header)
         lines.append(ic_line)
 
         return "\n".join(lines)

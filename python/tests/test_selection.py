@@ -241,10 +241,10 @@ class TestStepwise:
 
 
 class TestLmCombine:
-    """Tests for lm_combine function."""
+    """Tests for CALM function."""
 
-    def test_lm_combine_basic(self):
-        """Test lm_combine with simple data."""
+    def test_calm_basic(self):
+        """Test CALM with simple data."""
         np.random.seed(42)
         n = 30
         x1 = np.random.normal(0, 1, n)
@@ -253,13 +253,13 @@ class TestLmCombine:
 
         data = {"y": y.tolist(), "x1": x1.tolist(), "x2": x2.tolist()}
 
-        result = lm_combine(data, ic="AICc", silent=True)
+        result = CALM(data, ic="AICc", bruteforce=True, silent=True)
         assert "coefficients" in result
         assert "fitted" in result
         assert "IC" in result
 
-    def test_lm_combine_return_keys(self):
-        """Test that lm_combine returns all expected keys."""
+    def test_calm_return_keys(self):
+        """Test that CALM returns all expected keys."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
@@ -267,7 +267,7 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         expected_keys = [
             "coefficients",
             "coefficient_names",
@@ -295,7 +295,7 @@ class TestLmCombine:
         for key in expected_keys:
             assert key in result, f"Missing key: {key}"
 
-    def test_lm_combine_intercept_only_model_included(self):
+    def test_calm_intercept_only_model_included(self):
         """Test that the intercept-only model is included in bruteforce."""
         np.random.seed(42)
         n = 50
@@ -303,13 +303,13 @@ class TestLmCombine:
         y = 1 + 2 * x1 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1}
 
-        result = lm_combine(data, ic="AICc", bruteforce=True)
+        result = CALM(data, ic="AICc", bruteforce=True)
         # With 1 variable: should have 2^1 = 2 models
         assert result["combination"].shape[0] == 2
         # First model should be intercept-only (all vars = 0)
         assert result["combination"][0, 0] == 0  # x1 not included
 
-    def test_lm_combine_2var_model_count(self):
+    def test_calm_2var_model_count(self):
         """Test that bruteforce generates 2^p models."""
         np.random.seed(42)
         n = 50
@@ -318,12 +318,12 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc", bruteforce=True)
+        result = CALM(data, ic="AICc", bruteforce=True)
         # 2 variables -> 2^2 = 4 models
         assert result["combination"].shape[0] == 4
         assert len(result["weights"]) == 4
 
-    def test_lm_combine_3var_model_count(self):
+    def test_calm_3var_model_count(self):
         """Test bruteforce with 3 variables generates 2^3 = 8 models."""
         np.random.seed(42)
         n = 80
@@ -333,10 +333,10 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2, "x3": x3}
 
-        result = lm_combine(data, ic="AICc", bruteforce=True)
+        result = CALM(data, ic="AICc", bruteforce=True)
         assert result["combination"].shape[0] == 8
 
-    def test_lm_combine_weights_sum_to_one(self):
+    def test_calm_weights_sum_to_one(self):
         """Test that IC weights sum to 1."""
         np.random.seed(42)
         n = 50
@@ -345,10 +345,10 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         np.testing.assert_allclose(np.sum(result["weights"]), 1.0)
 
-    def test_lm_combine_importance_bounds(self):
+    def test_calm_importance_bounds(self):
         """Test importance is between 0 and 1."""
         np.random.seed(42)
         n = 50
@@ -357,14 +357,14 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         # Intercept importance is always 1
         assert result["importance"][0] == 1.0
         # Variable importances are sum of IC weights, so in [0, 1]
         for imp in result["importance"][1:]:
             assert 0 <= imp <= 1.0 + 1e-10
 
-    def test_lm_combine_vcov_symmetric(self):
+    def test_calm_vcov_symmetric(self):
         """Test that combined vcov is symmetric."""
         np.random.seed(42)
         n = 50
@@ -373,11 +373,11 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         vcov = result["vcov"]
         np.testing.assert_allclose(vcov, vcov.T, atol=1e-12)
 
-    def test_lm_combine_vcov_positive_diagonal(self):
+    def test_calm_vcov_positive_diagonal(self):
         """Test that vcov diagonal elements are non-negative."""
         np.random.seed(42)
         n = 50
@@ -386,10 +386,10 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         assert np.all(np.diag(result["vcov"]) >= 0)
 
-    def test_lm_combine_ic_weighted_average(self):
+    def test_calm_ic_weighted_average(self):
         """Test that combined IC is the weighted average of model ICs."""
         np.random.seed(42)
         n = 50
@@ -398,7 +398,7 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         # IC should be the weighted average of model ICs
         combo = result["combination"]
         n_vars = len(result["x_variables"])
@@ -407,7 +407,7 @@ class TestLmCombine:
         expected_ic = np.sum(model_weights * model_ics)
         np.testing.assert_allclose(result["IC"], expected_ic, rtol=1e-10)
 
-    def test_lm_combine_df_residual(self):
+    def test_calm_df_residual(self):
         """Test that df_residual = n - sum(importance) - 1."""
         np.random.seed(42)
         n = 50
@@ -416,11 +416,11 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         expected_df = n - np.sum(result["importance"]) - 1
         np.testing.assert_allclose(result["df_residual"], expected_df, rtol=1e-10)
 
-    def test_lm_combine_coefficient_names(self):
+    def test_calm_coefficient_names(self):
         """Test coefficient names match variable names."""
         np.random.seed(42)
         n = 50
@@ -429,7 +429,7 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         assert result["coefficient_names"] == [
             "(Intercept)",
             "x1",
@@ -437,7 +437,7 @@ class TestLmCombine:
         ]
         assert len(result["coefficients"]) == 3
 
-    def test_lm_combine_fitted_residuals_shape(self):
+    def test_calm_fitted_residuals_shape(self):
         """Test fitted and residuals have correct shape."""
         np.random.seed(42)
         n = 50
@@ -445,12 +445,12 @@ class TestLmCombine:
         y = 1 + 2 * x1 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         assert result["fitted"].shape == (n,)
         assert result["residuals"].shape == (n,)
         assert result["mu"].shape == (n,)
 
-    def test_lm_combine_dnorm_residuals_are_y_minus_mu(self):
+    def test_calm_dnorm_residuals_are_y_minus_mu(self):
         """Test that for dnorm, residuals = y - mu."""
         np.random.seed(42)
         n = 50
@@ -458,10 +458,10 @@ class TestLmCombine:
         y = 1 + 2 * x1 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1}
 
-        result = lm_combine(data, ic="AICc", distribution="dnorm")
+        result = CALM(data, ic="AICc", bruteforce=True, distribution="dnorm")
         np.testing.assert_allclose(result["residuals"], y - result["mu"], atol=1e-12)
 
-    def test_lm_combine_dnorm_fitted_equals_mu(self):
+    def test_calm_dnorm_fitted_equals_mu(self):
         """Test that for dnorm, fitted = mu."""
         np.random.seed(42)
         n = 50
@@ -469,11 +469,11 @@ class TestLmCombine:
         y = 1 + 2 * x1 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1}
 
-        result = lm_combine(data, ic="AICc", distribution="dnorm")
+        result = CALM(data, ic="AICc", bruteforce=True, distribution="dnorm")
         np.testing.assert_allclose(result["fitted"], result["mu"], atol=1e-12)
 
-    def test_lm_combine_ic_types(self):
-        """Test lm_combine with different IC types."""
+    def test_calm_ic_types(self):
+        """Test CALM with different IC types."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
@@ -481,11 +481,11 @@ class TestLmCombine:
         data = {"y": y, "x1": x1}
 
         for ic_type in ["AICc", "AIC", "BIC", "BICc"]:
-            result = lm_combine(data, ic=ic_type)
+            result = CALM(data, ic=ic_type, bruteforce=True)
             assert result["IC_type"] == ic_type
             assert np.isfinite(result["IC"])
 
-    def test_lm_combine_combination_table_structure(self):
+    def test_calm_combination_table_structure(self):
         """Test the combination table has correct structure."""
         np.random.seed(42)
         n = 50
@@ -494,7 +494,7 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         combo = result["combination"]
         # Should have n_vars + 2 columns (vars + IC weights + ICs)
         assert combo.shape[1] == 4  # 2 vars + weights + ICs
@@ -503,7 +503,7 @@ class TestLmCombine:
         # Row names
         assert len(result["combination_row_names"]) == combo.shape[0]
 
-    def test_lm_combine_strong_signal_high_importance(self):
+    def test_calm_strong_signal_high_importance(self):
         """Test that strong predictors get high importance."""
         np.random.seed(42)
         n = 100
@@ -513,13 +513,13 @@ class TestLmCombine:
         y = 1 + 5 * x1 + np.random.normal(0, 0.1, n)
         data = {"y": y, "x1": x1, "x2": x2, "noise": noise}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         # x1 should have importance close to 1
         x1_idx = result["coefficient_names"].index("x1")
         assert result["importance"][x1_idx] > 0.9
 
-    def test_lm_combine_non_bruteforce_basic(self):
-        """Test lm_combine with bruteforce=False."""
+    def test_calm_non_bruteforce_basic(self):
+        """Test CALM with bruteforce=False."""
         np.random.seed(42)
         n = 100
         x1 = np.random.normal(0, 1, n)
@@ -527,25 +527,25 @@ class TestLmCombine:
         y = 1 + 2 * x1 + 3 * x2 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result = lm_combine(data, ic="AICc", bruteforce=False)
+        result = CALM(data, ic="AICc", bruteforce=False)
         assert "coefficients" in result
         assert "vcov" in result
         assert np.isfinite(result["IC"])
 
-    def test_lm_combine_single_variable(self):
-        """Test lm_combine with 1 variable (2 models)."""
+    def test_calm_single_variable(self):
+        """Test CALM with 1 variable (2 models)."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
         y = 1 + 2 * x1 + np.random.normal(0, 1, n)
         data = {"y": y, "x1": x1}
 
-        result = lm_combine(data, ic="AICc")
+        result = CALM(data, ic="AICc", bruteforce=True)
         assert result["combination"].shape[0] == 2
         assert len(result["coefficients"]) == 2
 
-    def test_lm_combine_dataframe_input(self):
-        """Test lm_combine accepts DataFrame input."""
+    def test_calm_dataframe_input(self):
+        """Test CALM accepts DataFrame input."""
         np.random.seed(42)
         n = 50
         df = pd.DataFrame(
@@ -556,7 +556,7 @@ class TestLmCombine:
             }
         )
 
-        result = lm_combine(df, ic="AICc")
+        result = CALM(df, ic="AICc", bruteforce=True)
         assert "coefficients" in result
 
 
@@ -565,7 +565,7 @@ class TestLmCombinePrintSummary:
 
     @pytest.fixture
     def result(self):
-        """Create a basic lm_combine result for testing."""
+        """Create a basic CALM result for testing."""
         np.random.seed(42)
         n = 100
         x1 = np.random.normal(10, 3, n)
@@ -573,10 +573,10 @@ class TestLmCombinePrintSummary:
         noise = np.random.normal(0, 1, n)
         y = 100 + 0.5 * x1 - 0.75 * x2 + np.random.normal(0, 3, n)
         data = {"y": y, "x1": x1, "x2": x2, "Noise": noise}
-        return lm_combine(data, ic="AICc", silent=True)
+        return CALM(data, ic="AICc", bruteforce=True, silent=True)
 
     def test_result_is_lm_combine_result(self, result):
-        """Test that lm_combine returns LmCombineResult."""
+        """Test that CALM returns LmCombineResult."""
         assert isinstance(result, LmCombineResult)
 
     def test_dict_access(self, result):
@@ -675,19 +675,19 @@ class TestLmCombinePrintSummary:
         assert result.IC_type == "AICc"
 
 
-class TestLmCombineALMCompat:
+class TestCALMALMCompat:
     """Tests for ALM-compatible interface on LmCombineResult."""
 
     @pytest.fixture
     def setup(self):
-        """Create lm_combine result and raw data for testing."""
+        """Create CALM result and raw data for testing."""
         np.random.seed(42)
         n = 100
         x1 = np.random.normal(10, 3, n)
         x2 = np.random.normal(50, 5, n)
         y = 100 + 0.5 * x1 - 0.75 * x2 + np.random.normal(0, 3, n)
         data = {"y": y, "x1": x1, "x2": x2}
-        result = lm_combine(data, ic="AICc", silent=True)
+        result = CALM(data, ic="AICc", bruteforce=True, silent=True)
         X = np.column_stack([np.ones(n), x1, x2])
         return result, X, y, x1, x2
 
@@ -943,7 +943,7 @@ class TestLmCombineALMCompat:
 
 
 class TestLmCombineRComparison:
-    """Tests comparing Python lm_combine against R lmCombine."""
+    """Tests comparing Python lm_combine against R calm."""
 
     @pytest.fixture(autouse=True)
     def _check_rpy2(self):
@@ -951,7 +951,7 @@ class TestLmCombineRComparison:
         pytest.importorskip("rpy2.robjects", reason="Requires rpy2 and R")
 
     def _run_r_lm_combine(self, y, x_dict, ic="AICc", distribution="dnorm"):
-        """Run R's lmCombine and return results as a dict."""
+        """Run R's calm and return results as a dict."""
         import rpy2.robjects as ro
 
         r = ro.r
@@ -999,7 +999,7 @@ class TestLmCombineRComparison:
         }
 
     def test_compare_dnorm_2vars(self):
-        """Compare Python vs R lmCombine with dnorm, 2 variables."""
+        """Compare Python vs R calm with dnorm, 2 variables."""
         np.random.seed(42)
         n = 80
         x1 = np.random.normal(10, 3, n)
@@ -1010,7 +1010,9 @@ class TestLmCombineRComparison:
         py_data = {"y": y, "x1": x1, "x2": x2}
 
         r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = lm_combine(py_data, ic="AICc", distribution="dnorm")
+        py_result = CALM(
+            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
+        )
 
         # Coefficients
         np.testing.assert_allclose(
@@ -1054,7 +1056,7 @@ class TestLmCombineRComparison:
         )
 
     def test_compare_dnorm_3vars(self):
-        """Compare Python vs R lmCombine with dnorm, 3 variables."""
+        """Compare Python vs R calm with dnorm, 3 variables."""
         np.random.seed(123)
         n = 100
         x1 = np.random.normal(0, 1, n)
@@ -1066,7 +1068,9 @@ class TestLmCombineRComparison:
         py_data = {"y": y, "x1": x1, "x2": x2, "x3": x3}
 
         r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = lm_combine(py_data, ic="AICc", distribution="dnorm")
+        py_result = CALM(
+            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
+        )
 
         # 8 models for 3 variables
         assert py_result["combination"].shape[0] == 8
@@ -1092,7 +1096,7 @@ class TestLmCombineRComparison:
         assert py_result["importance"][3] < py_result["importance"][2]
 
     def test_compare_dnorm_1var(self):
-        """Compare Python vs R lmCombine with dnorm, 1 variable."""
+        """Compare Python vs R calm with dnorm, 1 variable."""
         np.random.seed(42)
         n = 50
         x1 = np.random.normal(0, 1, n)
@@ -1102,7 +1106,9 @@ class TestLmCombineRComparison:
         py_data = {"y": y, "x1": x1}
 
         r_result = self._run_r_lm_combine(y, x_dict, ic="AICc")
-        py_result = lm_combine(py_data, ic="AICc", distribution="dnorm")
+        py_result = CALM(
+            py_data, ic="AICc", bruteforce=True, distribution="dnorm"
+        )
 
         # 2 models
         assert py_result["combination"].shape[0] == 2
@@ -1120,7 +1126,7 @@ class TestLmCombineRComparison:
         )
 
     def test_compare_bic(self):
-        """Compare Python vs R lmCombine with BIC."""
+        """Compare Python vs R calm with BIC."""
         np.random.seed(42)
         n = 80
         x1 = np.random.normal(0, 1, n)
@@ -1131,7 +1137,9 @@ class TestLmCombineRComparison:
         py_data = {"y": y, "x1": x1, "x2": x2}
 
         r_result = self._run_r_lm_combine(y, x_dict, ic="BIC")
-        py_result = lm_combine(py_data, ic="BIC", distribution="dnorm")
+        py_result = CALM(
+            py_data, ic="BIC", bruteforce=True, distribution="dnorm"
+        )
 
         np.testing.assert_allclose(
             py_result["coefficients"],
@@ -1165,7 +1173,7 @@ class TestCALM:
         assert hasattr(result, "importance")
 
     def test_calm_vs_lm_combine(self):
-        """Test that CALM gives same results as lm_combine."""
+        """Test that CALM gives same results as lm_combine with same args."""
         np.random.seed(42)
         x1 = np.random.normal(0, 1, 50)
         x2 = np.random.normal(0, 1, 50)
@@ -1173,7 +1181,9 @@ class TestCALM:
 
         data = {"y": y, "x1": x1, "x2": x2}
 
-        result_calm = CALM(data, ic="AICc", silent=True)
+        # Note: lm_combine defaults to bruteforce=True, CALM to False.
+        # Use explicit bruteforce=True for both to compare equivalently.
+        result_calm = CALM(data, ic="AICc", bruteforce=True, silent=True)
         with pytest.warns(FutureWarning):
             result_lm_combine = lm_combine(data, ic="AICc", silent=True)
 

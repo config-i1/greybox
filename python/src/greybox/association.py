@@ -218,7 +218,7 @@ def determination(
         return np.array([0.0])
 
     def determination_calculator(residuals: np.ndarray, actuals: np.ndarray) -> float:
-        return 1 - np.sum(residuals**2) / np.sum((actuals - np.mean(actuals))**2)
+        return 1 - np.sum(residuals**2) / np.sum((actuals - np.mean(actuals)) ** 2)
 
     if bruteforce:
         try:
@@ -276,7 +276,7 @@ def determination(
                 try:
                     data_dict = {"y": y}
                     for j in range(X.shape[1]):
-                        data_dict[f"x{j+1}"] = X[:, j]
+                        data_dict[f"x{j + 1}"] = X[:, j]
                     model = stepwise(data_dict, silent=True)
                     y_pred = model.predict(X)["mean"]
                     vector_correlations_multiple[i] = determination_calculator(

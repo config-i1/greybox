@@ -833,9 +833,9 @@ class ALM:
                 self._aicc = self._aic + (2 * n_params_calc * (n_params_calc + 1)) / (
                     n_samples - n_params_calc - 1
                 )
-                self._bicc = (
-                    self._bic + n_params_calc * (np.log(n_samples) ** 2) / n_samples
-                )
+                self._bicc = -2 * self._log_lik + (
+                    n_params_calc * np.log(n_samples) * n_samples
+                ) / (n_samples - n_params_calc - 1)
             else:
                 self._aicc = np.nan
                 self._bicc = np.nan

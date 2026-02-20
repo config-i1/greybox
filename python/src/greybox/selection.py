@@ -336,19 +336,20 @@ class LmCombineResult:
             formula_str = self._formula
             if formula_str is None:
                 # Build formula from coefficient names if not stored
-                if hasattr(self, 'coefficient_names') and self.coefficient_names:
+                if hasattr(self, "coefficient_names") and self.coefficient_names:
                     formula_str = "y ~ " + " + ".join(
                         name for name in self.coefficient_names if name != "(Intercept)"
                     )
                 else:
                     raise ValueError(
-                        "Cannot convert dict/DataFrame to design matrix: "
-                        "no formula stored in model. Please pass a design matrix (np.ndarray) "
-                        "with intercept as first column."
+                        "Cannot convert dict/DataFrame to design "
+                        "matrix: no formula stored in model. "
+                        "Please pass a design matrix (np.ndarray)"
+                        " with intercept as first column."
                     )
-            
+
             # Convert dict to the format expected by formula
-            data_dict = X if isinstance(X, dict) else X.to_dict(orient='list')
+            data_dict = X if isinstance(X, dict) else X.to_dict(orient="list")
             # Add a dummy y variable for formula parsing (will be ignored)
             data_dict = {k: np.asarray(v) for k, v in data_dict.items()}
             _, X_design = formula_func(formula_str, data_dict, as_dataframe=True)
@@ -754,8 +755,6 @@ def _calculate_ic(
     log_lik = model.log_lik
 
     ic_type = ic_type.upper()
-    if ic_type.endswith("CC"):
-        ic_type = ic_type[:-1]  # Handle AICc -> AICC -> AICc
 
     n = model.nobs
     k = model.nparam + df_add
@@ -770,7 +769,9 @@ def _calculate_ic(
             return -2 * log_lik + 2 * k + (2 * k**2 + 2 * k) / (n - k - 1)
         return np.inf
     elif ic_type == "BICC":
-        return -2 * log_lik + k * np.log(n) + k * np.log(n) ** 2 / n
+        if n - k - 1 > 0:
+            return -2 * log_lik + (k * np.log(n) * n) / (n - k - 1)
+        return np.inf
     return np.inf
 
 
@@ -873,7 +874,7 @@ def stepwise(
     best_ic = current_ic
     all_ics["Intercept"] = current_ic
 
-    residuals = np.array(y_fit) - np.array(model.fitted)
+    residuals = np.array(model.residuals)
     if len(residuals.shape) > 1:
         residuals = residuals.flatten()
 
@@ -931,7 +932,7 @@ def stepwise(
                 best_ic = current_ic
                 best_formula = test_formula
                 selected_vars.append(new_element)
-                residuals = np.array(y_fit) - np.array(model.fitted)
+                residuals = np.array(model.residuals)
                 if len(residuals.shape) > 1:
                     residuals = residuals.flatten()
 
@@ -966,17 +967,15 @@ def _get_ic_value(model: ALM, ic_type: str) -> float:
     elif ic_type == "BIC":
         return model.bic if model.bic is not None else np.inf
     elif ic_type == "AICc":
-        n = model.nobs
-        k = model.nparam
-        aic = model.aic if model.aic is not None else np.inf
-        if n - k - 1 > 0:
-            return aic + (2 * k**2 + 2 * k) / (n - k - 1)
+        val = model.aicc
+        if val is not None and not np.isnan(val):
+            return val
         return np.inf
     elif ic_type == "BICc":
-        n = model.nobs
-        k = model.nparam
-        bic = model.bic if model.bic is not None else np.inf
-        return bic + k * np.log(n) ** 2 / n
+        val = model.bicc
+        if val is not None and not np.isnan(val):
+            return val
+        return np.inf
     return np.inf
 
 
@@ -1000,13 +999,20 @@ def _combine_scale(
     mu: np.ndarray,
     other_combined: float = 0.0,
     alpha: float = 0.5,
+    n_params: int = 1,
 ) -> float | np.ndarray:
     """Compute scale parameter for the combined model.
 
     Matches R lmCombine's switch(distribution, ...) block for scale.
     """
+    n = len(y)
+    df = n - n_params  # residual degrees of freedom
+
     if distribution in ("dnorm", "dfnorm"):
-        return float(np.sqrt(np.mean((y - mu) ** 2)))
+        if df > 0:
+            return float(np.sqrt(np.sum((y - mu) ** 2) / df))
+        else:
+            return float(np.sqrt(np.mean((y - mu) ** 2)))
     elif distribution == "dlaplace":
         return float(np.mean(np.abs(y - mu)))
     elif distribution == "ds":
@@ -1414,7 +1420,7 @@ def CALM(
 
     # Scale (distribution-specific)
     alpha_val = kwargs.get("alpha", 0.5)
-    scale = _combine_scale(distribution, y, mu, other_combined, alpha_val)
+    scale = _combine_scale(distribution, y, mu, other_combined, alpha_val, n_params)
 
     # Fitted values (distribution-specific)
     if distribution == "dchisq":
@@ -1542,9 +1548,8 @@ def lm_combine(
     >>> result = lm_combine(data)  # Deprecated, use CALM instead
     """
     import warnings
+
     warnings.warn(
-        "lm_combine is deprecated, use CALM instead",
-        FutureWarning,
-        stacklevel=2
+        "lm_combine is deprecated, use CALM instead", FutureWarning, stacklevel=2
     )
     return CALM(data, ic, bruteforce, silent, distribution, **kwargs)
