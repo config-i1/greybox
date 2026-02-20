@@ -117,7 +117,7 @@ def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     in the same units as the data.
 
     Formula:
-        MAE = mean(|actual - forecast|)
+        ``MAE = mean(|actual - forecast|)``
 
     Parameters
     ----------
@@ -281,7 +281,7 @@ def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     heavily influenced by small actual values.
 
     Formula:
-        MAPE = mean(|actual - forecast| / actual) * 100
+        ``MAPE = mean(|actual - forecast| / actual) * 100``
 
     Parameters
     ----------
@@ -338,7 +338,7 @@ def mase(
 
     Formula:
         MASE = MAE / scale
-        where scale = mean(|actual[t] - actual[t-1]|) by default
+        where ``scale = mean(|actual[t] - actual[t-1]|)`` by default
 
     Parameters
     ----------
@@ -449,7 +449,7 @@ def same(
     It measures bias rather than absolute error.
 
     Formula:
-        SAME = |ME| / scale
+        ``SAME = |ME| / scale``
 
     Parameters
     ----------
@@ -630,7 +630,7 @@ def rame(
     a benchmark forecast. It measures relative bias.
 
     Formula:
-        rAME = |ME(forecast)| / |ME(benchmark)|
+        ``rAME = |ME(forecast)| / |ME(benchmark)|``
 
     Parameters
     ----------
@@ -852,7 +852,7 @@ def gmrae(
     using geometric mean. It is robust to extreme values.
 
     Formula:
-        GMRAE = exp(mean(log(|error| / |benchmark_error|)))
+        ``GMRAE = exp(mean(log(|error| / |benchmark_error|)))``
 
     Parameters
     ----------

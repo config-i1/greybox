@@ -95,10 +95,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.vcov"><code class="docutils literal notranslate"><span class="pre">ALM.vcov()</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#predictionresult">PredictionResult</a><ul>
-<li class="toctree-l4"><a class="reference internal" href="#greybox.alm.PredictionResult"><code class="docutils literal notranslate"><span class="pre">PredictionResult</span></code></a></li>
-</ul>
-</li>
+<li class="toctree-l3"><a class="reference internal" href="#predictionresult">PredictionResult</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
@@ -196,7 +193,7 @@ functions, following scikit-learn principles.</p>
 <dd><p>Estimated coefficients (excluding intercept).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ndarray of <a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape">shape</a> (n_features,)</p>
+<dd class="field-odd"><p>ndarray of shape (n_features,)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -240,7 +237,7 @@ functions, following scikit-learn principles.</p>
 <dd><p>Fitted values.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ndarray of <a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape">shape</a> (n_samples,)</p>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -251,7 +248,7 @@ functions, following scikit-learn principles.</p>
 <dd><p>Model residuals.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>ndarray of <a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape">shape</a> (n_samples,)</p>
+<dd class="field-odd"><p>ndarray of shape (n_samples,)</p>
 </dd>
 </dl>
 </dd></dl>
@@ -466,9 +463,9 @@ functions, following scikit-learn principles.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>array-like</em><em> of </em><a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape"><em>shape</em></a><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix. Should include intercept column (column of ones)
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix. Should include intercept column (column of ones)
 as first column if you want an intercept.</p></li>
-<li><p><strong>y</strong> (<em>array-like</em><em> of </em><a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape"><em>shape</em></a><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – Target values.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – Target values.</p></li>
 <li><p><strong>formula</strong> (<em>str</em><em>, </em><em>optional</em>) – Formula string used to generate X and y. Stored for reference.</p></li>
 <li><p><strong>feature_names</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Names for feature columns. If provided, used in print output.</p></li>
 </ul>
@@ -600,12 +597,12 @@ as first column if you want an intercept.</p></li>
 
 <dl class="py method">
 <dt class="sig sig-object py" id="greybox.alm.ALM.predict">
-<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'confidence'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'prediction'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'both'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'upper'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'lower'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.alm.PredictionResult" title="greybox.alm.PredictionResult"><span class="pre">PredictionResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/alm.html#ALM.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.alm.ALM.predict" title="Link to this definition"></a></dt>
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'confidence'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'prediction'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'both'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'upper'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'lower'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">PredictionResult</span></span></span><a class="reference internal" href="../_modules/greybox/alm.html#ALM.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.alm.ALM.predict" title="Link to this definition"></a></dt>
 <dd><p>Predict using the fitted model.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>array-like</em><em> of </em><a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape"><em>shape</em></a><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix. Should have same number of features as training data.</p></li>
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix. Should have same number of features as training data.</p></li>
 <li><p><strong>interval</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;confidence&quot;</em><em>, </em><em>&quot;prediction&quot;}</em><em>, </em><em>default=&quot;none&quot;</em>) – Type of interval to calculate:
 - “none”: No intervals, return only point forecasts
 - “confidence”: Confidence interval for the mean
@@ -625,7 +622,7 @@ or a list of floats (e.g., [0.8, 0.9, 0.95]). Default is 0.95 (95%).</p></li>
 - upper : np.ndarray or None - Upper prediction bounds</p>
 </dd>
 <dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#greybox.alm.PredictionResult" title="greybox.alm.PredictionResult">PredictionResult</a></p>
+<dd class="field-odd"><p>PredictionResult</p>
 </dd>
 </dl>
 </dd></dl>
@@ -657,8 +654,8 @@ or a list of floats (e.g., [0.8, 0.9, 0.95]). Default is 0.95 (95%).</p></li>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters<span class="colon">:</span></dt>
 <dd class="field-odd"><ul class="simple">
-<li><p><strong>X</strong> (<em>array-like</em><em> of </em><a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape"><em>shape</em></a><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix.</p></li>
-<li><p><strong>y</strong> (<em>array-like</em><em> of </em><a class="reference internal" href="#greybox.alm.PredictionResult.shape" title="greybox.alm.PredictionResult.shape"><em>shape</em></a><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – True values.</p></li>
+<li><p><strong>X</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>, </em><em>n_features</em><em>)</em>) – Design matrix.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n_samples</em><em>,</em><em>)</em>) – True values.</p></li>
 <li><p><strong>metric</strong> (<em>str</em><em>, </em><em>optional</em>) – Metric to use: “likelihood”, “MSE”, “MAE”, or “R2”.</p></li>
 </ul>
 </dd>
@@ -753,15 +750,15 @@ t-statistics, p-values, and confidence intervals.</p>
 <section id="predictionresult">
 <h2>PredictionResult<a class="headerlink" href="#predictionresult" title="Link to this heading"></a></h2>
 <dl class="py class">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.alm.</span></span><span class="sig-name descname"><span class="pre">PredictionResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/alm.html#PredictionResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.alm.PredictionResult" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.alm.</span></span><span class="sig-name descname"><span class="pre">PredictionResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">variances</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'both'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'none'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/alm.html#PredictionResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Prediction result object with mean, interval bounds, and metadata.</p>
 <p>Supports DataFrame-like access: indexing by column name, len(),
 iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.mean">
-<span class="sig-name descname"><span class="pre">mean</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.mean" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">mean</span></span></dt>
 <dd><p>Predicted values (point forecasts).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -771,8 +768,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.lower">
-<span class="sig-name descname"><span class="pre">lower</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.lower" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">lower</span></span></dt>
 <dd><p>Lower prediction bounds.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -782,8 +779,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.upper">
-<span class="sig-name descname"><span class="pre">upper</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.upper" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">upper</span></span></dt>
 <dd><p>Upper prediction bounds.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -793,8 +790,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.level">
-<span class="sig-name descname"><span class="pre">level</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.level" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">level</span></span></dt>
 <dd><p>Confidence level(s) used for the intervals.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -804,8 +801,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.variances">
-<span class="sig-name descname"><span class="pre">variances</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.variances" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">variances</span></span></dt>
 <dd><p>Variance estimates for each observation.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -815,8 +812,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.side">
-<span class="sig-name descname"><span class="pre">side</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.side" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">side</span></span></dt>
 <dd><p>Side of interval: “both”, “upper”, or “lower”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -826,8 +823,8 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.interval">
-<span class="sig-name descname"><span class="pre">interval</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.interval" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">interval</span></span></dt>
 <dd><p>Type of interval: “none”, “confidence”, or “prediction”.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
@@ -837,51 +834,51 @@ iteration, and conversion to pandas DataFrame via to_dataframe().</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.columns">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">columns</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.columns" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">columns</span></span></dt>
 <dd><p>Column names of the DataFrame representation.</p>
 </dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.index">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.index" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">index</span></span></dt>
 <dd><p>Index of the DataFrame representation.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id0">
-<span class="sig-name descname"><span class="pre">interval</span></span><a class="headerlink" href="#id0" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">interval</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id1">
-<span class="sig-name descname"><span class="pre">level</span></span><a class="headerlink" href="#id1" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">level</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id2">
-<span class="sig-name descname"><span class="pre">lower</span></span><a class="headerlink" href="#id2" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">lower</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id3">
-<span class="sig-name descname"><span class="pre">mean</span></span><a class="headerlink" href="#id3" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">mean</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.shape">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.shape" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">shape</span></span></dt>
 <dd><p>Shape of the DataFrame representation.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id4">
-<span class="sig-name descname"><span class="pre">side</span></span><a class="headerlink" href="#id4" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">side</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.to_dataframe">
-<span class="sig-name descname"><span class="pre">to_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/greybox/alm.html#PredictionResult.to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.alm.PredictionResult.to_dataframe" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">to_dataframe</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">DataFrame</span></span></span><a class="reference internal" href="../_modules/greybox/alm.html#PredictionResult.to_dataframe"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
 <dd><p>Convert to a pandas DataFrame.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Returns<span class="colon">:</span></dt>
@@ -895,19 +892,19 @@ columns (or ‘lower_0’, ‘upper_0’, etc. for multiple levels).</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id5">
-<span class="sig-name descname"><span class="pre">upper</span></span><a class="headerlink" href="#id5" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">upper</span></span></dt>
 <dd></dd></dl>
 
 <dl class="py property">
-<dt class="sig sig-object py" id="greybox.alm.PredictionResult.values">
-<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">values</span></span><a class="headerlink" href="#greybox.alm.PredictionResult.values" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">values</span></span></dt>
 <dd><p>Values of the DataFrame representation.</p>
 </dd></dl>
 
 <dl class="py attribute">
-<dt class="sig sig-object py" id="id6">
-<span class="sig-name descname"><span class="pre">variances</span></span><a class="headerlink" href="#id6" title="Link to this definition"></a></dt>
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">variances</span></span></dt>
 <dd></dd></dl>
 
 </dd></dl>

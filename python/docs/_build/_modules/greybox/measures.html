@@ -201,7 +201,7 @@
 <span class="sd">    in the same units as the data.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        MAE = mean(|actual - forecast|)</span>
+<span class="sd">        ``MAE = mean(|actual - forecast|)``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -377,7 +377,7 @@
 <span class="sd">    heavily influenced by small actual values.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        MAPE = mean(|actual - forecast| / actual) * 100</span>
+<span class="sd">        ``MAPE = mean(|actual - forecast| / actual) * 100``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -437,7 +437,7 @@
 
 <span class="sd">    Formula:</span>
 <span class="sd">        MASE = MAE / scale</span>
-<span class="sd">        where scale = mean(|actual[t] - actual[t-1]|) by default</span>
+<span class="sd">        where ``scale = mean(|actual[t] - actual[t-1]|)`` by default</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -554,7 +554,7 @@
 <span class="sd">    It measures bias rather than absolute error.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        SAME = |ME| / scale</span>
+<span class="sd">        ``SAME = |ME| / scale``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -744,7 +744,7 @@
 <span class="sd">    a benchmark forecast. It measures relative bias.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        rAME = |ME(forecast)| / |ME(benchmark)|</span>
+<span class="sd">        ``rAME = |ME(forecast)| / |ME(benchmark)|``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -978,7 +978,7 @@
 <span class="sd">    using geometric mean. It is robust to extreme values.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        GMRAE = exp(mean(log(|error| / |benchmark_error|)))</span>
+<span class="sd">        ``GMRAE = exp(mean(log(|error| / |benchmark_error|)))``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>

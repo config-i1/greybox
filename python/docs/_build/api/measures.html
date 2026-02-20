@@ -193,7 +193,7 @@ and estimation. Journal of the American Statistical Association, 102(477), 359-3
 <p>The GMRAE compares the absolute errors of a forecast to a benchmark
 using geometric mean. It is robust to extreme values.</p>
 <dl class="simple">
-<dt>Formula:</dt><dd><p>GMRAE = exp(mean(log(<a href="#id1"><span class="problematic" id="id2">|error|</span></a> / <a href="#id3"><span class="problematic" id="id4">|benchmark_error|</span></a>)))</p>
+<dt>Formula:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">GMRAE</span> <span class="pre">=</span> <span class="pre">exp(mean(log(|error|</span> <span class="pre">/</span> <span class="pre">|benchmark_error|)))</span></code></p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -233,7 +233,7 @@ using geometric mean. It is robust to extreme values.</p>
 direction. It is robust to outliers and gives a direct interpretation
 in the same units as the data.</p>
 <dl class="simple">
-<dt>Formula:</dt><dd><p>MAE = mean(<a href="#id5"><span class="problematic" id="id6">|actual - forecast|</span></a>)</p>
+<dt>Formula:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">MAE</span> <span class="pre">=</span> <span class="pre">mean(|actual</span> <span class="pre">-</span> <span class="pre">forecast|)</span></code></p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -271,7 +271,7 @@ and expressed as a percentage, making it easy to interpret across different
 contexts. However, it is undefined when actual values are zero and can be
 heavily influenced by small actual values.</p>
 <dl class="simple">
-<dt>Formula:</dt><dd><p>MAPE = mean(<a href="#id7"><span class="problematic" id="id8">|actual - forecast|</span></a> / actual) * 100</p>
+<dt>Formula:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">MAPE</span> <span class="pre">=</span> <span class="pre">mean(|actual</span> <span class="pre">-</span> <span class="pre">forecast|</span> <span class="pre">/</span> <span class="pre">actual)</span> <span class="pre">*</span> <span class="pre">100</span></code></p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -311,7 +311,7 @@ different time series. A MASE &lt; 1 means the forecast is better than
 the naive forecast; MASE &gt; 1 means worse.</p>
 <dl class="simple">
 <dt>Formula:</dt><dd><p>MASE = MAE / scale
-where scale = mean(<a href="#id9"><span class="problematic" id="id10">|actual[t] - actual[t-1]|</span></a>) by default</p>
+where <code class="docutils literal notranslate"><span class="pre">scale</span> <span class="pre">=</span> <span class="pre">mean(|actual[t]</span> <span class="pre">-</span> <span class="pre">actual[t-1]|)</span></code> by default</p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -519,7 +519,7 @@ It penalizes larger errors more heavily than MAE.</p>
 <p>The rAME compares the absolute Mean Error (bias) of a forecast to
 a benchmark forecast. It measures relative bias.</p>
 <dl class="simple">
-<dt>Formula:</dt><dd><p>rAME = <a href="#id11"><span class="problematic" id="id12">|ME(forecast)|</span></a> / <a href="#id13"><span class="problematic" id="id14">|ME(benchmark)|</span></a></p>
+<dt>Formula:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">rAME</span> <span class="pre">=</span> <span class="pre">|ME(forecast)|</span> <span class="pre">/</span> <span class="pre">|ME(benchmark)|</span></code></p>
 </dd>
 </dl>
 <dl class="field-list simple">
@@ -712,7 +712,7 @@ actual values. Typical value: mean(diff(actual)^2).</p></li>
 <p>SAME is similar to MASE but uses Mean Error (ME) instead of MAE.
 It measures bias rather than absolute error.</p>
 <dl class="simple">
-<dt>Formula:</dt><dd><p>SAME = <a href="#id15"><span class="problematic" id="id16">|ME|</span></a> / scale</p>
+<dt>Formula:</dt><dd><p><code class="docutils literal notranslate"><span class="pre">SAME</span> <span class="pre">=</span> <span class="pre">|ME|</span> <span class="pre">/</span> <span class="pre">scale</span></code></p>
 </dd>
 </dl>
 <dl class="field-list simple">

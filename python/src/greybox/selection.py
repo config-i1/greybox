@@ -828,10 +828,11 @@ def stepwise(
     -------
     ALM
         The final fitted model with additional attributes:
-        - ic_values: dict[str, float] mapping step names to IC values
+
+        * ic_values: dict mapping step names to IC values
           (e.g. {"Intercept": 150.3, "x1": 140.2, "x2": 138.1}).
           Keys are in insertion order (Python 3.7+).
-        - time_elapsed: float, seconds taken for calculation
+        * time_elapsed: float, seconds taken for calculation
 
     Examples
     --------
