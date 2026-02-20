@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.xreg &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.xreg</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.xreg</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Exogenous variables manipulation functions.</span>
+
+<span class="sd">This module provides functions for transforming and expanding exogenous</span>
+<span class="sd">variables for use in regression models.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Literal</span>
+
+
+<div class="viewcode-block" id="xreg_transformer">
+<a class="viewcode-back" href="../../api/xreg.html#greybox.xreg.xreg_transformer">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">xreg_transformer</span><span class="p">(</span>
+    <span class="n">xreg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">functions</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Transform exogenous variables.</span>
+
+<span class="sd">    Function transforms each variable in the provided matrix or vector,</span>
+<span class="sd">    producing non-linear values, depending on the selected pool of functions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xreg : np.ndarray</span>
+<span class="sd">        Vector / matrix containing variables that need to be transformed.</span>
+<span class="sd">    functions : list of str, optional</span>
+<span class="sd">        Vector of names for functions used. Options: &quot;log&quot;, &quot;exp&quot;, &quot;inv&quot;,</span>
+<span class="sd">        &quot;sqrt&quot;, &quot;square&quot;. If None, uses all functions.</span>
+<span class="sd">    silent : bool, default=True</span>
+<span class="sd">        If False, then progress is printed. Otherwise the function</span>
+<span class="sd">        won&#39;t print anything.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Matrix with the transformed and the original variables.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; xreg_transformer(x, functions=[&quot;log&quot;, &quot;sqrt&quot;])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">functions</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">functions</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;exp&quot;</span><span class="p">,</span> <span class="s2">&quot;inv&quot;</span><span class="p">,</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">,</span> <span class="s2">&quot;square&quot;</span><span class="p">]</span>
+
+    <span class="n">valid_funcs</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;exp&quot;</span><span class="p">,</span> <span class="s2">&quot;inv&quot;</span><span class="p">,</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">,</span> <span class="s2">&quot;square&quot;</span><span class="p">]</span>
+    <span class="n">functions</span> <span class="o">=</span> <span class="p">[</span><span class="n">f</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">functions</span> <span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">valid_funcs</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;functions parameter does not contain any valid function name. &quot;</span>
+            <span class="s2">&quot;Please provide something from: log, exp, inv, sqrt, square&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">functions</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">functions</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Preparing matrices...    &quot;</span><span class="p">)</span>
+
+    <span class="n">xreg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xreg</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xreg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">xreg</span> <span class="o">=</span> <span class="n">xreg</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">obs</span><span class="p">,</span> <span class="n">n_vars</span> <span class="o">=</span> <span class="n">xreg</span><span class="o">.</span><span class="n">shape</span>
+    <span class="n">n_functions</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">functions</span><span class="p">)</span>
+
+    <span class="n">xreg_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">obs</span><span class="p">,</span> <span class="p">(</span><span class="n">n_functions</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">*</span> <span class="n">n_vars</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
+        <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span>
+        <span class="n">col_start</span> <span class="o">=</span> <span class="n">n_vars</span> <span class="o">+</span> <span class="n">j</span> <span class="o">*</span> <span class="n">n_functions</span>
+
+        <span class="k">for</span> <span class="n">func</span> <span class="ow">in</span> <span class="n">functions</span><span class="p">:</span>
+            <span class="n">func_idx</span> <span class="o">=</span> <span class="n">functions</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+            <span class="n">target_col</span> <span class="o">=</span> <span class="n">col_start</span> <span class="o">+</span> <span class="n">func_idx</span>
+
+            <span class="k">if</span> <span class="n">func</span> <span class="o">==</span> <span class="s2">&quot;log&quot;</span><span class="p">:</span>
+                <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">target_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="mf">1e-10</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s2">&quot;exp&quot;</span><span class="p">:</span>
+                <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">target_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">minimum</span><span class="p">(</span><span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="mi">700</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s2">&quot;inv&quot;</span><span class="p">:</span>
+                <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">target_col</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">+</span> <span class="mf">1e-10</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">:</span>
+                <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">target_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="mi">0</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">func</span> <span class="o">==</span> <span class="s2">&quot;square&quot;</span><span class="p">:</span>
+                <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">target_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span>
+
+    <span class="k">return</span> <span class="n">xreg_new</span></div>
+
+
+
+<div class="viewcode-block" id="xreg_multiplier">
+<a class="viewcode-back" href="../../api/xreg.html#greybox.xreg.xreg_multiplier">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">xreg_multiplier</span><span class="p">(</span><span class="n">xreg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate cross-products of exogenous variables.</span>
+
+<span class="sd">    Function generates the cross-products of the provided exogenous variables.</span>
+<span class="sd">    This might be useful when introducing interactions between dummy and</span>
+<span class="sd">    continuous variables.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xreg : np.ndarray</span>
+<span class="sd">        Matrix containing variables that need to be expanded. Must have</span>
+<span class="sd">        at least two columns.</span>
+<span class="sd">    silent : bool, default=True</span>
+<span class="sd">        If False, then progress is printed. Otherwise the function</span>
+<span class="sd">        won&#39;t print anything.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Matrix with the cross-products and the original variables.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([[1, 2], [3, 4], [5, 6]])</span>
+<span class="sd">    &gt;&gt;&gt; xreg_multiplier(x)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xreg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xreg</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xreg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;xreg must be a matrix with at least 2 columns&quot;</span><span class="p">)</span>
+
+    <span class="n">n_obs</span><span class="p">,</span> <span class="n">n_vars</span> <span class="o">=</span> <span class="n">xreg</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">if</span> <span class="n">n_vars</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;xreg must have at least 2 columns&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Preparing matrices...    &quot;</span><span class="p">)</span>
+
+    <span class="n">n_combinations</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="n">j</span><span class="p">:</span>
+                <span class="n">n_combinations</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">xreg_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">n_combinations</span> <span class="o">+</span> <span class="n">n_vars</span><span class="p">))</span>
+
+    <span class="n">xreg_new</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_vars</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span>
+
+    <span class="n">k</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">n_vars</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="n">j</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">n_vars</span> <span class="o">+</span> <span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">xreg</span><span class="p">[:,</span> <span class="n">j</span><span class="p">]</span>
+            <span class="n">k</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">xreg_new</span></div>
+
+
+
+<div class="viewcode-block" id="xreg_expander">
+<a class="viewcode-back" href="../../api/xreg.html#greybox.xreg.xreg_expander">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">xreg_expander</span><span class="p">(</span>
+    <span class="n">xreg</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">lags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">gaps</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;NAs&quot;</span><span class="p">,</span> <span class="s2">&quot;zero&quot;</span><span class="p">,</span> <span class="s2">&quot;naive&quot;</span><span class="p">,</span> <span class="s2">&quot;extrapolate&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand exogenous variables with lags and leads.</span>
+
+<span class="sd">    Function expands the provided matrix or vector of variables, producing</span>
+<span class="sd">    values with lags and leads specified by lags parameter.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    xreg : np.ndarray</span>
+<span class="sd">        Vector / matrix containing variables that need to be expanded.</span>
+<span class="sd">    lags : list of int, optional</span>
+<span class="sd">        Vector of lags / leads. Negative values mean lags, positive ones</span>
+<span class="sd">        mean leads. If None, uses -1, 0, 1 (seasonal lags if ts object).</span>
+<span class="sd">    silent : bool, default=True</span>
+<span class="sd">        If False, then progress is printed. Otherwise the function</span>
+<span class="sd">        won&#39;t print anything.</span>
+<span class="sd">    gaps : str, default=&quot;auto&quot;</span>
+<span class="sd">        Defines how to fill in the gaps in the data:</span>
+<span class="sd">        - &quot;NAs&quot;: leave missing values</span>
+<span class="sd">        - &quot;zero&quot;: substitute them by zeroes</span>
+<span class="sd">        - &quot;naive&quot;: use the last / first actual value</span>
+<span class="sd">        - &quot;extrapolate&quot;: use linear extrapolation</span>
+<span class="sd">        - &quot;auto&quot;: let the function select between &quot;extrapolate&quot; and &quot;naive&quot;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Matrix with the expanded variables.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; xreg_expander(x, lags=[-1, 0, 1])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">xreg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">xreg</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">xreg</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">xreg</span> <span class="o">=</span> <span class="n">xreg</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">n_obs</span><span class="p">,</span> <span class="n">n_vars</span> <span class="o">=</span> <span class="n">xreg</span><span class="o">.</span><span class="n">shape</span>
+
+    <span class="k">if</span> <span class="n">lags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">lags</span> <span class="o">=</span> <span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]</span>
+
+    <span class="n">lags</span> <span class="o">=</span> <span class="p">[</span><span class="n">lag</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lags</span> <span class="k">if</span> <span class="n">lag</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">xreg</span>
+
+    <span class="n">lags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lags</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Preparing matrices...    &quot;</span><span class="p">)</span>
+
+    <span class="n">total_cols</span> <span class="o">=</span> <span class="n">n_vars</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span>
+    <span class="n">xreg_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">total_cols</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+
+    <span class="n">n_lags</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span>
+    <span class="k">for</span> <span class="n">c_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_vars</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">lag_idx</span><span class="p">,</span> <span class="n">lag</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">lags</span><span class="p">):</span>
+            <span class="n">t_col</span> <span class="o">=</span> <span class="n">c_idx</span> <span class="o">*</span> <span class="n">n_lags</span> <span class="o">+</span> <span class="n">lag_idx</span>
+
+            <span class="k">if</span> <span class="n">lag</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">shift</span> <span class="o">=</span> <span class="nb">abs</span><span class="p">(</span><span class="n">lag</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">shift</span> <span class="o">&lt;</span> <span class="n">n_obs</span><span class="p">:</span>
+                    <span class="n">xreg_new</span><span class="p">[</span><span class="n">shift</span><span class="p">:,</span> <span class="n">t_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span><span class="p">[:</span> <span class="n">n_obs</span> <span class="o">-</span> <span class="n">shift</span><span class="p">,</span> <span class="n">c_idx</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">lag</span> <span class="o">&lt;</span> <span class="n">n_obs</span><span class="p">:</span>
+                    <span class="n">xreg_new</span><span class="p">[:</span> <span class="n">n_obs</span> <span class="o">-</span> <span class="n">lag</span><span class="p">,</span> <span class="n">t_col</span><span class="p">]</span> <span class="o">=</span> <span class="n">xreg</span><span class="p">[</span><span class="n">lag</span><span class="p">:</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">c_idx</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">gaps</span> <span class="o">==</span> <span class="s2">&quot;zero&quot;</span><span class="p">:</span>
+        <span class="n">xreg_new</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan_to_num</span><span class="p">(</span><span class="n">xreg_new</span><span class="p">,</span> <span class="n">nan</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">gaps</span> <span class="o">==</span> <span class="s2">&quot;naive&quot;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">col_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xreg_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">col_idx</span><span class="p">]</span>
+            <span class="n">first_valid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">col</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">first_valid</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">col</span><span class="p">[:</span><span class="n">first_valid</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span><span class="p">[</span><span class="n">first_valid</span><span class="p">]</span>
+            <span class="n">last_valid</span> <span class="o">=</span> <span class="n">n_obs</span> <span class="o">-</span> <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">col</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="k">if</span> <span class="n">last_valid</span> <span class="o">&lt;</span> <span class="n">n_obs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">col</span><span class="p">[</span><span class="n">last_valid</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">col</span><span class="p">[</span><span class="n">last_valid</span><span class="p">]</span>
+            <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">col_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">col</span>
+    <span class="k">elif</span> <span class="n">gaps</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;auto&quot;</span><span class="p">,</span> <span class="s2">&quot;extrapolate&quot;</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">col_idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">xreg_new</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">xreg_new</span><span class="p">[:,</span> <span class="n">col_idx</span><span class="p">]</span>
+            <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">):</span>
+                <span class="n">valid_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">valid_mask</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">valid_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">first_val</span> <span class="o">=</span> <span class="n">col</span><span class="p">[</span><span class="n">valid_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span>
+                    <span class="n">col</span><span class="p">[:</span> <span class="n">valid_indices</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">first_val</span>
+                <span class="k">if</span> <span class="n">valid_indices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">n_obs</span> <span class="o">-</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">last_val</span> <span class="o">=</span> <span class="n">col</span><span class="p">[</span><span class="n">valid_indices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span>
+                    <span class="n">col</span><span class="p">[</span><span class="n">valid_indices</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">last_val</span>
+
+    <span class="k">return</span> <span class="n">xreg_new</span></div>
+
+
+
+<div class="viewcode-block" id="temporal_dummy">
+<a class="viewcode-back" href="../../api/xreg.html#greybox.xreg.temporal_dummy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">temporal_dummy</span><span class="p">(</span>
+    <span class="n">x</span><span class="p">,</span>
+    <span class="n">freq</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">h</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generate dummy variables for temporal data.</span>
+
+<span class="sd">    Function generates dummy variables for months, days, hours, etc.</span>
+<span class="sd">    based on the provided time index.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array-like</span>
+<span class="sd">        Vector of dates or time indices.</span>
+<span class="sd">    freq : int, optional</span>
+<span class="sd">        Frequency of the data. If not provided, attempts to infer.</span>
+<span class="sd">    h : int, default=0</span>
+<span class="sd">        Number of future observations to generate dummies for.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Matrix with dummy variables.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import pandas as pd</span>
+<span class="sd">    &gt;&gt;&gt; dates = pd.date_range(&#39;2020-01-01&#39;, periods=12, freq=&#39;M&#39;)</span>
+<span class="sd">    &gt;&gt;&gt; temporal_dummy(dates, freq=12)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="n">n_obs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">freq</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">freq</span> <span class="o">=</span> <span class="mi">12</span>
+
+    <span class="n">total_obs</span> <span class="o">=</span> <span class="n">n_obs</span> <span class="o">+</span> <span class="n">h</span>
+
+    <span class="k">if</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">12</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_obs</span><span class="p">,</span> <span class="mi">12</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_obs</span><span class="p">):</span>
+            <span class="n">month</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">12</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">month</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dummies</span>
+    <span class="k">elif</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_obs</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_obs</span><span class="p">):</span>
+            <span class="n">quarter</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">4</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">quarter</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dummies</span>
+    <span class="k">elif</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">7</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_obs</span><span class="p">,</span> <span class="mi">7</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_obs</span><span class="p">):</span>
+            <span class="n">day</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">7</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">day</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dummies</span>
+    <span class="k">elif</span> <span class="n">freq</span> <span class="o">==</span> <span class="mi">24</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_obs</span><span class="p">,</span> <span class="mi">24</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_obs</span><span class="p">):</span>
+            <span class="n">hour</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="mi">24</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">hour</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dummies</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">total_obs</span><span class="p">,</span> <span class="n">freq</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">total_obs</span><span class="p">):</span>
+            <span class="n">idx</span> <span class="o">=</span> <span class="n">i</span> <span class="o">%</span> <span class="n">freq</span>
+            <span class="n">dummies</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">return</span> <span class="n">dummies</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

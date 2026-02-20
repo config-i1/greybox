@@ -1,0 +1,265 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Xreg &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Transforms" href="transforms.html" />
+    <link rel="prev" title="Measures" href="measures.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Xreg</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.temporal_dummy"><code class="docutils literal notranslate"><span class="pre">temporal_dummy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.xreg_expander"><code class="docutils literal notranslate"><span class="pre">xreg_expander()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.xreg_multiplier"><code class="docutils literal notranslate"><span class="pre">xreg_multiplier()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.xreg_transformer"><code class="docutils literal notranslate"><span class="pre">xreg_transformer()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Xreg</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/xreg.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-greybox.xreg">
+<span id="xreg"></span><h1>Xreg<a class="headerlink" href="#module-greybox.xreg" title="Link to this heading"></a></h1>
+<p>Exogenous variables manipulation functions.</p>
+<p>This module provides functions for transforming and expanding exogenous
+variables for use in regression models.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.temporal_dummy">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">temporal_dummy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#temporal_dummy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.temporal_dummy" title="Link to this definition"></a></dt>
+<dd><p>Generate dummy variables for temporal data.</p>
+<p>Function generates dummy variables for months, days, hours, etc.
+based on the provided time index.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em>) – Vector of dates or time indices.</p></li>
+<li><p><strong>freq</strong> (<em>int</em><em>, </em><em>optional</em>) – Frequency of the data. If not provided, attempts to infer.</p></li>
+<li><p><strong>h</strong> (<em>int</em><em>, </em><em>default=0</em>) – Number of future observations to generate dummies for.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Matrix with dummy variables.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">dates</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">date_range</span><span class="p">(</span><span class="s1">&#39;2020-01-01&#39;</span><span class="p">,</span> <span class="n">periods</span><span class="o">=</span><span class="mi">12</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="s1">&#39;M&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">temporal_dummy</span><span class="p">(</span><span class="n">dates</span><span class="p">,</span> <span class="n">freq</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.xreg_expander">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">xreg_expander</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xreg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'auto'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NAs'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'zero'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'naive'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'extrapolate'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#xreg_expander"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.xreg_expander" title="Link to this definition"></a></dt>
+<dd><p>Expand exogenous variables with lags and leads.</p>
+<p>Function expands the provided matrix or vector of variables, producing
+values with lags and leads specified by lags parameter.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xreg</strong> (<em>np.ndarray</em>) – Vector / matrix containing variables that need to be expanded.</p></li>
+<li><p><strong>lags</strong> (<em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Vector of lags / leads. Negative values mean lags, positive ones
+mean leads. If None, uses -1, 0, 1 (seasonal lags if ts object).</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed. Otherwise the function
+won’t print anything.</p></li>
+<li><p><strong>gaps</strong> (<em>str</em><em>, </em><em>default=&quot;auto&quot;</em>) – Defines how to fill in the gaps in the data:
+- “NAs”: leave missing values
+- “zero”: substitute them by zeroes
+- “naive”: use the last / first actual value
+- “extrapolate”: use linear extrapolation
+- “auto”: let the function select between “extrapolate” and “naive”</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Matrix with the expanded variables.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xreg_expander</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.xreg_multiplier">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">xreg_multiplier</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xreg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#xreg_multiplier"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.xreg_multiplier" title="Link to this definition"></a></dt>
+<dd><p>Generate cross-products of exogenous variables.</p>
+<p>Function generates the cross-products of the provided exogenous variables.
+This might be useful when introducing interactions between dummy and
+continuous variables.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xreg</strong> (<em>np.ndarray</em>) – Matrix containing variables that need to be expanded. Must have
+at least two columns.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed. Otherwise the function
+won’t print anything.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Matrix with the cross-products and the original variables.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xreg_multiplier</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.xreg_transformer">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">xreg_transformer</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">xreg</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">functions</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#xreg_transformer"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.xreg_transformer" title="Link to this definition"></a></dt>
+<dd><p>Transform exogenous variables.</p>
+<p>Function transforms each variable in the provided matrix or vector,
+producing non-linear values, depending on the selected pool of functions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>xreg</strong> (<em>np.ndarray</em>) – Vector / matrix containing variables that need to be transformed.</p></li>
+<li><p><strong>functions</strong> (<em>list</em><em> of </em><em>str</em><em>, </em><em>optional</em>) – Vector of names for functions used. Options: “log”, “exp”, “inv”,
+“sqrt”, “square”. If None, uses all functions.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed. Otherwise the function
+won’t print anything.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Matrix with the transformed and the original variables.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">xreg_transformer</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">functions</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;log&quot;</span><span class="p">,</span> <span class="s2">&quot;sqrt&quot;</span><span class="p">])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="measures.html" class="btn btn-neutral float-left" title="Measures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="transforms.html" class="btn btn-neutral float-right" title="Transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,681 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.formula &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.formula</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.formula</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Formula parser for greybox models.</span>
+
+<span class="sd">This module provides formula parsing functionality similar to R&#39;s formula system.</span>
+<span class="sd">Users can call the formula function to get X (design matrix) and y, then pass</span>
+<span class="sd">them to the model fit method.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">re</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="n">TRANSFORMATIONS</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
+    <span class="s2">&quot;log10&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">,</span>
+    <span class="s2">&quot;log2&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log2</span><span class="p">,</span>
+    <span class="s2">&quot;sqrt&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">,</span>
+    <span class="s2">&quot;exp&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span>
+    <span class="s2">&quot;abs&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">,</span>
+    <span class="s2">&quot;sin&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">,</span>
+    <span class="s2">&quot;cos&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">cos</span><span class="p">,</span>
+    <span class="s2">&quot;tan&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">tan</span><span class="p">,</span>
+<span class="p">}</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_caller_globals</span><span class="p">():</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Get globals from the caller&#39;s caller (the user&#39;s code).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Global namespace from the user&#39;s code.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">frame</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">currentframe</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">caller_frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">f_back</span><span class="o">.</span><span class="n">f_back</span>
+        <span class="k">if</span> <span class="n">caller_frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">caller_frame</span><span class="o">.</span><span class="n">f_globals</span>
+        <span class="k">return</span> <span class="p">{}</span>
+    <span class="k">finally</span><span class="p">:</span>
+        <span class="k">del</span> <span class="n">frame</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_transformation</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">caller_globals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse a term to check if it contains a transformation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    term : str</span>
+<span class="sd">        Term to parse, e.g., &quot;log(x)&quot;, &quot;x^2&quot;, &quot;I(x+y)&quot;</span>
+<span class="sd">    caller_globals : dict, optional</span>
+<span class="sd">        Global namespace from user&#39;s code to resolve custom functions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple : (transformation, variable, is_protected)</span>
+<span class="sd">        - transformation: str or None (e.g., &quot;log&quot;, &quot;sqrt&quot;, &quot;^2&quot;)</span>
+<span class="sd">        - variable: str (the base variable name)</span>
+<span class="sd">        - is_protected: bool (True if wrapped in I())</span>
+
+<span class="sd">    Raises</span>
+<span class="sd">    ------</span>
+<span class="sd">    ValueError</span>
+<span class="sd">        If the term looks like a function call but the function is not defined.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">term</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;I(&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">term</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="n">term</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;I&quot;</span><span class="p">,</span> <span class="n">inner</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">func_name</span><span class="si">}</span><span class="se">\\</span><span class="s2">(([^)]+)</span><span class="se">\\</span><span class="s2">)&quot;</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="n">func_pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;^([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]+)\)$&quot;</span>
+    <span class="n">func_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">func_pattern</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">func_match</span><span class="p">:</span>
+        <span class="n">func_name</span> <span class="o">=</span> <span class="n">func_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">func_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">caller_globals</span> <span class="ow">and</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">caller_globals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">callable</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">[</span><span class="n">func_name</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">func_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;&#39;</span><span class="si">{</span><span class="n">func_name</span><span class="si">}</span><span class="s2">&#39; is not a callable function&quot;</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;Unknown function &#39;</span><span class="si">{</span><span class="n">func_name</span><span class="si">}</span><span class="s2">&#39; in transformation &#39;</span><span class="si">{</span><span class="n">term</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Either use a built-in transformation (log, sqrt, exp, etc.) &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;or make sure &#39;</span><span class="si">{</span><span class="n">func_name</span><span class="si">}</span><span class="s2">&#39; is defined or imported in your global scope.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">caller_globals</span><span class="p">:</span>
+        <span class="n">pattern</span> <span class="o">=</span> <span class="sa">r</span><span class="s2">&quot;([a-zA-Z_][a-zA-Z0-9_]*)\(([^)]+)\)&quot;</span>
+        <span class="n">match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="n">pattern</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">match</span><span class="p">:</span>
+            <span class="n">func_name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">func_name</span> <span class="ow">in</span> <span class="n">caller_globals</span> <span class="ow">and</span> <span class="nb">callable</span><span class="p">(</span><span class="n">caller_globals</span><span class="p">[</span><span class="n">func_name</span><span class="p">]):</span>
+                <span class="k">return</span> <span class="p">(</span><span class="n">func_name</span><span class="p">,</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="s2">&quot;^&quot;</span> <span class="ow">in</span> <span class="n">term</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">power</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">())</span>
+                <span class="k">return</span> <span class="p">(</span><span class="sa">f</span><span class="s2">&quot;^ </span><span class="si">{</span><span class="n">power</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="kc">False</span><span class="p">)</span>
+            <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                <span class="k">pass</span>
+
+    <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">term</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_apply_transformation</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">n_obs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply transformation to a variable.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    var_name : str</span>
+<span class="sd">        Variable name, possibly with transformation (e.g., &quot;log(x)&quot;, &quot;x^2&quot;)</span>
+<span class="sd">    data_dict : dict</span>
+<span class="sd">        Data dictionary.</span>
+<span class="sd">    n_obs : int</span>
+<span class="sd">        Number of observations.</span>
+<span class="sd">    caller_globals : dict, optional</span>
+<span class="sd">        Global namespace from user&#39;s code to resolve custom functions.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    np.ndarray</span>
+<span class="sd">        Transformed variable values.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">caller_globals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">caller_globals</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">is_protected</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">transform</span> <span class="o">==</span> <span class="s2">&quot;I&quot;</span><span class="p">:</span>
+        <span class="n">inner_transform</span><span class="p">,</span> <span class="n">inner_base</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">base_var</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inner_base</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="n">base_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">inner_base</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variable &#39;</span><span class="si">{</span><span class="n">inner_base</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">inner_transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">base_data</span>
+        <span class="k">if</span> <span class="n">inner_transform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">):</span>
+            <span class="n">power</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">inner_transform</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">return</span> <span class="n">base_data</span><span class="o">**</span><span class="n">power</span>
+        <span class="k">if</span> <span class="n">inner_transform</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">TRANSFORMATIONS</span><span class="p">[</span><span class="n">inner_transform</span><span class="p">](</span><span class="n">base_data</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">inner_transform</span> <span class="ow">in</span> <span class="n">caller_globals</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">caller_globals</span><span class="p">[</span><span class="n">inner_transform</span><span class="p">](</span><span class="n">base_data</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">base_data</span>
+
+    <span class="k">if</span> <span class="n">base_var</span> <span class="o">==</span> <span class="s2">&quot;trend&quot;</span><span class="p">:</span>
+        <span class="k">if</span> <span class="s2">&quot;trend&quot;</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="n">base_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;trend&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">base_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_obs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">base_var</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+        <span class="n">base_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">base_var</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Variable &#39;</span><span class="si">{</span><span class="n">base_var</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">base_data</span>
+
+    <span class="k">if</span> <span class="n">transform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">):</span>
+        <span class="n">power</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">base_data</span><span class="o">**</span><span class="n">power</span>
+
+    <span class="k">if</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">TRANSFORMATIONS</span><span class="p">[</span><span class="n">transform</span><span class="p">](</span><span class="n">base_data</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">caller_globals</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">caller_globals</span><span class="p">[</span><span class="n">transform</span><span class="p">](</span><span class="n">base_data</span><span class="p">)</span>
+
+    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+        <span class="sa">f</span><span class="s2">&quot;Unknown transformation: &#39;</span><span class="si">{</span><span class="n">transform</span><span class="si">}</span><span class="s2">&#39;. &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;If &#39;</span><span class="si">{</span><span class="n">transform</span><span class="si">}</span><span class="s2">&#39; is a function you defined or imported, &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;make sure it is available in the global scope where formula() &quot;</span>
+        <span class="sa">f</span><span class="s2">&quot;is called.&quot;</span>
+    <span class="p">)</span>
+
+
+<div class="viewcode-block" id="formula">
+<a class="viewcode-back" href="../../api/formula.html#greybox.formula.formula">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">formula</span><span class="p">(</span><span class="n">formula_str</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">return_type</span><span class="o">=</span><span class="s2">&quot;both&quot;</span><span class="p">,</span> <span class="n">as_dataframe</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse formula string and return design matrix and/or response.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    formula_str : str</span>
+<span class="sd">        Formula string in R-style, e.g., &quot;y ~ x1 + x2&quot; or &quot;~ x1 + x2&quot; (no y).</span>
+<span class="sd">        Supports transformations: log(x), sqrt(x), x^2, etc.</span>
+<span class="sd">        Use I() to protect expressions: I(x^2)</span>
+<span class="sd">    data : dict or DataFrame</span>
+<span class="sd">        Data containing variables. Can be dict, DataFrame, or dict of arrays.</span>
+<span class="sd">    return_type : str, optional</span>
+<span class="sd">        What to return: &quot;both&quot; (default), &quot;X&quot;, &quot;y&quot;, or &quot;terms&quot;.</span>
+<span class="sd">    as_dataframe : bool, optional</span>
+<span class="sd">        If True, return pandas DataFrames instead of numpy arrays.</span>
+<span class="sd">        This preserves variable names in column names. Default is True.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Depends on return_type and as_dataframe:</span>
+<span class="sd">        - &quot;both&quot;: tuple (y, X) where y is 1D array (or DataFrame)</span>
+<span class="sd">          and X is 2D array (or DataFrame) with intercept</span>
+<span class="sd">        - &quot;X&quot;: design matrix only (or DataFrame if as_dataframe=True)</span>
+<span class="sd">        - &quot;y&quot;: response only (or DataFrame if as_dataframe=True)</span>
+<span class="sd">        - &quot;terms&quot;: list of term names</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x1&#39;: [4, 5, 6], &#39;x2&#39;: [7, 8, 9]}</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ x1 + x2&quot;, data)</span>
+<span class="sd">    &gt;&gt;&gt; X_no_intercept = formula(&quot;~ x1 + x2&quot;, data, return_type=&quot;X&quot;)</span>
+
+<span class="sd">    &gt;&gt;&gt; # With transformations</span>
+<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [1, 2, 3]}</span>
+<span class="sd">    &gt;&gt;&gt; # y is log-transformed, X has x and x^2</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;log(y) ~ x + x^2&quot;, data)</span>
+
+<span class="sd">    &gt;&gt;&gt; # Return as DataFrames with column names</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ x1 + x2&quot;, data, as_dataframe=True)</span>
+<span class="sd">    &gt;&gt;&gt; print(X.columns)  # [&#39;(Intercept)&#39;, &#39;x1&#39;, &#39;x2&#39;]</span>
+
+<span class="sd">    &gt;&gt;&gt; # With custom functions (defined or imported in your global scope)</span>
+<span class="sd">    &gt;&gt;&gt; def my_transform(x):</span>
+<span class="sd">    ...     return x * 2</span>
+<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [1, 2, 3]}</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ my_transform(x)&quot;, data)</span>
+
+<span class="sd">    &gt;&gt;&gt; # With imported functions (e.g., from scipy)</span>
+<span class="sd">    &gt;&gt;&gt; from scipy.special import erfc</span>
+<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [0.5, 1.0, 1.5]}</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ erfc(x)&quot;, data)</span>
+
+<span class="sd">    &gt;&gt;&gt; # Custom function on LHS (response variable)</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;my_transform(y) ~ x&quot;, data)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">has_response</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">lhs</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">):</span>
+        <span class="n">has_response</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="s2">&quot;~&quot;</span> <span class="ow">in</span> <span class="n">formula_str</span><span class="p">:</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">lhs</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">lhs</span><span class="p">:</span>
+            <span class="n">has_response</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">has_response</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">formula_str</span><span class="p">:</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="s2">&quot;1&quot;</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">data_dict</span> <span class="o">=</span> <span class="n">data</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">data_dict</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data must be dict or DataFrame&quot;</span><span class="p">)</span>
+
+    <span class="n">caller_globals</span> <span class="o">=</span> <span class="n">_get_caller_globals</span><span class="p">()</span>
+
+    <span class="c1"># Handle &quot;.&quot; as &quot;use all variables&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">formula_str</span><span class="p">:</span>
+        <span class="c1"># Get all variables from data</span>
+        <span class="n">all_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+
+        <span class="c1"># Get response variable from LHS if present</span>
+        <span class="n">response_var</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">lhs</span><span class="p">:</span>
+            <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+            <span class="n">response_var</span> <span class="o">=</span> <span class="n">base_var</span>
+            <span class="k">if</span> <span class="n">response_var</span> <span class="ow">and</span> <span class="n">response_var</span> <span class="ow">in</span> <span class="n">all_vars</span><span class="p">:</span>
+                <span class="n">all_vars</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">response_var</span><span class="p">)</span>
+
+        <span class="c1"># Parse the formula string to find explicit inclusions and exclusions</span>
+        <span class="c1"># Handle transformations: log(wt), sqrt(x), etc.</span>
+        <span class="n">excluded_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="n">mentioned_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># Normalize the formula string: replace &quot;-&quot; with &quot; - &quot; and &quot;+&quot; with &quot; + &quot;</span>
+        <span class="n">formula_for_parsing</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="n">formula_for_parsing</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+        <span class="c1"># First pass: identify excluded and mentioned variables</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">):</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="c1"># Next token is excluded</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+                    <span class="n">excluded_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">excluded_token</span><span class="p">:</span>
+                        <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span>
+                            <span class="n">excluded_token</span><span class="p">,</span> <span class="n">caller_globals</span>
+                        <span class="p">)</span>
+                        <span class="n">excluded_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base_var</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="c1"># This is a term - extract base variable</span>
+            <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+            <span class="n">mentioned_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base_var</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Remove excluded vars from all_vars</span>
+        <span class="n">all_vars</span> <span class="o">=</span> <span class="n">all_vars</span> <span class="o">-</span> <span class="n">excluded_vars</span>
+
+        <span class="c1"># Remove mentioned vars from all_vars (they&#39;re already in the formula)</span>
+        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">mentioned_vars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">all_vars</span><span class="p">:</span>
+                <span class="n">all_vars</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
+
+        <span class="c1"># Build the new formula string</span>
+        <span class="c1"># Collect original terms (without &quot;.&quot;) from tokens</span>
+        <span class="n">original_terms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="c1"># Skip empty tokens and &quot;.&quot;</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="c1"># Handle &quot;-&quot; by skipping it and the next variable</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>  <span class="c1"># Skip &quot;-&quot; and the following variable</span>
+                <span class="k">continue</span>
+            <span class="c1"># Skip standalone &quot;+&quot;</span>
+            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="c1"># This is a term to include</span>
+            <span class="n">original_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="c1"># Add remaining variables from data</span>
+        <span class="n">remaining_vars</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">all_vars</span><span class="p">))</span>
+        <span class="n">original_terms</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">remaining_vars</span><span class="p">)</span>
+
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">original_terms</span><span class="p">)</span>
+
+    <span class="n">terms</span> <span class="o">=</span> <span class="n">_parse_formula_terms</span><span class="p">(</span><span class="n">formula_str</span><span class="p">)</span>
+    <span class="n">rhs_terms</span> <span class="o">=</span> <span class="n">terms</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="n">n_obs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="nb">next</span><span class="p">(</span><span class="nb">iter</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span>
+
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;terms&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">terms</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">has_response</span> <span class="ow">and</span> <span class="n">lhs</span><span class="p">:</span>
+        <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">is_protected</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">is_protected</span><span class="p">:</span>
+            <span class="n">inner_transform</span><span class="p">,</span> <span class="n">inner_base</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span>
+                <span class="n">base_var</span><span class="p">,</span> <span class="n">caller_globals</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="n">inner_transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="c1"># I(sqrt(y)) or I(y^2) - use the inner base variable</span>
+                <span class="k">if</span> <span class="n">inner_base</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Response variable &#39;</span><span class="si">{</span><span class="n">inner_base</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">inner_base</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">inner_transform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">):</span>
+                    <span class="n">power</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">inner_transform</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">y_data</span><span class="o">**</span><span class="n">power</span>
+                <span class="k">elif</span> <span class="n">inner_transform</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="p">:</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">TRANSFORMATIONS</span><span class="p">[</span><span class="n">inner_transform</span><span class="p">](</span><span class="n">y_data</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">inner_transform</span> <span class="ow">in</span> <span class="n">caller_globals</span><span class="p">:</span>
+                    <span class="n">y</span> <span class="o">=</span> <span class="n">caller_globals</span><span class="p">[</span><span class="n">inner_transform</span><span class="p">](</span><span class="n">y_data</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Just I(y) - use y directly</span>
+                <span class="k">if</span> <span class="n">base_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                        <span class="sa">f</span><span class="s2">&quot;Response variable &#39;</span><span class="si">{</span><span class="n">base_var</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span>
+                    <span class="p">)</span>
+                <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">base_var</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">y_data</span>
+        <span class="k">elif</span> <span class="n">transform</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">base_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response variable &#39;</span><span class="si">{</span><span class="n">base_var</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span><span class="p">)</span>
+            <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">base_var</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">transform</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">y_data</span>
+            <span class="k">elif</span> <span class="n">transform</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;^&quot;</span><span class="p">):</span>
+                <span class="n">power</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">transform</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">1</span><span class="p">])</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">y_data</span><span class="o">**</span><span class="n">power</span>
+            <span class="k">elif</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">TRANSFORMATIONS</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">TRANSFORMATIONS</span><span class="p">[</span><span class="n">transform</span><span class="p">](</span><span class="n">y_data</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="n">transform</span> <span class="ow">in</span> <span class="n">caller_globals</span><span class="p">:</span>
+                <span class="n">y</span> <span class="o">=</span> <span class="n">caller_globals</span><span class="p">[</span><span class="n">transform</span><span class="p">](</span><span class="n">y_data</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">lhs</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Response variable &#39;</span><span class="si">{</span><span class="n">lhs</span><span class="si">}</span><span class="s2">&#39; not found in data&quot;</span><span class="p">)</span>
+            <span class="n">y_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">lhs</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">y_data</span>
+
+        <span class="n">terms</span> <span class="o">=</span> <span class="n">rhs_terms</span>
+
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">y</span>
+
+    <span class="n">X_columns</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">var_names</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">intercept_added</span> <span class="o">=</span> <span class="kc">False</span>
+
+    <span class="k">for</span> <span class="n">term</span> <span class="ow">in</span> <span class="n">terms</span><span class="p">:</span>
+        <span class="n">term</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">term</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">term</span> <span class="o">==</span> <span class="s2">&quot;1&quot;</span> <span class="ow">or</span> <span class="n">term</span> <span class="o">==</span> <span class="s2">&quot;intercept&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">intercept_added</span><span class="p">:</span>
+                <span class="n">X_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_obs</span><span class="p">))</span>
+                <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;(Intercept)&quot;</span><span class="p">)</span>
+                <span class="n">intercept_added</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">continue</span>
+
+        <span class="k">if</span> <span class="n">term</span> <span class="o">==</span> <span class="s2">&quot;trend&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="s2">&quot;trend&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+                <span class="n">X_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_obs</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">X_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="s2">&quot;trend&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">))</span>
+            <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;trend&quot;</span><span class="p">)</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># Use the full term as the variable name (preserves transformations)</span>
+        <span class="n">var_name</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">var_name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">):</span>
+            <span class="n">var_name</span> <span class="o">=</span> <span class="n">var_name</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">col</span> <span class="o">=</span> <span class="n">_apply_transformation</span><span class="p">(</span><span class="n">term</span><span class="p">,</span> <span class="n">data_dict</span><span class="p">,</span> <span class="n">n_obs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+            <span class="n">X_columns</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">col</span><span class="p">)</span>
+            <span class="n">var_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">var_name</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">raise</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">intercept_added</span><span class="p">:</span>
+        <span class="n">X_columns</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">n_obs</span><span class="p">))</span>
+        <span class="n">var_names</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;(Intercept)&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">X_columns</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">n_obs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">(</span><span class="n">X_columns</span><span class="p">)</span>
+
+    <span class="n">coef_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">n</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">var_names</span> <span class="k">if</span> <span class="n">n</span> <span class="o">!=</span> <span class="s2">&quot;(Intercept)&quot;</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">as_dataframe</span><span class="p">:</span>
+        <span class="n">X_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">var_names</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">X_df</span>
+        <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;variables&quot;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">coef_names</span>
+
+        <span class="n">y_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">has_response</span> <span class="ow">and</span> <span class="n">lhs</span><span class="p">:</span>
+            <span class="n">y_name</span> <span class="o">=</span> <span class="n">lhs</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">if</span> <span class="n">lhs</span> <span class="k">else</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">y_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">y_name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">y</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">y_df</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y_df</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">return</span> <span class="n">y_df</span><span class="p">,</span> <span class="n">X_df</span>
+
+    <span class="k">if</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;X&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">X</span>
+    <span class="k">elif</span> <span class="n">return_type</span> <span class="o">==</span> <span class="s2">&quot;variables&quot;</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">coef_names</span>
+
+    <span class="k">return</span> <span class="n">y</span><span class="p">,</span> <span class="n">X</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_formula_terms</span><span class="p">(</span><span class="n">formula_str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse formula string into list of terms.&quot;&quot;&quot;</span>
+    <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">)</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot; * &quot;</span><span class="p">)</span>
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot; : &quot;</span><span class="p">)</span>
+
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+
+    <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+        <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;&quot;</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+            <span class="n">next_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">next_token</span><span class="p">:</span>
+                <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;-&quot;</span> <span class="o">+</span> <span class="n">next_token</span><span class="p">)</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;*&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+                <span class="n">prev_term</span> <span class="o">=</span> <span class="n">terms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">next_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">next_token</span> <span class="ow">and</span> <span class="n">next_token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                    <span class="n">terms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_term</span> <span class="o">+</span> <span class="s2">&quot; * &quot;</span> <span class="o">+</span> <span class="n">next_token</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+                    <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;:&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">terms</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
+                <span class="n">prev_term</span> <span class="o">=</span> <span class="n">terms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">next_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">next_token</span> <span class="ow">and</span> <span class="n">next_token</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">):</span>
+                    <span class="n">terms</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">prev_term</span> <span class="o">+</span> <span class="s2">&quot; : &quot;</span> <span class="o">+</span> <span class="n">next_token</span>
+                    <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>
+                    <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">token</span><span class="p">:</span>
+            <span class="n">terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
+        <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">return</span> <span class="n">terms</span>
+
+
+<div class="viewcode-block" id="expand_formula">
+<a class="viewcode-back" href="../../api/formula.html#greybox.formula.expand_formula">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">expand_formula</span><span class="p">(</span><span class="n">formula_str</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Expand formula with interaction terms.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    formula_str : str</span>
+<span class="sd">        Formula string, e.g., &quot;y ~ x1 * x2&quot;</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    str</span>
+<span class="sd">        Expanded formula with explicit interaction terms.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="s2">&quot;~&quot;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">formula_str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">formula_str</span>
+
+    <span class="n">lhs</span><span class="p">,</span> <span class="n">rhs</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;~&quot;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="n">rhs</span> <span class="o">=</span> <span class="n">rhs</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="n">rhs</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;(\w+)\s*\*\s*(\w+)&quot;</span><span class="p">,</span> <span class="sa">r</span><span class="s2">&quot;\1 + \2 + \1:\2&quot;</span><span class="p">,</span> <span class="n">rhs</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">lhs</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="si">}</span><span class="s2"> ~ </span><span class="si">{</span><span class="n">rhs</span><span class="si">}</span><span class="s2">&quot;</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

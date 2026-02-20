@@ -1,0 +1,656 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Selection &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Measures" href="measures.html" />
+    <link rel="prev" title="Formula" href="formula.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Selection</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.CALM"><code class="docutils literal notranslate"><span class="pre">CALM()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.LmCombineResult"><code class="docutils literal notranslate"><span class="pre">LmCombineResult</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.actuals"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.actuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.aic"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.aic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.aicc"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.aicc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.bic"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.bic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.bicc"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.bicc</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.coef"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.coef</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.coefficients"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.coefficients</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.confint"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.confint()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.data"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.data</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.df_residual_"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.df_residual_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.distribution_"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.distribution_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.fitted"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.fitted</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.formula"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.formula</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.intercept_"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.intercept_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.keys"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.keys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.log_lik"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.log_lik</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.loglik"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.loglik</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.loss_"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.loss_</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.loss_value"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.loss_value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.n_param"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.n_param</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.nobs"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.nobs</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.nparam"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.nparam</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.predict"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.predict()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.residuals"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.residuals</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.score"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.score()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.sigma"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.sigma</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.summary"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.summary()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.time_elapsed"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.time_elapsed</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.LmCombineResult.vcov"><code class="docutils literal notranslate"><span class="pre">LmCombineResult.vcov()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.LmCombineSummary"><code class="docutils literal notranslate"><span class="pre">LmCombineSummary</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.ModelInfo"><code class="docutils literal notranslate"><span class="pre">ModelInfo</span></code></a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.clear"><code class="docutils literal notranslate"><span class="pre">ModelInfo.clear()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.coef"><code class="docutils literal notranslate"><span class="pre">ModelInfo.coef</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.copy"><code class="docutils literal notranslate"><span class="pre">ModelInfo.copy()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.fromkeys"><code class="docutils literal notranslate"><span class="pre">ModelInfo.fromkeys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.get"><code class="docutils literal notranslate"><span class="pre">ModelInfo.get()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.ic"><code class="docutils literal notranslate"><span class="pre">ModelInfo.ic</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.items"><code class="docutils literal notranslate"><span class="pre">ModelInfo.items()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.keys"><code class="docutils literal notranslate"><span class="pre">ModelInfo.keys()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.model"><code class="docutils literal notranslate"><span class="pre">ModelInfo.model</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.pop"><code class="docutils literal notranslate"><span class="pre">ModelInfo.pop()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.popitem"><code class="docutils literal notranslate"><span class="pre">ModelInfo.popitem()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.setdefault"><code class="docutils literal notranslate"><span class="pre">ModelInfo.setdefault()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.update"><code class="docutils literal notranslate"><span class="pre">ModelInfo.update()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.values"><code class="docutils literal notranslate"><span class="pre">ModelInfo.values()</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.vars"><code class="docutils literal notranslate"><span class="pre">ModelInfo.vars</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.lm_combine"><code class="docutils literal notranslate"><span class="pre">lm_combine()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.stepwise"><code class="docutils literal notranslate"><span class="pre">stepwise()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Selection</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/selection.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-greybox.selection">
+<span id="selection"></span><h1>Selection<a class="headerlink" href="#module-greybox.selection" title="Link to this heading"></a></h1>
+<p>Model selection and combination functions.</p>
+<p>This module provides functions for stepwise regression, model combination,
+and forecasting accuracy measures.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.selection.CALM">
+<span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">CALM</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'AICc'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'AIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BICc'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bruteforce</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dnorm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.selection.LmCombineResult" title="greybox.selection.LmCombineResult"><span class="pre">LmCombineResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#CALM"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.CALM" title="Link to this definition"></a></dt>
+<dd><p>Combine ALM models based on information criteria.</p>
+<p>Function combines parameters of linear regressions of the first variable
+on all the other provided data. The algorithm uses ALM to fit different
+models and then combines the models based on the selected IC.</p>
+<p>Parameters not present in some models are assumed to be zero, creating
+a shrinkage effect in the combination.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>DataFrame</em>) – Data frame containing dependent variable in the first column and
+the others in the rest.</p></li>
+<li><p><strong>ic</strong> (<em>{&quot;AICc&quot;</em><em>, </em><em>&quot;AIC&quot;</em><em>, </em><em>&quot;BIC&quot;</em><em>, </em><em>&quot;BICc&quot;}</em><em>, </em><em>default=&quot;AICc&quot;</em>) – Information criterion to use.</p></li>
+<li><p><strong>bruteforce</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If True, all possible models are generated and combined.
+Otherwise the best model is found via stepwise, then if &lt;14
+parameters recurses with bruteforce on selected vars, else
+does stress-testing (best +/- single vars).</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed.</p></li>
+<li><p><strong>distribution</strong> (<em>str</em><em>, </em><em>default=&quot;dnorm&quot;</em>) – Distribution to use for the ALM model.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments passed to ALM().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing:
+- coefficients: combined parameters
+- vcov: combined variance-covariance matrix
+- fitted: fitted values (on original scale)
+- residuals: residuals (distribution-specific)
+- mu: location parameter
+- scale: scale parameter
+- distribution: distribution used
+- log_lik: combined log-likelihood
+- IC: combined information criterion value
+- IC_type: type of IC used
+- df_residual: residual degrees of freedom
+- df: model degrees of freedom
+- importance: importance of each parameter
+- combination: matrix of model combinations with weights/ICs
+- coefficient_names: names of coefficients
+- time_elapsed: computation time in seconds</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">CALM</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">LmCombineResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of CALM, with print and summary support.</p>
+<p>Supports dict-like access for backwards compatibility and
+ALM-compatible interface (predict, score, confint, properties).</p>
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.actuals">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">actuals</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.actuals" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.aic">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">aic</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.aic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.aicc">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">aicc</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.aicc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.bic">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">bic</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.bic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.bicc">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">bicc</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.bicc" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.coef">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coef</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.coef" title="Link to this definition"></a></dt>
+<dd><p>Slope coefficients (excluding intercept).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.coefficients">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">coefficients</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.coefficients" title="Link to this definition"></a></dt>
+<dd><p>Combined coefficients.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.confint">
+<span class="sig-name descname"><span class="pre">confint</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">int</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.confint"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.confint" title="Link to this definition"></a></dt>
+<dd><p>Confidence intervals for parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parm</strong> (<em>int</em><em> or </em><em>list</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Which parameters to include. If None, all.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.95</em>) – Confidence level.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Shape (n_params, 2) with lower and upper bounds.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.data">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">data</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.data" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.df_residual_">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">df_residual_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.df_residual_" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.distribution_">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">distribution_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.distribution_" title="Link to this definition"></a></dt>
+<dd><p>Distribution name (ADAM convention with trailing _).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.fitted">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fitted</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.fitted" title="Link to this definition"></a></dt>
+<dd><p>Fitted values.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.formula">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">formula</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.formula" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.intercept_">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">intercept_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.intercept_" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.keys"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.keys" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.log_lik">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">log_lik</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.log_lik" title="Link to this definition"></a></dt>
+<dd><p>Combined log-likelihood.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.loglik">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">loglik</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.loglik" title="Link to this definition"></a></dt>
+<dd><p>Log-likelihood (ADAM-compatible name).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.loss_">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">loss_</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">str</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.loss_" title="Link to this definition"></a></dt>
+<dd><p>Loss function name (ADAM convention with trailing _).</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.loss_value">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">loss_value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.loss_value" title="Link to this definition"></a></dt>
+<dd><p>Loss function value.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.n_param">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">n_param</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">dict</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.n_param" title="Link to this definition"></a></dt>
+<dd><p>Parameter count information.</p>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.nobs">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nobs</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">int</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.nobs" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.nparam">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">nparam</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.nparam" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.predict">
+<span class="sig-name descname"><span class="pre">predict</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">interval</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">float</span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">side</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'both'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="alm.html#greybox.alm.PredictionResult" title="greybox.alm.PredictionResult"><span class="pre">PredictionResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.predict"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.predict" title="Link to this definition"></a></dt>
+<dd><p>Predict using the combined model.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em><em>, </em><em>dict</em><em>, </em><em>DataFrame</em><em>, or </em><em>None</em>) – Design matrix (with intercept column), dict/DataFrame of new data,
+or None to return training fitted values.</p></li>
+<li><p><strong>interval</strong> (<em>str</em><em>, </em><em>default=&quot;none&quot;</em>) – “none”, “confidence”, or “prediction”.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em> or </em><em>list</em><em> of </em><em>float</em><em>, </em><em>default=0.95</em>) – Confidence level(s).</p></li>
+<li><p><strong>side</strong> (<em>str</em><em>, </em><em>default=&quot;both&quot;</em>) – “both”, “upper”, or “lower”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="alm.html#greybox.alm.PredictionResult" title="greybox.alm.PredictionResult">PredictionResult</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.residuals">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">residuals</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.residuals" title="Link to this definition"></a></dt>
+<dd><p>Model residuals.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.score">
+<span class="sig-name descname"><span class="pre">score</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">X</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">metric</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'likelihood'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.score"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.score" title="Link to this definition"></a></dt>
+<dd><p>Calculate model score.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>X</strong> (<em>array-like</em>) – Design matrix.</p></li>
+<li><p><strong>y</strong> (<em>array-like</em>) – True values.</p></li>
+<li><p><strong>metric</strong> (<em>str</em><em>, </em><em>default=&quot;likelihood&quot;</em>) – “likelihood”, “MSE”, “MAE”, or “R2”.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>float</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.sigma">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">sigma</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.sigma" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.summary">
+<span class="sig-name descname"><span class="pre">summary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.selection.LmCombineSummary" title="greybox.selection.LmCombineSummary"><span class="pre">LmCombineSummary</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.summary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.summary" title="Link to this definition"></a></dt>
+<dd><p>Summary matching R’s summary.greyboxC.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.95</em>) – Confidence level for intervals.</p>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p><a class="reference internal" href="#greybox.selection.LmCombineSummary" title="greybox.selection.LmCombineSummary">LmCombineSummary</a></p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py property">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.time_elapsed">
+<span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">time_elapsed</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.LmCombineResult.time_elapsed" title="Link to this definition"></a></dt>
+<dd><p>Time elapsed during computation (seconds).</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineResult.vcov">
+<span class="sig-name descname"><span class="pre">vcov</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineResult.vcov"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineResult.vcov" title="Link to this definition"></a></dt>
+<dd><p>Return variance-covariance matrix.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.selection.LmCombineSummary">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">LmCombineSummary</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">coefficients</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">se</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">importance</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_ci</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper_ci</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">coefficient_names</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">n_obs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">nparam</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df_residual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y_variable</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic_type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">aicc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bicc</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/selection.html#LmCombineSummary"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.LmCombineSummary" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Summary of CALM result, matching R’s summary.greyboxC.</p>
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">ModelInfo</span></span><a class="reference internal" href="../_modules/greybox/selection.html#ModelInfo"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.ModelInfo" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">TypedDict</span></code></p>
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.clear">
+<span class="sig-name descname"><span class="pre">clear</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.clear" title="Link to this definition"></a></dt>
+<dd><p>Remove all items from the dict.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.coef">
+<span class="sig-name descname"><span class="pre">coef</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">ndarray</span></span><a class="headerlink" href="#greybox.selection.ModelInfo.coef" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.copy">
+<span class="sig-name descname"><span class="pre">copy</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.copy" title="Link to this definition"></a></dt>
+<dd><p>Return a shallow copy of the dict.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.fromkeys">
+<span class="property"><span class="k"><span class="pre">classmethod</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">fromkeys</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.fromkeys" title="Link to this definition"></a></dt>
+<dd><p>Create a new dictionary with keys from iterable and values set to value.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.get">
+<span class="sig-name descname"><span class="pre">get</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.get" title="Link to this definition"></a></dt>
+<dd><p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.ic">
+<span class="sig-name descname"><span class="pre">ic</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span></span><a class="headerlink" href="#greybox.selection.ModelInfo.ic" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.items">
+<span class="sig-name descname"><span class="pre">items</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.items" title="Link to this definition"></a></dt>
+<dd><p>Return a set-like object providing a view on the dict’s items.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.keys">
+<span class="sig-name descname"><span class="pre">keys</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.keys" title="Link to this definition"></a></dt>
+<dd><p>Return a set-like object providing a view on the dict’s keys.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.model">
+<span class="sig-name descname"><span class="pre">model</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><span class="pre">ALM</span></a></span><a class="headerlink" href="#greybox.selection.ModelInfo.model" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.pop">
+<span class="sig-name descname"><span class="pre">pop</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">k</span></span></em><span class="optional">[</span>, <em class="sig-param"><span class="n"><span class="pre">d</span></span></em><span class="optional">]</span><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">v,</span> <span class="pre">remove</span> <span class="pre">specified</span> <span class="pre">key</span> <span class="pre">and</span> <span class="pre">return</span> <span class="pre">the</span> <span class="pre">corresponding</span> <span class="pre">value.</span></span></span><a class="headerlink" href="#greybox.selection.ModelInfo.pop" title="Link to this definition"></a></dt>
+<dd><p>If the key is not found, return the default if given; otherwise,
+raise a KeyError.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.popitem">
+<span class="sig-name descname"><span class="pre">popitem</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.popitem" title="Link to this definition"></a></dt>
+<dd><p>Remove and return a (key, value) pair as a 2-tuple.</p>
+<p>Pairs are returned in LIFO (last-in, first-out) order.
+Raises KeyError if the dict is empty.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.setdefault">
+<span class="sig-name descname"><span class="pre">setdefault</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">key</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">default</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="positional-only-separator o"><abbr title="Positional-only parameter separator (PEP 570)"><span class="pre">/</span></abbr></span></em><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.setdefault" title="Link to this definition"></a></dt>
+<dd><p>Insert key with a value of default if key is not in the dictionary.</p>
+<p>Return the value for key if key is in the dictionary, else default.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.update">
+<span class="sig-name descname"><span class="pre">update</span></span><span class="sig-paren">(</span><span class="optional">[</span><em class="sig-param"><span class="n"><span class="pre">E</span></span></em>, <span class="optional">]</span><em class="sig-param"><span class="n"><span class="pre">**F</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">None.</span>&#160; <span class="pre">Update</span> <span class="pre">D</span> <span class="pre">from</span> <span class="pre">mapping/iterable</span> <span class="pre">E</span> <span class="pre">and</span> <span class="pre">F.</span></span></span><a class="headerlink" href="#greybox.selection.ModelInfo.update" title="Link to this definition"></a></dt>
+<dd><p>If E is present and has a .keys() method, then does:  for k in E.keys(): D[k] = E[k]
+If E is present and lacks a .keys() method, then does:  for k, v in E: D[k] = v
+In either case, this is followed by: for k in F:  D[k] = F[k]</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.values">
+<span class="sig-name descname"><span class="pre">values</span></span><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#greybox.selection.ModelInfo.values" title="Link to this definition"></a></dt>
+<dd><p>Return an object providing a view on the dict’s values.</p>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.selection.ModelInfo.vars">
+<span class="sig-name descname"><span class="pre">vars</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#greybox.selection.ModelInfo.vars" title="Link to this definition"></a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.selection.lm_combine">
+<span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">lm_combine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'AICc'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'AIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BICc'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bruteforce</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dnorm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.selection.LmCombineResult" title="greybox.selection.LmCombineResult"><span class="pre">LmCombineResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#lm_combine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.lm_combine" title="Link to this definition"></a></dt>
+<dd><p>Combine regressions based on information criteria.</p>
+<div class="deprecated">
+<p><span class="versionmodified deprecated">Deprecated since version Use: </span><a class="reference internal" href="#greybox.selection.CALM" title="greybox.selection.CALM"><code class="xref py py-func docutils literal notranslate"><span class="pre">CALM()</span></code></a> instead. This function will be removed in a future version.</p>
+</div>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>DataFrame</em>) – Data frame containing dependent variable in the first column and
+the others in the rest.</p></li>
+<li><p><strong>ic</strong> (<em>{&quot;AICc&quot;</em><em>, </em><em>&quot;AIC&quot;</em><em>, </em><em>&quot;BIC&quot;</em><em>, </em><em>&quot;BICc&quot;}</em><em>, </em><em>default=&quot;AICc&quot;</em>) – Information criterion to use.</p></li>
+<li><p><strong>bruteforce</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, all possible models are generated and combined.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed.</p></li>
+<li><p><strong>distribution</strong> (<em>str</em><em>, </em><em>default=&quot;dnorm&quot;</em>) – Distribution to use for the ALM model.</p></li>
+<li><p><strong>**kwargs</strong> – Additional arguments passed to ALM().</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Combined model result.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.selection.LmCombineResult" title="greybox.selection.LmCombineResult">LmCombineResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">lm_combine</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># Deprecated, use CALM instead</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.selection.stepwise">
+<span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">stepwise</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'AICc'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'AIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BICc'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">formula</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">subset</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">method</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'pearson'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'kendall'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'spearman'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'pearson'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dnorm'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">occurrence</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'none'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'plogis'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'pnorm'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'none'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><span class="pre">ALM</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#stepwise"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.stepwise" title="Link to this definition"></a></dt>
+<dd><p>Stepwise selection of regressors.</p>
+<p>Function selects variables that give linear regression with the lowest
+information criterion. The selection is done stepwise (forward) based on
+partial correlations. This should be a simpler and faster implementation
+than step() function from stats package.</p>
+<p>The algorithm uses ALM to fit different models and correlation to select
+the next regressor in the sequence.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>DataFrame</em>) – Data frame containing dependent variable in the first column and
+the others in the rest.</p></li>
+<li><p><strong>ic</strong> (<em>{&quot;AICc&quot;</em><em>, </em><em>&quot;AIC&quot;</em><em>, </em><em>&quot;BIC&quot;</em><em>, </em><em>&quot;BICc&quot;}</em><em>, </em><em>default=&quot;AICc&quot;</em>) – Information criterion to use.</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed.</p></li>
+<li><p><strong>df</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of degrees of freedom to add (should be used if stepwise is
+used on residuals).</p></li>
+<li><p><strong>formula</strong> (<em>str</em><em>, </em><em>optional</em>) – If provided, then the selection will be done from the listed
+variables in the formula after all the necessary transformations.</p></li>
+<li><p><strong>subset</strong> (<em>array-like</em><em>, </em><em>optional</em>) – An optional vector specifying a subset of observations to be used
+in the fitting process.</p></li>
+<li><p><strong>method</strong> (<em>{&quot;pearson&quot;</em><em>, </em><em>&quot;kendall&quot;</em><em>, </em><em>&quot;spearman&quot;}</em><em>, </em><em>default=&quot;pearson&quot;</em>) – Method of correlations calculation. The default is Pearson’s
+correlation, which should be applicable to a wide range of data
+in different scales.</p></li>
+<li><p><strong>distribution</strong> (<em>str</em><em>, </em><em>default=&quot;dnorm&quot;</em>) – Distribution to use for the ALM model. See ALM for details.</p></li>
+<li><p><strong>occurrence</strong> (<em>{&quot;none&quot;</em><em>, </em><em>&quot;plogis&quot;</em><em>, </em><em>&quot;pnorm&quot;}</em><em>, </em><em>default=&quot;none&quot;</em>) – What distribution to use for occurrence part. See ALM for details.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>The final fitted model with additional attributes:
+- ic_values: dict[str, float] mapping step names to IC values</p>
+<blockquote>
+<div><p>(e.g. {“Intercept”: 150.3, “x1”: 140.2, “x2”: 138.1}).
+Keys are in insertion order (Python 3.7+).</p>
+</div></blockquote>
+<ul class="simple">
+<li><p>time_elapsed: float, seconds taken for calculation</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM">ALM</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">stepwise</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="formula.html" class="btn btn-neutral float-left" title="Formula" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="measures.html" class="btn btn-neutral float-right" title="Measures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

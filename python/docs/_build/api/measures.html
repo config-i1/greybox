@@ -1,0 +1,897 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Measures &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xreg" href="xreg.html" />
+    <link rel="prev" title="Selection" href="selection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Measures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.accuracy"><code class="docutils literal notranslate"><span class="pre">accuracy()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.gmrae"><code class="docutils literal notranslate"><span class="pre">gmrae()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.mae"><code class="docutils literal notranslate"><span class="pre">mae()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.mape"><code class="docutils literal notranslate"><span class="pre">mape()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.mase"><code class="docutils literal notranslate"><span class="pre">mase()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.me"><code class="docutils literal notranslate"><span class="pre">me()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.measures"><code class="docutils literal notranslate"><span class="pre">measures()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.mpe"><code class="docutils literal notranslate"><span class="pre">mpe()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.mse"><code class="docutils literal notranslate"><span class="pre">mse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.rame"><code class="docutils literal notranslate"><span class="pre">rame()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.rmae"><code class="docutils literal notranslate"><span class="pre">rmae()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.rmse"><code class="docutils literal notranslate"><span class="pre">rmse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.rmsse"><code class="docutils literal notranslate"><span class="pre">rmsse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.rrmse"><code class="docutils literal notranslate"><span class="pre">rrmse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.same"><code class="docutils literal notranslate"><span class="pre">same()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.sce"><code class="docutils literal notranslate"><span class="pre">sce()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.smse"><code class="docutils literal notranslate"><span class="pre">smse()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.measures.spis"><code class="docutils literal notranslate"><span class="pre">spis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Measures</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/measures.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-greybox.measures">
+<span id="measures"></span><h1>Measures<a class="headerlink" href="#module-greybox.measures" title="Link to this heading"></a></h1>
+<p>Statistical error measures for model evaluation.</p>
+<p>This module provides functions for calculating various statistical error measures
+for point and interval forecasts. The functions include:</p>
+<p>Error measures:
+- ME - Mean Error
+- MAE - Mean Absolute Error
+- MSE - Mean Squared Error
+- MRE - Mean Root Error (Kourentzes, 2014)
+- MIS - Mean Interval Score (Gneiting &amp; Raftery, 2007)
+- MPE - Mean Percentage Error
+- MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for critique)
+- MASE - Mean Absolute Scaled Error (Hyndman &amp; Koehler, 2006)
+- RMSSE - Root Mean Squared Scaled Error (used in M5 Competition)
+- SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias)
+- rMAE - Relative Mean Absolute Error (Davydenko &amp; Fildes, 2013)
+- rRMSE - Relative Root Mean Squared Error
+- rAME - Relative Absolute Mean Error
+- rMIS - Relative Mean Interval Score
+- sMSE - Scaled Mean Squared Error (Petropoulos &amp; Kourentzes, 2015)
+- sPIS - Scaled Periods-In-Stock (Wallstrom &amp; Segerstedt, 2010)
+- sCE - Scaled Cumulative Error
+- sMIS - Scaled Mean Interval Score
+- GMRAE - Geometric Mean Relative Absolute Error</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias.
+<a class="reference external" href="https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/">https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/</a></p></li>
+<li><p>Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.
+<a class="reference external" href="https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/">https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/</a></p></li>
+<li><p>Fildes R. (1992). The evaluation of extrapolative forecasting methods.
+International Journal of Forecasting, 8, pp.81-98.</p></li>
+<li><p>Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.
+International Journal of Forecasting, 22, pp.679-688.</p></li>
+<li><p>Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.
+Journal of the Operational Research Society, 66, pp.914-924.</p></li>
+<li><p>Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements
+and techniques for intermittent demand. International Journal of Production Economics,
+128, pp.625-636.</p></li>
+<li><p>Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy: The Case Of
+Judgmental Adjustments To Sku-Level Demand Forecasts. International Journal of
+Forecasting, 29(3), 510-522.</p></li>
+<li><p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules, prediction,
+and estimation. Journal of the American Statistical Association, 102(477), 359-378.</p></li>
+</ul>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.accuracy">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">accuracy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#accuracy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.accuracy" title="Link to this definition"></a></dt>
+<dd><p>Calculate multiple accuracy measures at once.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing: ME, MAE, MSE, RMSE, MPE, MAPE, MASE.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">accuracy</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.gmrae">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">gmrae</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#gmrae"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.gmrae" title="Link to this definition"></a></dt>
+<dd><p>Geometric Mean Relative Absolute Error (GMRAE).</p>
+<p>The GMRAE compares the absolute errors of a forecast to a benchmark
+using geometric mean. It is robust to extreme values.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>GMRAE = exp(mean(log(<a href="#id1"><span class="problematic" id="id2">|error|</span></a> / <a href="#id3"><span class="problematic" id="id4">|benchmark_error|</span></a>)))</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>benchmark</strong> (<em>np.ndarray</em>) – Benchmark forecast values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Geometric Mean Relative Absolute Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">gmrae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See Davydenko &amp; Fildes (2013).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.mae">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">mae</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#mae"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.mae" title="Link to this definition"></a></dt>
+<dd><p>Mean Absolute Error (MAE).</p>
+<p>The MAE measures the average magnitude of errors without considering
+direction. It is robust to outliers and gives a direct interpretation
+in the same units as the data.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>MAE = mean(<a href="#id5"><span class="problematic" id="id6">|actual - forecast|</span></a>)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Absolute Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">0.18</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See e.g. Hyndman &amp; Koehler (2006).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.mape">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">mape</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#mape"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.mape" title="Link to this definition"></a></dt>
+<dd><p>Mean Absolute Percentage Error (MAPE).</p>
+<p>The MAPE measures the average absolute percentage error. It is scale-independent
+and expressed as a percentage, making it easy to interpret across different
+contexts. However, it is undefined when actual values are zero and can be
+heavily influenced by small actual values.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>MAPE = mean(<a href="#id7"><span class="problematic" id="id8">|actual - forecast|</span></a> / actual) * 100</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values and zero actuals.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Absolute Percentage Error (in percentage points).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mape</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">14.933333333333332</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See Svetunkov, I. (2017) for a critique of MAPE:
+<a class="reference external" href="https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/">https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/</a></p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.mase">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">mase</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#mase"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.mase" title="Link to this definition"></a></dt>
+<dd><p>Mean Absolute Scaled Error (MASE).</p>
+<p>The MASE scales the MAE by the average error of a naive (random walk)
+forecast. This makes it scale-independent and allows comparison across
+different time series. A MASE &lt; 1 means the forecast is better than
+the naive forecast; MASE &gt; 1 means worse.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>MASE = MAE / scale
+where scale = mean(<a href="#id9"><span class="problematic" id="id10">|actual[t] - actual[t-1]|</span></a>) by default</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Scale parameter. If None, uses mean absolute difference of consecutive
+actual values (naive forecast error). Typical values include:
+- mean absolute deviation of in-sample one step ahead naive error
+- mean absolute value of the in-sample actuals</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Absolute Scaled Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mase</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="c1"># With custom scale</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mase</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.
+International Journal of Forecasting, 22, pp.679-688.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.me">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">me</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#me"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.me" title="Link to this definition"></a></dt>
+<dd><p>Mean Error (ME).</p>
+<p>The ME measures the average bias in forecasts. A positive value indicates
+forecasts are on average too high (over-forecasting), while a negative
+value indicates forecasts are on average too low (under-forecasting).</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>ME = mean(actual - forecast)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">me</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">-0.1</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Basic measure, see e.g. Hyndman &amp; Koehler (2006).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.measures">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">measures</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">holdout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">digits</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'naive'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'mean'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'naive'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#measures"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.measures" title="Link to this definition"></a></dt>
+<dd><p>Calculate comprehensive error measures for forecasts.</p>
+<p>This function calculates multiple error measures using holdout (test) data,
+forecasted values, and in-sample (training) data for scale calculation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>holdout</strong> (<em>np.ndarray</em>) – The vector of holdout (test) actual values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – The vector of forecasts produced by a model.</p></li>
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – The vector of actual in-sample (training) values.</p></li>
+<li><p><strong>digits</strong> (<em>int</em><em>, </em><em>optional</em>) – Number of digits for rounding. If None, no rounding is done.</p></li>
+<li><p><strong>benchmark</strong> (<em>{&quot;naive&quot;</em><em>, </em><em>&quot;mean&quot;}</em><em>, </em><em>default=&quot;naive&quot;</em>) – Benchmark method for relative measures:
+- “naive”: Use last value repeated (random walk)
+- “mean”: Use arithmetic mean of the series</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Dictionary containing error measures:
+- ME: Mean Error
+- MAE: Mean Absolute Error
+- MSE: Mean Squared Error
+- MPE: Mean Percentage Error
+- MAPE: Mean Absolute Percentage Error
+- sCE: Scaled Cumulative Error
+- sMAE: Scaled Mean Absolute Error (MASE with mean scale)
+- sMSE: Scaled Mean Squared Error
+- MASE: Mean Absolute Scaled Error (with diff scale)
+- RMSSE: Root Mean Squared Scaled Error
+- SAME: Scaled Absolute Mean Error
+- rMAE: Relative Mean Absolute Error
+- rRMSE: Relative Root Mean Squared Error
+- rAME: Relative Absolute Mean Error
+- asymmetry: Asymmetry coefficient
+- sPIS: Scaled Periods-In-Stock</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">actual</span><span class="p">[:</span><span class="mi">90</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">measures</span><span class="p">(</span><span class="n">actual</span><span class="p">[</span><span class="mi">91</span><span class="p">:],</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">actual</span><span class="p">[:</span><span class="mi">90</span><span class="p">],</span> <span class="n">digits</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See individual function references:
+- Hyndman &amp; Koehler (2006) for MASE, RMSSE
+- Petropoulos &amp; Kourentzes (2015) for sMSE, sCE, sPIS
+- Davydenko &amp; Fildes (2013) for rMAE, rRMSE, rAME</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.mpe">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">mpe</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#mpe"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.mpe" title="Link to this definition"></a></dt>
+<dd><p>Mean Percentage Error (MPE).</p>
+<p>The MPE measures the average percentage error. Like ME, it can detect
+bias but expresses it as a percentage. However, it is undefined when
+actual values are zero.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>MPE = mean((actual - forecast) / actual) * 100</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values and zero actuals.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Percentage Error (in percentage points).</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mpe</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">-4.466666666666667</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See e.g. Hyndman &amp; Koehler (2006).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.mse">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">mse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#mse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.mse" title="Link to this definition"></a></dt>
+<dd><p>Mean Squared Error (MSE).</p>
+<p>The MSE measures the average squared difference between actual and forecast.
+It penalizes larger errors more heavily than MAE.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>MSE = mean((actual - forecast)^2)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Squared Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">0.038</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See e.g. Hyndman &amp; Koehler (2006).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.rame">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">rame</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#rame"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.rame" title="Link to this definition"></a></dt>
+<dd><p>Relative Absolute Mean Error (rAME).</p>
+<p>The rAME compares the absolute Mean Error (bias) of a forecast to
+a benchmark forecast. It measures relative bias.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>rAME = <a href="#id11"><span class="problematic" id="id12">|ME(forecast)|</span></a> / <a href="#id13"><span class="problematic" id="id14">|ME(benchmark)|</span></a></p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>benchmark</strong> (<em>np.ndarray</em>) – Benchmark forecast values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative Absolute Mean Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rame</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.rmae">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">rmae</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#rmae"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.rmae" title="Link to this definition"></a></dt>
+<dd><p>Relative Mean Absolute Error (rMAE).</p>
+<p>The rMAE compares the MAE of a forecast to a benchmark forecast.
+Values &lt; 1 indicate the forecast is better than the benchmark;
+values &gt; 1 indicate worse.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>rMAE = MAE(forecast) / MAE(benchmark)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>benchmark</strong> (<em>np.ndarray</em>) – Benchmark forecast values (e.g., naive or mean forecast).</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative Mean Absolute Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rmae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy:
+The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.
+International Journal of Forecasting, 29(3), 510-522.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.rmse">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">rmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#rmse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.rmse" title="Link to this definition"></a></dt>
+<dd><p>Root Mean Squared Error (RMSE).</p>
+<p>The RMSE is the square root of MSE. It is in the same units as the data,
+making it more interpretable than MSE while still penalizing larger errors.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>RMSE = sqrt(MSE) = sqrt(mean((actual - forecast)^2))</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Root Mean Squared Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rmse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+<span class="go">0.194...</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See e.g. Hyndman &amp; Koehler (2006).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.rmsse">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">rmsse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#rmsse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.rmsse" title="Link to this definition"></a></dt>
+<dd><p>Root Mean Squared Scaled Error (RMSSE).</p>
+<p>The RMSSE is similar to MASE but uses MSE instead of MAE. It was
+developed for the M5 Competition.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>RMSSE = sqrt(MSE / scale)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Scale parameter. If None, uses mean squared difference of consecutive
+actual values. Typical value: mean(diff(actual)^2).</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Root Mean Squared Scaled Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rmsse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Used in M5 Competition.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.rrmse">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">rrmse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#rrmse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.rrmse" title="Link to this definition"></a></dt>
+<dd><p>Relative Root Mean Squared Error (rRMSE).</p>
+<p>The rRMSE compares the RMSE of a forecast to a benchmark forecast.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>rRMSE = RMSE(forecast) / RMSE(benchmark)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>benchmark</strong> (<em>np.ndarray</em>) – Benchmark forecast values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative Root Mean Squared Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.0</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.0</span><span class="p">,</span> <span class="mf">10.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rrmse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.same">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">same</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#same"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.same" title="Link to this definition"></a></dt>
+<dd><p>Scaled Absolute Mean Error (SAME).</p>
+<p>SAME is similar to MASE but uses Mean Error (ME) instead of MAE.
+It measures bias rather than absolute error.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>SAME = <a href="#id15"><span class="problematic" id="id16">|ME|</span></a> / scale</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em><em>, </em><em>optional</em>) – Scale parameter. If None, uses mean absolute difference of consecutive
+actual values.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scaled Absolute Mean Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">same</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See Petropoulos &amp; Kourentzes (2015).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.sce">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">sce</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#sce"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.sce" title="Link to this definition"></a></dt>
+<dd><p>Scaled Cumulative Error (sCE).</p>
+<p>The sCE measures the cumulative forecast error scaled by a parameter.
+It can detect systematic bias over time.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>sCE = sum(actual - forecast) / scale</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scaled Cumulative Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span><span class="p">[</span><span class="n">actual</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">sce</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.smse">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">smse</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#smse"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.smse" title="Link to this definition"></a></dt>
+<dd><p>Scaled Mean Squared Error (sMSE).</p>
+<p>The sMSE scales the MSE by a scale parameter. Note that the scale
+should be a squared value (e.g., mean of squared actuals).</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>sMSE = MSE / scale</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter. Should typically be a squared value
+(e.g., mean(actual)^2 or mean(abs(actual[actual!=0]))^2).</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scaled Mean Squared Error.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.
+Journal of the Operational Research Society, 66, pp.914-924.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.measures.spis">
+<span class="sig-prename descclassname"><span class="pre">greybox.measures.</span></span><span class="sig-name descname"><span class="pre">spis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span><span class="p"><span class="pre">[</span></span><span class="pre">Any</span><span class="p"><span class="pre">]</span></span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/measures.html#spis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.measures.spis" title="Link to this definition"></a></dt>
+<dd><p>Scaled Periods-In-Stock (sPIS).</p>
+<p>The sPIS measures the cumulative inventory performance over time.
+It is useful for intermittent demand forecasting.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>sPIS = sum(cumsum(forecast - actual)) / scale</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter (typically mean of non-zero actuals).</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scaled Periods-In-Stock.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">10</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">,</span>
+<span class="gp">... </span>                     <span class="mf">6.0</span><span class="p">,</span> <span class="mf">7.1</span><span class="p">,</span> <span class="mf">8.0</span><span class="p">,</span> <span class="mf">9.2</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span><span class="p">[</span><span class="n">actual</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">]))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">spis</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements
+and techniques for intermittent demand. International Journal of Production
+Economics, 128, pp.625-636.</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="selection.html" class="btn btn-neutral float-left" title="Selection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="xreg.html" class="btn btn-neutral float-right" title="Xreg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

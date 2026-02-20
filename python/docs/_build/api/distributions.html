@@ -1,0 +1,2018 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Distributions &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Distributions Guide" href="../distributions/index.html" />
+    <link rel="prev" title="Transforms" href="transforms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Distributions</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dalaplace"><code class="docutils literal notranslate"><span class="pre">dalaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dbcnorm"><code class="docutils literal notranslate"><span class="pre">dbcnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dbeta"><code class="docutils literal notranslate"><span class="pre">dbeta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dbinom"><code class="docutils literal notranslate"><span class="pre">dbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dchi2"><code class="docutils literal notranslate"><span class="pre">dchi2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dexp"><code class="docutils literal notranslate"><span class="pre">dexp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dfnorm"><code class="docutils literal notranslate"><span class="pre">dfnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dgamma"><code class="docutils literal notranslate"><span class="pre">dgamma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dgeom"><code class="docutils literal notranslate"><span class="pre">dgeom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dgnorm"><code class="docutils literal notranslate"><span class="pre">dgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dinvgauss"><code class="docutils literal notranslate"><span class="pre">dinvgauss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dlaplace"><code class="docutils literal notranslate"><span class="pre">dlaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dlgnorm"><code class="docutils literal notranslate"><span class="pre">dlgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dllaplace"><code class="docutils literal notranslate"><span class="pre">dllaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dlnorm"><code class="docutils literal notranslate"><span class="pre">dlnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dlogis"><code class="docutils literal notranslate"><span class="pre">dlogis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dlogitnorm"><code class="docutils literal notranslate"><span class="pre">dlogitnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dls"><code class="docutils literal notranslate"><span class="pre">dls()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dnbinom"><code class="docutils literal notranslate"><span class="pre">dnbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dnorm"><code class="docutils literal notranslate"><span class="pre">dnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dpois"><code class="docutils literal notranslate"><span class="pre">dpois()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.drectnorm"><code class="docutils literal notranslate"><span class="pre">drectnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.ds"><code class="docutils literal notranslate"><span class="pre">ds()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.dt"><code class="docutils literal notranslate"><span class="pre">dt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.palaplace"><code class="docutils literal notranslate"><span class="pre">palaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pbcnorm"><code class="docutils literal notranslate"><span class="pre">pbcnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pbeta"><code class="docutils literal notranslate"><span class="pre">pbeta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pbinom"><code class="docutils literal notranslate"><span class="pre">pbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pchi2"><code class="docutils literal notranslate"><span class="pre">pchi2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pexp"><code class="docutils literal notranslate"><span class="pre">pexp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pfnorm"><code class="docutils literal notranslate"><span class="pre">pfnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pgamma"><code class="docutils literal notranslate"><span class="pre">pgamma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pgeom"><code class="docutils literal notranslate"><span class="pre">pgeom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pgnorm"><code class="docutils literal notranslate"><span class="pre">pgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pinvgauss"><code class="docutils literal notranslate"><span class="pre">pinvgauss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.plaplace"><code class="docutils literal notranslate"><span class="pre">plaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.plnorm"><code class="docutils literal notranslate"><span class="pre">plnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.plogis"><code class="docutils literal notranslate"><span class="pre">plogis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.plogitnorm"><code class="docutils literal notranslate"><span class="pre">plogitnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pnbinom"><code class="docutils literal notranslate"><span class="pre">pnbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pnorm"><code class="docutils literal notranslate"><span class="pre">pnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.ppois"><code class="docutils literal notranslate"><span class="pre">ppois()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.prectnorm"><code class="docutils literal notranslate"><span class="pre">prectnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.ps"><code class="docutils literal notranslate"><span class="pre">ps()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.pt"><code class="docutils literal notranslate"><span class="pre">pt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qalaplace"><code class="docutils literal notranslate"><span class="pre">qalaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qbcnorm"><code class="docutils literal notranslate"><span class="pre">qbcnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qbeta"><code class="docutils literal notranslate"><span class="pre">qbeta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qbinom"><code class="docutils literal notranslate"><span class="pre">qbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qchi2"><code class="docutils literal notranslate"><span class="pre">qchi2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qexp"><code class="docutils literal notranslate"><span class="pre">qexp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qfnorm"><code class="docutils literal notranslate"><span class="pre">qfnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qgamma"><code class="docutils literal notranslate"><span class="pre">qgamma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qgeom"><code class="docutils literal notranslate"><span class="pre">qgeom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qgnorm"><code class="docutils literal notranslate"><span class="pre">qgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qinvgauss"><code class="docutils literal notranslate"><span class="pre">qinvgauss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qlaplace"><code class="docutils literal notranslate"><span class="pre">qlaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qlgnorm"><code class="docutils literal notranslate"><span class="pre">qlgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qllaplace"><code class="docutils literal notranslate"><span class="pre">qllaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qlnorm"><code class="docutils literal notranslate"><span class="pre">qlnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qlogis"><code class="docutils literal notranslate"><span class="pre">qlogis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qlogitnorm"><code class="docutils literal notranslate"><span class="pre">qlogitnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qls"><code class="docutils literal notranslate"><span class="pre">qls()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qnbinom"><code class="docutils literal notranslate"><span class="pre">qnbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qnorm"><code class="docutils literal notranslate"><span class="pre">qnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qpois"><code class="docutils literal notranslate"><span class="pre">qpois()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qrectnorm"><code class="docutils literal notranslate"><span class="pre">qrectnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qs"><code class="docutils literal notranslate"><span class="pre">qs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.qt"><code class="docutils literal notranslate"><span class="pre">qt()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.ralaplace"><code class="docutils literal notranslate"><span class="pre">ralaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rbcnorm"><code class="docutils literal notranslate"><span class="pre">rbcnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rbeta"><code class="docutils literal notranslate"><span class="pre">rbeta()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rbinom"><code class="docutils literal notranslate"><span class="pre">rbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rchi2"><code class="docutils literal notranslate"><span class="pre">rchi2()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rexp"><code class="docutils literal notranslate"><span class="pre">rexp()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rfnorm"><code class="docutils literal notranslate"><span class="pre">rfnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rgamma"><code class="docutils literal notranslate"><span class="pre">rgamma()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rgeom"><code class="docutils literal notranslate"><span class="pre">rgeom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rgnorm"><code class="docutils literal notranslate"><span class="pre">rgnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rinvgauss"><code class="docutils literal notranslate"><span class="pre">rinvgauss()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rlaplace"><code class="docutils literal notranslate"><span class="pre">rlaplace()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rlogis"><code class="docutils literal notranslate"><span class="pre">rlogis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rlogitnorm"><code class="docutils literal notranslate"><span class="pre">rlogitnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rnbinom"><code class="docutils literal notranslate"><span class="pre">rnbinom()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rpois"><code class="docutils literal notranslate"><span class="pre">rpois()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rrectnorm"><code class="docutils literal notranslate"><span class="pre">rrectnorm()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rs"><code class="docutils literal notranslate"><span class="pre">rs()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.distributions.rt"><code class="docutils literal notranslate"><span class="pre">rt()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Distributions</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/distributions.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-greybox.distributions">
+<span id="distributions"></span><h1>Distributions<a class="headerlink" href="#module-greybox.distributions" title="Link to this heading"></a></h1>
+<p>Distribution functions for greybox.</p>
+<p>This module contains implementations of various distributions
+not available in scipy.stats, plus wrappers around scipy.stats.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dalaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dalaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/alaplace.html#dalaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dalaplace" title="Link to this definition"></a></dt>
+<dd><p>Asymmetric Laplace distribution density.</p>
+<p>f(x) = alpha * (1-alpha) / scale * exp(-(x-mu)/scale * (alpha - I(x&lt;=mu)))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Asymmetry parameter (0 &lt; alpha &lt; 1).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dbcnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dbcnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_bc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/bcnorm.html#dbcnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dbcnorm" title="Link to this definition"></a></dt>
+<dd><p>Box-Cox Normal distribution density.</p>
+<dl class="simple">
+<dt>f(y) = y^(lambda-1) * 1/sqrt(2*pi) * exp(</dt><dd><p>-((y^lambda-1)/lambda - mu)^2 / (2*sigma^2))</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be non-negative).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter (on transformed scale).</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>lambda_bc</strong> (<em>float</em>) – Box-Cox transformation parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dbeta">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dbeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/beta.html#dbeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dbeta" title="Link to this definition"></a></dt>
+<dd><p>Beta distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be in [0, 1]).</p></li>
+<li><p><strong>a</strong> (<em>float</em>) – First shape parameter (alpha).</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Second shape parameter (beta).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/binom.html#dbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dbinom" title="Link to this definition"></a></dt>
+<dd><p>Binomial distribution probability mass function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (non-negative integers, &lt;= size).</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Number of trials.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability mass values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dchi2">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dchi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/chi2.html#dchi2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dchi2" title="Link to this definition"></a></dt>
+<dd><p>Chi-squared distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be non-negative).</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dexp">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/exp.html#dexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dexp" title="Link to this definition"></a></dt>
+<dd><p>Exponential distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be &gt;= loc).</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter (1/lambda).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dfnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dfnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/fnorm.html#dfnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dfnorm" title="Link to this definition"></a></dt>
+<dd><p>Folded Normal distribution density.</p>
+<dl class="simple">
+<dt>f(x) = 1/sqrt(2*pi*sigma^2) * (</dt><dd><p>exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dgamma">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dgamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gamma.html#dgamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dgamma" title="Link to this definition"></a></dt>
+<dd><p>Gamma distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter (alpha).</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter (theta).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dgeom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dgeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/geom.html#dgeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dgeom" title="Link to this definition"></a></dt>
+<dd><p>Geometric distribution probability mass function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (non-negative integers, number of failures before first success).</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability mass values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gnorm.html#dgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dgnorm" title="Link to this definition"></a></dt>
+<dd><p>Generalized Normal distribution density.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dinvgauss">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dinvgauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/invgauss.html#dinvgauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dinvgauss" title="Link to this definition"></a></dt>
+<dd><p>Inverse Gaussian distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dlaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dlaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/laplace.html#dlaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dlaplace" title="Link to this definition"></a></dt>
+<dd><p>Laplace distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter (mu).</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dlgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dlgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/lgnorm.html#dlgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dlgnorm" title="Link to this definition"></a></dt>
+<dd><p>Log-Generalised Normal distribution density.</p>
+<p>The density is obtained by transforming a Generalised Normal distribution
+through the exponential function with Jacobian adjustment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dllaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dllaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/llaplace.html#dllaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dllaplace" title="Link to this definition"></a></dt>
+<dd><p>Log-Laplace distribution density.</p>
+<p>The density is obtained by transforming a Laplace distribution
+through the exponential function with Jacobian adjustment.</p>
+<p>f(y) = (1/scale) * exp(-(abs(log(y) - loc) / scale)) / y</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter (of underlying Laplace).</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dlnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dlnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meanlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/lnorm.html#dlnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dlnorm" title="Link to this definition"></a></dt>
+<dd><p>Log-Normal distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>meanlog</strong> (<em>float</em>) – Mean of the underlying normal distribution (on log scale).</p></li>
+<li><p><strong>sdlog</strong> (<em>float</em>) – Standard deviation of the underlying normal distribution.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dlogis">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dlogis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logis.html#dlogis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dlogis" title="Link to this definition"></a></dt>
+<dd><p>Logistic distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dlogitnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dlogitnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logitnorm.html#dlogitnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dlogitnorm" title="Link to this definition"></a></dt>
+<dd><p>Logit-Normal distribution density.</p>
+<p>f(y) = 1/(sqrt(2*pi)*sigma*y*(1-y)) * exp(-(logit(y) - mu)^2 / (2*sigma^2))</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be in (0, 1)).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter (on logit scale).</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dls">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/ls.html#dls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dls" title="Link to this definition"></a></dt>
+<dd><p>Log-S distribution density.</p>
+<p>The density is obtained by transforming an S-distribution
+through the exponential function with Jacobian adjustment.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (must be positive).</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dnbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dnbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/nbinom.html#dnbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dnbinom" title="Link to this definition"></a></dt>
+<dd><p>Negative Binomial distribution probability mass function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (non-negative integers).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Dispersion parameter (number of successes).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability mass values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/helper.html#dnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dnorm" title="Link to this definition"></a></dt>
+<dd><p>Normal distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mean</strong> (<em>float</em>) – Mean.</p></li>
+<li><p><strong>sd</strong> (<em>float</em>) – Standard deviation.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dpois">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dpois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/pois.html#dpois"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dpois" title="Link to this definition"></a></dt>
+<dd><p>Poisson distribution probability mass function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles (non-negative integers).</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter (lambda).</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Probability mass values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.drectnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">drectnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/rectnorm.html#drectnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.drectnorm" title="Link to this definition"></a></dt>
+<dd><p>Rectified Normal distribution density.</p>
+<p>f_y = I(x&lt;=0) * F_x(mu, sigma) + I(x&gt;0) * f_x(x, mu, sigma)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.ds">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">ds</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/s.html#ds"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.ds" title="Link to this definition"></a></dt>
+<dd><p>S-distribution density.</p>
+<p>Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(abs(mu - x)) / scale)</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.dt">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">dt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/t.html#dt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.dt" title="Link to this definition"></a></dt>
+<dd><p>T-distribution density.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log</strong> (<em>bool</em>) – If True, return log-density.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Density values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.palaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">palaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/alaplace.html#palaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.palaplace" title="Link to this definition"></a></dt>
+<dd><p>Asymmetric Laplace distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Asymmetry parameter (0 &lt; alpha &lt; 1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pbcnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pbcnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_bc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/bcnorm.html#pbcnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pbcnorm" title="Link to this definition"></a></dt>
+<dd><p>Box-Cox Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>lambda_bc</strong> (<em>float</em>) – Box-Cox transformation parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pbeta">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pbeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/beta.html#pbeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pbeta" title="Link to this definition"></a></dt>
+<dd><p>Beta distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>a</strong> (<em>float</em>) – First shape parameter.</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Second shape parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/binom.html#pbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pbinom" title="Link to this definition"></a></dt>
+<dd><p>Binomial distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Number of trials.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pchi2">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pchi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/chi2.html#pchi2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pchi2" title="Link to this definition"></a></dt>
+<dd><p>Chi-squared distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pexp">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/exp.html#pexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pexp" title="Link to this definition"></a></dt>
+<dd><p>Exponential distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pfnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pfnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/fnorm.html#pfnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pfnorm" title="Link to this definition"></a></dt>
+<dd><p>Folded Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pgamma">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pgamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gamma.html#pgamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pgamma" title="Link to this definition"></a></dt>
+<dd><p>Gamma distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pgeom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pgeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/geom.html#pgeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pgeom" title="Link to this definition"></a></dt>
+<dd><p>Geometric distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gnorm.html#pgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pgnorm" title="Link to this definition"></a></dt>
+<dd><p>Generalized Normal distribution CDF.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pinvgauss">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pinvgauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/invgauss.html#pinvgauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pinvgauss" title="Link to this definition"></a></dt>
+<dd><p>Inverse Gaussian distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.plaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">plaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/laplace.html#plaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.plaplace" title="Link to this definition"></a></dt>
+<dd><p>Laplace distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.plnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">plnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meanlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/lnorm.html#plnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.plnorm" title="Link to this definition"></a></dt>
+<dd><p>Log-Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>meanlog</strong> (<em>float</em>) – Mean of the underlying normal distribution.</p></li>
+<li><p><strong>sdlog</strong> (<em>float</em>) – Standard deviation of the underlying normal distribution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.plogis">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">plogis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">location</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/helper.html#plogis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.plogis" title="Link to this definition"></a></dt>
+<dd><p>Logistic distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>location</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>log_p</strong> (<em>bool</em>) – If True, return log-CDF.</p></li>
+<li><p><strong>lower_tail</strong> (<em>bool</em>) – If True, return lower tail probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.plogitnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">plogitnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logitnorm.html#plogitnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.plogitnorm" title="Link to this definition"></a></dt>
+<dd><p>Logit-Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pnbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pnbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/nbinom.html#pnbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pnbinom" title="Link to this definition"></a></dt>
+<dd><p>Negative Binomial distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Dispersion parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/helper.html#pnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pnorm" title="Link to this definition"></a></dt>
+<dd><p>Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mean</strong> (<em>float</em>) – Mean.</p></li>
+<li><p><strong>sd</strong> (<em>float</em>) – Standard deviation.</p></li>
+<li><p><strong>log_p</strong> (<em>bool</em>) – If True, return log-CDF.</p></li>
+<li><p><strong>lower_tail</strong> (<em>bool</em>) – If True, return lower tail probability.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.ppois">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">ppois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/pois.html#ppois"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.ppois" title="Link to this definition"></a></dt>
+<dd><p>Poisson distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.prectnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">prectnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/rectnorm.html#prectnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.prectnorm" title="Link to this definition"></a></dt>
+<dd><p>Rectified Normal distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.ps">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">ps</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/s.html#ps"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.ps" title="Link to this definition"></a></dt>
+<dd><p>S-distribution CDF.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.pt">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">pt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">q</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/t.html#pt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.pt" title="Link to this definition"></a></dt>
+<dd><p>T-distribution CDF.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>q</strong> (<em>array_like</em>) – Quantiles.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>CDF values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qalaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qalaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/alaplace.html#qalaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qalaplace" title="Link to this definition"></a></dt>
+<dd><p>Asymmetric Laplace distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Asymmetry parameter (0 &lt; alpha &lt; 1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qbcnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qbcnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_bc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/bcnorm.html#qbcnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qbcnorm" title="Link to this definition"></a></dt>
+<dd><p>Box-Cox Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>lambda_bc</strong> (<em>float</em>) – Box-Cox transformation parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qbeta">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qbeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/beta.html#qbeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qbeta" title="Link to this definition"></a></dt>
+<dd><p>Beta distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>a</strong> (<em>float</em>) – First shape parameter.</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Second shape parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/binom.html#qbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qbinom" title="Link to this definition"></a></dt>
+<dd><p>Binomial distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Number of trials.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qchi2">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qchi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/chi2.html#qchi2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qchi2" title="Link to this definition"></a></dt>
+<dd><p>Chi-squared distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qexp">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/exp.html#qexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qexp" title="Link to this definition"></a></dt>
+<dd><p>Exponential distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qfnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qfnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/fnorm.html#qfnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qfnorm" title="Link to this definition"></a></dt>
+<dd><p>Folded Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qgamma">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qgamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gamma.html#qgamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qgamma" title="Link to this definition"></a></dt>
+<dd><p>Gamma distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qgeom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qgeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/geom.html#qgeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qgeom" title="Link to this definition"></a></dt>
+<dd><p>Geometric distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower_tail</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">log_p</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gnorm.html#qgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qgnorm" title="Link to this definition"></a></dt>
+<dd><p>Generalized Normal distribution quantile function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qinvgauss">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qinvgauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/invgauss.html#qinvgauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qinvgauss" title="Link to this definition"></a></dt>
+<dd><p>Inverse Gaussian distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qlaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qlaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/laplace.html#qlaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qlaplace" title="Link to this definition"></a></dt>
+<dd><p>Laplace distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qlgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qlgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/lgnorm.html#qlgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qlgnorm" title="Link to this definition"></a></dt>
+<dd><p>Log-Generalised Normal distribution quantile function.</p>
+<p>Quantiles are obtained by exponentiating Generalised Normal quantiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qllaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qllaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/llaplace.html#qllaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qllaplace" title="Link to this definition"></a></dt>
+<dd><p>Log-Laplace distribution quantile function.</p>
+<p>Quantiles are obtained by exponentiating Laplace quantiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qlnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qlnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">meanlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sdlog</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/lnorm.html#qlnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qlnorm" title="Link to this definition"></a></dt>
+<dd><p>Log-Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>meanlog</strong> (<em>float</em>) – Mean of the underlying normal distribution.</p></li>
+<li><p><strong>sdlog</strong> (<em>float</em>) – Standard deviation of the underlying normal distribution.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qlogis">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qlogis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logis.html#qlogis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qlogis" title="Link to this definition"></a></dt>
+<dd><p>Logistic distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qlogitnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qlogitnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logitnorm.html#qlogitnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qlogitnorm" title="Link to this definition"></a></dt>
+<dd><p>Logit-Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qls">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qls</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/ls.html#qls"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qls" title="Link to this definition"></a></dt>
+<dd><p>Log-S distribution quantile function.</p>
+<p>Quantiles are obtained by exponentiating S-distribution quantiles.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qnbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qnbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/nbinom.html#qnbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qnbinom" title="Link to this definition"></a></dt>
+<dd><p>Negative Binomial distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Dispersion parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mean</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sd</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/helper.html#qnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qnorm" title="Link to this definition"></a></dt>
+<dd><p>Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mean</strong> (<em>float</em>) – Mean.</p></li>
+<li><p><strong>sd</strong> (<em>float</em>) – Standard deviation.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qpois">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qpois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/pois.html#qpois"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qpois" title="Link to this definition"></a></dt>
+<dd><p>Poisson distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qrectnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qrectnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/rectnorm.html#qrectnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qrectnorm" title="Link to this definition"></a></dt>
+<dd><p>Rectified Normal distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qs">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/s.html#qs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qs" title="Link to this definition"></a></dt>
+<dd><p>S-distribution quantile function.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.qt">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">qt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">p</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/t.html#qt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.qt" title="Link to this definition"></a></dt>
+<dd><p>T-distribution quantile function.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>p</strong> (<em>array_like</em>) – Probabilities.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Quantile values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.ralaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">ralaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">alpha</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/alaplace.html#ralaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.ralaplace" title="Link to this definition"></a></dt>
+<dd><p>Asymmetric Laplace distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>alpha</strong> (<em>float</em>) – Asymmetry parameter (0 &lt; alpha &lt; 1).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rbcnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rbcnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lambda_bc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/bcnorm.html#rbcnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rbcnorm" title="Link to this definition"></a></dt>
+<dd><p>Box-Cox Normal distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>lambda_bc</strong> (<em>float</em>) – Box-Cox transformation parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rbeta">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rbeta</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">a</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">b</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/beta.html#rbeta"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rbeta" title="Link to this definition"></a></dt>
+<dd><p>Beta distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>a</strong> (<em>float</em>) – First shape parameter.</p></li>
+<li><p><strong>b</strong> (<em>float</em>) – Second shape parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/binom.html#rbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rbinom" title="Link to this definition"></a></dt>
+<dd><p>Binomial distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>size</strong> (<em>int</em>) – Number of trials.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rchi2">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rchi2</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/chi2.html#rchi2"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rchi2" title="Link to this definition"></a></dt>
+<dd><p>Chi-squared distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rexp">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rexp</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/exp.html#rexp"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rexp" title="Link to this definition"></a></dt>
+<dd><p>Exponential distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rfnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rfnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/fnorm.html#rfnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rfnorm" title="Link to this definition"></a></dt>
+<dd><p>Folded Normal distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rgamma">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rgamma</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gamma.html#rgamma"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rgamma" title="Link to this definition"></a></dt>
+<dd><p>Gamma distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>shape</strong> (<em>float</em>) – Shape parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rgeom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rgeom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">prob</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.5</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/geom.html#rgeom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rgeom" title="Link to this definition"></a></dt>
+<dd><p>Geometric distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>prob</strong> (<em>float</em>) – Probability of success.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rgnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rgnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/gnorm.html#rgnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rgnorm" title="Link to this definition"></a></dt>
+<dd><p>Generalized Normal distribution random number generation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rinvgauss">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rinvgauss</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/invgauss.html#rinvgauss"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rinvgauss" title="Link to this definition"></a></dt>
+<dd><p>Inverse Gaussian distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rlaplace">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rlaplace</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/laplace.html#rlaplace"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rlaplace" title="Link to this definition"></a></dt>
+<dd><p>Laplace distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rlogis">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rlogis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logis.html#rlogis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rlogis" title="Link to this definition"></a></dt>
+<dd><p>Logistic distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rlogitnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rlogitnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/logitnorm.html#rlogitnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rlogitnorm" title="Link to this definition"></a></dt>
+<dd><p>Logit-Normal distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rnbinom">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rnbinom</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">size</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/nbinom.html#rnbinom"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rnbinom" title="Link to this definition"></a></dt>
+<dd><p>Negative Binomial distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+<li><p><strong>size</strong> (<em>float</em>) – Dispersion parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rpois">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rpois</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/pois.html#rpois"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rpois" title="Link to this definition"></a></dt>
+<dd><p>Poisson distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Mean parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rrectnorm">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rrectnorm</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sigma</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/rectnorm.html#rrectnorm"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rrectnorm" title="Link to this definition"></a></dt>
+<dd><p>Rectified Normal distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>mu</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>sigma</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rs">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rs</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mu</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/s.html#rs"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rs" title="Link to this definition"></a></dt>
+<dd><p>S-distribution random number generation.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.distributions.rt">
+<span class="sig-prename descclassname"><span class="pre">greybox.distributions.</span></span><span class="sig-name descname"><span class="pre">rt</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">n</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">df</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loc</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/distributions/t.html#rt"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.distributions.rt" title="Link to this definition"></a></dt>
+<dd><p>T-distribution random number generation.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>n</strong> (<em>int</em>) – Number of observations.</p></li>
+<li><p><strong>df</strong> (<em>float</em>) – Degrees of freedom.</p></li>
+<li><p><strong>loc</strong> (<em>float</em>) – Location parameter.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Random values.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>array</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="transforms.html" class="btn btn-neutral float-left" title="Transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../distributions/index.html" class="btn btn-neutral float-right" title="Distributions Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

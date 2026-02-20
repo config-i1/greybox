@@ -1,0 +1,1216 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.measures &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.measures</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.measures</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Statistical error measures for model evaluation.</span>
+
+<span class="sd">This module provides functions for calculating various statistical error measures</span>
+<span class="sd">for point and interval forecasts. The functions include:</span>
+
+<span class="sd">Error measures:</span>
+<span class="sd">- ME - Mean Error</span>
+<span class="sd">- MAE - Mean Absolute Error</span>
+<span class="sd">- MSE - Mean Squared Error</span>
+<span class="sd">- MRE - Mean Root Error (Kourentzes, 2014)</span>
+<span class="sd">- MIS - Mean Interval Score (Gneiting &amp; Raftery, 2007)</span>
+<span class="sd">- MPE - Mean Percentage Error</span>
+<span class="sd">- MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for critique)</span>
+<span class="sd">- MASE - Mean Absolute Scaled Error (Hyndman &amp; Koehler, 2006)</span>
+<span class="sd">- RMSSE - Root Mean Squared Scaled Error (used in M5 Competition)</span>
+<span class="sd">- SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias)</span>
+<span class="sd">- rMAE - Relative Mean Absolute Error (Davydenko &amp; Fildes, 2013)</span>
+<span class="sd">- rRMSE - Relative Root Mean Squared Error</span>
+<span class="sd">- rAME - Relative Absolute Mean Error</span>
+<span class="sd">- rMIS - Relative Mean Interval Score</span>
+<span class="sd">- sMSE - Scaled Mean Squared Error (Petropoulos &amp; Kourentzes, 2015)</span>
+<span class="sd">- sPIS - Scaled Periods-In-Stock (Wallstrom &amp; Segerstedt, 2010)</span>
+<span class="sd">- sCE - Scaled Cumulative Error</span>
+<span class="sd">- sMIS - Scaled Mean Interval Score</span>
+<span class="sd">- GMRAE - Geometric Mean Relative Absolute Error</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">- Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias.</span>
+<span class="sd">  https://kourentzes.com/forecasting/2014/12/17/the-bias-coefficient-a-new-metric-for-forecast-bias/</span>
+<span class="sd">- Svetunkov, I. (2017). Naughty APEs and the quest for the holy grail.</span>
+<span class="sd">  https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/</span>
+<span class="sd">- Fildes R. (1992). The evaluation of extrapolative forecasting methods.</span>
+<span class="sd">  International Journal of Forecasting, 8, pp.81-98.</span>
+<span class="sd">- Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.</span>
+<span class="sd">  International Journal of Forecasting, 22, pp.679-688.</span>
+<span class="sd">- Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.</span>
+<span class="sd">  Journal of the Operational Research Society, 66, pp.914-924.</span>
+<span class="sd">- Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements</span>
+<span class="sd">  and techniques for intermittent demand. International Journal of Production Economics,</span>
+<span class="sd">  128, pp.625-636.</span>
+<span class="sd">- Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy: The Case Of</span>
+<span class="sd">  Judgmental Adjustments To Sku-Level Demand Forecasts. International Journal of</span>
+<span class="sd">  Forecasting, 29(3), 510-522.</span>
+<span class="sd">- Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules, prediction,</span>
+<span class="sd">  and estimation. Journal of the American Statistical Association, 102(477), 359-378.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span><span class="p">,</span> <span class="n">Literal</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox.hm</span><span class="w"> </span><span class="kn">import</span> <span class="n">asymmetry</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_validate_inputs</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">]:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Validate and clean actual and forecast inputs.&quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual and forecast must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span>
+
+
+<div class="viewcode-block" id="me">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.me">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">me</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Error (ME).</span>
+
+<span class="sd">    The ME measures the average bias in forecasts. A positive value indicates</span>
+<span class="sd">    forecasts are on average too high (over-forecasting), while a negative</span>
+<span class="sd">    value indicates forecasts are on average too low (under-forecasting).</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        ME = mean(actual - forecast)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; me(actual, forecast)</span>
+<span class="sd">    -0.1</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Basic measure, see e.g. Hyndman &amp; Koehler (2006).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mae">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.mae">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mae</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Absolute Error (MAE).</span>
+
+<span class="sd">    The MAE measures the average magnitude of errors without considering</span>
+<span class="sd">    direction. It is robust to outliers and gives a direct interpretation</span>
+<span class="sd">    in the same units as the data.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        MAE = mean(|actual - forecast|)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Absolute Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; mae(actual, forecast)  # doctest: +ELLIPSIS</span>
+<span class="sd">    0.18</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See e.g. Hyndman &amp; Koehler (2006).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mse">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.mse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mse</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Squared Error (MSE).</span>
+
+<span class="sd">    The MSE measures the average squared difference between actual and forecast.</span>
+<span class="sd">    It penalizes larger errors more heavily than MAE.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        MSE = mean((actual - forecast)^2)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Squared Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; mse(actual, forecast)</span>
+<span class="sd">    0.038</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See e.g. Hyndman &amp; Koehler (2006).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="rmse">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.rmse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rmse</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Squared Error (RMSE).</span>
+
+<span class="sd">    The RMSE is the square root of MSE. It is in the same units as the data,</span>
+<span class="sd">    making it more interpretable than MSE while still penalizing larger errors.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        RMSE = sqrt(MSE) = sqrt(mean((actual - forecast)^2))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Root Mean Squared Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; rmse(actual, forecast)  # doctest: +ELLIPSIS</span>
+<span class="sd">    0.194...</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See e.g. Hyndman &amp; Koehler (2006).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">mse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">))</span></div>
+
+
+
+<div class="viewcode-block" id="mpe">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.mpe">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mpe</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Percentage Error (MPE).</span>
+
+<span class="sd">    The MPE measures the average percentage error. Like ME, it can detect</span>
+<span class="sd">    bias but expresses it as a percentage. However, it is undefined when</span>
+<span class="sd">    actual values are zero.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        MPE = mean((actual - forecast) / actual) * 100</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values and zero actuals.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Percentage Error (in percentage points).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; mpe(actual, forecast)</span>
+<span class="sd">    -4.466666666666667</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See e.g. Hyndman &amp; Koehler (2006).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual and forecast must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">actual</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mape">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.mape">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mape</span><span class="p">(</span><span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Absolute Percentage Error (MAPE).</span>
+
+<span class="sd">    The MAPE measures the average absolute percentage error. It is scale-independent</span>
+<span class="sd">    and expressed as a percentage, making it easy to interpret across different</span>
+<span class="sd">    contexts. However, it is undefined when actual values are zero and can be</span>
+<span class="sd">    heavily influenced by small actual values.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        MAPE = mean(|actual - forecast| / actual) * 100</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values and zero actuals.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Absolute Percentage Error (in percentage points).</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; mape(actual, forecast)</span>
+<span class="sd">    14.933333333333332</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See Svetunkov, I. (2017) for a critique of MAPE:</span>
+<span class="sd">    https://openforecast.org/2017/07/29/naughty-apes-and-the-quest-for-the-holy-grail/</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual and forecast must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">actual</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="mase">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.mase">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">mase</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Absolute Scaled Error (MASE).</span>
+
+<span class="sd">    The MASE scales the MAE by the average error of a naive (random walk)</span>
+<span class="sd">    forecast. This makes it scale-independent and allows comparison across</span>
+<span class="sd">    different time series. A MASE &lt; 1 means the forecast is better than</span>
+<span class="sd">    the naive forecast; MASE &gt; 1 means worse.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        MASE = MAE / scale</span>
+<span class="sd">        where scale = mean(|actual[t] - actual[t-1]|) by default</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float, optional</span>
+<span class="sd">        Scale parameter. If None, uses mean absolute difference of consecutive</span>
+<span class="sd">        actual values (naive forecast error). Typical values include:</span>
+<span class="sd">        - mean absolute deviation of in-sample one step ahead naive error</span>
+<span class="sd">        - mean absolute value of the in-sample actuals</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Mean Absolute Scaled Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; mase(actual, forecast)</span>
+<span class="sd">    &gt;&gt;&gt; # With custom scale</span>
+<span class="sd">    &gt;&gt;&gt; mase(actual, forecast, scale=1.0)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Hyndman R.J., Koehler A.B. (2006). Another look at measures of forecast accuracy.</span>
+<span class="sd">    International Journal of Forecasting, 22, pp.679-688.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">actual</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">))</span> <span class="o">/</span> <span class="n">scale</span></div>
+
+
+
+<div class="viewcode-block" id="rmsse">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.rmsse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rmsse</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Root Mean Squared Scaled Error (RMSSE).</span>
+
+<span class="sd">    The RMSSE is similar to MASE but uses MSE instead of MAE. It was</span>
+<span class="sd">    developed for the M5 Competition.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        RMSSE = sqrt(MSE / scale)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float, optional</span>
+<span class="sd">        Scale parameter. If None, uses mean squared difference of consecutive</span>
+<span class="sd">        actual values. Typical value: mean(diff(actual)^2).</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Root Mean Squared Scaled Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; rmsse(actual, forecast)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Used in M5 Competition.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="same">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.same">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">same</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scaled Absolute Mean Error (SAME).</span>
+
+<span class="sd">    SAME is similar to MASE but uses Mean Error (ME) instead of MAE.</span>
+<span class="sd">    It measures bias rather than absolute error.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        SAME = |ME| / scale</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float, optional</span>
+<span class="sd">        Scale parameter. If None, uses mean absolute difference of consecutive</span>
+<span class="sd">        actual values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Scaled Absolute Mean Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; same(actual, forecast)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See Petropoulos &amp; Kourentzes (2015).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">actual</span><span class="p">)))</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">))</span> <span class="o">/</span> <span class="n">scale</span></div>
+
+
+
+<div class="viewcode-block" id="rmae">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.rmae">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rmae</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">benchmark</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative Mean Absolute Error (rMAE).</span>
+
+<span class="sd">    The rMAE compares the MAE of a forecast to a benchmark forecast.</span>
+<span class="sd">    Values &lt; 1 indicate the forecast is better than the benchmark;</span>
+<span class="sd">    values &gt; 1 indicate worse.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        rMAE = MAE(forecast) / MAE(benchmark)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    benchmark : np.ndarray</span>
+<span class="sd">        Benchmark forecast values (e.g., naive or mean forecast).</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Relative Mean Absolute Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
+<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
+<span class="sd">    &gt;&gt;&gt; rmae(actual, forecast, benchmark)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy:</span>
+<span class="sd">    The Case Of Judgmental Adjustments To Sku-Level Demand Forecasts.</span>
+<span class="sd">    International Journal of Forecasting, 29(3), 510-522.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">benchmark</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual, forecast, and benchmark must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">benchmark</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">benchmark</span> <span class="o">=</span> <span class="n">benchmark</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">forecast</span> <span class="o">==</span> <span class="n">benchmark</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">mae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">/</span> <span class="n">mae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="rrmse">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.rrmse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rrmse</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">benchmark</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative Root Mean Squared Error (rRMSE).</span>
+
+<span class="sd">    The rRMSE compares the RMSE of a forecast to a benchmark forecast.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        rRMSE = RMSE(forecast) / RMSE(benchmark)</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    benchmark : np.ndarray</span>
+<span class="sd">        Benchmark forecast values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Relative Root Mean Squared Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
+<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
+<span class="sd">    &gt;&gt;&gt; rrmse(actual, forecast, benchmark)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">benchmark</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual, forecast, and benchmark must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">benchmark</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">benchmark</span> <span class="o">=</span> <span class="n">benchmark</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">forecast</span> <span class="o">==</span> <span class="n">benchmark</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="k">return</span> <span class="n">rmse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">/</span> <span class="n">rmse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="rame">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.rame">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rame</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">benchmark</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Relative Absolute Mean Error (rAME).</span>
+
+<span class="sd">    The rAME compares the absolute Mean Error (bias) of a forecast to</span>
+<span class="sd">    a benchmark forecast. It measures relative bias.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        rAME = |ME(forecast)| / |ME(benchmark)|</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    benchmark : np.ndarray</span>
+<span class="sd">        Benchmark forecast values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Relative Absolute Mean Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
+<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
+<span class="sd">    &gt;&gt;&gt; rame(actual, forecast, benchmark)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Davydenko, A., Fildes, R. (2013). Measuring Forecasting Accuracy.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">benchmark</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual, forecast, and benchmark must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">benchmark</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">benchmark</span> <span class="o">=</span> <span class="n">benchmark</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">forecast</span> <span class="o">==</span> <span class="n">benchmark</span><span class="p">):</span>
+        <span class="k">return</span> <span class="mf">1.0</span>
+
+    <span class="n">me_benchmark</span> <span class="o">=</span> <span class="n">me</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">benchmark</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">me_benchmark</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">me</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">me_benchmark</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="smse">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.smse">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">smse</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scaled Mean Squared Error (sMSE).</span>
+
+<span class="sd">    The sMSE scales the MSE by a scale parameter. Note that the scale</span>
+<span class="sd">    should be a squared value (e.g., mean of squared actuals).</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        sMSE = MSE / scale</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        Scale parameter. Should typically be a squared value</span>
+<span class="sd">        (e.g., mean(actual)^2 or mean(abs(actual[actual!=0]))^2).</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Scaled Mean Squared Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual)) ** 2</span>
+<span class="sd">    &gt;&gt;&gt; smse(actual, forecast, scale)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.</span>
+<span class="sd">    Journal of the Operational Research Society, 66, pp.914-924.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span></div>
+
+
+
+<div class="viewcode-block" id="spis">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.spis">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">spis</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scaled Periods-In-Stock (sPIS).</span>
+
+<span class="sd">    The sPIS measures the cumulative inventory performance over time.</span>
+<span class="sd">    It is useful for intermittent demand forecasting.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        sPIS = sum(cumsum(forecast - actual)) / scale</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        Scale parameter (typically mean of non-zero actuals).</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Scaled Periods-In-Stock.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual[actual != 0]))</span>
+<span class="sd">    &gt;&gt;&gt; spis(actual, forecast, scale)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Wallstrom P., Segerstedt A. (2010). Evaluation of forecasting error measurements</span>
+<span class="sd">    and techniques for intermittent demand. International Journal of Production</span>
+<span class="sd">    Economics, 128, pp.625-636.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="n">cumsum_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">forecast</span> <span class="o">-</span> <span class="n">actual</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cumsum_errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span></div>
+
+
+
+<div class="viewcode-block" id="sce">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.sce">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">sce</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">scale</span><span class="p">:</span> <span class="nb">float</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">floating</span><span class="p">[</span><span class="n">Any</span><span class="p">],</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Scaled Cumulative Error (sCE).</span>
+
+<span class="sd">    The sCE measures the cumulative forecast error scaled by a parameter.</span>
+<span class="sd">    It can detect systematic bias over time.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        sCE = sum(actual - forecast) / scale</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    scale : float</span>
+<span class="sd">        Scale parameter.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Scaled Cumulative Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual[actual != 0]))</span>
+<span class="sd">    &gt;&gt;&gt; sce(actual, forecast, scale)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Petropoulos F., Kourentzes N. (2015). Forecast combinations for intermittent demand.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span> <span class="o">=</span> <span class="n">_validate_inputs</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span></div>
+
+
+
+<div class="viewcode-block" id="gmrae">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.gmrae">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">gmrae</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">benchmark</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Geometric Mean Relative Absolute Error (GMRAE).</span>
+
+<span class="sd">    The GMRAE compares the absolute errors of a forecast to a benchmark</span>
+<span class="sd">    using geometric mean. It is robust to extreme values.</span>
+
+<span class="sd">    Formula:</span>
+<span class="sd">        GMRAE = exp(mean(log(|error| / |benchmark_error|)))</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    benchmark : np.ndarray</span>
+<span class="sd">        Benchmark forecast values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    float</span>
+<span class="sd">        Geometric Mean Relative Absolute Error.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
+<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
+<span class="sd">    &gt;&gt;&gt; gmrae(actual, forecast, benchmark)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See Davydenko &amp; Fildes (2013).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">benchmark</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">benchmark</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">lengths</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">actual</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">forecast</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">benchmark</span><span class="p">)]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">lengths</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Lengths of actual, forecast, and benchmark must match&quot;</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">na_rm</span><span class="p">:</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">forecast</span><span class="p">)</span> <span class="o">|</span> <span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">benchmark</span><span class="p">))</span>
+        <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+        <span class="n">benchmark</span> <span class="o">=</span> <span class="n">benchmark</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
+
+    <span class="n">errors</span> <span class="o">=</span> <span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span>
+    <span class="n">benchmark_errors</span> <span class="o">=</span> <span class="n">actual</span> <span class="o">-</span> <span class="n">benchmark</span>
+
+    <span class="n">ratios</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">errors</span><span class="p">)</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">benchmark_errors</span><span class="p">)</span>
+    <span class="n">valid_mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">benchmark_errors</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">ratios</span> <span class="o">=</span> <span class="n">ratios</span><span class="p">[</span><span class="n">valid_mask</span><span class="p">]</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">ratios</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">ratios</span><span class="p">)))</span></div>
+
+
+
+<div class="viewcode-block" id="accuracy">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.accuracy">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">accuracy</span><span class="p">(</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">na_rm</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate multiple accuracy measures at once.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        Actual (observed) values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        Forecasted values.</span>
+<span class="sd">    na_rm : bool, default=True</span>
+<span class="sd">        Remove NA values.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary containing: ME, MAE, MSE, RMSE, MPE, MAPE, MASE.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
+<span class="sd">    &gt;&gt;&gt; accuracy(actual, forecast)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="p">{</span>
+        <span class="s2">&quot;ME&quot;</span><span class="p">:</span> <span class="n">me</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;MAE&quot;</span><span class="p">:</span> <span class="n">mae</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;MSE&quot;</span><span class="p">:</span> <span class="n">mse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;RMSE&quot;</span><span class="p">:</span> <span class="n">rmse</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;MPE&quot;</span><span class="p">:</span> <span class="n">mpe</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;MAPE&quot;</span><span class="p">:</span> <span class="n">mape</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="p">),</span>
+        <span class="s2">&quot;MASE&quot;</span><span class="p">:</span> <span class="n">mase</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">na_rm</span><span class="o">=</span><span class="n">na_rm</span><span class="p">),</span>
+    <span class="p">}</span></div>
+
+
+
+<div class="viewcode-block" id="measures">
+<a class="viewcode-back" href="../../api/measures.html#greybox.measures.measures">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">measures</span><span class="p">(</span>
+    <span class="n">holdout</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">forecast</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">actual</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">digits</span><span class="p">:</span> <span class="nb">int</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">benchmark</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;naive&quot;</span><span class="p">,</span> <span class="s2">&quot;mean&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;naive&quot;</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Calculate comprehensive error measures for forecasts.</span>
+
+<span class="sd">    This function calculates multiple error measures using holdout (test) data,</span>
+<span class="sd">    forecasted values, and in-sample (training) data for scale calculation.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    holdout : np.ndarray</span>
+<span class="sd">        The vector of holdout (test) actual values.</span>
+<span class="sd">    forecast : np.ndarray</span>
+<span class="sd">        The vector of forecasts produced by a model.</span>
+<span class="sd">    actual : np.ndarray</span>
+<span class="sd">        The vector of actual in-sample (training) values.</span>
+<span class="sd">    digits : int, optional</span>
+<span class="sd">        Number of digits for rounding. If None, no rounding is done.</span>
+<span class="sd">    benchmark : {&quot;naive&quot;, &quot;mean&quot;}, default=&quot;naive&quot;</span>
+<span class="sd">        Benchmark method for relative measures:</span>
+<span class="sd">        - &quot;naive&quot;: Use last value repeated (random walk)</span>
+<span class="sd">        - &quot;mean&quot;: Use arithmetic mean of the series</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary containing error measures:</span>
+<span class="sd">        - ME: Mean Error</span>
+<span class="sd">        - MAE: Mean Absolute Error</span>
+<span class="sd">        - MSE: Mean Squared Error</span>
+<span class="sd">        - MPE: Mean Percentage Error</span>
+<span class="sd">        - MAPE: Mean Absolute Percentage Error</span>
+<span class="sd">        - sCE: Scaled Cumulative Error</span>
+<span class="sd">        - sMAE: Scaled Mean Absolute Error (MASE with mean scale)</span>
+<span class="sd">        - sMSE: Scaled Mean Squared Error</span>
+<span class="sd">        - MASE: Mean Absolute Scaled Error (with diff scale)</span>
+<span class="sd">        - RMSSE: Root Mean Squared Scaled Error</span>
+<span class="sd">        - SAME: Scaled Absolute Mean Error</span>
+<span class="sd">        - rMAE: Relative Mean Absolute Error</span>
+<span class="sd">        - rRMSE: Relative Root Mean Squared Error</span>
+<span class="sd">        - rAME: Relative Absolute Mean Error</span>
+<span class="sd">        - asymmetry: Asymmetry coefficient</span>
+<span class="sd">        - sPIS: Scaled Periods-In-Stock</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; np.random.seed(42)</span>
+<span class="sd">    &gt;&gt;&gt; actual = np.random.normal(10, 2, 100)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.full(10, np.mean(actual[:90]))</span>
+<span class="sd">    &gt;&gt;&gt; measures(actual[91:], forecast, actual[:90], digits=5)</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    See individual function references:</span>
+<span class="sd">    - Hyndman &amp; Koehler (2006) for MASE, RMSSE</span>
+<span class="sd">    - Petropoulos &amp; Kourentzes (2015) for sMSE, sCE, sPIS</span>
+<span class="sd">    - Davydenko &amp; Fildes (2013) for rMAE, rRMSE, rAME</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">holdout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">forecast</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">holdout</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">benchmark</span> <span class="o">==</span> <span class="s2">&quot;naive&quot;</span><span class="p">:</span>
+        <span class="n">benchmark_forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">actual</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">benchmark_forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">actual</span><span class="p">))</span>
+
+    <span class="n">nonzero_mask</span> <span class="o">=</span> <span class="n">actual</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="n">mean_abs_actual</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span><span class="p">[</span><span class="n">nonzero_mask</span><span class="p">]))</span> <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">nonzero_mask</span><span class="p">)</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="p">)</span>
+    <span class="n">mean_abs_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">actual</span><span class="p">)))</span>
+
+    <span class="n">error_measures</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;ME&quot;</span><span class="p">:</span> <span class="n">me</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;MAE&quot;</span><span class="p">:</span> <span class="n">mae</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;MSE&quot;</span><span class="p">:</span> <span class="n">mse</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;MPE&quot;</span><span class="p">:</span> <span class="n">mpe</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;MAPE&quot;</span><span class="p">:</span> <span class="n">mape</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;sCE&quot;</span><span class="p">:</span> <span class="n">sce</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_actual</span><span class="p">),</span>
+        <span class="s2">&quot;sMAE&quot;</span><span class="p">:</span> <span class="n">mase</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">actual</span><span class="p">))),</span>
+        <span class="s2">&quot;sMSE&quot;</span><span class="p">:</span> <span class="n">smse</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_actual</span><span class="o">**</span><span class="mi">2</span><span class="p">),</span>
+        <span class="s2">&quot;MASE&quot;</span><span class="p">:</span> <span class="n">mase</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_diff</span><span class="p">),</span>
+        <span class="s2">&quot;RMSSE&quot;</span><span class="p">:</span> <span class="n">rmsse</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">actual</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)),</span>
+        <span class="s2">&quot;SAME&quot;</span><span class="p">:</span> <span class="n">same</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_diff</span><span class="p">),</span>
+        <span class="s2">&quot;rMAE&quot;</span><span class="p">:</span> <span class="n">rmae</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
+        <span class="s2">&quot;rRMSE&quot;</span><span class="p">:</span> <span class="n">rrmse</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
+        <span class="s2">&quot;rAME&quot;</span><span class="p">:</span> <span class="n">rame</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
+        <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="n">asymmetry</span><span class="p">(</span><span class="n">holdout</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;sPIS&quot;</span><span class="p">:</span> <span class="n">spis</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_actual</span><span class="p">),</span>
+    <span class="p">}</span>
+
+    <span class="k">if</span> <span class="n">digits</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">error_measures</span><span class="p">:</span>
+            <span class="n">error_measures</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="nb">round</span><span class="p">(</span><span class="n">error_measures</span><span class="p">[</span><span class="n">key</span><span class="p">],</span> <span class="n">digits</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">error_measures</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
