@@ -9,8 +9,9 @@ alm(formula, data, subset, na.action, distribution = c("dnorm", "dlaplace",
   "dlgnorm", "dbcnorm", "dinvgauss", "dgamma", "dexp", "dfnorm", "drectnorm",
   "dpois", "dnbinom", "dbinom", "dgeom", "dbeta", "dlogitnorm", "plogis",
   "pnorm"), loss = c("likelihood", "MSE", "MAE", "HAM", "LASSO", "RIDGE",
-  "ROLE"), occurrence = c("none", "plogis", "pnorm"), scale = NULL,
-  orders = c(0, 0, 0), parameters = NULL, fast = FALSE, ...)
+  "ROLE", "QUALE"), occurrence = c("none", "plogis", "pnorm"),
+  scale = NULL, orders = c(0, 0, 0), parameters = NULL, fast = FALSE,
+  ...)
 }
 \arguments{
 \item{formula}{an object of class "formula" (or one that can be coerced to
@@ -48,6 +49,9 @@ likelihood of the function specified in \code{distribution};
 \item \code{"ROLE"} - "RObust Likelihood Estimator", which uses trimmed mean in the
 calculation of scale and likelihood. A separate parameter \code{trim} can be provided
 in ellipsis. If not provided, the default value is 0.05;
+\item \code{"QUALE"} - QUAntile Likelihood Estimator. Minimises a specified quantile
+of the likelihood (instead of taking the sum). Requires parameter \code{lambda} to be
+specified.
 }
 In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
 but the parameters are divided by the standard deviations of explanatory variables
@@ -260,7 +264,9 @@ plot(predict(ourModel,xreg[-c(1:80),]))}
 # AR(1) with distributed lags for x1 (ARDL)
 \donttest{ourModel <- alm(y~x1+x2+B(x1,1), xreg, subset=c(1:80), orders=c(1,0,0))
 summary(ourModel)
-plot(predict(ourModel,xreg[-c(1:80),]))}
+plot(predict(ourModel,xreg[-c(1:80),]))
+# Get dynamic multipliers
+multipliers(ourModel, "x1", h=5)}
 
 ### Examples with the count data
 \donttest{xreg[,1] <- round(exp(xreg[,1]-70),0)}

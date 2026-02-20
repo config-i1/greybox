@@ -55,35 +55,131 @@ B <- function(x, k, ...) {
 }
 
 # Dynamic multipliers for ARDL(p, k)
-# @param phi Numeric vector of AR coefficients (phi_1, ..., phi_p).
-# @param beta Numeric vector of DL coefficients for x (beta_0, ..., beta_k).
-# @param k_horiz Integer, number of dynamic multipliers to return (m_0, ..., m_{k_horiz-1}).
-# @return Numeric vector of length k_horiz with dynamic multipliers.
-# dynmult <- function(phi, beta, k_horiz) {
-#     # Function to calculate the dynamic multipliers.
-#     # Do this recursively to avoid complications?
-#     p <- length(phi)
-#     # treat beta_s = 0 for s > length(beta)-1
-#     max_beta_idx <- length(beta) - 1L
-#
-#     m <- numeric(k_horiz)
-#     if (k_horiz < 1L) return(m)
-#
-#     # s = 0
-#     m[1] <- beta[1]  # beta_0
-#
-#     if (k_horiz == 1L) return(m)
-#
-#     for (s in 1:(k_horiz - 1L)) {
-#         # beta_s (0 if s > max_beta_idx)
-#         beta_s <- if (s <= max_beta_idx) beta[s + 1L] else 0
-#
-#         # sum_{i=1}^{min(p,s)} phi_i * m_{s-i}
-#         acc <- 0
-#         for (i in 1:min(p, s)) {
-#             acc <- acc + phi[i] * m[s - i + 1L]
-#         }
-#         m[s + 1L] <- beta_s + acc
-#     }
-#     m
-# }
+dynMultCalc <- function(phi, beta, h){
+    # Function to calculate the dynamic multipliers.
+    # Do this recursively to avoid complications?
+    p <- length(phi)
+    # treat beta_s = 0 for s > length(beta)-1
+    max_beta_idx <- length(beta) - 1L
+
+    cValues <- numeric(h)
+    if (h < 1L) return(cValues)
+
+    # s = 0
+    cValues[1] <- beta[1]  # beta_0
+
+    if (h == 1L) return(cValues)
+
+    for (s in 1:(h - 1L)) {
+        # beta_s (0 if s > max_beta_idx)
+        beta_s <- if(s <= max_beta_idx) beta[s + 1L] else 0
+
+        # sum_{i=1}^{min(p,s)} phi_i * m_{s-i}
+        acc <- 0
+        for (i in 1:min(p, s)) {
+            acc <- acc + phi[i] * cValues[s - i + 1L]
+        }
+        cValues[s + 1L] <- beta_s + acc
+    }
+    cValues
+}
+
+# Extract beta parameter (lagged) for a specific variable
+get_betas <- function(object, parm) {
+    coefs <- coef(object)
+    coef_names <- names(coefs)
+
+    # Find the coefficient for the base variable (lag 0)
+    # This matches "parm" exactly (not followed by comma)
+    base_mask <- (coef_names == parm)
+
+    # Find coefficients for lagged versions: B(parm, k)
+    # Pattern: "B(varname, k)" where k is a number
+    lag_pattern <- paste0("^B\\(", parm, ",\\s*([0-9]+)\\)$")
+    lag_indices <- grep(lag_pattern, coef_names, perl = TRUE)
+
+    # Extract lag orders from matched names
+    lag_orders <- as.integer(gsub(lag_pattern, "\\1", coef_names[lag_indices]))
+
+    # Create a data frame with lag orders and coefficients
+    # Include base variable (lag 0)
+    if (any(base_mask)) {
+        betas_df <- data.frame(
+            lag = 0,
+            value = coefs[base_mask],
+            stringsAsFactors = FALSE
+        )
+    } else {
+        betas_df <- data.frame(
+            lag = integer(0),
+            value = numeric(0),
+            stringsAsFactors = FALSE
+        )
+    }
+
+    # Add lagged coefficients
+    if (length(lag_indices) > 0) {
+        lag_df <- data.frame(
+            lag = lag_orders,
+            value = coefs[lag_indices],
+            stringsAsFactors = FALSE
+        )
+        betas_df <- rbind(betas_df, lag_df)
+    }
+
+    # Sort by lag order and return values as vector
+    if (nrow(betas_df) == 0) {
+        return(numeric(0))
+    }
+
+    betas_df <- betas_df[order(betas_df$lag), ]
+    return(betas_df)
+}
+
+
+#' Dynamic multipliers from an ARDL model
+#'
+#' This function extracts the beta (distributed lag) coefficients for a specific
+#' variable from an estimated ALM model and ARIMA(p,d,0) polynomials. It then uses
+#' them to calculate dynamic multipliers for that variable for the horizon \code{h}.
+#'
+#' @param object An estimated ALM model object (with coefficients from \code{coef()}).
+#' @param parm Character string of the variable name.
+#' @param h Horizon for which to produce the dynamic multipliers.
+#'
+#' @return Numeric vector of dynamic multipliers over time
+#'
+#' @seealso,
+#' \code{\link[greybox]{B}} for creating lagged variables
+#'
+#' @examples
+#' \dontrun{
+#'   # Fit a model with lagged variables
+#'   test <- alm(drivers ~ kms + law + B(kms, 1) + B(kms, 2),
+#'               Seatbelts, orders = c(1, 0, 0))
+#'   multipliers(test, "kms", h=10)
+#' }
+#'
+#' @export
+multipliers <- function(object, parm, h=10){
+    coefs <- coef(object);
+
+    # Get positions of the parm in the vector of coefficients
+    pos_kms <- which(grepl(paste0("\\b", parm, "\\b"), names(coefs)))
+
+    if(length(pos_kms)>0){
+        if(is.null(object$other$polynomial)){
+            phi <- 0;
+        }
+        else{
+            phi <- object$other$polynomial;
+        }
+        betas <- get_betas(object, parm);
+
+        return(setNames(dynMultCalc(phi, betas[,2], h),
+                        paste0("h",1:h)));
+    }
+    else{
+        stop("The parameter \"",parm, "\" is not found in the model.");
+    }
+}

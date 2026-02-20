@@ -5,6 +5,7 @@ Changes:
 * Backshift operator B(x, p) that can be used in regression models.
 * Renamed lmCombine() into calm() (combine alm). The old name is kept for backwards compatability.
 * New estimator in alm() - Quantile Likelihood Estimator (QUALE), which minimises a specific quantile of the point likelihoods.
+* Dynamic multipliers for ALM via multipliers() function.
 
 Bugfixes:
 * delta parameter calculation in lowess for spread() was not working in case of missing values. Fixed this.

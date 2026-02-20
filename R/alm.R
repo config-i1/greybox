@@ -243,7 +243,9 @@
 #' # AR(1) with distributed lags for x1 (ARDL)
 #' \donttest{ourModel <- alm(y~x1+x2+B(x1,1), xreg, subset=c(1:80), orders=c(1,0,0))
 #' summary(ourModel)
-#' plot(predict(ourModel,xreg[-c(1:80),]))}
+#' plot(predict(ourModel,xreg[-c(1:80),]))
+#' # Get dynamic multipliers
+#' multipliers(ourModel, "x1", h=5)}
 #'
 #' ### Examples with the count data
 #' \donttest{xreg[,1] <- round(exp(xreg[,1]-70),0)}
