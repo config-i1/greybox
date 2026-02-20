@@ -81,6 +81,9 @@
 #' \item \code{"ROLE"} - "RObust Likelihood Estimator", which uses trimmed mean in the
 #' calculation of scale and likelihood. A separate parameter \code{trim} can be provided
 #' in ellipsis. If not provided, the default value is 0.05;
+#' \item \code{"QUALE"} - QUAntile Likelihood Estimator. Minimises a specified quantile
+#' of the likelihood (instead of taking the sum). Requires parameter \code{lambda} to be
+#' specified.
 #' }
 #' In case of LASSO / RIDGE, the variables are not normalised prior to the estimation,
 #' but the parameters are divided by the standard deviations of explanatory variables
@@ -285,7 +288,7 @@ alm <- function(formula, data, subset, na.action,
                                "dpois","dnbinom","dbinom","dgeom",
                                "dbeta","dlogitnorm",
                                "plogis","pnorm"),
-                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE","ROLE"),
+                loss=c("likelihood","MSE","MAE","HAM","LASSO","RIDGE","ROLE","QUALE"),
                 occurrence=c("none","plogis","pnorm"),
                 scale=NULL,
                 orders=c(0,0,0),
@@ -727,11 +730,14 @@ alm <- function(formula, data, subset, na.action,
                 CFValue[] <- CFValue + CFLogLikEntropy(distribution, fitterReturn, obsZero);
             }
         }
-        else
-        if(loss=="ROLE"){
+        else if(any(loss==c("ROLE","QUALE"))){
+            # The original point log-likelilhoods
+            pointLiks <- CFLogLik(distribution, y, fitterReturn, otU, ot);
+
             # The original log-likelilhood
-            CFValue <- -meanFast(CFLogLik(distribution, y, fitterReturn, otU, ot),
-                                 trim=trim);
+            CFValue <- -switch(loss,
+                              "ROLE"=meanFast(pointLiks, trim=trim),
+                              "QUALE"=quantile(pointLiks, probs=lambda));
 
             # Change scale to look like the standard likelihood
             CFValue[] <- CFValue*obsInsample;
@@ -903,6 +909,16 @@ alm <- function(formula, data, subset, na.action,
         }
         else{
             trim[] <- ellipsis$trim;
+        }
+    }
+    # Quantile likelihood
+    if(loss=="QUALE"){
+        if(is.null(ellipsis$lambda)){
+            warning("You have not provided lambda parameter. We will set it to 0.5.", call.=FALSE);
+            lambda <- 0.5;
+        }
+        else{
+            lambda <- ellipsis$lambda;
         }
     }
 
@@ -2078,7 +2094,7 @@ alm <- function(formula, data, subset, na.action,
         }
     }
 
-    if(any(loss==c("LASSO","RIDGE"))){
+    if(any(loss==c("LASSO","RIDGE","QUALE"))){
         ellipsis$lambda <- lambda;
     }
     else if(loss=="ROLE"){
@@ -2244,7 +2260,7 @@ alm <- function(formula, data, subset, na.action,
     }
 
     # Return LogLik, depending on the used loss
-    if(any(loss==c("likelihood","ROLE"))){
+    if(any(loss==c("likelihood","ROLE","QUALE"))){
         logLik <- -CFValue;
     }
     else if((loss=="MSE" && any(distribution==c("dnorm","dlnorm","dbcnorm","dlogitnorm"))) ||
