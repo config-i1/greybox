@@ -407,6 +407,21 @@ def fitter(
         other = None
 
     if ar_order > 0 or i_order > 0:
+        # Initialize poly2 (I polynomial: (1-B)^d) when not provided externally
+        if poly2 is None:
+            if i_order > 0:
+                poly2 = np.array([1.0, -1.0])
+                for _ in range(i_order - 1):
+                    poly2 = np.convolve(poly2, np.array([1.0, -1.0]))
+            else:
+                poly2 = np.array([1.0])  # identity (no differencing)
+        # Initialize poly1 (AR polynomial) for ARI combined case (p>0, d>0)
+        if poly1 is None and ar_order > 0 and i_order > 0:
+            poly1 = np.ones(ar_order + 1)
+        # Compute n_variables from B length when not provided externally
+        if n_variables == 0:
+            n_variables = len(B) - ar_order
+
         if poly1 is not None and ar_order > 0:
             poly1[1:] = -B[-ar_order:]
             if n_variables > ar_order:

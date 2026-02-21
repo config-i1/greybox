@@ -1448,3 +1448,189 @@ class TestALMMtcars:
 
         np.testing.assert_allclose(result.lower, r_lower, rtol=1e-5)
         assert result.upper is None
+
+
+class TestALMOrders:
+    """Tests for ALM with ARIMA orders parameter.
+
+    These tests compare Python ALM with R alm() function using ARIMA orders.
+
+    Note: The orders parameter implements AR(p) terms. The d (differencing)
+    parameter works differently between R and Python - R uses a polynomial
+    formulation while Python uses a simpler lag-based approach.
+    """
+
+    @pytest.fixture
+    def mtcars_data(self, mtcars):
+        """Load mtcars data."""
+        return mtcars.to_dict(orient="list")
+
+    def test_alm_mtcars_orders_p1_d0(self, mtcars_data):
+        """Test ALM with mtcars: mpg ~ wt, orders=(1,0,0), dnorm.
+
+        R results (alm with orders=c(1,0,0)):
+        - Intercept: 41.17
+        - wt: -5.82
+        - mpgLag1: -0.118
+        - scale: 2.90
+        - log-likelihood: -79.49
+        """
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", orders=(1, 0, 0),
+            nlopt_kargs={"maxeval": 5000}
+        )
+        model.fit(X, y)
+
+        np.testing.assert_allclose(
+            model.intercept_, 41.17, rtol=5e-2, err_msg="Intercept doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.coef[0], -5.82, rtol=5e-2, err_msg="wt coefficient doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.coef[1], -0.118, rtol=1e-1, err_msg="mpgLag1 coefficient doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.scale, 2.90, rtol=5e-2, err_msg="Scale doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.log_lik, -79.49, rtol=5e-2, err_msg="Log-likelihood doesn't match R"
+        )
+
+    def test_alm_mtcars_orders_p2_d0(self, mtcars_data):
+        """Test ALM with mtcars: mpg ~ wt, orders=(2,0,0), dnorm.
+
+        R results (alm with orders=c(2,0,0)):
+        - Intercept: 42.78
+        - wt: -5.78
+        - mpgLag1: -0.023
+        - mpgLag2: -0.181
+        - scale: 2.75
+        - log-likelihood: -77.83
+        """
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", orders=(2, 0, 0),
+            nlopt_kargs={"maxeval": 5000}
+        )
+        model.fit(X, y)
+
+        np.testing.assert_allclose(
+            model.intercept_, 42.78, rtol=5e-2, err_msg="Intercept doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.coef[0], -5.78, rtol=5e-2, err_msg="wt coefficient doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.coef[1], -0.023, rtol=1, err_msg="mpgLag1 coefficient doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.coef[2], -0.181, rtol=1e-1, err_msg="mpgLag2 coefficient doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.scale, 2.75, rtol=5e-2, err_msg="Scale doesn't match R"
+        )
+        np.testing.assert_allclose(
+            model.log_lik, -77.83, rtol=5e-2, err_msg="Log-likelihood doesn't match R"
+        )
+
+    def test_alm_orders_ma_not_implemented(self, mtcars_data):
+        """Test that MA(q) raises NotImplementedError."""
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", orders=(0, 0, 1),
+            nlopt_kargs={"maxeval": 100}
+        )
+
+        with pytest.raises(NotImplementedError, match="MA.*not implemented"):
+            model.fit(X, y)
+
+    def test_alm_orders_feature_names(self):
+        """Test that orders parameter adds correct feature names."""
+        data = {"y": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "x": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]}
+        y, X = formula("y ~ x", data)
+
+        model = ALM(distribution="dnorm", orders=(2, 0, 0))
+        model.fit(X, y)
+
+        assert "yLag1" in model._feature_names
+        assert "yLag2" in model._feature_names
+
+    def test_alm_orders_i1_pure_i(self, mtcars_data):
+        """Test ALM with pure I(1) differencing: orders=(0,1,0).
+
+        For a pure I(1) model (random walk with drift), the ARI polynomial
+        is (1-B), giving a single constrained lag coefficient of 1.0.
+        """
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", orders=(0, 1, 0),
+            nlopt_kargs={"maxeval": 2000}
+        )
+        model.fit(X, y)
+
+        assert model.arima_string_ == "ARIMA(0,1,0)"
+        assert model.arima_polynomial_ is not None
+        assert list(model.arima_polynomial_.keys()) == ["mpgLag1"]
+        np.testing.assert_allclose(
+            model.arima_polynomial_["mpgLag1"], 1.0, atol=1e-10,
+            err_msg="Pure I(1) lag coefficient must be exactly 1.0"
+        )
+
+    def test_alm_orders_ari11(self, mtcars_data):
+        """Test ALM with ARI(1,1): orders=(1,1,0).
+
+        For ARI(1,1), the combined polynomial of AR(1)*(1-B) gives
+        coefficients [1+phi1, -phi1] for [Lag1, Lag2], which always sum to 1.
+        """
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", loss="likelihood", orders=(1, 1, 0),
+            nlopt_kargs={"maxeval": 5000}
+        )
+        model.fit(X, y)
+
+        assert model.arima_string_ == "ARIMA(1,1,0)"
+        assert model.arima_polynomial_ is not None
+        assert list(model.arima_polynomial_.keys()) == ["mpgLag1", "mpgLag2"]
+
+        # Invariant: coefficients of ARI(1,d) polynomial always sum to 1
+        poly_sum = sum(model.arima_polynomial_.values())
+        np.testing.assert_allclose(
+            poly_sum, 1.0, atol=1e-8,
+            err_msg="ARI(1,1) polynomial coefficients must sum to 1.0"
+        )
+
+    def test_alm_orders_ari11_feature_names(self, mtcars_data):
+        """Test feature names and arima_polynomial_ keys for ARI(1,1).
+
+        For orders=(1,1,0): ar_order=1 free phi parameter → 1 lag name in
+        _feature_names; all ari_order=2 lag names in arima_polynomial_.
+        """
+        data = mtcars_data
+        y, X = formula("mpg ~ wt", data)
+
+        model = ALM(
+            distribution="dnorm", orders=(1, 1, 0),
+            nlopt_kargs={"maxeval": 2000}
+        )
+        model.fit(X, y)
+
+        # Only the ar_order=1 free phi params appear in _feature_names
+        assert "mpgLag1" in model._feature_names
+        assert "mpgLag2" not in model._feature_names
+
+        # arima_polynomial_ covers all ari_order=2 lags
+        assert list(model.arima_polynomial_.keys()) == ["mpgLag1", "mpgLag2"]
+

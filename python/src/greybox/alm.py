@@ -13,11 +13,14 @@ import numpy as np
 import pandas as pd
 import nlopt
 from scipy import stats
+from scipy.special import gamma as _sp_gamma
 
 from .fitters import scaler_internal, extractor_fitted, extractor_residuals
 from .cost_function import cf
 from . import distributions as dist
 from .methods.summary import SummaryResult
+from .transforms import bc_transform_inv as _bc_transform_inv
+from .xreg import xreg_expander
 
 
 def _numerical_hessian(f, x0, h=None):
@@ -354,6 +357,7 @@ class ALM:
         self.ic_values = None
         self._result = None
         self._n_features = None
+        self._n_features_exog = None
         self._X_train_ = None
         self._y_train_ = None
         self._formula_ = None
@@ -429,6 +433,57 @@ class ALM:
         n_samples, n_features = X.shape
         self._n_features = n_features
 
+        ar_order = self.orders[0]
+        i_order = self.orders[1]
+        ma_order = self.orders[2]
+
+        if ma_order > 0:
+            raise NotImplementedError(
+                "MA(q) is not implemented in ALM. "
+                "Only AR(p) and differencing (d) are supported."
+            )
+
+        ari_order = ar_order + i_order
+
+        self._ar_order = ar_order
+        self._i_order = i_order
+        self._ari_order = ari_order
+
+        # Save n_features before adding AR lag columns
+        n_features_exog = n_features
+        self._n_features_exog = n_features_exog
+
+        ar_term_names = []
+        if ari_order > 0:
+            if response_name is None:
+                response_name = "y"
+                self._response_name = "y"
+
+            ar_lags = list(range(-1, -ari_order - 1, -1))
+            ar_terms = xreg_expander(y, lags=ar_lags, gaps="auto")
+
+            ar_term_names = [f"{response_name}Lag{i}" for i in range(1, ari_order + 1)]
+
+            # Keep all ari_order lag columns in X (including differencing lags)
+            # For i_order > 0, the polynomial constraint maps ar_order free phi params
+            # to ari_order combined polynomial coefficients in the design matrix.
+
+            X = np.hstack([X, ar_terms])
+
+            # Feature names: for i_order > 0, only ar_order names are "free" phi
+            # params in coef_, but all ari_order names appear in arima_polynomial_.
+            free_ar_term_names = ar_term_names[:ar_order] if ar_order > 0 else []
+            if feature_names is not None:
+                feature_names = list(feature_names) + free_ar_term_names
+            else:
+                feature_names = [
+                    f"x{i}" for i in range(n_features_exog)
+                ] + free_ar_term_names
+
+            n_samples, n_features = X.shape
+            self._n_features = n_features
+            self._feature_names = feature_names
+
         other_val = self._get_other_parameter()
         a_parameter_provided = other_val is not None
 
@@ -447,17 +502,27 @@ class ALM:
             "dt",
         )
 
+        # n_params counts free optimizer parameters:
+        # for ARI(p,d): n_features_exog + ar_order (not ari_order — d>0 adds
+        # constrained polynomial columns, not free parameters).
+        n_params_base = n_features_exog + ar_order
         if (
             self.distribution in distributions_with_extra_param
             and not a_parameter_provided
         ):
-            n_params = n_features + 1
+            n_params = n_params_base + 1
         elif self.distribution == "dbeta":
-            n_params = 2 * n_features
+            n_params = 2 * n_params_base
         else:
-            n_params = n_features
+            n_params = n_params_base
 
         B_init = np.zeros(n_params)
+
+        # For ARI models the optimizer B has n_params_base free parameters but
+        # X has n_features_exog + ari_order columns.  Use a reduced design
+        # matrix for all B_init lstsq calls so the result always has exactly
+        # n_params_base elements (the correct free-parameter size).
+        X_for_init = X[:, :n_params_base] if i_order > 0 else X
 
         log_link_distributions = (
             "dinvgauss",
@@ -473,19 +538,21 @@ class ALM:
 
             y_bc = bc_transform(y, 0.01)
             try:
-                B_init = np.linalg.lstsq(X, y_bc, rcond=None)[0]
+                B_init = np.linalg.lstsq(X_for_init, y_bc, rcond=None)[0]
             except Exception:
                 pass
         elif self.distribution == "dpois":
             mu_insample = np.mean(y)
             try:
-                XtX_mu = X.T @ X * mu_insample
-                B_init_for_lstsq = np.linalg.solve(XtX_mu, X.T @ (y - mu_insample))
+                XtX_mu = X_for_init.T @ X_for_init * mu_insample
+                B_init_for_lstsq = np.linalg.solve(
+                    XtX_mu, X_for_init.T @ (y - mu_insample)
+                )
                 B_init = B_init_for_lstsq
             except Exception:
                 try:
                     y_pos = y[y > 0]
-                    X_pos = X[y > 0]
+                    X_pos = X_for_init[y > 0]
                     B_init = np.linalg.lstsq(X_pos, np.log(y_pos), rcond=None)[0]
                 except Exception:
                     pass
@@ -497,7 +564,7 @@ class ALM:
             *log_link_distributions,
         ):
             y_pos = y[y > 0]
-            X_pos = X[y > 0]
+            X_pos = X_for_init[y > 0]
             if len(y_pos) > 0:
                 try:
                     B_init_for_lstsq = np.linalg.lstsq(
@@ -514,7 +581,7 @@ class ALM:
                     pass
         elif self.distribution == "dt":
             try:
-                B_init_for_lstsq = np.linalg.lstsq(X, y, rcond=None)[0]
+                B_init_for_lstsq = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
                 if not a_parameter_provided:
                     B_init[0] = 2
                     B_init[1:] = B_init_for_lstsq
@@ -528,7 +595,7 @@ class ALM:
             if not a_parameter_provided:
                 try:
                     B_init_for_lstsq = np.linalg.lstsq(
-                        X, bc_transform(y, 0.1), rcond=None
+                        X_for_init, bc_transform(y, 0.1), rcond=None
                     )[0]
                     B_init[0] = 0.1
                     B_init[1:] = B_init_for_lstsq
@@ -537,13 +604,15 @@ class ALM:
             else:
                 try:
                     B_init = np.linalg.lstsq(
-                        X, bc_transform(y, self.lambda_bc), rcond=None
+                        X_for_init, bc_transform(y, self.lambda_bc), rcond=None
                     )[0]
                 except Exception:
                     pass
         elif self.distribution == "dchisq":
             try:
-                B_init_for_lstsq = np.linalg.lstsq(X, np.sqrt(y), rcond=None)[0]
+                B_init_for_lstsq = np.linalg.lstsq(X_for_init, np.sqrt(y), rcond=None)[
+                    0
+                ]
                 if not a_parameter_provided:
                     B_init[0] = 1
                     B_init[1:] = B_init_for_lstsq
@@ -555,7 +624,9 @@ class ALM:
             y_clip = np.clip(y, 1e-10, 1 - 1e-10)
             y_transformed = np.log(y_clip / (1 - y_clip))
             try:
-                B_init_for_lstsq = np.linalg.lstsq(X, y_transformed, rcond=None)[0]
+                B_init_for_lstsq = np.linalg.lstsq(
+                    X_for_init, y_transformed, rcond=None
+                )[0]
                 if (
                     self.distribution in distributions_with_extra_param
                     and not a_parameter_provided
@@ -568,11 +639,11 @@ class ALM:
         elif self.distribution == "dbeta":
             y_clip = np.clip(y, 1e-10, 1 - 1e-10)
             try:
-                B_half = np.linalg.lstsq(X, np.log(y_clip / (1 - y_clip)), rcond=None)[
-                    0
-                ]
-                B_init[:n_features] = B_half
-                B_init[n_features:] = -B_half
+                B_half = np.linalg.lstsq(
+                    X_for_init, np.log(y_clip / (1 - y_clip)), rcond=None
+                )[0]
+                B_init[:n_params_base] = B_half
+                B_init[n_params_base:] = -B_half
             except Exception:
                 pass
         elif (
@@ -580,7 +651,7 @@ class ALM:
             and not a_parameter_provided
         ):
             try:
-                B_init_for_lstsq = np.linalg.lstsq(X, y, rcond=None)[0]
+                B_init_for_lstsq = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
                 B_init[1:] = B_init_for_lstsq
             except Exception:
                 pass
@@ -595,9 +666,9 @@ class ALM:
                 B_init[0] = np.var(y, ddof=1)
         else:
             try:
-                B_init = np.linalg.lstsq(X, y, rcond=None)[0]
+                B_init = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
             except Exception:
-                B_init = np.zeros(n_features)
+                B_init = np.zeros(n_params)
 
         print_level = self.nlopt_kargs.get("print_level", 0)
         iteration_count = [0]
@@ -613,8 +684,8 @@ class ALM:
                 self.loss,
                 y,
                 X,
-                ar_order=0,
-                i_order=0,
+                ar_order=ar_order,
+                i_order=i_order,
                 lambda_val=(
                     self.lambda_l1
                     if self.loss == "LASSO"
@@ -654,8 +725,8 @@ class ALM:
             self.distribution in distributions_with_extra_param
             and not a_parameter_provided
         ):
-            lower_bounds = [0.0] + [-np.inf] * n_features
-            upper_bounds = [np.inf] * (n_features + 1)
+            lower_bounds = [0.0] + [-np.inf] * n_params_base
+            upper_bounds = [np.inf] * (n_params_base + 1)
             if self.distribution in ("dalaplace", "dbcnorm"):
                 upper_bounds[0] = 1.0
         else:
@@ -724,7 +795,9 @@ class ALM:
                 self._coef = B_opt[2:] if len(B_opt) > 2 else np.array([])
             elif self.distribution == "dbeta":
                 self.intercept_ = B_opt[0]
-                self._coef = B_opt[1:n_features] if n_features > 1 else np.array([])
+                self._coef = (
+                    B_opt[1:n_params_base] if n_params_base > 1 else np.array([])
+                )
             else:
                 self.intercept_ = B_opt[0]
                 self._coef = B_opt[1:] if len(B_opt) > 1 else np.array([])
@@ -736,25 +809,42 @@ class ALM:
             B_for_mu = B_opt[1:]
             other_val = B_opt[0]
         elif self.distribution == "dbeta":
-            B_for_mu = B_opt[:n_features]
+            B_for_mu = B_opt[:n_params_base]
         else:
             B_for_mu = B_opt
 
-        linear_pred = X @ B_for_mu
-        if self.distribution in (
-            "dinvgauss",
-            "dgamma",
-            "dexp",
-            "dpois",
-            "dnbinom",
-            "dbinom",
-            "dgeom",
-        ):
-            mu_computed = np.exp(linear_pred)
-        elif self.distribution == "dbeta":
-            mu_computed = np.exp(linear_pred)
+        # For ARI models, apply polynomial expansion via fitter() to get mu.
+        # For non-ARI models, compute mu directly from the linear predictor.
+        if i_order > 0:
+            from .fitters import fitter as _fitter_func
+
+            fitter_result = _fitter_func(
+                B_for_mu,
+                self.distribution,
+                y,
+                X,
+                other=other_val,
+                a_parameter_provided=True,
+                ar_order=ar_order,
+                i_order=i_order,
+            )
+            mu_computed = fitter_result["mu"]
         else:
-            mu_computed = linear_pred
+            linear_pred = X @ B_for_mu
+            if self.distribution in (
+                "dinvgauss",
+                "dgamma",
+                "dexp",
+                "dpois",
+                "dnbinom",
+                "dbinom",
+                "dgeom",
+            ):
+                mu_computed = np.exp(linear_pred)
+            elif self.distribution == "dbeta":
+                mu_computed = np.exp(linear_pred)
+            else:
+                mu_computed = linear_pred
 
         fitter_return = {
             "mu": mu_computed,
@@ -775,6 +865,34 @@ class ALM:
         fitter_return["scale"] = scale
         self._scale = scale
         self.other_ = other_val
+
+        # Store ARI polynomial and ARIMA descriptor
+        if ar_order > 0 or i_order > 0:
+            # phi values are the last ar_order elements of B_for_mu
+            ar_phi = B_for_mu[-ar_order:] if ar_order > 0 else np.array([])
+            if ar_order > 0 and i_order > 0:
+                # Combined ARI polynomial: convolve I(d) and AR(p) polynomials
+                poly1_final = np.ones(ar_order + 1)
+                poly1_final[1:] = -ar_phi
+                poly2_final = np.array([1.0, -1.0])
+                for _ in range(i_order - 1):
+                    poly2_final = np.convolve(poly2_final, np.array([1.0, -1.0]))
+                combined = -np.convolve(poly2_final, poly1_final)[1:]
+            elif i_order > 0:
+                # Pure I(d): polynomial is -poly2[1:] = ones (all +1)
+                poly2_final = np.array([1.0, -1.0])
+                for _ in range(i_order - 1):
+                    poly2_final = np.convolve(poly2_final, np.array([1.0, -1.0]))
+                combined = -poly2_final[1:]
+            else:
+                # Pure AR(p): coefficients are the phi values directly
+                combined = ar_phi
+            lag_names = [f"{response_name}Lag{i}" for i in range(1, ari_order + 1)]
+            self.arima_polynomial_ = dict(zip(lag_names, combined))
+            self.arima_string_ = f"ARIMA({ar_order},{i_order},0)"
+        else:
+            self.arima_polynomial_ = None
+            self.arima_string_ = None
 
         lambda_bc_val = (
             other_val
@@ -801,9 +919,9 @@ class ALM:
         if self.loss == "likelihood":
             self._log_lik = -self._loss_value
             if self.distribution == "dbeta":
-                n_params_calc = 2 * n_features
+                n_params_calc = 2 * n_params_base
             else:
-                n_params_calc = n_features
+                n_params_calc = n_params_base
                 if self.distribution not in (
                     "dexp",
                     "dpois",
@@ -1040,15 +1158,27 @@ class ALM:
             return variances + (self.sigma**2)
         return variances
 
-    def _calculate_quantiles(self, mean, variances, interval, level, side):
+    def _calculate_quantiles(self, linear_pred, variances, interval, level, side):
         """Calculate lower and upper quantiles for prediction intervals.
+
+        Accepts the raw linear predictor (before back-transformation) and
+        branches by distribution to match R's predict.alm() behaviour:
+        - symmetric distributions: t-interval in LP space
+        - log-link distributions: exponentiate t-bounds for CI, use
+          distribution quantile for PI
+        - log-normal family: use the distribution quantile function directly
+          for both CI and PI (se encodes the correct total uncertainty)
+        - link-function distributions (plogis/pnorm): apply CDF to normal
+          quantile of LP
 
         Parameters
         ----------
-        mean : np.ndarray
-            Predicted mean values.
+        linear_pred : np.ndarray
+            Raw linear predictor values (before back-transformation).
         variances : np.ndarray
-            Variance values.
+            Variance on LP scale.  For confidence intervals this is the
+            parameter-estimation variance; for prediction intervals this
+            also includes sigma² (the observation noise variance).
         interval : str
             Type of interval: "confidence" or "prediction".
         level : float or list
@@ -1059,9 +1189,9 @@ class ALM:
         Returns
         -------
         lower : np.ndarray or None
-            Lower bounds.
+            Lower bounds (in response scale).
         upper : np.ndarray or None
-            Upper bounds.
+            Upper bounds (in response scale).
         """
         if interval == "none":
             return None, None
@@ -1070,7 +1200,8 @@ class ALM:
             level = [level]
 
         n_levels = len(level)
-        n_obs = len(mean)
+        n_obs = len(linear_pred)
+        # SE on linear predictor scale; for PI this includes sigma²
         se = np.sqrt(variances)
 
         if side == "upper":
@@ -1083,15 +1214,278 @@ class ALM:
             level_low = [(1 - lev) / 2 for lev in level]
             level_up = [(1 + lev) / 2 for lev in level]
 
-        quantiles_low = stats.t.ppf(level_low, df=self.df_residual_)
-        quantiles_up = stats.t.ppf(level_up, df=self.df_residual_)
+        t_low = stats.t.ppf(level_low, df=self.df_residual_)
+        t_up = stats.t.ppf(level_up, df=self.df_residual_)
 
         lower = np.zeros((n_obs, n_levels))
         upper = np.zeros((n_obs, n_levels))
 
+        d = self.distribution
+
+        # Effective lambda_bc for dbcnorm (fitted or user-provided)
+        lambda_bc_eff = None
+        if d == "dbcnorm":
+            lambda_bc_eff = (
+                self.other_ if not self._a_parameter_provided_ else self.lambda_bc
+            )
+
         for i in range(n_levels):
-            lower[:, i] = mean + quantiles_low[i] * se
-            upper[:, i] = mean + quantiles_up[i] * se
+            ll = level_low[i]
+            lu = level_up[i]
+            tl = t_low[i]
+            tu = t_up[i]
+
+            # t-interval bounds in linear predictor space
+            lp_l = linear_pred + tl * se
+            lp_u = linear_pred + tu * se
+
+            # ── Group A: symmetric, LP == response ──────────────────────────
+            if d in ("dnorm", "dt"):
+                lower[:, i] = lp_l
+                upper[:, i] = lp_u
+
+            # ── Group B: CI=t-based LP; PI=distribution quantile ────────────
+            elif d == "dlaplace":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    # Laplace variance = 2*b²  →  b = sqrt(var/2)
+                    b = np.sqrt(variances / 2)
+                    lower[:, i] = dist.qlaplace(ll, loc=linear_pred, scale=b)
+                    upper[:, i] = dist.qlaplace(lu, loc=linear_pred, scale=b)
+
+            elif d == "dalaplace":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    alpha = self.other_
+                    # ALaplace var = scale²*(α²+(1-α)²)/(α(1-α))²
+                    scale_al = np.sqrt(
+                        variances
+                        * (alpha * (1 - alpha)) ** 2
+                        / (alpha**2 + (1 - alpha) ** 2)
+                    )
+                    lower[:, i] = dist.qalaplace(
+                        ll, mu=linear_pred, scale=scale_al, alpha=alpha
+                    )
+                    upper[:, i] = dist.qalaplace(
+                        lu, mu=linear_pred, scale=scale_al, alpha=alpha
+                    )
+
+            elif d == "ds":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    # S-distribution variance = 120*scale⁴  →  scale=(var/120)^0.25
+                    s_scale = (variances / 120) ** 0.25
+                    lower[:, i] = dist.qs(ll, mu=linear_pred, scale=s_scale)
+                    upper[:, i] = dist.qs(lu, mu=linear_pred, scale=s_scale)
+
+            elif d == "dlogis":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    # Logistic variance = π²*scale²/3  →  scale=sqrt(var*3/π²)
+                    logis_scale = np.sqrt(variances * 3 / np.pi**2)
+                    lower[:, i] = dist.qlogis(ll, loc=linear_pred, scale=logis_scale)
+                    upper[:, i] = dist.qlogis(lu, loc=linear_pred, scale=logis_scale)
+
+            elif d == "dgnorm":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    # GNorm variance = Γ(3/s)/Γ(1/s)*scale²
+                    s = self.other_
+                    gn_scale = np.sqrt(variances * _sp_gamma(1 / s) / _sp_gamma(3 / s))
+                    lower[:, i] = dist.qgnorm(
+                        ll, mu=linear_pred, scale=gn_scale, shape=s
+                    )
+                    upper[:, i] = dist.qgnorm(
+                        lu, mu=linear_pred, scale=gn_scale, shape=s
+                    )
+
+            elif d == "dfnorm":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    # qfnorm requires scalar mu/sigma; compute element-wise
+                    lower[:, i] = np.array(
+                        [
+                            float(dist.qfnorm(ll, mu=float(mj), sigma=float(sj)))
+                            for mj, sj in zip(linear_pred, se)
+                        ]
+                    )
+                    upper[:, i] = np.array(
+                        [
+                            float(dist.qfnorm(lu, mu=float(mj), sigma=float(sj)))
+                            for mj, sj in zip(linear_pred, se)
+                        ]
+                    )
+
+            elif d == "drectnorm":
+                if interval == "confidence":
+                    lower[:, i] = lp_l
+                    upper[:, i] = lp_u
+                else:
+                    lower[:, i] = dist.qrectnorm(ll, mu=linear_pred, sigma=se)
+                    upper[:, i] = dist.qrectnorm(lu, mu=linear_pred, sigma=se)
+
+            # ── Group C: log-link; CI=exp(t-bounds); PI=dist quantile ───────
+            elif d == "dinvgauss":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    lower[:, i] = np.exp(linear_pred) * dist.qinvgauss(
+                        ll, mu=1, scale=self.scale
+                    )
+                    upper[:, i] = np.exp(linear_pred) * dist.qinvgauss(
+                        lu, mu=1, scale=self.scale
+                    )
+
+            elif d == "dgamma":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    lower[:, i] = np.exp(linear_pred) * dist.qgamma(
+                        ll, shape=1 / self.scale, scale=self.scale
+                    )
+                    upper[:, i] = np.exp(linear_pred) * dist.qgamma(
+                        lu, shape=1 / self.scale, scale=self.scale
+                    )
+
+            elif d == "dexp":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    # Exp(rate=1) has mean 1; scale by fitted mean
+                    lower[:, i] = np.exp(linear_pred) * dist.qexp(ll)
+                    upper[:, i] = np.exp(linear_pred) * dist.qexp(lu)
+
+            elif d == "dpois":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    lower[:, i] = dist.qpois(ll, mu=np.exp(linear_pred))
+                    upper[:, i] = dist.qpois(lu, mu=np.exp(linear_pred))
+
+            elif d == "dnbinom":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    # self.scale holds the size parameter (abs(other))
+                    lower[:, i] = dist.qnbinom(
+                        ll, mu=np.exp(linear_pred), size=self.scale
+                    )
+                    upper[:, i] = dist.qnbinom(
+                        lu, mu=np.exp(linear_pred), size=self.scale
+                    )
+
+            elif d == "dbinom":
+                binom_size = self.size if self.size is not None else 1
+                lower[:, i] = np.exp(lp_l) * binom_size
+                upper[:, i] = np.exp(lp_u) * binom_size
+                if interval == "prediction":
+                    prob = 1.0 / (1.0 + np.exp(linear_pred))
+                    lower[:, i] = dist.qbinom(ll, size=binom_size, prob=prob)
+                    upper[:, i] = dist.qbinom(lu, size=binom_size, prob=prob)
+
+            # ── Group D: log-transformed; CI=exp(t-bounds); PI=dist quantile ─
+            elif d == "dllaplace":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    b = np.sqrt(variances / 2)
+                    lower[:, i] = dist.qllaplace(ll, loc=linear_pred, scale=b)
+                    upper[:, i] = dist.qllaplace(lu, loc=linear_pred, scale=b)
+
+            elif d == "dls":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    s_scale = (variances / 120) ** 0.25
+                    lower[:, i] = dist.qls(ll, loc=linear_pred, scale=s_scale)
+                    upper[:, i] = dist.qls(lu, loc=linear_pred, scale=s_scale)
+
+            elif d == "dlgnorm":
+                lower[:, i] = np.exp(lp_l)
+                upper[:, i] = np.exp(lp_u)
+                if interval == "prediction":
+                    beta = self.other_
+                    lgn_scale = np.sqrt(
+                        variances * _sp_gamma(1 / beta) / _sp_gamma(3 / beta)
+                    )
+                    lower[:, i] = dist.qlgnorm(
+                        ll, mu=linear_pred, scale=lgn_scale, shape=beta
+                    )
+                    upper[:, i] = dist.qlgnorm(
+                        lu, mu=linear_pred, scale=lgn_scale, shape=beta
+                    )
+
+            # ── Group E: log-normal family; use dist quantile for CI and PI ──
+            elif d == "dlnorm":
+                # qlnorm(p, meanlog=lp, sdlog=se) where se encodes the right
+                # uncertainty: for CI se=sqrt(var_pred), for PI se=sqrt(var_pred+σ²)
+                lower[:, i] = dist.qlnorm(ll, meanlog=linear_pred, sdlog=se)
+                upper[:, i] = dist.qlnorm(lu, meanlog=linear_pred, sdlog=se)
+
+            elif d == "dlogitnorm":
+                lower[:, i] = dist.qlogitnorm(ll, mu=linear_pred, sigma=se)
+                upper[:, i] = dist.qlogitnorm(lu, mu=linear_pred, sigma=se)
+
+            # ── Group F: special transformations ────────────────────────────
+            elif d == "dbcnorm":
+                if interval == "confidence":
+                    # Invert BC transform of t-bounds in LP space
+                    lower[:, i] = _bc_transform_inv(lp_l, lambda_bc_eff)
+                    upper[:, i] = _bc_transform_inv(lp_u, lambda_bc_eff)
+                else:
+                    lower[:, i] = dist.qbcnorm(
+                        ll, mu=linear_pred, sigma=se, lambda_bc=lambda_bc_eff
+                    )
+                    upper[:, i] = dist.qbcnorm(
+                        lu, mu=linear_pred, sigma=se, lambda_bc=lambda_bc_eff
+                    )
+
+            elif d == "dchisq":
+                # CI: square the t-bounds; PI: non-central chi-squared
+                lower[:, i] = lp_l**2
+                upper[:, i] = lp_u**2
+                if interval == "prediction":
+                    lower[:, i] = stats.ncx2.ppf(ll, df=self.other_, nc=linear_pred**2)
+                    upper[:, i] = stats.ncx2.ppf(lu, df=self.other_, nc=linear_pred**2)
+
+            # ── Group G: link-function distributions (plogis/pnorm) ─────────
+            elif d == "plogis":
+                # Apply plogis to normal quantile of LP
+                lower[:, i] = dist.plogis(
+                    dist.qnorm(ll, mean=linear_pred, sd=se),
+                    location=0.0,
+                    scale=1.0,
+                )
+                upper[:, i] = dist.plogis(
+                    dist.qnorm(lu, mean=linear_pred, sd=se),
+                    location=0.0,
+                    scale=1.0,
+                )
+
+            elif d == "pnorm":
+                lower[:, i] = dist.pnorm(
+                    dist.qnorm(ll, mean=linear_pred, sd=se), mean=0.0, sd=1.0
+                )
+                upper[:, i] = dist.pnorm(
+                    dist.qnorm(lu, mean=linear_pred, sd=se), mean=0.0, sd=1.0
+                )
+
+            else:
+                # Fallback: t-based (dgeom and any unhandled distributions)
+                lower[:, i] = lp_l
+                upper[:, i] = lp_u
 
         if n_levels == 1:
             lower = lower.ravel()
@@ -1155,18 +1549,94 @@ class ALM:
         if X.ndim == 1:
             X = X.reshape(1, -1)
 
-        if X.shape[1] != self._n_features:
-            raise ValueError(
-                f"X has {X.shape[1]} features, "
-                f"but model was fitted with {self._n_features}"
-            )
-
         if self._coef is not None and len(self._coef) > 0:
             B = np.concatenate([[self.intercept_], self._coef])
         else:
             B = np.array([self.intercept_])
 
-        mu = X @ B
+        _log_link_distributions = (
+            "dinvgauss",
+            "dgamma",
+            "dexp",
+            "dpois",
+            "dnbinom",
+            "dbinom",
+            "dgeom",
+        )
+
+        if self._ari_order > 0:
+            # AR(p) or ARI(p,d): user passes exogenous X only; lag columns are
+            # added internally via in-sample reuse or recursive forecasting.
+            ar_coefs = np.array(list(self.arima_polynomial_.values()))
+            n_exog = self._n_features_exog
+            ari_order = self._ari_order
+            lambda_bc_val = self.lambda_bc if self.distribution == "dbcnorm" else 0.0
+
+            if X.shape[1] != n_exog:
+                raise ValueError(
+                    f"X has {X.shape[1]} features, expected {n_exog} "
+                    f"(exogenous features only; ARI lag columns are added internally)"
+                )
+
+            if len(X) == len(self._X_train_):
+                # In-sample: reuse training lag columns (matches fitted values exactly)
+                X_lags = self._X_train_[:, n_exog:]
+                linear_pred = X @ B[:n_exog] + X_lags @ ar_coefs
+            else:
+                # Out-of-sample: recursive forecasting
+                h = len(X)
+                X_lags = np.zeros((h, ari_order))
+                y_train = self._y_train_
+
+                # Seed lag matrix from tail of training data (raw y-scale)
+                for j in range(1, ari_order + 1):  # j = lag number
+                    for t in range(min(h, j)):  # t = forecast horizon step
+                        X_lags[t, j - 1] = y_train[-(j - t)]
+
+                linear_pred = np.empty(h)
+                for i in range(h):
+                    linear_pred[i] = float(X[i] @ B[:n_exog]) + float(
+                        X_lags[i] @ ar_coefs
+                    )
+                    # Compute raw y-scale fitted value to feed into future lags
+                    lp = linear_pred[i]
+                    if (
+                        self.distribution in _log_link_distributions
+                        or self.distribution == "dbeta"
+                    ):
+                        mu_i = np.exp(lp)
+                    elif self.distribution == "dchisq":
+                        mu_i = 1e100 if lp < 0 else lp**2
+                    else:
+                        mu_i = lp
+                    fitted_i = float(
+                        extractor_fitted(
+                            self.distribution,
+                            np.array([mu_i]),
+                            self.scale,
+                            lambda_bc_val,
+                        )[0]
+                    )
+                    for j in range(1, ari_order + 1):
+                        if i + j < h:
+                            X_lags[i + j, j - 1] = fitted_i
+
+            X = np.hstack([X, X_lags])  # full X for variance; (h, n_exog + ari_order)
+        else:
+            if X.shape[1] != self._n_features:
+                raise ValueError(
+                    f"X has {X.shape[1]} features, "
+                    f"but model was fitted with {self._n_features}"
+                )
+            linear_pred = X @ B
+        if self.distribution in _log_link_distributions:
+            mu = np.exp(linear_pred)
+        elif self.distribution == "dchisq":
+            mu = np.where(linear_pred < 0, 1e100, linear_pred**2)
+        elif self.distribution == "dbeta":
+            mu = np.exp(linear_pred)
+        else:
+            mu = linear_pred
 
         mean = extractor_fitted(
             self.distribution,
@@ -1180,9 +1650,28 @@ class ALM:
             lower = None
             upper = None
         else:
-            variances = self._calculate_variance(X, interval)
+            # Compute confidence variance once; add sigma² for prediction.
+            variances_conf = self._calculate_variance(X, "confidence")
+            if interval == "prediction":
+                variances = variances_conf + self.sigma**2
+            else:
+                variances = variances_conf
+
+            # For dfnorm/drectnorm, correct the mean using predictor SE
+            # (R uses sqrt(var_pred) rather than self.scale for this correction)
+            if self.distribution == "dfnorm":
+                se_conf = np.sqrt(variances_conf)
+                mean = np.sqrt(2 / np.pi) * se_conf * np.exp(
+                    -(linear_pred**2) / (2 * se_conf**2)
+                ) + linear_pred * (1 - 2 * dist.pnorm(-linear_pred / se_conf))
+            elif self.distribution == "drectnorm":
+                se_conf = np.sqrt(variances_conf)
+                mean = linear_pred * (
+                    1 - dist.pnorm(0, mean=linear_pred, sd=se_conf)
+                ) + se_conf * dist.dnorm(0, mean=linear_pred, sd=se_conf)
+
             lower, upper = self._calculate_quantiles(
-                mean, variances, interval, level, side
+                linear_pred, variances, interval, level, side
             )
 
         return PredictionResult(
@@ -1505,6 +1994,11 @@ class ALM:
 
         coefficients = np.concatenate([[self.intercept_], self._coef])
         vcov_matrix = self.vcov()
+        # For ARI models with i_order > 0, vcov is sized for all lag columns
+        # (including constrained differencing lags). Truncate to free params.
+        n_free = len(coefficients)
+        if vcov_matrix.shape[0] > n_free:
+            vcov_matrix = vcov_matrix[:n_free, :n_free]
         se = np.sqrt(np.diag(vcov_matrix))
         t_stat = coefficients / se
         p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=self.df_residual_))
@@ -1540,6 +2034,7 @@ class ALM:
             bicc=self.bicc,
             feature_names=self._feature_names,
             time_elapsed=self.time_elapsed,
+            arima_string=self.arima_string_,
         )
 
     def confint(

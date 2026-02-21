@@ -99,6 +99,7 @@ class SummaryResult:
     bicc: float | None = None
     feature_names: list | None = None
     time_elapsed: float | None = None
+    arima_string: str | None = None
 
     def __str__(self) -> str:
         """String representation of summary."""
@@ -123,6 +124,8 @@ class SummaryResult:
         lines.append(f"Response variable: {self.response_variable}")
         lines.append(f"Distribution used in the estimation: {dist_name}")
         lines.append(f"Loss function used in estimation: {self.loss}")
+        if self.arima_string is not None:
+            lines.append(f"{self.arima_string} components were included in the model")
         lines.append("")
         lines.append("Coefficients:")
         header = f"{'':>12} {'Estimate':>12} {'Std. Error':>12} {col1:>12} {col2:>12}"
