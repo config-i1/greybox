@@ -101,3 +101,46 @@ Get detailed model information::
 
     summary = model.summary()
     print(summary)
+
+ARIMA Orders
+------------
+
+The ``orders`` parameter allows you to include AR (autoregressive) terms and
+differencing in your model, similar to ARIMA::
+
+    from greybox import formula, ALM
+    import pandas as pd
+
+    # Load mtcars dataset (included with greybox)
+    from greybox import mtcars
+    data = mtcars.to_dict(orient="list")
+
+    # Parse formula
+    y, X = formula("mpg ~ wt", data)
+
+    # Fit model with AR(1) term
+    model = ALM(distribution="dnorm", orders=(1, 0, 0))
+    model.fit(X, y)
+
+    print("AR(1) model coefficients:")
+    print("Intercept:", model.intercept_)
+    print("wt:", model.coef[0])
+    print("mpgLag1:", model.coef[1])
+
+    # Fit model with AR(2) terms
+    model2 = ALM(distribution="dnorm", orders=(2, 0, 0))
+    model2.fit(X, y)
+
+    print("\nAR(2) model coefficients:")
+    print("Intercept:", model2.intercept_)
+    print("wt:", model2.coef[0])
+    print("mpgLag1:", model2.coef[1])
+    print("mpgLag2:", model2.coef[2])
+
+The ``orders`` parameter is a tuple ``(p, d, q)``:
+
+- ``p``: AR (autoregressive) order - number of lagged response variables
+- ``d``: Differencing order - order of differencing for non-stationary data
+- ``q``: MA (moving average) order - not yet implemented
+
+Note: MA(q) is not supported and will raise an error if used.

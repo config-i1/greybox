@@ -165,7 +165,24 @@ functions, following scikit-learn principles.</p>
 <li><p><strong>occurrence</strong> (<em>str</em><em>, </em><em>default=&quot;none&quot;</em>) – Occurrence model for zero-inflated data. Options: “none”,
 “plogis”, “pnorm”.</p></li>
 <li><p><strong>scale_formula</strong> (<em>array-like</em><em> or </em><em>None</em><em>, </em><em>default=None</em>) – Formula for scale parameter. If None, scale is constant.</p></li>
-<li><p><strong>orders</strong> (<em>tuple</em><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>, </em><em>0</em><em>)</em>) – ARIMA orders (p, d, q).</p></li>
+<li><p><strong>orders</strong> (<em>tuple</em><em>, </em><em>default=</em><em>(</em><em>0</em><em>, </em><em>0</em><em>, </em><em>0</em><em>)</em>) – <p>ARIMA orders (p, d, q). Three integers: AR order (p), differencing
+order (d), and MA order (q). Only AR(p) and differencing (d) are
+supported. MA(q) raises NotImplementedError.</p>
+<ul>
+<li><p>p (AR order): Number of lagged response variables to include.</p></li>
+<li><p>d (Differencing): Order of differencing. Creates AR(p+d) terms
+internally but only uses first p in the model.</p></li>
+<li><p>q (MA order): Not implemented.</p></li>
+</ul>
+<dl class="simple">
+<dt>Examples:</dt><dd><ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">orders=(1,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>: AR(1) model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">orders=(2,</span> <span class="pre">0,</span> <span class="pre">0)</span></code>: AR(2) model</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">orders=(1,</span> <span class="pre">1,</span> <span class="pre">0)</span></code>: ARIMA(1,1,0) with differencing</p></li>
+</ul>
+</dd>
+</dl>
+</p></li>
 <li><p><strong>alpha</strong> (<em>float</em><em>, </em><em>optional</em>) – Additional parameter for Asymmetric Laplace distribution.</p></li>
 <li><p><strong>shape</strong> (<em>float</em><em>, </em><em>optional</em>) – Shape parameter for Generalized Normal distribution.</p></li>
 <li><p><strong>lambda_bc</strong> (<em>float</em><em>, </em><em>optional</em>) – Box-Cox lambda parameter for Box-Cox Normal distribution.</p></li>

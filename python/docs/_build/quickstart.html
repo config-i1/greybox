@@ -52,6 +52,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#prediction-intervals">Prediction Intervals</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#formula-syntax">Formula Syntax</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#model-summary">Model Summary</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#arima-orders">ARIMA Orders</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="api/index.html">API</a></li>
@@ -187,6 +188,48 @@
 <span class="nb">print</span><span class="p">(</span><span class="n">summary</span><span class="p">)</span>
 </pre></div>
 </div>
+</section>
+<section id="arima-orders">
+<h2>ARIMA Orders<a class="headerlink" href="#arima-orders" title="Link to this heading"></a></h2>
+<p>The <code class="docutils literal notranslate"><span class="pre">orders</span></code> parameter allows you to include AR (autoregressive) terms and
+differencing in your model, similar to ARIMA:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula</span><span class="p">,</span> <span class="n">ALM</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="c1"># Load mtcars dataset (included with greybox)</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">mtcars</span>
+<span class="n">data</span> <span class="o">=</span> <span class="n">mtcars</span><span class="o">.</span><span class="n">to_dict</span><span class="p">(</span><span class="n">orient</span><span class="o">=</span><span class="s2">&quot;list&quot;</span><span class="p">)</span>
+
+<span class="c1"># Parse formula</span>
+<span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;mpg ~ wt&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+
+<span class="c1"># Fit model with AR(1) term</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ALM</span><span class="p">(</span><span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="n">orders</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;AR(1) model coefficients:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Intercept:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">intercept_</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;wt:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mpgLag1:&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c1"># Fit model with AR(2) terms</span>
+<span class="n">model2</span> <span class="o">=</span> <span class="n">ALM</span><span class="p">(</span><span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="n">orders</span><span class="o">=</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
+<span class="n">model2</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">AR(2) model coefficients:&quot;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Intercept:&quot;</span><span class="p">,</span> <span class="n">model2</span><span class="o">.</span><span class="n">intercept_</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;wt:&quot;</span><span class="p">,</span> <span class="n">model2</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mpgLag1:&quot;</span><span class="p">,</span> <span class="n">model2</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="s2">&quot;mpgLag2:&quot;</span><span class="p">,</span> <span class="n">model2</span><span class="o">.</span><span class="n">coef</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+</pre></div>
+</div>
+<p>The <code class="docutils literal notranslate"><span class="pre">orders</span></code> parameter is a tuple <code class="docutils literal notranslate"><span class="pre">(p,</span> <span class="pre">d,</span> <span class="pre">q)</span></code>:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">p</span></code>: AR (autoregressive) order - number of lagged response variables</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">d</span></code>: Differencing order - order of differencing for non-stationary data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">q</span></code>: MA (moving average) order - not yet implemented</p></li>
+</ul>
+<p>Note: MA(q) is not supported and will raise an error if used.</p>
 </section>
 </section>
 

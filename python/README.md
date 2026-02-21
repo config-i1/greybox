@@ -43,6 +43,11 @@ print(model.summary())
 # Predict with intervals
 pred = model.predict(result.data, interval="prediction", level=0.95)
 print(pred.mean[:5])
+
+# Include AR terms (ARIMA-like models)
+# For example, ARIMA(1,1,0) model with Log-Normal distribution:
+model = ALM(distribution="dlnorm", orders=(1, 1, 0))
+model.fit(X, y)
 ```
 
 ## Supported Distributions

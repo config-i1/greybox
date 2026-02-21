@@ -92,11 +92,14 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">nlopt</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy.special</span><span class="w"> </span><span class="kn">import</span> <span class="n">gamma</span> <span class="k">as</span> <span class="n">_sp_gamma</span>
 
 <span class="kn">from</span><span class="w"> </span><span class="nn">.fitters</span><span class="w"> </span><span class="kn">import</span> <span class="n">scaler_internal</span><span class="p">,</span> <span class="n">extractor_fitted</span><span class="p">,</span> <span class="n">extractor_residuals</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.cost_function</span><span class="w"> </span><span class="kn">import</span> <span class="n">cf</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.</span><span class="w"> </span><span class="kn">import</span> <span class="n">distributions</span> <span class="k">as</span> <span class="n">dist</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.methods.summary</span><span class="w"> </span><span class="kn">import</span> <span class="n">SummaryResult</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">bc_transform_inv</span> <span class="k">as</span> <span class="n">_bc_transform_inv</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.xreg</span><span class="w"> </span><span class="kn">import</span> <span class="n">xreg_expander</span>
 
 
 <span class="k">def</span><span class="w"> </span><span class="nf">_numerical_hessian</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">x0</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
@@ -280,7 +283,19 @@
 <span class="sd">    scale_formula : array-like or None, default=None</span>
 <span class="sd">        Formula for scale parameter. If None, scale is constant.</span>
 <span class="sd">    orders : tuple, default=(0, 0, 0)</span>
-<span class="sd">        ARIMA orders (p, d, q).</span>
+<span class="sd">        ARIMA orders (p, d, q). Three integers: AR order (p), differencing</span>
+<span class="sd">        order (d), and MA order (q). Only AR(p) and differencing (d) are</span>
+<span class="sd">        supported. MA(q) raises NotImplementedError.</span>
+
+<span class="sd">        - p (AR order): Number of lagged response variables to include.</span>
+<span class="sd">        - d (Differencing): Order of differencing. Creates AR(p+d) terms</span>
+<span class="sd">          internally but only uses first p in the model.</span>
+<span class="sd">        - q (MA order): Not implemented.</span>
+
+<span class="sd">        Examples:</span>
+<span class="sd">            - ``orders=(1, 0, 0)``: AR(1) model</span>
+<span class="sd">            - ``orders=(2, 0, 0)``: AR(2) model</span>
+<span class="sd">            - ``orders=(1, 1, 0)``: ARIMA(1,1,0) with differencing</span>
 <span class="sd">    alpha : float, optional</span>
 <span class="sd">        Additional parameter for Asymmetric Laplace distribution.</span>
 <span class="sd">    shape : float, optional</span>
@@ -441,6 +456,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">ic_values</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_features_exog</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_X_train_</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_y_train_</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_formula_</span> <span class="o">=</span> <span class="kc">None</span>
@@ -518,6 +534,57 @@
         <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span> <span class="o">=</span> <span class="n">n_features</span>
 
+        <span class="n">ar_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">i_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">ma_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">ma_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span>
+                <span class="s2">&quot;MA(q) is not implemented in ALM. &quot;</span>
+                <span class="s2">&quot;Only AR(p) and differencing (d) are supported.&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">ari_order</span> <span class="o">=</span> <span class="n">ar_order</span> <span class="o">+</span> <span class="n">i_order</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ar_order</span> <span class="o">=</span> <span class="n">ar_order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_i_order</span> <span class="o">=</span> <span class="n">i_order</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_ari_order</span> <span class="o">=</span> <span class="n">ari_order</span>
+
+        <span class="c1"># Save n_features before adding AR lag columns</span>
+        <span class="n">n_features_exog</span> <span class="o">=</span> <span class="n">n_features</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_features_exog</span> <span class="o">=</span> <span class="n">n_features_exog</span>
+
+        <span class="n">ar_term_names</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">if</span> <span class="n">ari_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">response_name</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">response_name</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_response_name</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
+
+            <span class="n">ar_lags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">ari_order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">ar_terms</span> <span class="o">=</span> <span class="n">xreg_expander</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">ar_lags</span><span class="p">,</span> <span class="n">gaps</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+
+            <span class="n">ar_term_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">response_name</span><span class="si">}</span><span class="s2">Lag</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ari_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+
+            <span class="c1"># Keep all ari_order lag columns in X (including differencing lags)</span>
+            <span class="c1"># For i_order &gt; 0, the polynomial constraint maps ar_order free phi params</span>
+            <span class="c1"># to ari_order combined polynomial coefficients in the design matrix.</span>
+
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">ar_terms</span><span class="p">])</span>
+
+            <span class="c1"># Feature names: for i_order &gt; 0, only ar_order names are &quot;free&quot; phi</span>
+            <span class="c1"># params in coef_, but all ari_order names appear in arima_polynomial_.</span>
+            <span class="n">free_ar_term_names</span> <span class="o">=</span> <span class="n">ar_term_names</span><span class="p">[:</span><span class="n">ar_order</span><span class="p">]</span> <span class="k">if</span> <span class="n">ar_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="k">if</span> <span class="n">feature_names</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">feature_names</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">feature_names</span><span class="p">)</span> <span class="o">+</span> <span class="n">free_ar_term_names</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">feature_names</span> <span class="o">=</span> <span class="p">[</span>
+                    <span class="sa">f</span><span class="s2">&quot;x</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_features_exog</span><span class="p">)</span>
+                <span class="p">]</span> <span class="o">+</span> <span class="n">free_ar_term_names</span>
+
+            <span class="n">n_samples</span><span class="p">,</span> <span class="n">n_features</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span> <span class="o">=</span> <span class="n">n_features</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_feature_names</span> <span class="o">=</span> <span class="n">feature_names</span>
+
         <span class="n">other_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_other_parameter</span><span class="p">()</span>
         <span class="n">a_parameter_provided</span> <span class="o">=</span> <span class="n">other_val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
 
@@ -536,17 +603,27 @@
             <span class="s2">&quot;dt&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
+        <span class="c1"># n_params counts free optimizer parameters:</span>
+        <span class="c1"># for ARI(p,d): n_features_exog + ar_order (not ari_order — d&gt;0 adds</span>
+        <span class="c1"># constrained polynomial columns, not free parameters).</span>
+        <span class="n">n_params_base</span> <span class="o">=</span> <span class="n">n_features_exog</span> <span class="o">+</span> <span class="n">ar_order</span>
         <span class="k">if</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
         <span class="p">):</span>
-            <span class="n">n_params</span> <span class="o">=</span> <span class="n">n_features</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">n_params</span> <span class="o">=</span> <span class="n">n_params_base</span> <span class="o">+</span> <span class="mi">1</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
-            <span class="n">n_params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_features</span>
+            <span class="n">n_params</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_params_base</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">n_params</span> <span class="o">=</span> <span class="n">n_features</span>
+            <span class="n">n_params</span> <span class="o">=</span> <span class="n">n_params_base</span>
 
         <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
+
+        <span class="c1"># For ARI models the optimizer B has n_params_base free parameters but</span>
+        <span class="c1"># X has n_features_exog + ari_order columns.  Use a reduced design</span>
+        <span class="c1"># matrix for all B_init lstsq calls so the result always has exactly</span>
+        <span class="c1"># n_params_base elements (the correct free-parameter size).</span>
+        <span class="n">X_for_init</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">X</span>
 
         <span class="n">log_link_distributions</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span>
@@ -562,19 +639,21 @@
 
             <span class="n">y_bc</span> <span class="o">=</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_bc</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y_bc</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dpois&quot;</span><span class="p">:</span>
             <span class="n">mu_insample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">XtX_mu</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X</span> <span class="o">*</span> <span class="n">mu_insample</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">XtX_mu</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">mu_insample</span><span class="p">))</span>
+                <span class="n">XtX_mu</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_for_init</span> <span class="o">*</span> <span class="n">mu_insample</span>
+                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
+                    <span class="n">XtX_mu</span><span class="p">,</span> <span class="n">X_for_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">mu_insample</span><span class="p">)</span>
+                <span class="p">)</span>
                 <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+                    <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
                     <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_pos</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_pos</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
@@ -586,7 +665,7 @@
             <span class="o">*</span><span class="n">log_link_distributions</span><span class="p">,</span>
         <span class="p">):</span>
             <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+            <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_pos</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
@@ -603,7 +682,7 @@
                     <span class="k">pass</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dt&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
@@ -617,7 +696,7 @@
             <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                        <span class="n">X</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
+                        <span class="n">X_for_init</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
                     <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
@@ -626,13 +705,15 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">try</span><span class="p">:</span>
                     <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                        <span class="n">X</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
+                        <span class="n">X_for_init</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
                     <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                     <span class="k">pass</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span>
+                    <span class="mi">0</span>
+                <span class="p">]</span>
                 <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
@@ -644,7 +725,9 @@
             <span class="n">y_clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
             <span class="n">y_transformed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">))</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_transformed</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
+                    <span class="n">X_for_init</span><span class="p">,</span> <span class="n">y_transformed</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="k">if</span> <span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
                     <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
@@ -657,11 +740,11 @@
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
             <span class="n">y_clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_half</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">)),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span>
-                    <span class="mi">0</span>
-                <span class="p">]</span>
-                <span class="n">B_init</span><span class="p">[:</span><span class="n">n_features</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_half</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="n">n_features</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">B_half</span>
+                <span class="n">B_half</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
+                    <span class="n">X_for_init</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">)),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
+                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init</span><span class="p">[:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_half</span>
+                <span class="n">B_init</span><span class="p">[</span><span class="n">n_params_base</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">B_half</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
         <span class="k">elif</span> <span class="p">(</span>
@@ -669,7 +752,7 @@
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
         <span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
                 <span class="k">pass</span>
@@ -684,9 +767,9 @@
                 <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
             <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_features</span><span class="p">)</span>
+                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
 
         <span class="n">print_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlopt_kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;print_level&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">iteration_count</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -702,8 +785,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">loss</span><span class="p">,</span>
                 <span class="n">y</span><span class="p">,</span>
                 <span class="n">X</span><span class="p">,</span>
-                <span class="n">ar_order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-                <span class="n">i_order</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+                <span class="n">ar_order</span><span class="o">=</span><span class="n">ar_order</span><span class="p">,</span>
+                <span class="n">i_order</span><span class="o">=</span><span class="n">i_order</span><span class="p">,</span>
                 <span class="n">lambda_val</span><span class="o">=</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">lambda_l1</span>
                     <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="s2">&quot;LASSO&quot;</span>
@@ -743,8 +826,8 @@
             <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
         <span class="p">):</span>
-            <span class="n">lower_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_features</span>
-            <span class="n">upper_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_features</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+            <span class="n">lower_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">*</span> <span class="n">n_params_base</span>
+            <span class="n">upper_bounds</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">]</span> <span class="o">*</span> <span class="p">(</span><span class="n">n_params_base</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dalaplace&quot;</span><span class="p">,</span> <span class="s2">&quot;dbcnorm&quot;</span><span class="p">):</span>
                 <span class="n">upper_bounds</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">1.0</span>
         <span class="k">else</span><span class="p">:</span>
@@ -813,7 +896,9 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">B_opt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
             <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">intercept_</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n_features</span><span class="p">]</span> <span class="k">if</span> <span class="n">n_features</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span> <span class="o">=</span> <span class="p">(</span>
+                    <span class="n">B_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="k">if</span> <span class="n">n_params_base</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+                <span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">intercept_</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">B_opt</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
@@ -825,25 +910,42 @@
             <span class="n">B_for_mu</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
             <span class="n">other_val</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
-            <span class="n">B_for_mu</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[:</span><span class="n">n_features</span><span class="p">]</span>
+            <span class="n">B_for_mu</span> <span class="o">=</span> <span class="n">B_opt</span><span class="p">[:</span><span class="n">n_params_base</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">B_for_mu</span> <span class="o">=</span> <span class="n">B_opt</span>
 
-        <span class="n">linear_pred</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">B_for_mu</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span>
-            <span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dgamma&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dexp&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dpois&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dbinom&quot;</span><span class="p">,</span>
-            <span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
-        <span class="p">):</span>
-            <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
-            <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+        <span class="c1"># For ARI models, apply polynomial expansion via fitter() to get mu.</span>
+        <span class="c1"># For non-ARI models, compute mu directly from the linear predictor.</span>
+        <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="kn">from</span><span class="w"> </span><span class="nn">.fitters</span><span class="w"> </span><span class="kn">import</span> <span class="n">fitter</span> <span class="k">as</span> <span class="n">_fitter_func</span>
+
+            <span class="n">fitter_result</span> <span class="o">=</span> <span class="n">_fitter_func</span><span class="p">(</span>
+                <span class="n">B_for_mu</span><span class="p">,</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span>
+                <span class="n">y</span><span class="p">,</span>
+                <span class="n">X</span><span class="p">,</span>
+                <span class="n">other</span><span class="o">=</span><span class="n">other_val</span><span class="p">,</span>
+                <span class="n">a_parameter_provided</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                <span class="n">ar_order</span><span class="o">=</span><span class="n">ar_order</span><span class="p">,</span>
+                <span class="n">i_order</span><span class="o">=</span><span class="n">i_order</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">fitter_result</span><span class="p">[</span><span class="s2">&quot;mu&quot;</span><span class="p">]</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">linear_pred</span>
+            <span class="n">linear_pred</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">B_for_mu</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dgamma&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dexp&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dpois&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dbinom&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
+            <span class="p">):</span>
+                <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
+                <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mu_computed</span> <span class="o">=</span> <span class="n">linear_pred</span>
 
         <span class="n">fitter_return</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s2">&quot;mu&quot;</span><span class="p">:</span> <span class="n">mu_computed</span><span class="p">,</span>
@@ -864,6 +966,34 @@
         <span class="n">fitter_return</span><span class="p">[</span><span class="s2">&quot;scale&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_scale</span> <span class="o">=</span> <span class="n">scale</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">other_</span> <span class="o">=</span> <span class="n">other_val</span>
+
+        <span class="c1"># Store ARI polynomial and ARIMA descriptor</span>
+        <span class="k">if</span> <span class="n">ar_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">or</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># phi values are the last ar_order elements of B_for_mu</span>
+            <span class="n">ar_phi</span> <span class="o">=</span> <span class="n">B_for_mu</span><span class="p">[</span><span class="o">-</span><span class="n">ar_order</span><span class="p">:]</span> <span class="k">if</span> <span class="n">ar_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([])</span>
+            <span class="k">if</span> <span class="n">ar_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Combined ARI polynomial: convolve I(d) and AR(p) polynomials</span>
+                <span class="n">poly1_final</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">ar_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">poly1_final</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">ar_phi</span>
+                <span class="n">poly2_final</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i_order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">poly2_final</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">poly2_final</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">]))</span>
+                <span class="n">combined</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">poly2_final</span><span class="p">,</span> <span class="n">poly1_final</span><span class="p">)[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">elif</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># Pure I(d): polynomial is -poly2[1:] = ones (all +1)</span>
+                <span class="n">poly2_final</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">_</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">i_order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                    <span class="n">poly2_final</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">convolve</span><span class="p">(</span><span class="n">poly2_final</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">1.0</span><span class="p">]))</span>
+                <span class="n">combined</span> <span class="o">=</span> <span class="o">-</span><span class="n">poly2_final</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Pure AR(p): coefficients are the phi values directly</span>
+                <span class="n">combined</span> <span class="o">=</span> <span class="n">ar_phi</span>
+            <span class="n">lag_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">response_name</span><span class="si">}</span><span class="s2">Lag</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ari_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arima_polynomial_</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">lag_names</span><span class="p">,</span> <span class="n">combined</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arima_string_</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;ARIMA(</span><span class="si">{</span><span class="n">ar_order</span><span class="si">}</span><span class="s2">,</span><span class="si">{</span><span class="n">i_order</span><span class="si">}</span><span class="s2">,0)&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arima_polynomial_</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">arima_string_</span> <span class="o">=</span> <span class="kc">None</span>
 
         <span class="n">lambda_bc_val</span> <span class="o">=</span> <span class="p">(</span>
             <span class="n">other_val</span>
@@ -890,9 +1020,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="o">==</span> <span class="s2">&quot;likelihood&quot;</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_log_lik</span> <span class="o">=</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">_loss_value</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
-                <span class="n">n_params_calc</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_features</span>
+                <span class="n">n_params_calc</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">n_params_base</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">n_params_calc</span> <span class="o">=</span> <span class="n">n_features</span>
+                <span class="n">n_params_calc</span> <span class="o">=</span> <span class="n">n_params_base</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
                     <span class="s2">&quot;dexp&quot;</span><span class="p">,</span>
                     <span class="s2">&quot;dpois&quot;</span><span class="p">,</span>
@@ -1133,15 +1263,27 @@
             <span class="k">return</span> <span class="n">variances</span> <span class="o">+</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">variances</span>
 
-    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_quantiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">mean</span><span class="p">,</span> <span class="n">variances</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">side</span><span class="p">):</span>
+    <span class="k">def</span><span class="w"> </span><span class="nf">_calculate_quantiles</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">linear_pred</span><span class="p">,</span> <span class="n">variances</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">side</span><span class="p">):</span>
 <span class="w">        </span><span class="sd">&quot;&quot;&quot;Calculate lower and upper quantiles for prediction intervals.</span>
+
+<span class="sd">        Accepts the raw linear predictor (before back-transformation) and</span>
+<span class="sd">        branches by distribution to match R&#39;s predict.alm() behaviour:</span>
+<span class="sd">        - symmetric distributions: t-interval in LP space</span>
+<span class="sd">        - log-link distributions: exponentiate t-bounds for CI, use</span>
+<span class="sd">          distribution quantile for PI</span>
+<span class="sd">        - log-normal family: use the distribution quantile function directly</span>
+<span class="sd">          for both CI and PI (se encodes the correct total uncertainty)</span>
+<span class="sd">        - link-function distributions (plogis/pnorm): apply CDF to normal</span>
+<span class="sd">          quantile of LP</span>
 
 <span class="sd">        Parameters</span>
 <span class="sd">        ----------</span>
-<span class="sd">        mean : np.ndarray</span>
-<span class="sd">            Predicted mean values.</span>
+<span class="sd">        linear_pred : np.ndarray</span>
+<span class="sd">            Raw linear predictor values (before back-transformation).</span>
 <span class="sd">        variances : np.ndarray</span>
-<span class="sd">            Variance values.</span>
+<span class="sd">            Variance on LP scale.  For confidence intervals this is the</span>
+<span class="sd">            parameter-estimation variance; for prediction intervals this</span>
+<span class="sd">            also includes sigma² (the observation noise variance).</span>
 <span class="sd">        interval : str</span>
 <span class="sd">            Type of interval: &quot;confidence&quot; or &quot;prediction&quot;.</span>
 <span class="sd">        level : float or list</span>
@@ -1152,9 +1294,9 @@
 <span class="sd">        Returns</span>
 <span class="sd">        -------</span>
 <span class="sd">        lower : np.ndarray or None</span>
-<span class="sd">            Lower bounds.</span>
+<span class="sd">            Lower bounds (in response scale).</span>
 <span class="sd">        upper : np.ndarray or None</span>
-<span class="sd">            Upper bounds.</span>
+<span class="sd">            Upper bounds (in response scale).</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;none&quot;</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
@@ -1163,7 +1305,8 @@
             <span class="n">level</span> <span class="o">=</span> <span class="p">[</span><span class="n">level</span><span class="p">]</span>
 
         <span class="n">n_levels</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">level</span><span class="p">)</span>
-        <span class="n">n_obs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">mean</span><span class="p">)</span>
+        <span class="n">n_obs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+        <span class="c1"># SE on linear predictor scale; for PI this includes sigma²</span>
         <span class="n">se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">side</span> <span class="o">==</span> <span class="s2">&quot;upper&quot;</span><span class="p">:</span>
@@ -1176,15 +1319,278 @@
             <span class="n">level_low</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">lev</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="n">level</span><span class="p">]</span>
             <span class="n">level_up</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">lev</span><span class="p">)</span> <span class="o">/</span> <span class="mi">2</span> <span class="k">for</span> <span class="n">lev</span> <span class="ow">in</span> <span class="n">level</span><span class="p">]</span>
 
-        <span class="n">quantiles_low</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">level_low</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">)</span>
-        <span class="n">quantiles_up</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">level_up</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">)</span>
+        <span class="n">t_low</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">level_low</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">)</span>
+        <span class="n">t_up</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">level_up</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">)</span>
 
         <span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">n_levels</span><span class="p">))</span>
         <span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_obs</span><span class="p">,</span> <span class="n">n_levels</span><span class="p">))</span>
 
+        <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span>
+
+        <span class="c1"># Effective lambda_bc for dbcnorm (fitted or user-provided)</span>
+        <span class="n">lambda_bc_eff</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dbcnorm&quot;</span><span class="p">:</span>
+            <span class="n">lambda_bc_eff</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">other_</span> <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_a_parameter_provided_</span> <span class="k">else</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span>
+            <span class="p">)</span>
+
         <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_levels</span><span class="p">):</span>
-            <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">quantiles_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">se</span>
-            <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean</span> <span class="o">+</span> <span class="n">quantiles_up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">se</span>
+            <span class="n">ll</span> <span class="o">=</span> <span class="n">level_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">lu</span> <span class="o">=</span> <span class="n">level_up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">tl</span> <span class="o">=</span> <span class="n">t_low</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="n">tu</span> <span class="o">=</span> <span class="n">t_up</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+            <span class="c1"># t-interval bounds in linear predictor space</span>
+            <span class="n">lp_l</span> <span class="o">=</span> <span class="n">linear_pred</span> <span class="o">+</span> <span class="n">tl</span> <span class="o">*</span> <span class="n">se</span>
+            <span class="n">lp_u</span> <span class="o">=</span> <span class="n">linear_pred</span> <span class="o">+</span> <span class="n">tu</span> <span class="o">*</span> <span class="n">se</span>
+
+            <span class="c1"># ── Group A: symmetric, LP == response ──────────────────────────</span>
+            <span class="k">if</span> <span class="n">d</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dt&quot;</span><span class="p">):</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+
+            <span class="c1"># ── Group B: CI=t-based LP; PI=distribution quantile ────────────</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dlaplace&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Laplace variance = 2*b²  →  b = sqrt(var/2)</span>
+                    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlaplace</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlaplace</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dalaplace&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">alpha</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_</span>
+                    <span class="c1"># ALaplace var = scale²*(α²+(1-α)²)/(α(1-α))²</span>
+                    <span class="n">scale_al</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                        <span class="n">variances</span>
+                        <span class="o">*</span> <span class="p">(</span><span class="n">alpha</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">))</span> <span class="o">**</span> <span class="mi">2</span>
+                        <span class="o">/</span> <span class="p">(</span><span class="n">alpha</span><span class="o">**</span><span class="mi">2</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">alpha</span><span class="p">)</span> <span class="o">**</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qalaplace</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale_al</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qalaplace</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale_al</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="n">alpha</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;ds&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># S-distribution variance = 120*scale⁴  →  scale=(var/120)^0.25</span>
+                    <span class="n">s_scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">variances</span> <span class="o">/</span> <span class="mi">120</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.25</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qs</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s_scale</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qs</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s_scale</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dlogis&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Logistic variance = π²*scale²/3  →  scale=sqrt(var*3/π²)</span>
+                    <span class="n">logis_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances</span> <span class="o">*</span> <span class="mi">3</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlogis</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">logis_scale</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlogis</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">logis_scale</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dgnorm&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># GNorm variance = Γ(3/s)/Γ(1/s)*scale²</span>
+                    <span class="n">s</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_</span>
+                    <span class="n">gn_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances</span> <span class="o">*</span> <span class="n">_sp_gamma</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">s</span><span class="p">)</span> <span class="o">/</span> <span class="n">_sp_gamma</span><span class="p">(</span><span class="mi">3</span> <span class="o">/</span> <span class="n">s</span><span class="p">))</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qgnorm</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">gn_scale</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">s</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qgnorm</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">gn_scale</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">s</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dfnorm&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># qfnorm requires scalar mu/sigma; compute element-wise</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">qfnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mj</span><span class="p">),</span> <span class="n">sigma</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">sj</span><span class="p">)))</span>
+                            <span class="k">for</span> <span class="n">mj</span><span class="p">,</span> <span class="n">sj</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">se</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+                        <span class="p">[</span>
+                            <span class="nb">float</span><span class="p">(</span><span class="n">dist</span><span class="o">.</span><span class="n">qfnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">mj</span><span class="p">),</span> <span class="n">sigma</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">sj</span><span class="p">)))</span>
+                            <span class="k">for</span> <span class="n">mj</span><span class="p">,</span> <span class="n">sj</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">se</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;drectnorm&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qrectnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qrectnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+
+            <span class="c1"># ── Group C: log-link; CI=exp(t-bounds); PI=dist quantile ───────</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dinvgauss&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qinvgauss</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qinvgauss</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dgamma&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qgamma</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qgamma</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="mi">1</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dexp&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="c1"># Exp(rate=1) has mean 1; scale by fitted mean</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qexp</span><span class="p">(</span><span class="n">ll</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">qexp</span><span class="p">(</span><span class="n">lu</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dpois&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qpois</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">))</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qpois</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">))</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dnbinom&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="c1"># self.scale holds the size parameter (abs(other))</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qnbinom</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qnbinom</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">),</span> <span class="n">size</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dbinom&quot;</span><span class="p">:</span>
+                <span class="n">binom_size</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">size</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="mi">1</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span> <span class="o">*</span> <span class="n">binom_size</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span> <span class="o">*</span> <span class="n">binom_size</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">prob</span> <span class="o">=</span> <span class="mf">1.0</span> <span class="o">/</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">))</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qbinom</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">binom_size</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="n">prob</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qbinom</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">binom_size</span><span class="p">,</span> <span class="n">prob</span><span class="o">=</span><span class="n">prob</span><span class="p">)</span>
+
+            <span class="c1"># ── Group D: log-transformed; CI=exp(t-bounds); PI=dist quantile ─</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dllaplace&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">b</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qllaplace</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qllaplace</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">b</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dls&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">s_scale</span> <span class="o">=</span> <span class="p">(</span><span class="n">variances</span> <span class="o">/</span> <span class="mi">120</span><span class="p">)</span> <span class="o">**</span> <span class="mf">0.25</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qls</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s_scale</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qls</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">s_scale</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dlgnorm&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_l</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp_u</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">beta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">other_</span>
+                    <span class="n">lgn_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span>
+                        <span class="n">variances</span> <span class="o">*</span> <span class="n">_sp_gamma</span><span class="p">(</span><span class="mi">1</span> <span class="o">/</span> <span class="n">beta</span><span class="p">)</span> <span class="o">/</span> <span class="n">_sp_gamma</span><span class="p">(</span><span class="mi">3</span> <span class="o">/</span> <span class="n">beta</span><span class="p">)</span>
+                    <span class="p">)</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlgnorm</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lgn_scale</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">beta</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlgnorm</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">lgn_scale</span><span class="p">,</span> <span class="n">shape</span><span class="o">=</span><span class="n">beta</span>
+                    <span class="p">)</span>
+
+            <span class="c1"># ── Group E: log-normal family; use dist quantile for CI and PI ──</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dlnorm&quot;</span><span class="p">:</span>
+                <span class="c1"># qlnorm(p, meanlog=lp, sdlog=se) where se encodes the right</span>
+                <span class="c1"># uncertainty: for CI se=sqrt(var_pred), for PI se=sqrt(var_pred+σ²)</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">meanlog</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sdlog</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">meanlog</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sdlog</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dlogitnorm&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlogitnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qlogitnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">)</span>
+
+            <span class="c1"># ── Group F: special transformations ────────────────────────────</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dbcnorm&quot;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;confidence&quot;</span><span class="p">:</span>
+                    <span class="c1"># Invert BC transform of t-bounds in LP space</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_bc_transform_inv</span><span class="p">(</span><span class="n">lp_l</span><span class="p">,</span> <span class="n">lambda_bc_eff</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">_bc_transform_inv</span><span class="p">(</span><span class="n">lp_u</span><span class="p">,</span> <span class="n">lambda_bc_eff</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qbcnorm</span><span class="p">(</span>
+                        <span class="n">ll</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">lambda_bc</span><span class="o">=</span><span class="n">lambda_bc_eff</span>
+                    <span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">qbcnorm</span><span class="p">(</span>
+                        <span class="n">lu</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sigma</span><span class="o">=</span><span class="n">se</span><span class="p">,</span> <span class="n">lambda_bc</span><span class="o">=</span><span class="n">lambda_bc_eff</span>
+                    <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
+                <span class="c1"># CI: square the t-bounds; PI: non-central chi-squared</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span><span class="o">**</span><span class="mi">2</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span><span class="o">**</span><span class="mi">2</span>
+                <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                    <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ncx2</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">other_</span><span class="p">,</span> <span class="n">nc</span><span class="o">=</span><span class="n">linear_pred</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                    <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">ncx2</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">other_</span><span class="p">,</span> <span class="n">nc</span><span class="o">=</span><span class="n">linear_pred</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+
+            <span class="c1"># ── Group G: link-function distributions (plogis/pnorm) ─────────</span>
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;plogis&quot;</span><span class="p">:</span>
+                <span class="c1"># Apply plogis to normal quantile of LP</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">plogis</span><span class="p">(</span>
+                    <span class="n">dist</span><span class="o">.</span><span class="n">qnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se</span><span class="p">),</span>
+                    <span class="n">location</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">plogis</span><span class="p">(</span>
+                    <span class="n">dist</span><span class="o">.</span><span class="n">qnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se</span><span class="p">),</span>
+                    <span class="n">location</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span>
+                    <span class="n">scale</span><span class="o">=</span><span class="mf">1.0</span><span class="p">,</span>
+                <span class="p">)</span>
+
+            <span class="k">elif</span> <span class="n">d</span> <span class="o">==</span> <span class="s2">&quot;pnorm&quot;</span><span class="p">:</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span>
+                    <span class="n">dist</span><span class="o">.</span><span class="n">qnorm</span><span class="p">(</span><span class="n">ll</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="mf">1.0</span>
+                <span class="p">)</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">dist</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span>
+                    <span class="n">dist</span><span class="o">.</span><span class="n">qnorm</span><span class="p">(</span><span class="n">lu</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se</span><span class="p">),</span> <span class="n">mean</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="mf">1.0</span>
+                <span class="p">)</span>
+
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Fallback: t-based (dgeom and any unhandled distributions)</span>
+                <span class="n">lower</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_l</span>
+                <span class="n">upper</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">lp_u</span>
 
         <span class="k">if</span> <span class="n">n_levels</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">lower</span> <span class="o">=</span> <span class="n">lower</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
@@ -1250,18 +1656,94 @@
         <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">X</span> <span class="o">=</span> <span class="n">X</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
 
-        <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
-                <span class="sa">f</span><span class="s2">&quot;X has </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> features, &quot;</span>
-                <span class="sa">f</span><span class="s2">&quot;but model was fitted with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span><span class="si">}</span><span class="s2">&quot;</span>
-            <span class="p">)</span>
-
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_coef</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="bp">self</span><span class="o">.</span><span class="n">intercept_</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span><span class="p">])</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">B</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">intercept_</span><span class="p">])</span>
 
-        <span class="n">mu</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">B</span>
+        <span class="n">_log_link_distributions</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dgamma&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dexp&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dpois&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dbinom&quot;</span><span class="p">,</span>
+            <span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ari_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># AR(p) or ARI(p,d): user passes exogenous X only; lag columns are</span>
+            <span class="c1"># added internally via in-sample reuse or recursive forecasting.</span>
+            <span class="n">ar_coefs</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">arima_polynomial_</span><span class="o">.</span><span class="n">values</span><span class="p">()))</span>
+            <span class="n">n_exog</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_features_exog</span>
+            <span class="n">ari_order</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_ari_order</span>
+            <span class="n">lambda_bc_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbcnorm&quot;</span> <span class="k">else</span> <span class="mf">0.0</span>
+
+            <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="n">n_exog</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;X has </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> features, expected </span><span class="si">{</span><span class="n">n_exog</span><span class="si">}</span><span class="s2"> &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;(exogenous features only; ARI lag columns are added internally)&quot;</span>
+                <span class="p">)</span>
+
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_X_train_</span><span class="p">):</span>
+                <span class="c1"># In-sample: reuse training lag columns (matches fitted values exactly)</span>
+                <span class="n">X_lags</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_train_</span><span class="p">[:,</span> <span class="n">n_exog</span><span class="p">:]</span>
+                <span class="n">linear_pred</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">B</span><span class="p">[:</span><span class="n">n_exog</span><span class="p">]</span> <span class="o">+</span> <span class="n">X_lags</span> <span class="o">@</span> <span class="n">ar_coefs</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Out-of-sample: recursive forecasting</span>
+                <span class="n">h</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+                <span class="n">X_lags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">ari_order</span><span class="p">))</span>
+                <span class="n">y_train</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_y_train_</span>
+
+                <span class="c1"># Seed lag matrix from tail of training data (raw y-scale)</span>
+                <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ari_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>  <span class="c1"># j = lag number</span>
+                    <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">min</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">j</span><span class="p">)):</span>  <span class="c1"># t = forecast horizon step</span>
+                        <span class="n">X_lags</span><span class="p">[</span><span class="n">t</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_train</span><span class="p">[</span><span class="o">-</span><span class="p">(</span><span class="n">j</span> <span class="o">-</span> <span class="n">t</span><span class="p">)]</span>
+
+                <span class="n">linear_pred</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">h</span><span class="p">)</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">h</span><span class="p">):</span>
+                    <span class="n">linear_pred</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">@</span> <span class="n">B</span><span class="p">[:</span><span class="n">n_exog</span><span class="p">])</span> <span class="o">+</span> <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">X_lags</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">@</span> <span class="n">ar_coefs</span>
+                    <span class="p">)</span>
+                    <span class="c1"># Compute raw y-scale fitted value to feed into future lags</span>
+                    <span class="n">lp</span> <span class="o">=</span> <span class="n">linear_pred</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">_log_link_distributions</span>
+                        <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span>
+                    <span class="p">):</span>
+                        <span class="n">mu_i</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">lp</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
+                        <span class="n">mu_i</span> <span class="o">=</span> <span class="mf">1e100</span> <span class="k">if</span> <span class="n">lp</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">lp</span><span class="o">**</span><span class="mi">2</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">mu_i</span> <span class="o">=</span> <span class="n">lp</span>
+                    <span class="n">fitted_i</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span>
+                        <span class="n">extractor_fitted</span><span class="p">(</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span>
+                            <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">mu_i</span><span class="p">]),</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+                            <span class="n">lambda_bc_val</span><span class="p">,</span>
+                        <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="p">)</span>
+                    <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ari_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="o">+</span> <span class="n">j</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">:</span>
+                            <span class="n">X_lags</span><span class="p">[</span><span class="n">i</span> <span class="o">+</span> <span class="n">j</span><span class="p">,</span> <span class="n">j</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">fitted_i</span>
+
+            <span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">X</span><span class="p">,</span> <span class="n">X_lags</span><span class="p">])</span>  <span class="c1"># full X for variance; (h, n_exog + ari_order)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                    <span class="sa">f</span><span class="s2">&quot;X has </span><span class="si">{</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="si">}</span><span class="s2"> features, &quot;</span>
+                    <span class="sa">f</span><span class="s2">&quot;but model was fitted with </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span><span class="si">}</span><span class="s2">&quot;</span>
+                <span class="p">)</span>
+            <span class="n">linear_pred</span> <span class="o">=</span> <span class="n">X</span> <span class="o">@</span> <span class="n">B</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">_log_link_distributions</span><span class="p">:</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">linear_pred</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">,</span> <span class="mf">1e100</span><span class="p">,</span> <span class="n">linear_pred</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">linear_pred</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">mu</span> <span class="o">=</span> <span class="n">linear_pred</span>
 
         <span class="n">mean</span> <span class="o">=</span> <span class="n">extractor_fitted</span><span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span>
@@ -1275,9 +1757,28 @@
             <span class="n">lower</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">upper</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">variances</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_variance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+            <span class="c1"># Compute confidence variance once; add sigma² for prediction.</span>
+            <span class="n">variances_conf</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_variance</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="s2">&quot;confidence&quot;</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">interval</span> <span class="o">==</span> <span class="s2">&quot;prediction&quot;</span><span class="p">:</span>
+                <span class="n">variances</span> <span class="o">=</span> <span class="n">variances_conf</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="o">**</span><span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">variances</span> <span class="o">=</span> <span class="n">variances_conf</span>
+
+            <span class="c1"># For dfnorm/drectnorm, correct the mean using predictor SE</span>
+            <span class="c1"># (R uses sqrt(var_pred) rather than self.scale for this correction)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dfnorm&quot;</span><span class="p">:</span>
+                <span class="n">se_conf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances_conf</span><span class="p">)</span>
+                <span class="n">mean</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="mi">2</span> <span class="o">/</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span><span class="p">)</span> <span class="o">*</span> <span class="n">se_conf</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span>
+                    <span class="o">-</span><span class="p">(</span><span class="n">linear_pred</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span> <span class="o">/</span> <span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">se_conf</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span>
+                <span class="p">)</span> <span class="o">+</span> <span class="n">linear_pred</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="mi">2</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="o">-</span><span class="n">linear_pred</span> <span class="o">/</span> <span class="n">se_conf</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;drectnorm&quot;</span><span class="p">:</span>
+                <span class="n">se_conf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">variances_conf</span><span class="p">)</span>
+                <span class="n">mean</span> <span class="o">=</span> <span class="n">linear_pred</span> <span class="o">*</span> <span class="p">(</span>
+                    <span class="mi">1</span> <span class="o">-</span> <span class="n">dist</span><span class="o">.</span><span class="n">pnorm</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se_conf</span><span class="p">)</span>
+                <span class="p">)</span> <span class="o">+</span> <span class="n">se_conf</span> <span class="o">*</span> <span class="n">dist</span><span class="o">.</span><span class="n">dnorm</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">mean</span><span class="o">=</span><span class="n">linear_pred</span><span class="p">,</span> <span class="n">sd</span><span class="o">=</span><span class="n">se_conf</span><span class="p">)</span>
+
             <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_calculate_quantiles</span><span class="p">(</span>
-                <span class="n">mean</span><span class="p">,</span> <span class="n">variances</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">side</span>
+                <span class="n">linear_pred</span><span class="p">,</span> <span class="n">variances</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">level</span><span class="p">,</span> <span class="n">side</span>
             <span class="p">)</span>
 
         <span class="k">return</span> <span class="n">PredictionResult</span><span class="p">(</span>
@@ -1606,6 +2107,11 @@
 
         <span class="n">coefficients</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([[</span><span class="bp">self</span><span class="o">.</span><span class="n">intercept_</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_coef</span><span class="p">])</span>
         <span class="n">vcov_matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">vcov</span><span class="p">()</span>
+        <span class="c1"># For ARI models with i_order &gt; 0, vcov is sized for all lag columns</span>
+        <span class="c1"># (including constrained differencing lags). Truncate to free params.</span>
+        <span class="n">n_free</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">coefficients</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">vcov_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">n_free</span><span class="p">:</span>
+            <span class="n">vcov_matrix</span> <span class="o">=</span> <span class="n">vcov_matrix</span><span class="p">[:</span><span class="n">n_free</span><span class="p">,</span> <span class="p">:</span><span class="n">n_free</span><span class="p">]</span>
         <span class="n">se</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">diag</span><span class="p">(</span><span class="n">vcov_matrix</span><span class="p">))</span>
         <span class="n">t_stat</span> <span class="o">=</span> <span class="n">coefficients</span> <span class="o">/</span> <span class="n">se</span>
         <span class="n">p_value</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">t_stat</span><span class="p">),</span> <span class="n">df</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">))</span>
@@ -1641,6 +2147,7 @@
             <span class="n">bicc</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">bicc</span><span class="p">,</span>
             <span class="n">feature_names</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_feature_names</span><span class="p">,</span>
             <span class="n">time_elapsed</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">time_elapsed</span><span class="p">,</span>
+            <span class="n">arima_string</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">arima_string_</span><span class="p">,</span>
         <span class="p">)</span></div>
 
 

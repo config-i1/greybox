@@ -196,7 +196,19 @@ class ALM:
     scale_formula : array-like or None, default=None
         Formula for scale parameter. If None, scale is constant.
     orders : tuple, default=(0, 0, 0)
-        ARIMA orders (p, d, q).
+        ARIMA orders (p, d, q). Three integers: AR order (p), differencing
+        order (d), and MA order (q). Only AR(p) and differencing (d) are
+        supported. MA(q) raises NotImplementedError.
+
+        - p (AR order): Number of lagged response variables to include.
+        - d (Differencing): Order of differencing. Creates AR(p+d) terms
+          internally but only uses first p in the model.
+        - q (MA order): Not implemented.
+
+        Examples:
+            - ``orders=(1, 0, 0)``: AR(1) model
+            - ``orders=(2, 0, 0)``: AR(2) model
+            - ``orders=(1, 1, 0)``: ARIMA(1,1,0) with differencing
     alpha : float, optional
         Additional parameter for Asymmetric Laplace distribution.
     shape : float, optional
