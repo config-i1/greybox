@@ -531,13 +531,12 @@ class ALM:
         else:
             n_params = n_params_base
 
-        B_init = np.zeros(n_params)
+        # Store optimizer free-param count (excludes constrained ARI
+        # differencing columns that appear in _X_train_ but are not free
+        # parameters).  Used by the nparam property.
+        self._n_params_ = n_params
 
-        # For ARI models the optimizer B has n_params_base free parameters but
-        # X has n_features_exog + ari_order columns.  Use a reduced design
-        # matrix for all B_init lstsq calls so the result always has exactly
-        # n_params_base elements (the correct free-parameter size).
-        X_for_init = X[:, :n_params_base] if i_order > 0 else X
+        B_init = np.zeros(n_params)
 
         log_link_distributions = (
             "dinvgauss",
@@ -548,29 +547,55 @@ class ALM:
             "dgeom",
         )
 
+        # ── Step 1: design matrix ─────────────────────────────────────────────
+        # For ARI(d>0) the AR lag columns in X are the *level* lags. Differencing
+        # them yields the correct regressors for the AR polynomial of the
+        # differenced model, matching R's alm() initialisation.
+        if i_order > 0:
+            exog_init = X[i_order:, :n_features_exog]  # drop first i_order rows
+            if ar_order > 0:
+                ar_lag_cols = X[:, n_features_exog : n_features_exog + ar_order]
+                ar_lag_diff = np.diff(
+                    ar_lag_cols, n=i_order, axis=0
+                )  # (n-i_order, ar_order)
+                # R-style boundary: replace first i_order rows with column means
+                ar_lag_diff[:i_order] = ar_lag_diff.mean(axis=0)
+                X_init = np.hstack([exog_init, ar_lag_diff])
+            else:
+                X_init = exog_init
+        else:
+            X_init = X  # already n_params_base columns
+
+        # ── Step 2: per-distribution response transformation and OLS ──────────
+        def _ols_init(Xd, yr):
+            try:
+                return np.linalg.lstsq(Xd, yr, rcond=None)[0]
+            except Exception:
+                return None
+
+        B_ols = None
         if self.distribution in ("plogis", "pnorm"):
             from .transforms import bc_transform
 
-            y_bc = bc_transform(y, 0.01)
-            try:
-                B_init = np.linalg.lstsq(X_for_init, y_bc, rcond=None)[0]
-            except Exception:
-                pass
+            yr = bc_transform(y, 0.01)
+            if i_order > 0:
+                yr = np.diff(yr, n=i_order)
+            B_ols = _ols_init(X_init, yr)
         elif self.distribution == "dpois":
-            mu_insample = np.mean(y)
-            try:
-                XtX_mu = X_for_init.T @ X_for_init * mu_insample
-                B_init_for_lstsq = np.linalg.solve(
-                    XtX_mu, X_for_init.T @ (y - mu_insample)
-                )
-                B_init = B_init_for_lstsq
-            except Exception:
+            if i_order > 0:
+                # ARI: log-link OLS (matches R's I(d) branch)
+                yr = np.log(np.maximum(y, 1e-10))
+                yr = np.diff(yr, n=i_order)
+                B_ols = _ols_init(X_init, yr)
+            else:
+                # I(0): quasi-Newton step
+                mu_insample = np.mean(y)
                 try:
-                    y_pos = y[y > 0]
-                    X_pos = X_for_init[y > 0]
-                    B_init = np.linalg.lstsq(X_pos, np.log(y_pos), rcond=None)[0]
+                    XtX_mu = X_init.T @ X_init * mu_insample
+                    B_ols = np.linalg.solve(XtX_mu, X_init.T @ (y - mu_insample))
                 except Exception:
-                    pass
+                    yr = np.log(np.maximum(y, 1e-10))
+                    B_ols = _ols_init(X_init, yr)
         elif self.distribution in (
             "dlnorm",
             "dllaplace",
@@ -578,112 +603,67 @@ class ALM:
             "dlgnorm",
             *log_link_distributions,
         ):
-            y_pos = y[y > 0]
-            X_pos = X_for_init[y > 0]
-            if len(y_pos) > 0:
-                try:
-                    B_init_for_lstsq = np.linalg.lstsq(
-                        X_pos, np.log(y_pos), rcond=None
-                    )[0]
-                    if (
-                        self.distribution in distributions_with_extra_param
-                        and not a_parameter_provided
-                    ):
-                        B_init[1:] = B_init_for_lstsq
-                    else:
-                        B_init = B_init_for_lstsq
-                except Exception:
-                    pass
-        elif self.distribution == "dt":
-            try:
-                B_init_for_lstsq = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
-                if not a_parameter_provided:
-                    B_init[0] = 2
-                    B_init[1:] = B_init_for_lstsq
-                else:
-                    B_init = B_init_for_lstsq
-            except Exception:
-                pass
+            if i_order > 0:
+                yr = np.log(np.maximum(y, 1e-10))
+                yr = np.diff(yr, n=i_order)
+                B_ols = _ols_init(X_init, yr)
+            else:
+                mask = y > 0
+                if mask.any():
+                    B_ols = _ols_init(X_init[mask], np.log(y[mask]))
+        elif self.distribution in ("dlogitnorm", "dbeta"):
+            y_clip = np.clip(y, 1e-10, 1 - 1e-10)
+            yr = np.log(y_clip / (1 - y_clip))
+            if i_order > 0:
+                yr = np.diff(yr, n=i_order)
+            B_ols = _ols_init(X_init, yr)
+        elif self.distribution == "dchisq":
+            yr = np.sqrt(y)
+            if i_order > 0:
+                yr = np.diff(yr, n=i_order)
+            B_ols = _ols_init(X_init, yr)
         elif self.distribution == "dbcnorm":
             from .transforms import bc_transform
 
-            if not a_parameter_provided:
-                try:
-                    B_init_for_lstsq = np.linalg.lstsq(
-                        X_for_init, bc_transform(y, 0.1), rcond=None
-                    )[0]
-                    B_init[0] = 0.1
-                    B_init[1:] = B_init_for_lstsq
-                except Exception:
-                    pass
-            else:
-                try:
-                    B_init = np.linalg.lstsq(
-                        X_for_init, bc_transform(y, self.lambda_bc), rcond=None
-                    )[0]
-                except Exception:
-                    pass
-        elif self.distribution == "dchisq":
-            try:
-                B_init_for_lstsq = np.linalg.lstsq(X_for_init, np.sqrt(y), rcond=None)[
-                    0
-                ]
-                if not a_parameter_provided:
-                    B_init[0] = 1
-                    B_init[1:] = B_init_for_lstsq
-                else:
-                    B_init = B_init_for_lstsq
-            except Exception:
-                pass
-        elif self.distribution in ("dlogitnorm",):
-            y_clip = np.clip(y, 1e-10, 1 - 1e-10)
-            y_transformed = np.log(y_clip / (1 - y_clip))
-            try:
-                B_init_for_lstsq = np.linalg.lstsq(
-                    X_for_init, y_transformed, rcond=None
-                )[0]
-                if (
-                    self.distribution in distributions_with_extra_param
-                    and not a_parameter_provided
-                ):
-                    B_init[1:] = B_init_for_lstsq
-                else:
-                    B_init = B_init_for_lstsq
-            except Exception:
-                pass
+            lam = self.lambda_bc if a_parameter_provided else 0.1
+            yr = bc_transform(y, lam)
+            if i_order > 0:
+                yr = np.diff(yr, n=i_order)
+            B_ols = _ols_init(X_init, yr)
+        else:
+            # default: dnorm, dt, dlaplace, dalaplace, ds, dfnorm, drectnorm,
+            # dgnorm, dgeom, ...
+            yr = y
+            if i_order > 0:
+                yr = np.diff(yr, n=i_order)
+            B_ols = _ols_init(X_init, yr)
+
+        # ── Step 3: unified placement ──────────────────────────────────────────
+        if B_ols is None:
+            pass  # keep B_init = zeros
         elif self.distribution == "dbeta":
-            y_clip = np.clip(y, 1e-10, 1 - 1e-10)
-            try:
-                B_half = np.linalg.lstsq(
-                    X_for_init, np.log(y_clip / (1 - y_clip)), rcond=None
-                )[0]
-                B_init[:n_params_base] = B_half
-                B_init[n_params_base:] = -B_half
-            except Exception:
-                pass
+            B_init[:n_params_base] = B_ols
+            B_init[n_params_base:] = -B_ols
         elif (
             self.distribution in distributions_with_extra_param
             and not a_parameter_provided
         ):
-            try:
-                B_init_for_lstsq = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
-                B_init[1:] = B_init_for_lstsq
-            except Exception:
-                pass
-            # Set distribution-specific initial values for extra param
-            if self.distribution in ("dfnorm", "drectnorm"):
-                B_init[0] = np.std(y, ddof=1)
-            elif self.distribution == "dalaplace":
-                B_init[0] = 0.5
-            elif self.distribution in ("dgnorm", "dlgnorm"):
-                B_init[0] = 2.0
-            elif self.distribution == "dnbinom":
-                B_init[0] = np.var(y, ddof=1)
+            # Extra param in slot 0; OLS coefficients in slots 1:
+            B_init[1:] = B_ols
+            extra_inits = {
+                "dfnorm": np.std(y, ddof=1),
+                "drectnorm": np.std(y, ddof=1),
+                "dalaplace": 0.5,
+                "dgnorm": 2.0,
+                "dlgnorm": 2.0,
+                "dnbinom": np.var(y, ddof=1),
+                "dchisq": 1.0,
+                "dt": 2.0,
+                "dbcnorm": 0.1,
+            }
+            B_init[0] = extra_inits.get(self.distribution, 0.0)
         else:
-            try:
-                B_init = np.linalg.lstsq(X_for_init, y, rcond=None)[0]
-            except Exception:
-                B_init = np.zeros(n_params)
+            B_init = B_ols
 
         print_level = self.nlopt_kargs.get("print_level", 0)
         iteration_count = [0]
@@ -760,10 +740,9 @@ class ALM:
         maxeval = self.nlopt_kargs.get("maxeval")
 
         if maxeval is None:
-            if (
-                self.distribution in ("dnorm", "dlnorm", "dlogitnorm")
-                and self.loss in ("likelihood", "MSE")
-                and i_order == 0
+            if self.distribution in ("dnorm", "dlnorm", "dlogitnorm") and self.loss in (
+                "likelihood",
+                "MSE",
             ):
                 maxeval = 1
             else:
@@ -1774,7 +1753,7 @@ class ALM:
         """
         if self._X_train_ is None:
             raise ValueError("Model not fitted. Call fit() first.")
-        n_params = self._X_train_.shape[1]
+        n_params = self._n_params_
         if self.distribution not in (
             "dexp",
             "dpois",
