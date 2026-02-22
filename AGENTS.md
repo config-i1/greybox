@@ -27,6 +27,10 @@ This is a Python port of the R package `greybox` - a toolbox for model building 
 
 Build, Lint, and Test Commands
 These commands ensure your code adheres to standards and functions as expected.
+
+IMPORTANT: Always use the python/.venv environment when running Python commands!
+Example: cd python && .venv/bin/python -m pytest tests/
+
 Build Command:
 make build
 This command compiles the project. Ensure you're in the root directory of the project before running it.
