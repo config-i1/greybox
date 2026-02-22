@@ -5,6 +5,11 @@ date: "20 February 2026"
 output: html_document
 ---
 
+## Update
+
+Fixed URLs in the README.md
+
+
 ## Version
 This is the release of the package `greybox`, v2.0.8.
 
