@@ -95,7 +95,10 @@ def point_lik(
             lik = stats.gennorm.pdf(y, beta=shape, loc=mu, scale=scale)
 
     elif distribution == "dgamma":
-        shape = 1 / scale
+        if scale is None or scale == 0:
+            shape = 1.0
+        else:
+            shape = 1 / scale
         if log:
             lik = stats.gamma.logpdf(y, a=shape, scale=scale * mu)
         else:

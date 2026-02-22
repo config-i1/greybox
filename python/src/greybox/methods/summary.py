@@ -85,15 +85,15 @@ class SummaryResult:
     p_value: np.ndarray
     lower_ci: np.ndarray
     upper_ci: np.ndarray
-    scale: float
-    sigma: float
-    df_residual: int
     distribution: str
-    log_lik: float
-    aic: float
-    bic: float
     nobs: int
     nparam: int
+    scale: float | None = None
+    sigma: float | None = None
+    df_residual: int | None = None
+    log_lik: float | None = None
+    aic: float | None = None
+    bic: float | None = None
     response_variable: str = "y"
     loss: str = "likelihood"
     aicc: float | None = None

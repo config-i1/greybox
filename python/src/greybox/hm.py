@@ -93,7 +93,7 @@ def ham(x: np.ndarray, center: float | None = None) -> float:
     if center is None:
         center = np.mean(x)
 
-    return np.mean(np.sqrt(np.abs(x - center)))
+    return float(np.mean(np.sqrt(np.abs(x - center))))
 
 
 def asymmetry(x: np.ndarray, center: float | None = None) -> float:

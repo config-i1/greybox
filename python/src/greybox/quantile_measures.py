@@ -228,9 +228,9 @@ def smis(
     See Gneiting & Raftery (2007).
     """
     if scale == 0:
-        return np.nan
+        return float(np.nan)
 
-    return mis(actual, lower, upper, level, na_rm) / scale
+    return float(mis(actual, lower, upper, level, na_rm) / scale)
 
 
 def rmis(

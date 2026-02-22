@@ -131,6 +131,22 @@ class LmCombineResult:
         self._coefficients = kwargs.pop("coefficients", None)
         self._time_elapsed = kwargs.pop("time_elapsed", 0.0)
         self._log_lik = kwargs.pop("log_lik", None)
+        # Store commonly accessed attrs as private
+        self._n_obs = kwargs.pop("n_obs", None)
+        self._importance = kwargs.pop("importance", None)
+        self._df_residual = kwargs.pop("df_residual", None)
+        self._df = kwargs.pop("df", None)
+        self._distribution = kwargs.pop("distribution", None)
+        self._coefficient_names = kwargs.pop("coefficient_names", None)
+        self._IC_type = kwargs.pop("IC_type", None)
+        self._IC = kwargs.pop("IC", None)
+        self._y_variable = kwargs.pop("y_variable", None)
+        self._x_variables = kwargs.pop("x_variables", None)
+        self._scale = kwargs.pop("scale", None)
+        self._weights = kwargs.pop("weights", None)
+        self._combination = kwargs.pop("combination", None)
+        self._combination_col_names = kwargs.pop("combination_col_names", None)
+        self._combination_row_names = kwargs.pop("combination_row_names", None)
         for key, val in kwargs.items():
             setattr(self, key, val)
 
@@ -142,6 +158,7 @@ class LmCombineResult:
         "coefficients": "_coefficients",
         "time_elapsed": "_time_elapsed",
         "log_lik": "_log_lik",
+        "df": "_df",
     }
 
     def __getitem__(self, key: str) -> Any:
@@ -151,10 +168,10 @@ class LmCombineResult:
         return getattr(self, key)
 
     def __contains__(self, key: object) -> bool:
-        if key in self._PRIVATE_MAP:
-            attr = self._PRIVATE_MAP[key]  # type: ignore[arg-type]
+        if isinstance(key, str) and key in self._PRIVATE_MAP:
+            attr = self._PRIVATE_MAP[key]
             return getattr(self, attr) is not None
-        return hasattr(self, key)  # type: ignore[arg-type]
+        return hasattr(self, str(key))
 
     def keys(self) -> list[str]:
         public = [k for k in self.__dict__ if not k.startswith("_")]
@@ -202,7 +219,7 @@ class LmCombineResult:
 
     @property
     def nobs(self) -> int:
-        return self.n_obs
+        return self._n_obs
 
     @property
     def nparam(self) -> float:
@@ -210,7 +227,11 @@ class LmCombineResult:
 
     @property
     def sigma(self) -> float:
-        return float(np.sqrt(np.sum(self.residuals**2) / self.df_residual))
+        resid = self.residuals
+        df_resid = self.df_residual
+        if resid is None or df_resid is None or df_resid == 0:
+            return 0.0
+        return float(np.sqrt(np.sum(resid**2) / df_resid))
 
     @property
     def coef(self) -> np.ndarray:
@@ -224,25 +245,35 @@ class LmCombineResult:
     @property
     def aic(self) -> float:
         k = self.nparam
-        return -2 * self.log_lik + 2 * k
+        log_lik = self.log_lik
+        if log_lik is None:
+            return 0.0
+        return -2 * log_lik + 2 * k
 
     @property
     def bic(self) -> float:
         k = self.nparam
-        return -2 * self.log_lik + k * np.log(self.n_obs)
+        n = self._n_obs
+        log_lik = self.log_lik
+        if n is None or log_lik is None:
+            return 0.0
+        return -2 * log_lik + k * np.log(n)
 
     @property
     def aicc(self) -> float:
         k = self.nparam
-        n = self.n_obs
+        n = self._n_obs
         a = self.aic
-        if n - k - 1 > 0:
-            return a + (2 * k**2 + 2 * k) / (n - k - 1)
-        return np.inf
+        if n is None or n - k - 1 <= 0:
+            return np.inf
+        return a + (2 * k**2 + 2 * k) / (n - k - 1)
 
     @property
     def bicc(self) -> float:
-        return self.bic + self.nparam * np.log(self.n_obs) ** 2 / self.n_obs
+        n = self._n_obs
+        if n is None or n == 0:
+            return 0.0
+        return self.bic + self.nparam * np.log(n) ** 2 / n
 
     @property
     def distribution_(self) -> str:
@@ -255,9 +286,11 @@ class LmCombineResult:
         return "likelihood"
 
     @property
-    def loss_value(self) -> float:
+    def loss_value(self) -> float | None:
         """Loss function value."""
-        return -self._log_lik if self._log_lik is not None else None
+        if self._log_lik is None:
+            return None
+        return -self._log_lik
 
     @property
     def n_param(self) -> dict:
@@ -290,6 +323,81 @@ class LmCombineResult:
     @property
     def df_residual_(self) -> float:
         return self.df_residual
+
+    @property
+    def n_obs(self) -> int:
+        """Number of observations."""
+        return self._n_obs
+
+    @property
+    def importance(self) -> np.ndarray:
+        """Importance of variables (1 if included, 0 otherwise)."""
+        return self._importance
+
+    @property
+    def df_residual(self) -> float:
+        """Degrees of freedom for residuals."""
+        return self._df_residual
+
+    @property
+    def df_model(self) -> float:
+        """Degrees of freedom for model."""
+        return self._df
+
+    @property
+    def distribution(self) -> str:
+        """Distribution name."""
+        return self._distribution
+
+    @property
+    def coefficient_names(self) -> list[str]:
+        """Names of coefficients."""
+        return self._coefficient_names
+
+    @property
+    def IC_type(self) -> str:
+        """Information criterion type used."""
+        return self._IC_type
+
+    @property
+    def IC(self) -> float:
+        """Combined information criterion value."""
+        return self._IC
+
+    @property
+    def y_variable(self) -> str:
+        """Name of response variable."""
+        return self._y_variable
+
+    @property
+    def x_variables(self) -> list[str]:
+        """List of predictor variable names."""
+        return self._x_variables
+
+    @property
+    def scale(self) -> float:
+        """Scale parameter."""
+        return self._scale
+
+    @property
+    def weights(self) -> np.ndarray:
+        """Model weights based on IC."""
+        return self._weights
+
+    @property
+    def combination(self) -> np.ndarray:
+        """Combination matrix (variables × models with weights and ICs)."""
+        return self._combination
+
+    @property
+    def combination_col_names(self) -> list[str]:
+        """Column names for combination matrix."""
+        return self._combination_col_names
+
+    @property
+    def combination_row_names(self) -> list[str]:
+        """Row names for combination matrix."""
+        return self._combination_row_names
 
     def vcov(self) -> np.ndarray:
         """Return variance-covariance matrix."""
@@ -370,10 +478,9 @@ class LmCombineResult:
         mean = _combine_fitted(self.distribution, mu, self.scale)
 
         variances = None
-        if interval == "none":
-            lower = None
-            upper = None
-        else:
+        lower: np.ndarray | None = None
+        upper: np.ndarray | None = None
+        if interval != "none":
             vcov_matrix = self._vcov_matrix
             variances = np.diag(X @ vcov_matrix @ X.T)
             if interval == "prediction":
@@ -754,11 +861,10 @@ def _calculate_ic(
     k = model.nparam + df_add
     log_lik = model.log_lik
 
-    ic_type = ic_type.upper()
+    if n is None or log_lik is None:
+        return np.inf
 
-    n = model.nobs
-    k = model.nparam + df_add
-    log_lik = model.log_lik
+    ic_type = ic_type.upper()
 
     if ic_type == "AIC":
         return -2 * log_lik + 2 * k
@@ -1220,6 +1326,9 @@ def CALM(
             "You have more than 14 variables. The computation might take a lot of time."
         )
 
+    # Initialize for bruteforce=False case (non-bruteforce mode)
+    selected_names: list[str] = []
+
     # --- Non-bruteforce mode ---
     if not bruteforce:
         if not silent:
@@ -1242,7 +1351,6 @@ def CALM(
             )
 
         # Get selected variable names
-        selected_names = []
         if best_model._feature_names is not None:
             selected_names = list(best_model._feature_names)
 
@@ -1288,14 +1396,13 @@ def CALM(
             included_indices = np.where(var_binary[row] == 1)[0]
             var_binary[row, included_indices[i]] = 0
 
+        # Build all_combinations from var_binary
         all_combinations: list[list[str]] = []
         for row in range(n_combos):
             combo = [x_vars[j] for j in range(n_vars) if var_binary[row, j] == 1]
             all_combinations.append(combo)
-
-    # --- Bruteforce mode ---
     else:
-        # Generate all 2^p combinations including intercept-only
+        # Bruteforce mode: generate all 2^n combinations
         all_combinations = [[]]  # intercept-only model
         for r in range(1, n_vars + 1):
             for combo in itertools.combinations(x_vars, r):
@@ -1380,7 +1487,7 @@ def CALM(
                     vcov_values[i, fi, fj] = model_vcov[mi, mj]
 
             if has_other and model.other_ is not None:
-                other_parameters[i] = model.other_
+                other_parameters[i] = model.other_  # type: ignore[index]
 
         except Exception:
             continue

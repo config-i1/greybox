@@ -1607,7 +1607,7 @@ class ALM:
                         extractor_fitted(
                             self.distribution,
                             np.array([mu_i]),
-                            self.scale,
+                            self.scale if self.scale is not None else 1.0,
                             lambda_bc_val,
                         )[0]
                     )
@@ -1635,7 +1635,7 @@ class ALM:
         mean = extractor_fitted(
             self.distribution,
             mu,
-            self.scale,
+            self.scale if self.scale is not None else 1.0,
             self.lambda_bc if self.distribution == "dbcnorm" else 0.0,
         )
 
