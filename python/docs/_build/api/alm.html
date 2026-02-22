@@ -81,6 +81,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.loglik"><code class="docutils literal notranslate"><span class="pre">ALM.loglik</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.loss_"><code class="docutils literal notranslate"><span class="pre">ALM.loss_</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.loss_value"><code class="docutils literal notranslate"><span class="pre">ALM.loss_value</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.multipliers"><code class="docutils literal notranslate"><span class="pre">ALM.multipliers()</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.n_param"><code class="docutils literal notranslate"><span class="pre">ALM.n_param</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.nobs"><code class="docutils literal notranslate"><span class="pre">ALM.nobs</span></code></a></li>
 <li class="toctree-l4"><a class="reference internal" href="#greybox.alm.ALM.nparam"><code class="docutils literal notranslate"><span class="pre">ALM.nparam</span></code></a></li>
@@ -101,12 +102,18 @@
 <li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
 <li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#association-measures">Association Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#half-moments">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quantile-measures">Quantile Measures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
 </ul>
 </li>
@@ -568,6 +575,31 @@ as first column if you want an intercept.</p></li>
 <dt class="sig sig-object py" id="greybox.alm.ALM.loss_value">
 <span class="property"><span class="k"><span class="pre">property</span></span><span class="w"> </span></span><span class="sig-name descname"><span class="pre">loss_value</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><a class="headerlink" href="#greybox.alm.ALM.loss_value" title="Link to this definition"></a></dt>
 <dd><p>Final value of the loss function.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.alm.ALM.multipliers">
+<span class="sig-name descname"><span class="pre">multipliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">parm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/greybox/alm.html#ALM.multipliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.alm.ALM.multipliers" title="Link to this definition"></a></dt>
+<dd><p>Compute dynamic multipliers for an ARDL model.</p>
+<p>Combines distributed lag coefficients (B(parm, k) terms) with the
+ARI polynomial to produce impulse-response multipliers over horizon h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>parm</strong> (<em>str</em>) – Variable name as it appears in the design matrix.</p></li>
+<li><p><strong>h</strong> (<em>int</em><em>, </em><em>default 10</em>) – Forecast horizon.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{“h1”: m1, “h2”: m2, …, “hh”: mh} of dynamic multipliers.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If parm is not found in the model.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="py property">

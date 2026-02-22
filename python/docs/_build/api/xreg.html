@@ -20,7 +20,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="Transforms" href="transforms.html" />
-    <link rel="prev" title="Measures" href="measures.html" /> 
+    <link rel="prev" title="Quantile Measures" href="quantile_measures.html" /> 
 </head>
 
 <body class="wy-body-for-nav"> 
@@ -51,7 +51,12 @@
 <li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
 <li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Xreg</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.B"><code class="docutils literal notranslate"><span class="pre">B()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.multipliers"><code class="docutils literal notranslate"><span class="pre">multipliers()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.temporal_dummy"><code class="docutils literal notranslate"><span class="pre">temporal_dummy()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.xreg_expander"><code class="docutils literal notranslate"><span class="pre">xreg_expander()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.xreg.xreg_multiplier"><code class="docutils literal notranslate"><span class="pre">xreg_multiplier()</span></code></a></li>
@@ -63,6 +68,9 @@
 <li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#association-measures">Association Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#half-moments">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quantile-measures">Quantile Measures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
 </ul>
 </li>
@@ -104,6 +112,55 @@
 <p>Exogenous variables manipulation functions.</p>
 <p>This module provides functions for transforming and expanding exogenous
 variables for use in regression models.</p>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.B">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">B</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.B" title="Link to this definition"></a></dt>
+<dd><p>Backshift operator: lag (k&gt;0) or lead (k&lt;0) of x.</p>
+<p>Positive k creates lag-k (past values); negative k creates lead-abs(k)
+(future values); k=0 returns x unchanged. Gaps at boundaries are
+filled per the gaps strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n</em><em>,</em><em>)</em>)</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Lag order. Positive = lag (past values), negative = lead (future).</p></li>
+<li><p><strong>gaps</strong> (<em>str</em><em>, </em><em>default &quot;auto&quot;</em>) – Boundary fill strategy passed to xreg_expander.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray of shape (n,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.multipliers">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">multipliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#multipliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.multipliers" title="Link to this definition"></a></dt>
+<dd><p>Compute dynamic multipliers for an ARDL model.</p>
+<p>Combines distributed lag coefficients (B(parm, k) terms) with the
+ARI polynomial from the model to produce impulse-response multipliers
+over horizon h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><em>ALM</em></a>) – Fitted ALM model containing parm (and optionally B(parm, k) columns
+and/or ARIMA orders).</p></li>
+<li><p><strong>parm</strong> (<em>str</em>) – Variable name as it appears in the design matrix (column header).</p></li>
+<li><p><strong>h</strong> (<em>int</em><em>, </em><em>default 10</em>) – Forecast horizon.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{“h1”: m1, “h2”: m2, …, “hh”: mh} of dynamic multipliers.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If parm is not found in the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="py function">
 <dt class="sig sig-object py" id="greybox.xreg.temporal_dummy">
 <span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">temporal_dummy</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">freq</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#temporal_dummy"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.temporal_dummy" title="Link to this definition"></a></dt>
@@ -235,7 +292,7 @@ won’t print anything.</p></li>
            </div>
           </div>
           <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
-        <a href="measures.html" class="btn btn-neutral float-left" title="Measures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="quantile_measures.html" class="btn btn-neutral float-left" title="Quantile Measures" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
         <a href="transforms.html" class="btn btn-neutral float-right" title="Transforms" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
     </div>
 

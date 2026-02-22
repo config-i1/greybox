@@ -1,0 +1,328 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Quantile Measures &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Xreg" href="xreg.html" />
+    <link rel="prev" title="Half-Moments" href="hm.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Quantile Measures</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.quantile_measures.mis"><code class="docutils literal notranslate"><span class="pre">mis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.quantile_measures.pinball"><code class="docutils literal notranslate"><span class="pre">pinball()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.quantile_measures.rmis"><code class="docutils literal notranslate"><span class="pre">rmis()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.quantile_measures.smis"><code class="docutils literal notranslate"><span class="pre">smis()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#association-measures">Association Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#half-moments">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quantile-measures">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Quantile Measures</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/quantile_measures.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="module-greybox.quantile_measures">
+<span id="quantile-measures"></span><h1>Quantile Measures<a class="headerlink" href="#module-greybox.quantile_measures" title="Link to this heading"></a></h1>
+<p>Quantile and interval scoring measures.</p>
+<p>This module provides functions for:
+1. Pinball cost function for quantile and expectile forecasts
+2. Mean Interval Score (MIS) and related measures</p>
+<p class="rubric">References</p>
+<ul class="simple">
+<li><p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules,
+prediction, and estimation. Journal of the American Statistical Association,
+102(477), 359-378.</p></li>
+</ul>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.quantile_measures.mis">
+<span class="sig-prename descclassname"><span class="pre">greybox.quantile_measures.</span></span><span class="sig-name descname"><span class="pre">mis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/quantile_measures.html#mis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.quantile_measures.mis" title="Link to this definition"></a></dt>
+<dd><p>Mean Interval Score (MIS).</p>
+<p>The MIS evaluates the quality of prediction intervals. It rewards
+narrow intervals and penalizes misses (when actual is outside the interval).</p>
+<dl>
+<dt>Formula:</dt><dd><dl class="simple">
+<dt>MIS = (upper - lower)</dt><dd><ul class="simple">
+<li><p>(2/alpha) * abs(lower - actual), for actual &lt; lower</p></li>
+<li><p>(2/alpha) * abs(actual - upper), for actual &gt; upper</p></li>
+</ul>
+</dd>
+</dl>
+<p>where alpha = 1 - level</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>lower</strong> (<em>np.ndarray</em>) – Lower bound of prediction interval.</p></li>
+<li><p><strong>upper</strong> (<em>np.ndarray</em>) – Upper bound of prediction interval.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.95</em>) – Confidence level of the interval (e.g., 0.95 for 95% interval).</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Mean Interval Score.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mis</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.95</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules,
+prediction, and estimation. Journal of the American Statistical Association,
+102(477), 359-378.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.quantile_measures.pinball">
+<span class="sig-prename descclassname"><span class="pre">greybox.quantile_measures.</span></span><span class="sig-name descname"><span class="pre">pinball</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">holdout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">forecast</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/quantile_measures.html#pinball"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.quantile_measures.pinball" title="Link to this definition"></a></dt>
+<dd><p>Pinball cost function.</p>
+<p>The pinball function measures the quality of quantile or expectile forecasts.
+It is used in quantile regression and forecast accuracy evaluation.</p>
+<dl class="simple">
+<dt>For quantiles (loss=1):</dt><dd><p>pinball = (1-level) * sum(abs(e) * I(e &lt;= 0)) + level * sum(abs(e) * I(e &gt; 0))</p>
+</dd>
+</dl>
+<p>where e = holdout - forecast.</p>
+<dl class="simple">
+<dt>For expectiles (loss=2):</dt><dd><p>Uses squared errors instead of absolute errors.</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>holdout</strong> (<em>np.ndarray</em>) – Actual values.</p></li>
+<li><p><strong>forecast</strong> (<em>np.ndarray</em>) – Forecasted values (quantile or expectile).</p></li>
+<li><p><strong>level</strong> (<em>float</em>) – The level associated with the forecast (e.g., 0.5 for median,
+0.95 for 95th percentile).</p></li>
+<li><p><strong>loss</strong> (<em>int</em><em>, </em><em>default=1</em>) – Loss function type:
+- 1: L1 loss (for quantiles)
+- 2: L2 loss (for expectiles)</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Pinball cost value.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">holdout</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">forecast</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.1</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.2</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">5.1</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pinball</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># Median pinball</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pinball</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.975</span><span class="p">)</span>  <span class="c1"># Upper quantile</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pinball</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">level</span><span class="o">=</span><span class="mf">0.025</span><span class="p">)</span>  <span class="c1"># Lower quantile</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>Gneiting, T., &amp; Raftery, A. E. (2007). Strictly proper scoring rules,
+prediction, and estimation. Journal of the American Statistical Association,
+102(477), 359-378.</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.quantile_measures.rmis">
+<span class="sig-prename descclassname"><span class="pre">greybox.quantile_measures.</span></span><span class="sig-name descname"><span class="pre">rmis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">benchmark_upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/quantile_measures.html#rmis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.quantile_measures.rmis" title="Link to this definition"></a></dt>
+<dd><p>Relative Mean Interval Score (rMIS).</p>
+<p>The rMIS compares the MIS of a forecast to a benchmark forecast.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>rMIS = MIS(forecast) / MIS(benchmark)</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>lower</strong> (<em>np.ndarray</em>) – Lower bound of prediction interval.</p></li>
+<li><p><strong>upper</strong> (<em>np.ndarray</em>) – Upper bound of prediction interval.</p></li>
+<li><p><strong>benchmark_lower</strong> (<em>np.ndarray</em>) – Lower bound of benchmark prediction interval.</p></li>
+<li><p><strong>benchmark_upper</strong> (<em>np.ndarray</em>) – Upper bound of benchmark prediction interval.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.95</em>) – Confidence level of the interval.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Relative Mean Interval Score.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark_lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">benchmark_upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">2.0</span><span class="p">,</span> <span class="mf">3.0</span><span class="p">,</span> <span class="mf">4.0</span><span class="p">,</span> <span class="mf">5.0</span><span class="p">,</span> <span class="mf">6.0</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rmis</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">benchmark_lower</span><span class="p">,</span> <span class="n">benchmark_upper</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See Gneiting &amp; Raftery (2007).</p>
+</dd></dl>
+
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.quantile_measures.smis">
+<span class="sig-prename descclassname"><span class="pre">greybox.quantile_measures.</span></span><span class="sig-name descname"><span class="pre">smis</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actual</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lower</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">upper</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">scale</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">floating</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.95</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">na_rm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">float</span></span></span><a class="reference internal" href="../_modules/greybox/quantile_measures.html#smis"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.quantile_measures.smis" title="Link to this definition"></a></dt>
+<dd><p>Scaled Mean Interval Score (sMIS).</p>
+<p>The sMIS scales the MIS by a scale parameter.</p>
+<dl class="simple">
+<dt>Formula:</dt><dd><p>sMIS = MIS / scale</p>
+</dd>
+</dl>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>actual</strong> (<em>np.ndarray</em>) – Actual (observed) values.</p></li>
+<li><p><strong>lower</strong> (<em>np.ndarray</em>) – Lower bound of prediction interval.</p></li>
+<li><p><strong>upper</strong> (<em>np.ndarray</em>) – Upper bound of prediction interval.</p></li>
+<li><p><strong>scale</strong> (<em>float</em>) – Scale parameter.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.95</em>) – Confidence level of the interval.</p></li>
+<li><p><strong>na_rm</strong> (<em>bool</em><em>, </em><em>default=True</em>) – Remove NA values.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Scaled Mean Interval Score.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">actual</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">lower</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">upper</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">2.5</span><span class="p">,</span> <span class="mf">3.5</span><span class="p">,</span> <span class="mf">4.5</span><span class="p">,</span> <span class="mf">5.5</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">smis</span><span class="p">(</span><span class="n">actual</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mf">3.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p class="rubric">References</p>
+<p>See Gneiting &amp; Raftery (2007).</p>
+</dd></dl>
+
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="hm.html" class="btn btn-neutral float-left" title="Half-Moments" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="xreg.html" class="btn btn-neutral float-right" title="Xreg" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

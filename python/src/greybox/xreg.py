@@ -336,7 +336,7 @@ def temporal_dummy(
 def B(x: np.ndarray, k: int, gaps: str = "auto") -> np.ndarray:
     """Backshift operator: lag (k>0) or lead (k<0) of x.
 
-    Positive k creates lag-k (past values); negative k creates lead-|k|
+    Positive k creates lag-k (past values); negative k creates lead-abs(k)
     (future values); k=0 returns x unchanged. Gaps at boundaries are
     filled per the gaps strategy.
 

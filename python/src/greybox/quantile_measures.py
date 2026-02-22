@@ -27,7 +27,7 @@ def pinball(
     It is used in quantile regression and forecast accuracy evaluation.
 
     For quantiles (loss=1):
-        pinball = (1-level) * sum(|e| * I(e <= 0)) + level * sum(|e| * I(e > 0))
+        pinball = (1-level) * sum(abs(e) * I(e <= 0)) + level * sum(abs(e) * I(e > 0))
 
     where e = holdout - forecast.
 
@@ -113,8 +113,10 @@ def mis(
     narrow intervals and penalizes misses (when actual is outside the interval).
 
     Formula:
-        MIS = (upper - lower) + (2/alpha) * |lower - actual| for actual < lower
-                                 + (2/alpha) * |actual - upper| for actual > upper
+        MIS = (upper - lower)
+              + (2/alpha) * abs(lower - actual), for actual < lower
+              + (2/alpha) * abs(actual - upper), for actual > upper
+
         where alpha = 1 - level
 
     Parameters

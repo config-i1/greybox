@@ -1618,57 +1618,6 @@
         <span class="n">formula_str</span><span class="o">=</span><span class="n">formula_full</span><span class="p">,</span>
     <span class="p">)</span></div>
 
-
-
-<div class="viewcode-block" id="lm_combine">
-<a class="viewcode-back" href="../../api/selection.html#greybox.selection.lm_combine">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">lm_combine</span><span class="p">(</span>
-    <span class="n">data</span><span class="p">:</span> <span class="n">Union</span><span class="p">[</span><span class="nb">dict</span><span class="p">,</span> <span class="n">DataFrame</span><span class="p">],</span>
-    <span class="n">ic</span><span class="p">:</span> <span class="n">Literal</span><span class="p">[</span><span class="s2">&quot;AICc&quot;</span><span class="p">,</span> <span class="s2">&quot;AIC&quot;</span><span class="p">,</span> <span class="s2">&quot;BIC&quot;</span><span class="p">,</span> <span class="s2">&quot;BICc&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;AICc&quot;</span><span class="p">,</span>
-    <span class="n">bruteforce</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
-    <span class="n">distribution</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;dnorm&quot;</span><span class="p">,</span>
-    <span class="o">**</span><span class="n">kwargs</span><span class="p">,</span>
-<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">LmCombineResult</span><span class="p">:</span>
-<span class="w">    </span><span class="sd">&quot;&quot;&quot;Combine regressions based on information criteria.</span>
-
-<span class="sd">    .. deprecated::</span>
-<span class="sd">        Use :func:`CALM` instead. This function will be removed in a future version.</span>
-
-<span class="sd">    Parameters</span>
-<span class="sd">    ----------</span>
-<span class="sd">    data : dict or DataFrame</span>
-<span class="sd">        Data frame containing dependent variable in the first column and</span>
-<span class="sd">        the others in the rest.</span>
-<span class="sd">    ic : {&quot;AICc&quot;, &quot;AIC&quot;, &quot;BIC&quot;, &quot;BICc&quot;}, default=&quot;AICc&quot;</span>
-<span class="sd">        Information criterion to use.</span>
-<span class="sd">    bruteforce : bool, default=True</span>
-<span class="sd">        If True, all possible models are generated and combined.</span>
-<span class="sd">    silent : bool, default=True</span>
-<span class="sd">        If False, then progress is printed.</span>
-<span class="sd">    distribution : str, default=&quot;dnorm&quot;</span>
-<span class="sd">        Distribution to use for the ALM model.</span>
-<span class="sd">    **kwargs</span>
-<span class="sd">        Additional arguments passed to ALM().</span>
-
-<span class="sd">    Returns</span>
-<span class="sd">    -------</span>
-<span class="sd">    LmCombineResult</span>
-<span class="sd">        Combined model result.</span>
-
-<span class="sd">    Examples</span>
-<span class="sd">    --------</span>
-<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3, 4, 5], &#39;x1&#39;: [1, 2, 3, 4, 5],</span>
-<span class="sd">    ...         &#39;x2&#39;: [2, 4, 6, 8, 10]}</span>
-<span class="sd">    &gt;&gt;&gt; result = lm_combine(data)  # Deprecated, use CALM instead</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
-
-    <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
-        <span class="s2">&quot;lm_combine is deprecated, use CALM instead&quot;</span><span class="p">,</span> <span class="ne">FutureWarning</span><span class="p">,</span> <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span>
-    <span class="p">)</span>
-    <span class="k">return</span> <span class="n">CALM</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">ic</span><span class="p">,</span> <span class="n">bruteforce</span><span class="p">,</span> <span class="n">silent</span><span class="p">,</span> <span class="n">distribution</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-
 </pre></div>
 
            </div>

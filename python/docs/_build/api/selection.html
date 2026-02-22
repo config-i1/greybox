@@ -102,17 +102,22 @@
 <li class="toctree-l4"><a class="reference internal" href="#greybox.selection.ModelInfo.vars"><code class="docutils literal notranslate"><span class="pre">ModelInfo.vars</span></code></a></li>
 </ul>
 </li>
-<li class="toctree-l3"><a class="reference internal" href="#greybox.selection.lm_combine"><code class="docutils literal notranslate"><span class="pre">lm_combine()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.selection.stepwise"><code class="docutils literal notranslate"><span class="pre">stepwise()</span></code></a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="measures.html">Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#association-measures">Association Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#half-moments">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quantile-measures">Quantile Measures</a></li>
 <li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
 </ul>
 </li>
@@ -530,40 +535,6 @@ In either case, this is followed by: for k in F:  D[k] = F[k]</p>
 <span class="sig-name descname"><span class="pre">vars</span></span><span class="property"><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="pre">list</span><span class="p"><span class="pre">[</span></span><span class="pre">str</span><span class="p"><span class="pre">]</span></span></span><a class="headerlink" href="#greybox.selection.ModelInfo.vars" title="Link to this definition"></a></dt>
 <dd></dd></dl>
 
-</dd></dl>
-
-<dl class="py function">
-<dt class="sig sig-object py" id="greybox.selection.lm_combine">
-<span class="sig-prename descclassname"><span class="pre">greybox.selection.</span></span><span class="sig-name descname"><span class="pre">lm_combine</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'AICc'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'AIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BIC'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'BICc'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bruteforce</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">distribution</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'dnorm'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.selection.LmCombineResult" title="greybox.selection.LmCombineResult"><span class="pre">LmCombineResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/selection.html#lm_combine"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.selection.lm_combine" title="Link to this definition"></a></dt>
-<dd><p>Combine regressions based on information criteria.</p>
-<div class="deprecated">
-<p><span class="versionmodified deprecated">Deprecated since version Use: </span><a class="reference internal" href="#greybox.selection.CALM" title="greybox.selection.CALM"><code class="xref py py-func docutils literal notranslate"><span class="pre">CALM()</span></code></a> instead. This function will be removed in a future version.</p>
-</div>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters<span class="colon">:</span></dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>data</strong> (<em>dict</em><em> or </em><em>DataFrame</em>) – Data frame containing dependent variable in the first column and
-the others in the rest.</p></li>
-<li><p><strong>ic</strong> (<em>{&quot;AICc&quot;</em><em>, </em><em>&quot;AIC&quot;</em><em>, </em><em>&quot;BIC&quot;</em><em>, </em><em>&quot;BICc&quot;}</em><em>, </em><em>default=&quot;AICc&quot;</em>) – Information criterion to use.</p></li>
-<li><p><strong>bruteforce</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True, all possible models are generated and combined.</p></li>
-<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, then progress is printed.</p></li>
-<li><p><strong>distribution</strong> (<em>str</em><em>, </em><em>default=&quot;dnorm&quot;</em>) – Distribution to use for the ALM model.</p></li>
-<li><p><strong>**kwargs</strong> – Additional arguments passed to ALM().</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns<span class="colon">:</span></dt>
-<dd class="field-even"><p>Combined model result.</p>
-</dd>
-<dt class="field-odd">Return type<span class="colon">:</span></dt>
-<dd class="field-odd"><p><a class="reference internal" href="#greybox.selection.LmCombineResult" title="greybox.selection.LmCombineResult">LmCombineResult</a></p>
-</dd>
-</dl>
-<p class="rubric">Examples</p>
-<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span>
-<span class="gp">... </span>        <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">8</span><span class="p">,</span> <span class="mi">10</span><span class="p">]}</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">lm_combine</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>  <span class="c1"># Deprecated, use CALM instead</span>
-</pre></div>
-</div>
 </dd></dl>
 
 <dl class="py function">

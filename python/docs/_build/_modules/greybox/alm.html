@@ -561,7 +561,10 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">_response_name</span> <span class="o">=</span> <span class="s2">&quot;y&quot;</span>
 
             <span class="n">ar_lags</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="n">ari_order</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">))</span>
-            <span class="n">ar_terms</span> <span class="o">=</span> <span class="n">xreg_expander</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">ar_lags</span><span class="p">,</span> <span class="n">gaps</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)</span>
+            <span class="n">_log_scale_dists</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;dlnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dllaplace&quot;</span><span class="p">,</span> <span class="s2">&quot;dls&quot;</span><span class="p">,</span> <span class="s2">&quot;dlgnorm&quot;</span><span class="p">)</span>
+            <span class="n">y_for_ar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">)</span> <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">_log_scale_dists</span> <span class="k">else</span> <span class="n">y</span>
+            <span class="c1"># [:, 1:] skips the original column prepended by xreg_expander</span>
+            <span class="n">ar_terms</span> <span class="o">=</span> <span class="n">xreg_expander</span><span class="p">(</span><span class="n">y_for_ar</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">ar_lags</span><span class="p">,</span> <span class="n">gaps</span><span class="o">=</span><span class="s2">&quot;auto&quot;</span><span class="p">)[:,</span> <span class="mi">1</span><span class="p">:]</span>
 
             <span class="n">ar_term_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">response_name</span><span class="si">}</span><span class="s2">Lag</span><span class="si">{</span><span class="n">i</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">ari_order</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)]</span>
 
@@ -617,13 +620,12 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">n_params</span> <span class="o">=</span> <span class="n">n_params_base</span>
 
-        <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
+        <span class="c1"># Store optimizer free-param count (excludes constrained ARI</span>
+        <span class="c1"># differencing columns that appear in _X_train_ but are not free</span>
+        <span class="c1"># parameters).  Used by the nparam property.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_n_params_</span> <span class="o">=</span> <span class="n">n_params</span>
 
-        <span class="c1"># For ARI models the optimizer B has n_params_base free parameters but</span>
-        <span class="c1"># X has n_features_exog + ari_order columns.  Use a reduced design</span>
-        <span class="c1"># matrix for all B_init lstsq calls so the result always has exactly</span>
-        <span class="c1"># n_params_base elements (the correct free-parameter size).</span>
-        <span class="n">X_for_init</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="n">X</span>
+        <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
 
         <span class="n">log_link_distributions</span> <span class="o">=</span> <span class="p">(</span>
             <span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span>
@@ -634,29 +636,55 @@
             <span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
         <span class="p">)</span>
 
+        <span class="c1"># ── Step 1: design matrix ─────────────────────────────────────────────</span>
+        <span class="c1"># For ARI(d&gt;0) the AR lag columns in X are the *level* lags. Differencing</span>
+        <span class="c1"># them yields the correct regressors for the AR polynomial of the</span>
+        <span class="c1"># differenced model, matching R&#39;s alm() initialisation.</span>
+        <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">exog_init</span> <span class="o">=</span> <span class="n">X</span><span class="p">[</span><span class="n">i_order</span><span class="p">:,</span> <span class="p">:</span><span class="n">n_features_exog</span><span class="p">]</span>  <span class="c1"># drop first i_order rows</span>
+            <span class="k">if</span> <span class="n">ar_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">ar_lag_cols</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <span class="n">n_features_exog</span> <span class="p">:</span> <span class="n">n_features_exog</span> <span class="o">+</span> <span class="n">ar_order</span><span class="p">]</span>
+                <span class="n">ar_lag_diff</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span>
+                    <span class="n">ar_lag_cols</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span>
+                <span class="p">)</span>  <span class="c1"># (n-i_order, ar_order)</span>
+                <span class="c1"># R-style boundary: replace first i_order rows with column means</span>
+                <span class="n">ar_lag_diff</span><span class="p">[:</span><span class="n">i_order</span><span class="p">]</span> <span class="o">=</span> <span class="n">ar_lag_diff</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+                <span class="n">X_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">hstack</span><span class="p">([</span><span class="n">exog_init</span><span class="p">,</span> <span class="n">ar_lag_diff</span><span class="p">])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">X_init</span> <span class="o">=</span> <span class="n">exog_init</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">X_init</span> <span class="o">=</span> <span class="n">X</span>  <span class="c1"># already n_params_base columns</span>
+
+        <span class="c1"># ── Step 2: per-distribution response transformation and OLS ──────────</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_ols_init</span><span class="p">(</span><span class="n">Xd</span><span class="p">,</span> <span class="n">yr</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">Xd</span><span class="p">,</span> <span class="n">yr</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">None</span>
+
+        <span class="n">B_ols</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;plogis&quot;</span><span class="p">,</span> <span class="s2">&quot;pnorm&quot;</span><span class="p">):</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">bc_transform</span>
 
-            <span class="n">y_bc</span> <span class="o">=</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y_bc</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+            <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dpois&quot;</span><span class="p">:</span>
-            <span class="n">mu_insample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">XtX_mu</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_for_init</span> <span class="o">*</span> <span class="n">mu_insample</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span>
-                    <span class="n">XtX_mu</span><span class="p">,</span> <span class="n">X_for_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">mu_insample</span><span class="p">)</span>
-                <span class="p">)</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="c1"># ARI: log-link OLS (matches R&#39;s I(d) branch)</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+                <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># I(0): quasi-Newton step</span>
+                <span class="n">mu_insample</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
                 <span class="k">try</span><span class="p">:</span>
-                    <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-                    <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_pos</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_pos</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                    <span class="n">XtX_mu</span> <span class="o">=</span> <span class="n">X_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="n">X_init</span> <span class="o">*</span> <span class="n">mu_insample</span>
+                    <span class="n">B_ols</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">XtX_mu</span><span class="p">,</span> <span class="n">X_init</span><span class="o">.</span><span class="n">T</span> <span class="o">@</span> <span class="p">(</span><span class="n">y</span> <span class="o">-</span> <span class="n">mu_insample</span><span class="p">))</span>
                 <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="k">pass</span>
+                    <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>
+                    <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="s2">&quot;dlnorm&quot;</span><span class="p">,</span>
             <span class="s2">&quot;dllaplace&quot;</span><span class="p">,</span>
@@ -664,112 +692,67 @@
             <span class="s2">&quot;dlgnorm&quot;</span><span class="p">,</span>
             <span class="o">*</span><span class="n">log_link_distributions</span><span class="p">,</span>
         <span class="p">):</span>
-            <span class="n">y_pos</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="n">X_pos</span> <span class="o">=</span> <span class="n">X_for_init</span><span class="p">[</span><span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
-            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_pos</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                        <span class="n">X_pos</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_pos</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
-                    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="k">if</span> <span class="p">(</span>
-                        <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
-                        <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
-                    <span class="p">):</span>
-                        <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="k">pass</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dt&quot;</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">maximum</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">))</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+                <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mask</span> <span class="o">=</span> <span class="n">y</span> <span class="o">&gt;</span> <span class="mi">0</span>
+                <span class="k">if</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+                    <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">mask</span><span class="p">]))</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dlogitnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">):</span>
+            <span class="n">y_clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">))</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+            <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+            <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbcnorm&quot;</span><span class="p">:</span>
             <span class="kn">from</span><span class="w"> </span><span class="nn">.transforms</span><span class="w"> </span><span class="kn">import</span> <span class="n">bc_transform</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                        <span class="n">X_for_init</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">0.1</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
-                    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.1</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="k">pass</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                        <span class="n">X_for_init</span><span class="p">,</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
-                    <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                    <span class="k">pass</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">y</span><span class="p">),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span>
-                    <span class="mi">0</span>
-                <span class="p">]</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span><span class="p">:</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
-        <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dlogitnorm&quot;</span><span class="p">,):</span>
-            <span class="n">y_clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
-            <span class="n">y_transformed</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">))</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                    <span class="n">X_for_init</span><span class="p">,</span> <span class="n">y_transformed</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
-                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="k">if</span> <span class="p">(</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
-                    <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
-                <span class="p">):</span>
-                    <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">lam</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">lambda_bc</span> <span class="k">if</span> <span class="n">a_parameter_provided</span> <span class="k">else</span> <span class="mf">0.1</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">bc_transform</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lam</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+            <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># default: dnorm, dt, dlaplace, dalaplace, ds, dfnorm, drectnorm,</span>
+            <span class="c1"># dgnorm, dgeom, ...</span>
+            <span class="n">yr</span> <span class="o">=</span> <span class="n">y</span>
+            <span class="k">if</span> <span class="n">i_order</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">yr</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">yr</span><span class="p">,</span> <span class="n">n</span><span class="o">=</span><span class="n">i_order</span><span class="p">)</span>
+            <span class="n">B_ols</span> <span class="o">=</span> <span class="n">_ols_init</span><span class="p">(</span><span class="n">X_init</span><span class="p">,</span> <span class="n">yr</span><span class="p">)</span>
+
+        <span class="c1"># ── Step 3: unified placement ──────────────────────────────────────────</span>
+        <span class="k">if</span> <span class="n">B_ols</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">pass</span>  <span class="c1"># keep B_init = zeros</span>
         <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dbeta&quot;</span><span class="p">:</span>
-            <span class="n">y_clip</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">clip</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="mf">1e-10</span><span class="p">,</span> <span class="mi">1</span> <span class="o">-</span> <span class="mf">1e-10</span><span class="p">)</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_half</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span>
-                    <span class="n">X_for_init</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">y_clip</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">y_clip</span><span class="p">)),</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span>
-                <span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">B_init</span><span class="p">[:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_half</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="n">n_params_base</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">B_half</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">B_init</span><span class="p">[:</span><span class="n">n_params_base</span><span class="p">]</span> <span class="o">=</span> <span class="n">B_ols</span>
+            <span class="n">B_init</span><span class="p">[</span><span class="n">n_params_base</span><span class="p">:]</span> <span class="o">=</span> <span class="o">-</span><span class="n">B_ols</span>
         <span class="k">elif</span> <span class="p">(</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="n">distributions_with_extra_param</span>
             <span class="ow">and</span> <span class="ow">not</span> <span class="n">a_parameter_provided</span>
         <span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init_for_lstsq</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_init_for_lstsq</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="k">pass</span>
-            <span class="c1"># Set distribution-specific initial values for extra param</span>
-            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dfnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;drectnorm&quot;</span><span class="p">):</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dalaplace&quot;</span><span class="p">:</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.5</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dgnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dlgnorm&quot;</span><span class="p">):</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="mf">2.0</span>
-            <span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="o">==</span> <span class="s2">&quot;dnbinom&quot;</span><span class="p">:</span>
-                <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Extra param in slot 0; OLS coefficients in slots 1:</span>
+            <span class="n">B_init</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span> <span class="o">=</span> <span class="n">B_ols</span>
+            <span class="n">extra_inits</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;dfnorm&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;drectnorm&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">std</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;dalaplace&quot;</span><span class="p">:</span> <span class="mf">0.5</span><span class="p">,</span>
+                <span class="s2">&quot;dgnorm&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="s2">&quot;dlgnorm&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="s2">&quot;dnbinom&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">var</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">ddof</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+                <span class="s2">&quot;dchisq&quot;</span><span class="p">:</span> <span class="mf">1.0</span><span class="p">,</span>
+                <span class="s2">&quot;dt&quot;</span><span class="p">:</span> <span class="mf">2.0</span><span class="p">,</span>
+                <span class="s2">&quot;dbcnorm&quot;</span><span class="p">:</span> <span class="mf">0.1</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">B_init</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">extra_inits</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span> <span class="mf">0.0</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">X_for_init</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
-            <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
-                <span class="n">B_init</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_params</span><span class="p">)</span>
+            <span class="n">B_init</span> <span class="o">=</span> <span class="n">B_ols</span>
 
         <span class="n">print_level</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlopt_kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;print_level&quot;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
         <span class="n">iteration_count</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -846,10 +829,9 @@
         <span class="n">maxeval</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">nlopt_kargs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;maxeval&quot;</span><span class="p">)</span>
 
         <span class="k">if</span> <span class="n">maxeval</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="k">if</span> <span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dlnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dlogitnorm&quot;</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;likelihood&quot;</span><span class="p">,</span> <span class="s2">&quot;MSE&quot;</span><span class="p">)</span>
-                <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">orders</span> <span class="o">==</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dlnorm&quot;</span><span class="p">,</span> <span class="s2">&quot;dlogitnorm&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">loss</span> <span class="ow">in</span> <span class="p">(</span>
+                <span class="s2">&quot;likelihood&quot;</span><span class="p">,</span>
+                <span class="s2">&quot;MSE&quot;</span><span class="p">,</span>
             <span class="p">):</span>
                 <span class="n">maxeval</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="k">else</span><span class="p">:</span>
@@ -1870,7 +1852,7 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_train_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model not fitted. Call fit() first.&quot;</span><span class="p">)</span>
-        <span class="n">n_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_X_train_</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">n_params</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_params_</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span>
             <span class="s2">&quot;dexp&quot;</span><span class="p">,</span>
             <span class="s2">&quot;dpois&quot;</span><span class="p">,</span>
@@ -1973,7 +1955,9 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">residuals_</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Model not fitted. Call fit() first.&quot;</span><span class="p">)</span>
         <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">residuals_</span><span class="p">)</span>
-        <span class="n">k</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span> <span class="o">+</span> <span class="mi">1</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_n_features</span> <span class="o">+</span> <span class="mi">1</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">_i_order</span>
+        <span class="p">)</span>  <span class="c1"># i_order constrained lags are not free params</span>
         <span class="n">resid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">residuals_</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">distribution</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;dinvgauss&quot;</span><span class="p">,</span> <span class="s2">&quot;dgamma&quot;</span><span class="p">,</span> <span class="s2">&quot;dexp&quot;</span><span class="p">):</span>
             <span class="n">resid</span> <span class="o">=</span> <span class="n">resid</span> <span class="o">-</span> <span class="mi">1</span>
@@ -2134,6 +2118,7 @@
             <span class="n">lower_ci</span><span class="o">=</span><span class="n">lower_ci</span><span class="p">,</span>
             <span class="n">upper_ci</span><span class="o">=</span><span class="n">upper_ci</span><span class="p">,</span>
             <span class="n">scale</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">scale</span><span class="p">,</span>
+            <span class="n">sigma</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">sigma</span><span class="p">,</span>
             <span class="n">df_residual</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">df_residual_</span><span class="p">,</span>
             <span class="n">distribution</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">distribution</span><span class="p">,</span>
             <span class="n">log_lik</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">log_lik</span><span class="p">,</span>
@@ -2255,6 +2240,36 @@
             <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
                 <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span>
         <span class="k">return</span> <span class="bp">self</span></div>
+
+
+<div class="viewcode-block" id="ALM.multipliers">
+<a class="viewcode-back" href="../../api/alm.html#greybox.alm.ALM.multipliers">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">multipliers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parm</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Compute dynamic multipliers for an ARDL model.</span>
+
+<span class="sd">        Combines distributed lag coefficients (B(parm, k) terms) with the</span>
+<span class="sd">        ARI polynomial to produce impulse-response multipliers over horizon h.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        parm : str</span>
+<span class="sd">            Variable name as it appears in the design matrix.</span>
+<span class="sd">        h : int, default 10</span>
+<span class="sd">            Forecast horizon.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        dict</span>
+<span class="sd">            {&quot;h1&quot;: m1, &quot;h2&quot;: m2, ..., &quot;hh&quot;: mh} of dynamic multipliers.</span>
+
+<span class="sd">        Raises</span>
+<span class="sd">        ------</span>
+<span class="sd">        ValueError</span>
+<span class="sd">            If parm is not found in the model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.xreg</span><span class="w"> </span><span class="kn">import</span> <span class="n">multipliers</span> <span class="k">as</span> <span class="n">_multipliers</span>
+
+        <span class="k">return</span> <span class="n">_multipliers</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">parm</span><span class="p">,</span> <span class="n">h</span><span class="p">)</span></div>
 
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>

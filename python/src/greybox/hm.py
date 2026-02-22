@@ -63,7 +63,7 @@ def ham(x: np.ndarray, center: float | None = None) -> float:
     It captures the magnitude of deviations without direction.
 
     Formula:
-        ham = mean(sqrt(|x - C|))
+        ham = mean(sqrt(abs(x - C)))
 
     Parameters
     ----------

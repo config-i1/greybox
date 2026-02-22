@@ -90,6 +90,8 @@
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
 <span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
 
+<span class="kn">from</span><span class="w"> </span><span class="nn">.xreg</span><span class="w"> </span><span class="kn">import</span> <span class="n">B</span>  <span class="c1"># noqa: F401  — re-exported for convenience</span>
+
 <span class="n">TRANSFORMATIONS</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s2">&quot;log&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">,</span>
     <span class="s2">&quot;log10&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">log10</span><span class="p">,</span>
@@ -146,6 +148,11 @@
 <span class="sd">        If the term looks like a function call but the function is not defined.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">term</span> <span class="o">=</span> <span class="n">term</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+
+    <span class="c1"># B(varname, k) — backshift operator; treat base varname as the variable</span>
+    <span class="n">_b_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^B\((\w+),\s*-?\d+\)$&quot;</span><span class="p">,</span> <span class="n">term</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_b_match</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="n">_b_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">),</span> <span class="kc">False</span><span class="p">)</span>
 
     <span class="k">if</span> <span class="n">term</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s2">&quot;I(&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">term</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s2">&quot;)&quot;</span><span class="p">):</span>
         <span class="n">inner</span> <span class="o">=</span> <span class="n">term</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
@@ -215,6 +222,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">caller_globals</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">caller_globals</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="c1"># Handle B(varname, k) — backshift / distributed lag operator</span>
+    <span class="n">_b_match</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;^B\((\w+),\s*(-?\d+)\)$&quot;</span><span class="p">,</span> <span class="n">var_name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">_b_match</span><span class="p">:</span>
+        <span class="n">base_var</span> <span class="o">=</span> <span class="n">_b_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">_b_match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">2</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">base_var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Variable &#39;</span><span class="si">{</span><span class="n">base_var</span><span class="si">}</span><span class="s2">&#39; not found in data for B(</span><span class="si">{</span><span class="n">base_var</span><span class="si">}</span><span class="s2">, </span><span class="si">{</span><span class="n">k</span><span class="si">}</span><span class="s2">).&quot;</span>
+            <span class="p">)</span>
+        <span class="n">base_data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">data_dict</span><span class="p">[</span><span class="n">base_var</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">.xreg</span><span class="w"> </span><span class="kn">import</span> <span class="n">B</span> <span class="k">as</span> <span class="n">_B_op</span>
+
+        <span class="k">return</span> <span class="n">_B_op</span><span class="p">(</span><span class="n">base_data</span><span class="p">,</span> <span class="n">k</span><span class="p">)</span>
 
     <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">is_protected</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">var_name</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
 
@@ -353,87 +374,61 @@
 
     <span class="n">caller_globals</span> <span class="o">=</span> <span class="n">_get_caller_globals</span><span class="p">()</span>
 
-    <span class="c1"># Handle &quot;.&quot; as &quot;use all variables&quot;</span>
+    <span class="c1"># Handle &quot;.&quot; as &quot;use all variables&quot; with left-to-right R semantics:</span>
+    <span class="c1"># &quot;+.&quot; adds ALL data vars at that point; &quot;-var&quot; removes only what is</span>
+    <span class="c1"># currently in the active set (evaluated left-to-right).</span>
     <span class="k">if</span> <span class="s2">&quot;.&quot;</span> <span class="ow">in</span> <span class="n">formula_str</span><span class="p">:</span>
-        <span class="c1"># Get all variables from data</span>
-        <span class="n">all_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-
-        <span class="c1"># Get response variable from LHS if present</span>
         <span class="n">response_var</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">if</span> <span class="n">lhs</span><span class="p">:</span>
-            <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
-            <span class="n">response_var</span> <span class="o">=</span> <span class="n">base_var</span>
-            <span class="k">if</span> <span class="n">response_var</span> <span class="ow">and</span> <span class="n">response_var</span> <span class="ow">in</span> <span class="n">all_vars</span><span class="p">:</span>
-                <span class="n">all_vars</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">response_var</span><span class="p">)</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">response_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">lhs</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+        <span class="c1"># Preserve data column order (matches R&#39;s left-to-right data frame order)</span>
+        <span class="n">all_data_vars_ordered</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">data_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">k</span> <span class="o">!=</span> <span class="n">response_var</span><span class="p">]</span>
 
-        <span class="c1"># Parse the formula string to find explicit inclusions and exclusions</span>
-        <span class="c1"># Handle transformations: log(wt), sqrt(x), etc.</span>
-        <span class="n">excluded_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
-        <span class="n">mentioned_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="c1"># Protect B(...) from +/- tokenizer</span>
+        <span class="n">_dot_b_protected</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
 
-        <span class="c1"># Normalize the formula string: replace &quot;-&quot; with &quot; - &quot; and &quot;+&quot; with &quot; + &quot;</span>
-        <span class="n">formula_for_parsing</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">)</span>
-        <span class="n">tokens</span> <span class="o">=</span> <span class="n">formula_for_parsing</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+        <span class="k">def</span><span class="w"> </span><span class="nf">_dot_protect_b</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;__DOTBPROT</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">_dot_b_protected</span><span class="p">)</span><span class="si">}</span><span class="s2">__&quot;</span>
+            <span class="n">inner</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">_dot_b_protected</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;B(</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s2">)&quot;</span>
+            <span class="k">return</span> <span class="n">key</span>
 
-        <span class="c1"># First pass: identify excluded and mentioned variables</span>
+        <span class="n">formula_prot</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bB\(([^)]*)\)&quot;</span><span class="p">,</span> <span class="n">_dot_protect_b</span><span class="p">,</span> <span class="n">formula_str</span><span class="p">)</span>
+        <span class="n">formula_prot</span> <span class="o">=</span> <span class="n">formula_prot</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">)</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">_dot_b_protected</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">formula_prot</span><span class="o">.</span><span class="n">split</span><span class="p">()]</span>
+
+        <span class="c1"># Left-to-right OrderedDict evaluation:</span>
+        <span class="c1"># &quot;+term&quot; → add term; &quot;-term&quot; → remove base_var; &quot;+.&quot; → add all data vars</span>
+        <span class="kn">from</span><span class="w"> </span><span class="nn">collections</span><span class="w"> </span><span class="kn">import</span> <span class="n">OrderedDict</span>
+
+        <span class="n">active_terms</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+
         <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
         <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
-            <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;.&quot;</span><span class="p">,</span> <span class="s2">&quot;+&quot;</span><span class="p">):</span>
+            <span class="n">tok</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">tok</span> <span class="ow">or</span> <span class="n">tok</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
-                <span class="c1"># Next token is excluded</span>
+            <span class="k">if</span> <span class="n">tok</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">all_data_vars_ordered</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">var</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">active_terms</span><span class="p">:</span>
+                        <span class="n">active_terms</span><span class="p">[</span><span class="n">var</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="n">tok</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
-                    <span class="n">excluded_token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-                    <span class="k">if</span> <span class="n">excluded_token</span><span class="p">:</span>
-                        <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span>
-                            <span class="n">excluded_token</span><span class="p">,</span> <span class="n">caller_globals</span>
-                        <span class="p">)</span>
-                        <span class="n">excluded_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base_var</span><span class="p">)</span>
+                    <span class="n">excl_tok</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">excl_tok</span><span class="p">:</span>
+                        <span class="n">_</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">excl_tok</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
+                        <span class="n">active_terms</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">base_var</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
                 <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
                 <span class="k">continue</span>
-            <span class="c1"># This is a term - extract base variable</span>
-            <span class="n">transform</span><span class="p">,</span> <span class="n">base_var</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">_parse_transformation</span><span class="p">(</span><span class="n">token</span><span class="p">,</span> <span class="n">caller_globals</span><span class="p">)</span>
-            <span class="n">mentioned_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">base_var</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">tok</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">active_terms</span><span class="p">:</span>
+                <span class="n">active_terms</span><span class="p">[</span><span class="n">tok</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
 
-        <span class="c1"># Remove excluded vars from all_vars</span>
-        <span class="n">all_vars</span> <span class="o">=</span> <span class="n">all_vars</span> <span class="o">-</span> <span class="n">excluded_vars</span>
-
-        <span class="c1"># Remove mentioned vars from all_vars (they&#39;re already in the formula)</span>
-        <span class="k">for</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">mentioned_vars</span><span class="p">:</span>
-            <span class="k">if</span> <span class="n">var</span> <span class="ow">in</span> <span class="n">all_vars</span><span class="p">:</span>
-                <span class="n">all_vars</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">var</span><span class="p">)</span>
-
-        <span class="c1"># Build the new formula string</span>
-        <span class="c1"># Collect original terms (without &quot;.&quot;) from tokens</span>
-        <span class="n">original_terms</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
-            <span class="n">token</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
-            <span class="c1"># Skip empty tokens and &quot;.&quot;</span>
-            <span class="k">if</span> <span class="ow">not</span> <span class="n">token</span> <span class="ow">or</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;.&quot;</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">continue</span>
-            <span class="c1"># Handle &quot;-&quot; by skipping it and the next variable</span>
-            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;-&quot;</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">2</span>  <span class="c1"># Skip &quot;-&quot; and the following variable</span>
-                <span class="k">continue</span>
-            <span class="c1"># Skip standalone &quot;+&quot;</span>
-            <span class="k">if</span> <span class="n">token</span> <span class="o">==</span> <span class="s2">&quot;+&quot;</span><span class="p">:</span>
-                <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-                <span class="k">continue</span>
-            <span class="c1"># This is a term to include</span>
-            <span class="n">original_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">token</span><span class="p">)</span>
-            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
-
-        <span class="c1"># Add remaining variables from data</span>
-        <span class="n">remaining_vars</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">all_vars</span><span class="p">))</span>
-        <span class="n">original_terms</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">remaining_vars</span><span class="p">)</span>
-
-        <span class="n">formula_str</span> <span class="o">=</span> <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">original_terms</span><span class="p">)</span>
+        <span class="n">formula_str</span> <span class="o">=</span> <span class="s2">&quot; + &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">active_terms</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">active_terms</span> <span class="k">else</span> <span class="s2">&quot;1&quot;</span>
 
     <span class="n">terms</span> <span class="o">=</span> <span class="n">_parse_formula_terms</span><span class="p">(</span><span class="n">formula_str</span><span class="p">)</span>
     <span class="n">rhs_terms</span> <span class="o">=</span> <span class="n">terms</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
@@ -578,12 +573,27 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Parse formula string into list of terms.&quot;&quot;&quot;</span>
     <span class="n">terms</span> <span class="o">=</span> <span class="p">[]</span>
 
+    <span class="c1"># Protect B(...) calls from space-based tokenization by replacing them</span>
+    <span class="c1"># with unique placeholders before splitting.</span>
+    <span class="n">b_terms</span><span class="p">:</span> <span class="nb">dict</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_replace_b</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+        <span class="n">key</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;__BPLACEHOLDER</span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">b_terms</span><span class="p">)</span><span class="si">}</span><span class="s2">__&quot;</span>
+        <span class="c1"># Normalize internal spaces so column names are canonical: B(x,1)</span>
+        <span class="n">inner</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\s+&quot;</span><span class="p">,</span> <span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">m</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">b_terms</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="sa">f</span><span class="s2">&quot;B(</span><span class="si">{</span><span class="n">inner</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="k">return</span> <span class="n">key</span>
+
+    <span class="n">formula_str</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s2">&quot;\bB\(([^)]*)\)&quot;</span><span class="p">,</span> <span class="n">_replace_b</span><span class="p">,</span> <span class="n">formula_str</span><span class="p">)</span>
+
     <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot; - &quot;</span><span class="p">)</span>
     <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;+&quot;</span><span class="p">,</span> <span class="s2">&quot; + &quot;</span><span class="p">)</span>
     <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;*&quot;</span><span class="p">,</span> <span class="s2">&quot; * &quot;</span><span class="p">)</span>
     <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot; : &quot;</span><span class="p">)</span>
 
     <span class="n">tokens</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="c1"># Restore B() placeholders</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="p">[</span><span class="n">b_terms</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tokens</span><span class="p">]</span>
 
     <span class="n">i</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">while</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">):</span>
