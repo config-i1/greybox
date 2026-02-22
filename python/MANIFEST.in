@@ -1,0 +1,5 @@
+include README.md
+include LICENSE
+recursive-include src/greybox *.csv
+global-exclude __pycache__
+global-exclude *.pyc

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import pandas as pd
 
-from greybox.selection import stepwise, lm_combine, CALM, LmCombineResult
+from greybox.selection import stepwise, CALM, LmCombineResult
 
 
 class TestStepwise:
@@ -1203,41 +1203,3 @@ class TestCALM:
         assert hasattr(result, "coefficients")
         assert hasattr(result, "importance")
 
-    def test_calm_vs_lm_combine(self):
-        """Test that CALM gives same results as lm_combine with same args."""
-        np.random.seed(42)
-        x1 = np.random.normal(0, 1, 50)
-        x2 = np.random.normal(0, 1, 50)
-        y = 1 + 2 * x1 + 0.5 * x2 + np.random.normal(0, 1, 50)
-
-        data = {"y": y, "x1": x1, "x2": x2}
-
-        # Note: lm_combine defaults to bruteforce=True, CALM to False.
-        # Use explicit bruteforce=True for both to compare equivalently.
-        result_calm = CALM(data, ic="AICc", bruteforce=True, silent=True)
-        with pytest.warns(FutureWarning):
-            result_lm_combine = lm_combine(data, ic="AICc", silent=True)
-
-        np.testing.assert_allclose(
-            result_calm["coefficients"],
-            result_lm_combine["coefficients"],
-            rtol=1e-10,
-        )
-        np.testing.assert_allclose(
-            result_calm["importance"],
-            result_lm_combine["importance"],
-            rtol=1e-10,
-        )
-
-    def test_lm_combine_deprecation_warning(self):
-        """Test that lm_combine issues a FutureWarning."""
-        np.random.seed(42)
-        x1 = np.random.normal(0, 1, 50)
-        y = 1 + 2 * x1 + np.random.normal(0, 1, 50)
-
-        data = {"y": y, "x1": x1}
-
-        with pytest.warns(FutureWarning, match="lm_combine is deprecated"):
-            result = lm_combine(data, ic="AICc", silent=True)
-
-        assert result is not None

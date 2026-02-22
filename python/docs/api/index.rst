@@ -9,6 +9,9 @@ API
    formula
    selection
    measures
+   association
+   hm
+   quantile_measures
    xreg
    transforms
    distributions
@@ -37,6 +40,21 @@ Accuracy Measures
 * :func:`greybox.measures.RMSE` - Root Mean Squared Error
 * :func:`greybox.measures.MAPE` - Mean Absolute Percentage Error
 * :func:`greybox.measures.MASE` - Mean Absolute Scaled Error
+
+Association Measures
+--------------------
+
+* :mod:`greybox.association` - Association and correlation measures
+
+Half-Moments
+------------
+
+* :mod:`greybox.hm` - Half-moment functions
+
+Quantile Measures
+-----------------
+
+* :mod:`greybox.quantile_measures` - Pinball loss and interval scores
 
 Variable Processing
 -------------------

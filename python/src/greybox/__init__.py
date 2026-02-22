@@ -5,13 +5,12 @@ __version__ = "1.0.0"
 from . import association
 from . import data
 from . import distributions
-from . import fitters
 from . import hm
 from . import measures
 from . import quantile_measures
 from .alm import ALM, PredictionResult
 from .formula import formula, expand_formula
-from .selection import stepwise, lm_combine, CALM, LmCombineResult
+from .selection import stepwise, CALM, LmCombineResult
 from .transforms import bc_transform, bc_transform_inv, mean_fast
 from .xreg import B, multipliers
 from .data import mtcars
@@ -23,7 +22,6 @@ __all__ = [
     "formula",
     "expand_formula",
     "stepwise",
-    "lm_combine",
     "CALM",
     "LmCombineResult",
     "bc_transform",
@@ -32,7 +30,6 @@ __all__ = [
     "B",
     "multipliers",
     "distributions",
-    "fitters",
     "measures",
     "association",
     "hm",

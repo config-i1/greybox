@@ -7,7 +7,7 @@ name = "greybox"
 version = "1.0.0"
 description = "Toolbox for model building and forecasting"
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.9"
 license = {text = "LGPL-2.1"}
 authors = [
     {name = "Ivan Svetunkov", email = "ivan@svetunkov.com"},
@@ -50,8 +50,12 @@ Repository = "https://github.com/config-i1/greybox"
 Documentation = "https://config-i1.github.io/greybox/"
 Issues = "https://github.com/config-i1/greybox/issues"
 
+[tool.setuptools.package-data]
+greybox = ["*.csv"]
+
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = ["*.__pycache__*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

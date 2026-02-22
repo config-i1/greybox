@@ -1,7 +1,7 @@
 .PHONY: build lint test docs clean
 
 build:
-	cd src && pip install -e .
+	pip install -e .
 
 lint:
 	flake8 .
