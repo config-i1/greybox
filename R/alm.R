@@ -1593,10 +1593,12 @@ alm <- function(formula, data, subset, na.action,
                 # This matrix does not contain columns for iOrder and has fewer observations to match diff(y)
                 matrixXregForDiffs <- matrixXreg[otU,-(nVariables+1:iOrder),drop=FALSE];
                 if(arOrder>0){
-                    matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <- diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
-                                                                                        differences=iOrder);
+                    matrixXregForDiffs[-c(1:iOrder),nVariablesExo+c(1:arOrder)] <-
+                        diff(matrixXregForDiffs[,nVariablesExo+c(1:arOrder)],
+                             differences=iOrder);
                     matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
-                    matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <- colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
+                    matrixXregForDiffs[c(1:iOrder),nVariablesExo+c(1:arOrder)] <-
+                        colMeans(matrixXregForDiffs[,nVariablesExo+c(1:arOrder), drop=FALSE]);
                 }
                 else{
                     matrixXregForDiffs <- matrixXregForDiffs[-c(1:iOrder),,drop=FALSE];
@@ -1835,7 +1837,7 @@ alm <- function(formula, data, subset, na.action,
                 maxeval <- length(B) * 40;
             }
             # The following ones don't really need the estimation. This is for consistency only
-            else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && !scaleModel && iOrder==0 &&
+            else if(any(distribution==c("dnorm","dlnorm","dlogitnorm")) & !recursiveModel && !scaleModel &&
                     any(loss==c("likelihood","MSE"))){
                 maxeval <- 1;
             }
