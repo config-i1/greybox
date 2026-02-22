@@ -13,7 +13,7 @@ The package _greybox_ contains functions for model building, which is currently 
 There are several groups of functions in the package.
 
 ## Installation
-[https://github.com/config-i1/greybox/wiki/Installation](Installation) wiki explains how the package can be installed in R/Python.
+[Installation](https://github.com/config-i1/greybox/wiki/Installation) wiki explains how the package can be installed in R/Python.
 
 ### R Package
 
@@ -34,7 +34,7 @@ remotes::install_github("config-i1/greybox")
 
 ## Python Package
 
-A Python port of greybox is available in the [`python/`](python/) subdirectory. It provides a scikit-learn-style API with support for 26+ distributions and R-style formula syntax.
+A Python port of greybox is available in the [python](https://github.com/config-i1/greybox/tree/master/python) subdirectory. It provides a scikit-learn-style API with support for 26+ distributions and R-style formula syntax.
 
 ```bash
 pip install greybox
@@ -42,7 +42,7 @@ pip install greybox
 
 ## Supported functions
 
-See [https://github.com/config-i1/greybox/wiki](wiki) for full documentation, examples, and supported distributions.
+See [wiki](https://github.com/config-i1/greybox/wiki) for full documentation, examples, and supported distributions.
 
 ### Regression model functions
 1. alm - Augmented Linear (regression) Model that implements likelihood estimation of parameters for Normal, Laplace, Asymmetric Laplace, Logistic, Student's t, S, Generalised Normal, Folded Normal, Log Normal, Box-Cox Normal, Logit Normal, Inverse Gaussian, Gamma, Poisson, Negative Binomial, Cumulative Logistic and Cumulative Normal distributions. In a sense this is similar to `glm()` function, but with a different set of distributions and with a focus on forecasting.
