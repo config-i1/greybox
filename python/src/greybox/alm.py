@@ -1856,7 +1856,9 @@ class ALM:
         if self.residuals_ is None:
             raise ValueError("Model not fitted. Call fit() first.")
         n = len(self.residuals_)
-        k = self._n_features + 1
+        k = (
+            self._n_features + 1 - self._i_order
+        )  # i_order constrained lags are not free params
         resid = self.residuals_
         if self.distribution in ("dinvgauss", "dgamma", "dexp"):
             resid = resid - 1
@@ -2015,6 +2017,7 @@ class ALM:
             lower_ci=lower_ci,
             upper_ci=upper_ci,
             scale=self.scale,
+            sigma=self.sigma,
             df_residual=self.df_residual_,
             distribution=self.distribution,
             log_lik=self.log_lik,

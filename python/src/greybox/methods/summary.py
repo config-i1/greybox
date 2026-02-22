@@ -86,6 +86,7 @@ class SummaryResult:
     lower_ci: np.ndarray
     upper_ci: np.ndarray
     scale: float
+    sigma: float
     df_residual: int
     distribution: str
     log_lik: float
@@ -140,7 +141,7 @@ class SummaryResult:
             )
 
         lines.append("")
-        lines.append(f"Error standard deviation: {self.scale:.4f}")
+        lines.append(f"Error standard deviation: {self.sigma:.4f}")
         lines.append(f"Sample size: {self.nobs}")
         lines.append(f"Number of estimated parameters: {self.nparam}")
         lines.append(f"Number of degrees of freedom: {self.df_residual}")
