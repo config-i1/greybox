@@ -472,7 +472,10 @@ class ALM:
                 self._response_name = "y"
 
             ar_lags = list(range(-1, -ari_order - 1, -1))
-            ar_terms = xreg_expander(y, lags=ar_lags, gaps="auto")
+            _log_scale_dists = ("dlnorm", "dllaplace", "dls", "dlgnorm")
+            y_for_ar = np.log(y) if self.distribution in _log_scale_dists else y
+            # [:, 1:] skips the original column prepended by xreg_expander
+            ar_terms = xreg_expander(y_for_ar, lags=ar_lags, gaps="auto")[:, 1:]
 
             ar_term_names = [f"{response_name}Lag{i}" for i in range(1, ari_order + 1)]
 
@@ -760,7 +763,7 @@ class ALM:
             if (
                 self.distribution in ("dnorm", "dlnorm", "dlogitnorm")
                 and self.loss in ("likelihood", "MSE")
-                and self.orders == (0, 0, 0)
+                and i_order == 0
             ):
                 maxeval = 1
             else:
@@ -2145,6 +2148,33 @@ class ALM:
             if hasattr(self, key):
                 setattr(self, key, value)
         return self
+
+    def multipliers(self, parm: str, h: int = 10) -> dict:
+        """Compute dynamic multipliers for an ARDL model.
+
+        Combines distributed lag coefficients (B(parm, k) terms) with the
+        ARI polynomial to produce impulse-response multipliers over horizon h.
+
+        Parameters
+        ----------
+        parm : str
+            Variable name as it appears in the design matrix.
+        h : int, default 10
+            Forecast horizon.
+
+        Returns
+        -------
+        dict
+            {"h1": m1, "h2": m2, ..., "hh": mh} of dynamic multipliers.
+
+        Raises
+        ------
+        ValueError
+            If parm is not found in the model.
+        """
+        from .xreg import multipliers as _multipliers
+
+        return _multipliers(self, parm, h)
 
     def __str__(self):
         from .methods.summary import DISTRIBUTION_NAMES

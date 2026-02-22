@@ -13,6 +13,7 @@ from .alm import ALM, PredictionResult
 from .formula import formula, expand_formula
 from .selection import stepwise, lm_combine, CALM, LmCombineResult
 from .transforms import bc_transform, bc_transform_inv, mean_fast
+from .xreg import B, multipliers
 from .data import mtcars
 
 __all__ = [
@@ -28,6 +29,8 @@ __all__ = [
     "bc_transform",
     "bc_transform_inv",
     "mean_fast",
+    "B",
+    "multipliers",
     "distributions",
     "fitters",
     "measures",

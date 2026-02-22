@@ -10,43 +10,50 @@ class TestXregExpander:
     def test_lag_minus_one(self):
         x = np.array([10, 20, 30, 40, 50], dtype=float)
         result = xreg_expander(x, lags=[-1])
-        assert result.shape == (5, 1)
+        # col 0 = original, col 1 = lag-1
+        assert result.shape == (5, 2)
+        np.testing.assert_array_equal(result[:, 0], x)
         # lag=-1 shifts forward: row[1]=x[0], row[2]=x[1], ...
-        np.testing.assert_array_equal(result[1:, 0], [10, 20, 30, 40])
+        np.testing.assert_array_equal(result[1:, 1], [10, 20, 30, 40])
 
     def test_lead_plus_one(self):
         x = np.array([10, 20, 30, 40, 50], dtype=float)
         result = xreg_expander(x, lags=[1])
-        assert result.shape == (5, 1)
+        # col 0 = original, col 1 = lead-1
+        assert result.shape == (5, 2)
+        np.testing.assert_array_equal(result[:, 0], x)
         # lead=1: row[0]=x[1], row[1]=x[2], ...
-        np.testing.assert_array_equal(result[:4, 0], [20, 30, 40, 50])
+        np.testing.assert_array_equal(result[:4, 1], [20, 30, 40, 50])
 
     def test_multiple_lags(self):
         x = np.array([10, 20, 30, 40, 50], dtype=float)
         result = xreg_expander(x, lags=[-1, -2])
-        assert result.shape == (5, 2)
+        # col 0 = original, cols 1-2 = lag-1, lag-2
+        assert result.shape == (5, 3)
 
     def test_zero_lag_only_returns_original(self):
         x = np.array([10, 20, 30], dtype=float)
         result = xreg_expander(x, lags=[0])
-        # lag=0 is removed, so returns original
+        # lag=0 is removed, so returns original only
         assert result.shape == (3, 1)
 
     def test_gaps_zero(self):
         x = np.array([10, 20, 30, 40, 50], dtype=float)
         result = xreg_expander(x, lags=[-1], gaps="zero")
-        assert result[0, 0] == 0.0
+        # col 1 = lag-1; first row gap filled with 0
+        assert result[0, 1] == 0.0
 
     def test_gaps_naive(self):
         x = np.array([10, 20, 30, 40, 50], dtype=float)
         result = xreg_expander(x, lags=[-1], gaps="naive")
-        # First row should be filled with first valid value (10)
-        assert result[0, 0] == 10.0
+        # col 1 = lag-1; first row should be filled with first valid value (10)
+        assert result[0, 1] == 10.0
 
     def test_matrix_input(self):
         x = np.array([[1, 2], [3, 4], [5, 6], [7, 8]], dtype=float)
         result = xreg_expander(x, lags=[-1])
-        assert result.shape == (4, 2)
+        # 2 original cols + 2 lag cols = 4 cols
+        assert result.shape == (4, 4)
 
 
 class TestXregMultiplier:

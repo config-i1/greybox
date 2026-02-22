@@ -11,6 +11,8 @@ import re
 import numpy as np
 import pandas as pd
 
+from .xreg import B  # noqa: F401  — re-exported for convenience
+
 TRANSFORMATIONS = {
     "log": np.log,
     "log10": np.log10,
@@ -67,6 +69,11 @@ def _parse_transformation(term, caller_globals=None):
         If the term looks like a function call but the function is not defined.
     """
     term = term.strip()
+
+    # B(varname, k) — backshift operator; treat base varname as the variable
+    _b_match = re.match(r"^B\((\w+),\s*-?\d+\)$", term)
+    if _b_match:
+        return (None, _b_match.group(1), False)
 
     if term.startswith("I(") and term.endswith(")"):
         inner = term[2:-1]
@@ -136,6 +143,20 @@ def _apply_transformation(var_name, data_dict, n_obs, caller_globals=None):
     """
     if caller_globals is None:
         caller_globals = {}
+
+    # Handle B(varname, k) — backshift / distributed lag operator
+    _b_match = re.match(r"^B\((\w+),\s*(-?\d+)\)$", var_name)
+    if _b_match:
+        base_var = _b_match.group(1)
+        k = int(_b_match.group(2))
+        if base_var not in data_dict:
+            raise ValueError(
+                f"Variable '{base_var}' not found in data for B({base_var}, {k})."
+            )
+        base_data = np.array(data_dict[base_var], dtype=float)
+        from .xreg import B as _B_op
+
+        return _B_op(base_data, k)
 
     transform, base_var, is_protected = _parse_transformation(var_name, caller_globals)
 
@@ -272,87 +293,61 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
 
     caller_globals = _get_caller_globals()
 
-    # Handle "." as "use all variables"
+    # Handle "." as "use all variables" with left-to-right R semantics:
+    # "+." adds ALL data vars at that point; "-var" removes only what is
+    # currently in the active set (evaluated left-to-right).
     if "." in formula_str:
-        # Get all variables from data
-        all_vars = set(data_dict.keys())
-
-        # Get response variable from LHS if present
         response_var = None
         if lhs:
-            transform, base_var, _ = _parse_transformation(lhs, caller_globals)
-            response_var = base_var
-            if response_var and response_var in all_vars:
-                all_vars.remove(response_var)
+            _, response_var, _ = _parse_transformation(lhs, caller_globals)
+        # Preserve data column order (matches R's left-to-right data frame order)
+        all_data_vars_ordered = [k for k in data_dict.keys() if k != response_var]
 
-        # Parse the formula string to find explicit inclusions and exclusions
-        # Handle transformations: log(wt), sqrt(x), etc.
-        excluded_vars = set()
-        mentioned_vars = set()
+        # Protect B(...) from +/- tokenizer
+        _dot_b_protected: dict = {}
 
-        # Normalize the formula string: replace "-" with " - " and "+" with " + "
-        formula_for_parsing = formula_str.replace("-", " - ").replace("+", " + ")
-        tokens = formula_for_parsing.split()
+        def _dot_protect_b(m):
+            key = f"__DOTBPROT{len(_dot_b_protected)}__"
+            inner = re.sub(r"\s+", "", m.group(1))
+            _dot_b_protected[key] = f"B({inner})"
+            return key
 
-        # First pass: identify excluded and mentioned variables
+        formula_prot = re.sub(r"\bB\(([^)]*)\)", _dot_protect_b, formula_str)
+        formula_prot = formula_prot.replace("-", " - ").replace("+", " + ")
+        tokens = [_dot_b_protected.get(t, t) for t in formula_prot.split()]
+
+        # Left-to-right OrderedDict evaluation:
+        # "+term" → add term; "-term" → remove base_var; "+." → add all data vars
+        from collections import OrderedDict
+
+        active_terms: dict = OrderedDict()
+
         i = 0
         while i < len(tokens):
-            token = tokens[i].strip()
-            if not token or token in (".", "+"):
+            tok = tokens[i].strip()
+            if not tok or tok == "+":
                 i += 1
                 continue
-            if token == "-":
-                # Next token is excluded
+            if tok == ".":
+                for var in all_data_vars_ordered:
+                    if var not in active_terms:
+                        active_terms[var] = None
+                i += 1
+                continue
+            if tok == "-":
                 i += 1
                 if i < len(tokens):
-                    excluded_token = tokens[i].strip()
-                    if excluded_token:
-                        transform, base_var, _ = _parse_transformation(
-                            excluded_token, caller_globals
-                        )
-                        excluded_vars.add(base_var)
+                    excl_tok = tokens[i].strip()
+                    if excl_tok:
+                        _, base_var, _ = _parse_transformation(excl_tok, caller_globals)
+                        active_terms.pop(base_var, None)
                 i += 1
                 continue
-            # This is a term - extract base variable
-            transform, base_var, _ = _parse_transformation(token, caller_globals)
-            mentioned_vars.add(base_var)
+            if tok not in active_terms:
+                active_terms[tok] = None
             i += 1
 
-        # Remove excluded vars from all_vars
-        all_vars = all_vars - excluded_vars
-
-        # Remove mentioned vars from all_vars (they're already in the formula)
-        for var in mentioned_vars:
-            if var in all_vars:
-                all_vars.remove(var)
-
-        # Build the new formula string
-        # Collect original terms (without ".") from tokens
-        original_terms = []
-        i = 0
-        while i < len(tokens):
-            token = tokens[i].strip()
-            # Skip empty tokens and "."
-            if not token or token == ".":
-                i += 1
-                continue
-            # Handle "-" by skipping it and the next variable
-            if token == "-":
-                i += 2  # Skip "-" and the following variable
-                continue
-            # Skip standalone "+"
-            if token == "+":
-                i += 1
-                continue
-            # This is a term to include
-            original_terms.append(token)
-            i += 1
-
-        # Add remaining variables from data
-        remaining_vars = sorted(list(all_vars))
-        original_terms.extend(remaining_vars)
-
-        formula_str = " + ".join(original_terms)
+        formula_str = " + ".join(active_terms.keys()) if active_terms else "1"
 
     terms = _parse_formula_terms(formula_str)
     rhs_terms = terms.copy()
@@ -496,12 +491,27 @@ def _parse_formula_terms(formula_str):
     """Parse formula string into list of terms."""
     terms = []
 
+    # Protect B(...) calls from space-based tokenization by replacing them
+    # with unique placeholders before splitting.
+    b_terms: dict = {}
+
+    def _replace_b(m):
+        key = f"__BPLACEHOLDER{len(b_terms)}__"
+        # Normalize internal spaces so column names are canonical: B(x,1)
+        inner = re.sub(r"\s+", "", m.group(1))
+        b_terms[key] = f"B({inner})"
+        return key
+
+    formula_str = re.sub(r"\bB\(([^)]*)\)", _replace_b, formula_str)
+
     formula_str = formula_str.replace("-", " - ")
     formula_str = formula_str.replace("+", " + ")
     formula_str = formula_str.replace("*", " * ")
     formula_str = formula_str.replace(":", " : ")
 
     tokens = formula_str.split()
+    # Restore B() placeholders
+    tokens = [b_terms.get(t, t) for t in tokens]
 
     i = 0
     while i < len(tokens):

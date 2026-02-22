@@ -4,6 +4,8 @@ This module provides functions for transforming and expanding exogenous
 variables for use in regression models.
 """
 
+import re
+
 import numpy as np
 from typing import Literal
 
@@ -202,15 +204,24 @@ def xreg_expander(
     if len(lags) == 0:
         return xreg
 
-    lags = list(set(lags))
+    # Deduplicate while preserving intent, then sort deterministically:
+    # negative lags by abs ascending (−1, −2, …), then positive leads (1, 2, …)
+    seen: set = set()
+    unique_lags = [
+        v
+        for v in lags
+        if not (v in seen or seen.add(v))  # type: ignore[func-returns-value]
+    ]
+    neg_lags = sorted([v for v in unique_lags if v < 0], key=abs)
+    pos_lags = sorted([v for v in unique_lags if v > 0])
+    lags = neg_lags + pos_lags
 
     if not silent:
         print("Preparing matrices...    ")
 
-    total_cols = n_vars * len(lags)
-    xreg_new = np.full((n_obs, total_cols), np.nan)
-
     n_lags = len(lags)
+    lag_mat = np.full((n_obs, n_vars * n_lags), np.nan)
+
     for c_idx in range(n_vars):
         for lag_idx, lag in enumerate(lags):
             t_col = c_idx * n_lags + lag_idx
@@ -218,26 +229,26 @@ def xreg_expander(
             if lag < 0:
                 shift = abs(lag)
                 if shift < n_obs:
-                    xreg_new[shift:, t_col] = xreg[: n_obs - shift, c_idx]
+                    lag_mat[shift:, t_col] = xreg[: n_obs - shift, c_idx]
             else:
                 if lag < n_obs:
-                    xreg_new[: n_obs - lag, t_col] = xreg[lag:n_obs, c_idx]
+                    lag_mat[: n_obs - lag, t_col] = xreg[lag:n_obs, c_idx]
 
     if gaps == "zero":
-        xreg_new = np.nan_to_num(xreg_new, nan=0.0)
+        lag_mat = np.nan_to_num(lag_mat, nan=0.0)
     elif gaps == "naive":
-        for col_idx in range(xreg_new.shape[1]):
-            col = xreg_new[:, col_idx]
+        for col_idx in range(lag_mat.shape[1]):
+            col = lag_mat[:, col_idx]
             first_valid = np.argmax(~np.isnan(col))
             if first_valid > 0:
                 col[:first_valid] = col[first_valid]
             last_valid = n_obs - 1 - np.argmax(~np.isnan(col[::-1]))
             if last_valid < n_obs - 1:
                 col[last_valid + 1 :] = col[last_valid]
-            xreg_new[:, col_idx] = col
+            lag_mat[:, col_idx] = col
     elif gaps in ("auto", "extrapolate"):
-        for col_idx in range(xreg_new.shape[1]):
-            col = xreg_new[:, col_idx]
+        for col_idx in range(lag_mat.shape[1]):
+            col = lag_mat[:, col_idx]
             valid_mask = ~np.isnan(col)
             if np.any(valid_mask):
                 valid_indices = np.where(valid_mask)[0]
@@ -248,7 +259,8 @@ def xreg_expander(
                     last_val = col[valid_indices[-1]]
                     col[valid_indices[-1] + 1 :] = last_val
 
-    return xreg_new
+    # Prepend original columns (matches R's xregExpander output layout)
+    return np.hstack([xreg, lag_mat])
 
 
 def temporal_dummy(
@@ -319,3 +331,131 @@ def temporal_dummy(
             idx = i % freq
             dummies[i, idx] = 1
         return dummies
+
+
+def B(x: np.ndarray, k: int, gaps: str = "auto") -> np.ndarray:
+    """Backshift operator: lag (k>0) or lead (k<0) of x.
+
+    Positive k creates lag-k (past values); negative k creates lead-|k|
+    (future values); k=0 returns x unchanged. Gaps at boundaries are
+    filled per the gaps strategy.
+
+    Parameters
+    ----------
+    x : array-like of shape (n,)
+    k : int
+        Lag order. Positive = lag (past values), negative = lead (future).
+    gaps : str, default "auto"
+        Boundary fill strategy passed to xreg_expander.
+
+    Returns
+    -------
+    np.ndarray of shape (n,)
+    """
+    x = np.asarray(x, dtype=float)
+    if k == 0:
+        return x
+    return xreg_expander(x, lags=[-k], gaps=gaps)[:, 1]
+
+
+def _dyn_mult_calc(phi: np.ndarray, beta: np.ndarray, h: int) -> np.ndarray:
+    """Compute dynamic multipliers for ARDL(p, m).
+
+    Recurrence:
+        m_0 = beta_0
+        m_s = beta_s + sum_{i=1}^{min(p,s)} phi[i-1] * m[s-i]
+
+    beta_s is treated as 0 for s >= len(beta).
+    """
+    p = len(phi)
+    c = np.zeros(h)
+    if h < 1:
+        return c
+    c[0] = beta[0] if len(beta) > 0 else 0.0
+    for s in range(1, h):
+        beta_s = beta[s] if s < len(beta) else 0.0
+        acc = sum(phi[i - 1] * c[s - i] for i in range(1, min(p, s) + 1))
+        c[s] = beta_s + acc
+    return c
+
+
+def _get_betas(model, parm: str) -> np.ndarray:
+    """Extract sorted [beta_0, beta_1, ...] for variable parm from ALM model.
+
+    beta_0 = coefficient for column named exactly `parm` (contemporaneous).
+    beta_k = coefficient for column named `B(parm,k)` (distributed lag k).
+    Results are sorted by lag order and returned as a numpy array.
+
+    Raises
+    ------
+    ValueError
+        If parm is not found as a contemporaneous or lagged term.
+    """
+    names = ["(Intercept)"] + list(
+        model._feature_names
+        if model._feature_names is not None
+        else [f"x{i + 1}" for i in range(len(model._coef))]
+    )
+    coefs = np.concatenate([[model.intercept_], model._coef])
+    coef_dict = dict(zip(names, coefs))
+
+    lag_pattern = re.compile(rf"^B\({re.escape(parm)},\s*(\d+)\)$")
+    betas: dict = {}
+
+    if parm in coef_dict:
+        betas[0] = coef_dict[parm]
+    for name, val in coef_dict.items():
+        m = lag_pattern.match(name)
+        if m:
+            betas[int(m.group(1))] = val
+
+    if not betas:
+        raise ValueError(f'The parameter "{parm}" is not found in the model.')
+
+    return np.array([betas[k] for k in sorted(betas)])
+
+
+def multipliers(model, parm: str, h: int = 10) -> dict:
+    """Compute dynamic multipliers for an ARDL model.
+
+    Combines distributed lag coefficients (B(parm, k) terms) with the
+    ARI polynomial from the model to produce impulse-response multipliers
+    over horizon h.
+
+    Parameters
+    ----------
+    model : ALM
+        Fitted ALM model containing parm (and optionally B(parm, k) columns
+        and/or ARIMA orders).
+    parm : str
+        Variable name as it appears in the design matrix (column header).
+    h : int, default 10
+        Forecast horizon.
+
+    Returns
+    -------
+    dict
+        {"h1": m1, "h2": m2, ..., "hh": mh} of dynamic multipliers.
+
+    Raises
+    ------
+    ValueError
+        If parm is not found in the model.
+    """
+    names = ["(Intercept)"] + list(
+        model._feature_names
+        if model._feature_names is not None
+        else [f"x{i + 1}" for i in range(len(model._coef))]
+    )
+    word_pat = re.compile(r"\b" + re.escape(parm) + r"\b")
+    if not any(word_pat.search(n) for n in names):
+        raise ValueError(f'The parameter "{parm}" is not found in the model.')
+
+    phi = (
+        np.array(list(model.arima_polynomial_.values()))
+        if model.arima_polynomial_ is not None
+        else np.array([0.0])
+    )
+    betas = _get_betas(model, parm)
+    dm = _dyn_mult_calc(phi, betas, h)
+    return {f"h{i + 1}": float(dm[i]) for i in range(h)}
