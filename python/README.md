@@ -15,6 +15,8 @@ Python port of the [R greybox package](https://cran.r-project.org/package=greybo
 pip install greybox
 ```
 
+For more installation options, see the [Installation](https://github.com/config-i1/greybox/wiki/Installation) wiki page.
+
 ## Quick Example
 
 ```python
@@ -63,16 +65,19 @@ model.fit(X, y)
 
 ## Features
 
-- **ALM (Augmented Linear Model)**: Likelihood-based regression with 26 distributions
-- **Formula parser**: R-style formulas (`y ~ x1 + x2`, `log(y) ~ .`, `y ~ 0 + x1`)
-- **Model selection**: `stepwise()` IC-based variable selection with partial correlations
-- **Model combination**: `CALM()` Combine ALM models based on IC weights
-- **Accuracy measures**: MAE, MSE, RMSE, MAPE, MASE, MPE, sMAPE, and more
-- **Variable processing**: `xreg_expander` (lags/leads), `xreg_multiplier` (interactions), `temporal_dummy`
-- **27 distribution families**: Each with density, CDF, quantile, and random generation functions
+- **[ALM (Augmented Linear Model)](https://github.com/config-i1/greybox/wiki/ALM)**: Likelihood-based regression with 26 distributions
+- **Formula parser**: R-style formulas (`y ~ x1 + x2`, `log(y) ~ .`, `y ~ 0 + x1`) with support for backshift operator
+- **[stepwise()](https://github.com/config-i1/greybox/wiki/stepwise)**: IC-based variable selection with partial correlations
+- **[CALM()](https://github.com/config-i1/greybox/wiki/CALM)**: Combine ALM models based on IC weights
+- **[Forecast error measures](https://github.com/config-i1/greybox/wiki/measures)**: MAE, MSE, RMSE, MAPE, MASE, MPE, sMAPE, and more
+- **[Variable processing](https://github.com/config-i1/greybox/wiki/manipulations)**: `xreg_expander` (lags/leads), `xreg_multiplier` (interactions), `temporal_dummy`
+- **[Distributions](https://github.com/config-i1/greybox/wiki/distributions)**: 27 distribution families with density, CDF, quantile, and random generation
+- **[Association](https://github.com/config-i1/greybox/wiki/association)**: Partial correlations and measures of association
+- **[Diagnostics](https://github.com/config-i1/greybox/wiki/diagnostics)**: Model diagnostics and validation
 
 ## Links
 
+- [Wiki documentation](https://github.com/config-i1/greybox/wiki)
 - [GitHub repository](https://github.com/config-i1/greybox)
 - [R package on CRAN](https://cran.r-project.org/package=greybox)
 
