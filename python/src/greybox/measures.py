@@ -910,44 +910,6 @@ def gmrae(
     return np.exp(np.mean(np.log(ratios)))
 
 
-def accuracy(
-    actual: np.ndarray,
-    forecast: np.ndarray,
-    na_rm: bool = True,
-) -> dict:
-    """Calculate multiple accuracy measures at once.
-
-    Parameters
-    ----------
-    actual : np.ndarray
-        Actual (observed) values.
-    forecast : np.ndarray
-        Forecasted values.
-    na_rm : bool, default=True
-        Remove NA values.
-
-    Returns
-    -------
-    dict
-        Dictionary containing: ME, MAE, MSE, RMSE, MPE, MAPE, MASE.
-
-    Examples
-    --------
-    >>> actual = np.array([1, 2, 3, 4, 5])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> accuracy(actual, forecast)
-    """
-    return {
-        "ME": me(actual, forecast, na_rm),
-        "MAE": mae(actual, forecast, na_rm),
-        "MSE": mse(actual, forecast, na_rm),
-        "RMSE": rmse(actual, forecast, na_rm),
-        "MPE": mpe(actual, forecast, na_rm),
-        "MAPE": mape(actual, forecast, na_rm),
-        "MASE": mase(actual, forecast, na_rm=na_rm),
-    }
-
-
 def measures(
     holdout: np.ndarray,
     forecast: np.ndarray,

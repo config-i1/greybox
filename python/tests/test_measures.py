@@ -10,7 +10,6 @@ from greybox.measures import (
     mpe,
     mape,
     mase,
-    accuracy,
     me,
     rmsse,
     same,
@@ -133,21 +132,6 @@ class TestMASE:
         f = np.array([3.1, 2.9, 3.0])
         result = mase(a, f)
         assert np.isnan(result)
-
-
-class TestAccuracy:
-    def test_keys(self):
-        result = accuracy(actual, predicted)
-        expected_keys = {"ME", "MAE", "MSE", "RMSE", "MPE", "MAPE", "MASE"}
-        assert set(result.keys()) == expected_keys
-
-    def test_values(self):
-        result = accuracy(actual, predicted)
-        np.testing.assert_almost_equal(result["MAE"], mae(actual, predicted))
-        np.testing.assert_almost_equal(result["MSE"], mse(actual, predicted))
-        np.testing.assert_almost_equal(result["RMSE"], rmse(actual, predicted))
-        # ME = mean(actual - forecast)
-        np.testing.assert_almost_equal(result["ME"], np.mean(actual - predicted))
 
 
 class TestDetermination:
