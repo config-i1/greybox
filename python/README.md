@@ -36,9 +36,9 @@ data = pd.DataFrame({
 data["y"] = 2 + 0.5 * data["x1"] - 0.3 * data["x2"] + np.random.normal(0, 1, n)
 
 # Parse formula and fit model
-result = formula("y ~ x1 + x2", data=data)
+y, X = formula("y ~ x1 + x2", data=data)
 model = ALM(distribution="dnorm")
-model.fit(result.data, result.formula)
+model.fit(X, y)
 
 # Summary
 print(model.summary())
