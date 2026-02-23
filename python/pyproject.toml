@@ -7,7 +7,7 @@ name = "greybox"
 version = "1.0.0"
 description = "Toolbox for model building and forecasting"
 readme = "README.md"
-requires-python = ">=3.9"
+requires-python = ">=3.10"
 license = {text = "LGPL-2.1"}
 authors = [
     {name = "Ivan Svetunkov", email = "ivan@svetunkov.com"},
@@ -16,7 +16,6 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU Lesser General Public License v2.1 (LGPL-2.1)",
-    "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
