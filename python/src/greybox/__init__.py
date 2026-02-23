@@ -1,13 +1,14 @@
 """Greybox - Toolbox for model building and forecasting."""
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 from . import association
 from . import data
 from . import distributions
+from . import error_measures
 from . import hm
-from . import measures
 from . import quantile_measures
+from .error_measures import measures
 from .alm import ALM, PredictionResult
 from .formula import formula, expand_formula
 from .selection import stepwise, CALM, LmCombineResult
@@ -30,6 +31,7 @@ __all__ = [
     "B",
     "multipliers",
     "distributions",
+    "error_measures",
     "measures",
     "association",
     "hm",

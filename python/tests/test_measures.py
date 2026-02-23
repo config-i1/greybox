@@ -1,9 +1,9 @@
-"""Tests for greybox.measures module."""
+"""Tests for greybox.error_measures module."""
 
 import numpy as np
 import pytest
 
-from greybox.measures import (
+from greybox.error_measures import (
     mae,
     mse,
     rmse,

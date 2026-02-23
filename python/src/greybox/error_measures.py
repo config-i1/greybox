@@ -941,29 +941,18 @@ def measures(
     -------
     dict
         Dictionary containing error measures:
-        - ME: Mean Error
-        - MAE: Mean Absolute Error
-        - MSE: Mean Squared Error
-        - MPE: Mean Percentage Error
-        - MAPE: Mean Absolute Percentage Error
-        - sCE: Scaled Cumulative Error
-        - sMAE: Scaled Mean Absolute Error (MASE with mean scale)
-        - sMSE: Scaled Mean Squared Error
-        - MASE: Mean Absolute Scaled Error (with diff scale)
-        - RMSSE: Root Mean Squared Scaled Error
-        - SAME: Scaled Absolute Mean Error
-        - rMAE: Relative Mean Absolute Error
-        - rRMSE: Relative Root Mean Squared Error
-        - rAME: Relative Absolute Mean Error
-        - asymmetry: Asymmetry coefficient
-        - sPIS: Scaled Periods-In-Stock
+        ME, MAE, MSE, MPE, MAPE, sCE, sMAE, sMSE, MASE,
+        RMSSE, SAME, rMAE, rRMSE, rAME, asymmetry, sPIS
 
     Examples
     --------
-    >>> np.random.seed(42)
-    >>> actual = np.random.normal(10, 2, 100)
-    >>> forecast = np.full(10, np.mean(actual[:90]))
-    >>> measures(actual[91:], forecast, actual[:90], digits=5)
+    >>> import numpy as np
+    >>> from greybox.error_measures import measures
+    >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
+    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1, 6.0, 7.1, 8.0, 9.2])
+    >>> result = measures(actual[5:], forecast[5:], actual[:5], digits=4)
+    >>> print(result)
+    {'ME': ..., 'MAE': ..., ...}
 
     References
     ----------
