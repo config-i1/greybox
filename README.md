@@ -2,9 +2,11 @@
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/greybox)](https://cran.r-project.org/package=greybox)
 [![Downloads](http://cranlogs.r-pkg.org/badges/greybox)](https://cran.r-project.org/package=greybox)
 [![R-CMD-check](https://github.com/config-i1/greybox/actions/workflows/test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/test.yml)
+[![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
 
-
+[![PyPI version](https://img.shields.io/pypi/v/greybox.svg)](https://pypi.org/project/greybox/)
 [![Python CI](https://github.com/config-i1/greybox/actions/workflows/python-test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/python-test.yml)
+[![Python versions](https://img.shields.io/pypi/pyversions/greybox.svg)](https://pypi.org/project/greybox/)
 
 The package _greybox_ contains functions for model building, which is currently done via the model selection and combinations based on information criteria. The resulting model can then be used in analysis and forecasting.
 
