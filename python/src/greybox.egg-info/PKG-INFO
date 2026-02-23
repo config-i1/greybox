@@ -10,7 +10,7 @@ Project-URL: Documentation, https://config-i1.github.io/greybox/
 Project-URL: Issues, https://github.com/config-i1/greybox/issues
 Classifier: Development Status :: 4 - Beta
 Classifier: Intended Audience :: Science/Research
-Classifier: License :: OSI Approved :: GNU Lesser General Public License v2.1 (LGPL-2.1)
+Classifier: License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)
 Classifier: Programming Language :: Python :: 3.10
 Classifier: Programming Language :: Python :: 3.11
 Classifier: Programming Language :: Python :: 3.12
