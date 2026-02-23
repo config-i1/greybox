@@ -1,8 +1,16 @@
 # greybox
+
+**R**
+
 [![CRAN_Status_Badge](http://www.r-pkg.org/badges/version/greybox)](https://cran.r-project.org/package=greybox)
 [![Downloads](http://cranlogs.r-pkg.org/badges/greybox)](https://cran.r-project.org/package=greybox)
 [![R-CMD-check](https://github.com/config-i1/greybox/actions/workflows/test.yml/badge.svg)](https://github.com/config-i1/greybox/actions/workflows/test.yml)
 [![License: LGPL-2.1](https://img.shields.io/badge/License-LGPL--2.1-blue.svg)](https://www.gnu.org/licenses/old-licenses/lgpl-2.1.html)
+
+[![Conda Version](https://img.shields.io/conda/vn/conda-forge/r-greybox)](https://anaconda.org/conda-forge/r-greybox)                                                                                                                     
+[![Conda Downloads](https://img.shields.io/conda/dn/conda-forge/r-greybox)](https://anaconda.org/conda-forge/r-greybox)       
+
+**Python**
 
 [![PyPI version](https://img.shields.io/pypi/v/greybox.svg)](https://pypi.org/project/greybox/)
 [![PyPI - Downloads](https://img.shields.io/pypi/dm/greybox.svg)](https://pypi.org/project/greybox/)
