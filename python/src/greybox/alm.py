@@ -1661,8 +1661,8 @@ class ALM:
             elif self.distribution == "drectnorm":
                 se_conf = np.sqrt(variances_conf)
                 mean = linear_pred * (
-                    1 - dist.pnorm(0, mean=linear_pred, sd=se_conf)
-                ) + se_conf * dist.dnorm(0, mean=linear_pred, sd=se_conf)
+                    1 - dist.pnorm(0, loc=linear_pred, scale=se_conf)
+                ) + se_conf * dist.dnorm(0, loc=linear_pred, scale=se_conf)
 
             lower, upper = self._calculate_quantiles(
                 linear_pred, variances, interval, level, side

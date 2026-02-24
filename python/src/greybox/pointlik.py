@@ -125,7 +125,7 @@ def point_lik(
             lik = stats.nbinom.pmf(np.round(y), n=size, p=p_val)
 
     elif distribution == "dlogitnorm":
-        lik = dist.dlogitnorm(y, mu=mu, sigma=scale, log=log)
+        lik = dist.dlogitnorm(y, loc=mu, scale=scale, log=log)
 
     else:
         if log:
