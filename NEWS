@@ -1,8 +1,9 @@
-greybox v2.0.9 (Release data: 2026-02-22)
+greybox v2.0.9 (Release data: 2026-02-24)
 ==============
 
 Changes:
 * ALM in case of ARI now does not do optimisation and relies on the OLS estimates of parameters.
+* Cook's distance lines now correspond to heuristics of 4/n, 4/(n-k) and 1.
 
 
 greybox v2.0.8 (Release data: 2026-02-20)

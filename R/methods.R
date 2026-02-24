@@ -1152,7 +1152,8 @@ vcov.scale <- function(object, bootstrap=FALSE, ...){
 #' \item Studentised residuals over observations;
 #' \item ACF of the residuals;
 #' \item PACF of the residuals;
-#' \item Cook's distance over observations with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+#' \item Cook's distance over observations with lines corresponding to heuristic values of
+#' 4/n, 4/(n-k) and 1;
 #' \item Absolute standardised residuals vs Fitted;
 #' \item Squared standardised residuals vs Fitted;
 #' \item ACF of the squared residuals;
@@ -1949,10 +1950,11 @@ plot.greybox <- function(x, which=c(1,2,4,6), level=0.95, legend=FALSE,
 
         # Get the cook's distance. Take abs() just in case... Not a very reasonable thing to do...
         ellipsis$x <- abs(cooks.distance(x));
-        thresholdsF <- qf(c(0.5,0.75,0.95), nparam(x), nobs(x)-nparam(x))
-        thresholdsColours <- c(2,2,2)
-        thresholdsLty <- c(3,2,5)
-        thresholdsLwd <- c(1,1,2)
+        # thresholdsF <- qf(c(0.5,0.75,0.95), nparam(x), nobs(x)-nparam(x))
+        thresholdsF <- c(4/nobs(x), 4/(nobs(x)-nparam(x)), 1);
+        thresholdsColours <- c(2,2,2);
+        thresholdsLty <- c(3,2,5);
+        thresholdsLwd <- c(1,1,2);
         outliersID <- which(ellipsis$x>=thresholdsF[2]);
 
         if(!any(names(ellipsis)=="ylim")){
