@@ -753,6 +753,6 @@ calm <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent
 #' @rdname calm
 #' @export
 lmCombine <- function(...){
-    warning("You are using the old name of the function. Don't worry and just the new one - \"calm()\".");
+    warning("You are using the old name of the function. Don't worry and just use the new one - \"calm()\".");
     return(calm(...));
 }
