@@ -58,14 +58,6 @@
 <li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
 <li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#core-classes">Core Classes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#model-selection">Model Selection</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#rolling-origin">Rolling Origin</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#accuracy-measures">Accuracy Measures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#association-measures">Association Measures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#half-moments">Half-Moments</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#quantile-measures">Quantile Measures</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#variable-processing">Variable Processing</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
@@ -104,68 +96,6 @@
 <h1>API<a class="headerlink" href="#api" title="Link to this heading"></a></h1>
 <div class="toctree-wrapper compound">
 </div>
-<section id="core-classes">
-<h2>Core Classes<a class="headerlink" href="#core-classes" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">greybox.ALM</span></code> - Augmented Linear Model estimator</p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">greybox.formula</span></code> - Formula parsing function</p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">greybox.expand_formula</span></code> - Formula expansion function</p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.bc_transform()</span></code> - Box-Cox transformation</p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.bc_transform_inv()</span></code> - Inverse Box-Cox transformation</p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.mean_fast()</span></code> - Trimmed/hubered mean</p></li>
-</ul>
-</section>
-<section id="model-selection">
-<h2>Model Selection<a class="headerlink" href="#model-selection" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.stepwise()</span></code> - Stepwise IC-based variable selection</p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.CALM()</span></code> - Combine ALM models based on IC weights</p></li>
-</ul>
-</section>
-<section id="rolling-origin">
-<h2>Rolling Origin<a class="headerlink" href="#rolling-origin" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.rolling_origin()</span></code> - Rolling origin time-series cross-validation</p></li>
-<li><p><code class="xref py py-class docutils literal notranslate"><span class="pre">greybox.rolling.RollingOriginResult</span></code> - Result object with holdout and forecast matrices</p></li>
-</ul>
-</section>
-<section id="accuracy-measures">
-<h2>Accuracy Measures<a class="headerlink" href="#accuracy-measures" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="point_measures.html#greybox.point_measures.mae" title="greybox.point_measures.mae"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.point_measures.mae()</span></code></a> - Mean Absolute Error</p></li>
-<li><p><a class="reference internal" href="point_measures.html#greybox.point_measures.mse" title="greybox.point_measures.mse"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.point_measures.mse()</span></code></a> - Mean Squared Error</p></li>
-<li><p><a class="reference internal" href="point_measures.html#greybox.point_measures.rmse" title="greybox.point_measures.rmse"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.point_measures.rmse()</span></code></a> - Root Mean Squared Error</p></li>
-<li><p><a class="reference internal" href="point_measures.html#greybox.point_measures.mape" title="greybox.point_measures.mape"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.point_measures.mape()</span></code></a> - Mean Absolute Percentage Error</p></li>
-<li><p><a class="reference internal" href="point_measures.html#greybox.point_measures.mase" title="greybox.point_measures.mase"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.point_measures.mase()</span></code></a> - Mean Absolute Scaled Error</p></li>
-<li><p><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.measures()</span></code> - Comprehensive error measures</p></li>
-</ul>
-</section>
-<section id="association-measures">
-<h2>Association Measures<a class="headerlink" href="#association-measures" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="association.html#module-greybox.association" title="greybox.association"><code class="xref py py-mod docutils literal notranslate"><span class="pre">greybox.association</span></code></a> - Association and correlation measures</p></li>
-</ul>
-</section>
-<section id="half-moments">
-<h2>Half-Moments<a class="headerlink" href="#half-moments" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="hm.html#module-greybox.hm" title="greybox.hm"><code class="xref py py-mod docutils literal notranslate"><span class="pre">greybox.hm</span></code></a> - Half-moment functions</p></li>
-</ul>
-</section>
-<section id="quantile-measures">
-<h2>Quantile Measures<a class="headerlink" href="#quantile-measures" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="quantile_measures.html#module-greybox.quantile_measures" title="greybox.quantile_measures"><code class="xref py py-mod docutils literal notranslate"><span class="pre">greybox.quantile_measures</span></code></a> - Pinball loss and interval scores</p></li>
-</ul>
-</section>
-<section id="variable-processing">
-<h2>Variable Processing<a class="headerlink" href="#variable-processing" title="Link to this heading"></a></h2>
-<ul class="simple">
-<li><p><a class="reference internal" href="xreg.html#greybox.xreg.xreg_expander" title="greybox.xreg.xreg_expander"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.xreg.xreg_expander()</span></code></a> - Lag/lead expansion</p></li>
-<li><p><a class="reference internal" href="xreg.html#greybox.xreg.xreg_multiplier" title="greybox.xreg.xreg_multiplier"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.xreg.xreg_multiplier()</span></code></a> - Cross-product generation</p></li>
-<li><p><a class="reference internal" href="xreg.html#greybox.xreg.temporal_dummy" title="greybox.xreg.temporal_dummy"><code class="xref py py-func docutils literal notranslate"><span class="pre">greybox.xreg.temporal_dummy()</span></code></a> - Temporal dummy variables</p></li>
-</ul>
-</section>
 </section>
 
 

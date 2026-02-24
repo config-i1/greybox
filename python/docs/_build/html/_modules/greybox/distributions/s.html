@@ -89,7 +89,7 @@
 
 
 <div class="viewcode-block" id="ds">
-<a class="viewcode-back" href="../../../api/distributions.html#greybox.distributions.ds">[docs]</a>
+<a class="viewcode-back" href="../../../api/distributions/s.html#greybox.distributions.ds">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ds</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;S-distribution density.</span>
 
@@ -119,7 +119,7 @@
 
 
 <div class="viewcode-block" id="ps">
-<a class="viewcode-back" href="../../../api/distributions.html#greybox.distributions.ps">[docs]</a>
+<a class="viewcode-back" href="../../../api/distributions/s.html#greybox.distributions.ps">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">ps</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;S-distribution CDF.&quot;&quot;&quot;</span>
     <span class="n">sign_val</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sign</span><span class="p">(</span><span class="n">q</span> <span class="o">-</span> <span class="n">mu</span><span class="p">)</span>
@@ -131,7 +131,7 @@
 
 
 <div class="viewcode-block" id="qs">
-<a class="viewcode-back" href="../../../api/distributions.html#greybox.distributions.qs">[docs]</a>
+<a class="viewcode-back" href="../../../api/distributions/s.html#greybox.distributions.qs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">qs</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;S-distribution quantile function.&quot;&quot;&quot;</span>
     <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
@@ -140,7 +140,7 @@
 
 
 <div class="viewcode-block" id="rs">
-<a class="viewcode-back" href="../../../api/distributions.html#greybox.distributions.rs">[docs]</a>
+<a class="viewcode-back" href="../../../api/distributions/s.html#greybox.distributions.rs">[docs]</a>
 <span class="k">def</span><span class="w"> </span><span class="nf">rs</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;S-distribution random number generation.&quot;&quot;&quot;</span>
     <span class="k">return</span> <span class="n">qs</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">uniform</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">n</span><span class="p">),</span> <span class="n">mu</span><span class="p">,</span> <span class="n">scale</span><span class="p">)</span></div>
