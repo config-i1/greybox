@@ -31,7 +31,7 @@ Python port of the R `greybox` package — a toolbox for regression model buildi
 
 3. **Model Selection**
    - `stepwise()` — stepwise regression using partial correlations (matching R implementation)
-   - `lm_combine()` — model combination via IC weights
+   - `CALM()` — model combination via IC weights
 
 4. **Variable Processing**
    - `xreg_expander` — lag/lead expansion
@@ -78,7 +78,7 @@ python/src/greybox/
 ├── transforms.py            # Data transformations
 ├── diagnostics.py           # outlier_dummy
 ├── measures.py              # Accuracy metrics, pcor, mcor, association
-├── selection.py             # stepwise, lm_combine
+├── selection.py             # stepwise, CALM
 ├── xreg.py                  # Variable processing
 ├── pointlik.py              # Point likelihood functions
 ├── rolling.py               # Rolling origin evaluation
@@ -124,7 +124,7 @@ python/src/greybox/
 | `alm()` | `ALM` class | Implemented |
 | `sm()` (scale model) | — | Not implemented |
 | `stepwise()` | `stepwise()` | Implemented (matches R algorithm) |
-| `lmCombine()` | `lm_combine()` | Implemented |
+| `lmCombine()` | `CALM()` | Implemented |
 | `lmDynamic()` | — | Not implemented |
 
 ### Distribution Families (d/p/q/r functions)

@@ -4,7 +4,7 @@ import numpy as np
 import pytest
 import pandas as pd
 
-from greybox.selection import stepwise, CALM, LmCombineResult
+from greybox.selection import stepwise, CALM, CALMResult
 
 
 class TestStepwise:
@@ -240,7 +240,7 @@ class TestStepwise:
         assert model.time_elapsed >= 0
 
 
-class TestLmCombine:
+class TestCALMCore:
     """Tests for CALM function."""
 
     def test_calm_basic(self):
@@ -560,8 +560,8 @@ class TestLmCombine:
         assert "coefficients" in result
 
 
-class TestLmCombinePrintSummary:
-    """Tests for LmCombineResult print and summary methods."""
+class TestCALMPrintSummary:
+    """Tests for CALMResult print and summary methods."""
 
     @pytest.fixture
     def result(self):
@@ -575,9 +575,9 @@ class TestLmCombinePrintSummary:
         data = {"y": y, "x1": x1, "x2": x2, "Noise": noise}
         return CALM(data, ic="AICc", bruteforce=True, silent=True)
 
-    def test_result_is_lm_combine_result(self, result):
-        """Test that CALM returns LmCombineResult."""
-        assert isinstance(result, LmCombineResult)
+    def test_result_is_calm_result(self, result):
+        """Test that CALM returns CALMResult."""
+        assert isinstance(result, CALMResult)
 
     def test_dict_access(self, result):
         """Test dict-like [] access."""
@@ -621,9 +621,9 @@ class TestLmCombinePrintSummary:
         assert "Loss function type: likelihood" in s
 
     def test_repr(self, result):
-        """Test LmCombineResult repr."""
+        """Test CALMResult repr."""
         r = repr(result)
-        assert "LmCombineResult" in r
+        assert "CALMResult" in r
         assert "IC_type='AICc'" in r
         assert "fitted=True" in r
 
@@ -676,7 +676,7 @@ class TestLmCombinePrintSummary:
 
 
 class TestCALMALMCompat:
-    """Tests for ALM-compatible interface on LmCombineResult."""
+    """Tests for ALM-compatible interface on CALMResult."""
 
     @pytest.fixture
     def setup(self):
@@ -1187,7 +1187,7 @@ class TestCALMRComparison:
 
 
 class TestCALM:
-    """Tests for CALM function (renamed from lm_combine)."""
+    """Tests for CALM function."""
 
     def test_calm_basic(self):
         """Test CALM with simple data."""

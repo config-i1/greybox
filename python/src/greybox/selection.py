@@ -25,7 +25,7 @@ class ModelInfo(TypedDict):
     coef: np.ndarray
 
 
-class LmCombineSummary:
+class CALMSummary:
     """Summary of CALM result, matching R's summary.greyboxC."""
 
     def __init__(
@@ -113,7 +113,7 @@ class LmCombineSummary:
         return "\n".join(lines)
 
 
-class LmCombineResult:
+class CALMResult:
     """Result of CALM, with print and summary support.
 
     Supports dict-like access for backwards compatibility and
@@ -598,7 +598,7 @@ class LmCombineResult:
             raise ValueError(f"Unknown metric: {metric}")
 
     def __repr__(self) -> str:
-        return f"LmCombineResult(IC_type={self.IC_type!r}, fitted=True)"
+        return f"CALMResult(IC_type={self.IC_type!r}, fitted=True)"
 
     def __str__(self) -> str:
         """Print method matching ADAM-style output."""
@@ -623,7 +623,7 @@ class LmCombineResult:
 
         return "\n".join(lines)
 
-    def summary(self, level: float = 0.95) -> LmCombineSummary:
+    def summary(self, level: float = 0.95) -> CALMSummary:
         """Summary matching R's summary.greyboxC.
 
         Parameters
@@ -633,7 +633,7 @@ class LmCombineResult:
 
         Returns
         -------
-        LmCombineSummary
+        CALMSummary
         """
         coef = self.coefficients
         vcov = self._vcov_matrix
@@ -666,7 +666,7 @@ class LmCombineResult:
             aicc = np.inf
         bicc = bic + k * np.log(n) ** 2 / n
 
-        return LmCombineSummary(
+        return CALMSummary(
             coefficients=coef,
             se=se,
             importance=importance,
@@ -1241,7 +1241,7 @@ def CALM(
     silent: bool = True,
     distribution: str = "dnorm",
     **kwargs,
-) -> LmCombineResult:
+) -> CALMResult:
     """Combine ALM models based on information criteria.
 
     Function combines parameters of linear regressions of the first variable
@@ -1344,7 +1344,7 @@ def CALM(
         # If intercept-only model selected, return it
         if best_model.coef is None or len(best_model.coef) == 0:
             elapsed = time.time() - start_time
-            return LmCombineResult(
+            return CALMResult(
                 coefficients=np.array([best_model.intercept_]),
                 coefficient_names=["(Intercept)"],
                 time_elapsed=elapsed,
@@ -1586,7 +1586,7 @@ def CALM(
 
     elapsed_time = time.time() - start_time
 
-    return LmCombineResult(
+    return CALMResult(
         coefficients=combined_coef,
         coefficient_names=coefficient_names,
         vcov=vcov_combined,

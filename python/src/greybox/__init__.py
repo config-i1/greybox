@@ -17,7 +17,7 @@ from . import rolling
 from .point_measures import measures
 from .alm import ALM, PredictionResult
 from .formula import formula, expand_formula
-from .selection import stepwise, CALM, LmCombineResult
+from .selection import stepwise, CALM, CALMResult
 from .transforms import bc_transform, bc_transform_inv, mean_fast
 from .xreg import B, multipliers
 from .rolling import rolling_origin, RollingOriginResult
@@ -31,7 +31,7 @@ __all__ = [
     "expand_formula",
     "stepwise",
     "CALM",
-    "LmCombineResult",
+    "CALMResult",
     "bc_transform",
     "bc_transform_inv",
     "mean_fast",
