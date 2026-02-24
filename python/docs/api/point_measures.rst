@@ -1,6 +1,6 @@
-================
-Error Measures
-================
+=================
+Accuracy Measures
+=================
 
 .. automodule:: greybox.point_measures
    :members:

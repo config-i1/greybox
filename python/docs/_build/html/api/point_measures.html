@@ -6,7 +6,7 @@
   <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
 
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Error Measures &mdash; greybox 1.0.0 documentation</title>
+  <title>Accuracy Measures &mdash; greybox 1.0.0 documentation</title>
       <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
       <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
 
@@ -51,7 +51,7 @@
 <li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
 <li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
 <li class="toctree-l2"><a class="reference internal" href="rolling.html">Rolling Origin</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Error Measures</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Accuracy Measures</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.point_measures.gmrae"><code class="docutils literal notranslate"><span class="pre">gmrae()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.point_measures.mae"><code class="docutils literal notranslate"><span class="pre">mae()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.point_measures.mape"><code class="docutils literal notranslate"><span class="pre">mape()</span></code></a></li>
@@ -110,9 +110,9 @@
   <ul class="wy-breadcrumbs">
       <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
           <li class="breadcrumb-item"><a href="index.html">API</a></li>
-      <li class="breadcrumb-item active">Error Measures</li>
+      <li class="breadcrumb-item active">Accuracy Measures</li>
       <li class="wy-breadcrumbs-aside">
-            <a href="../_sources/api/error_measures.rst.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/point_measures.rst.txt" rel="nofollow"> View page source</a>
       </li>
   </ul>
   <hr/>
@@ -121,30 +121,32 @@
            <div itemprop="articleBody">
              
   <section id="module-greybox.point_measures">
-<span id="error-measures"></span><h1>Error Measures<a class="headerlink" href="#module-greybox.point_measures" title="Link to this heading"></a></h1>
+<span id="accuracy-measures"></span><h1>Accuracy Measures<a class="headerlink" href="#module-greybox.point_measures" title="Link to this heading"></a></h1>
 <p>Statistical error measures for model evaluation.</p>
 <p>This module provides functions for calculating various statistical error measures
 for point and interval forecasts. The functions include:</p>
-<p>Error measures:
-- ME - Mean Error
-- MAE - Mean Absolute Error
-- MSE - Mean Squared Error
-- MRE - Mean Root Error (Kourentzes, 2014)
-- MIS - Mean Interval Score (Gneiting &amp; Raftery, 2007)
-- MPE - Mean Percentage Error
-- MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for critique)
-- MASE - Mean Absolute Scaled Error (Hyndman &amp; Koehler, 2006)
-- RMSSE - Root Mean Squared Scaled Error (used in M5 Competition)
-- SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias)
-- rMAE - Relative Mean Absolute Error (Davydenko &amp; Fildes, 2013)
-- rRMSE - Relative Root Mean Squared Error
-- rAME - Relative Absolute Mean Error
-- rMIS - Relative Mean Interval Score
-- sMSE - Scaled Mean Squared Error (Petropoulos &amp; Kourentzes, 2015)
-- sPIS - Scaled Periods-In-Stock (Wallstrom &amp; Segerstedt, 2010)
-- sCE - Scaled Cumulative Error
-- sMIS - Scaled Mean Interval Score
-- GMRAE - Geometric Mean Relative Absolute Error</p>
+<p>Error measures:</p>
+<ul class="simple">
+<li><p>ME - Mean Error</p></li>
+<li><p>MAE - Mean Absolute Error</p></li>
+<li><p>MSE - Mean Squared Error</p></li>
+<li><p>MRE - Mean Root Error (Kourentzes, 2014)</p></li>
+<li><p>MIS - Mean Interval Score (Gneiting &amp; Raftery, 2007)</p></li>
+<li><p>MPE - Mean Percentage Error</p></li>
+<li><p>MAPE - Mean Absolute Percentage Error (See Svetunkov, 2017 for critique)</p></li>
+<li><p>MASE - Mean Absolute Scaled Error (Hyndman &amp; Koehler, 2006)</p></li>
+<li><p>RMSSE - Root Mean Squared Scaled Error (used in M5 Competition)</p></li>
+<li><p>SAME - Scaled Absolute Mean Error (similar to MASE, but measures bias)</p></li>
+<li><p>rMAE - Relative Mean Absolute Error (Davydenko &amp; Fildes, 2013)</p></li>
+<li><p>rRMSE - Relative Root Mean Squared Error</p></li>
+<li><p>rAME - Relative Absolute Mean Error</p></li>
+<li><p>rMIS - Relative Mean Interval Score</p></li>
+<li><p>sMSE - Scaled Mean Squared Error (Petropoulos &amp; Kourentzes, 2015)</p></li>
+<li><p>sPIS - Scaled Periods-In-Stock (Wallstrom &amp; Segerstedt, 2010)</p></li>
+<li><p>sCE - Scaled Cumulative Error</p></li>
+<li><p>sMIS - Scaled Mean Interval Score</p></li>
+<li><p>GMRAE - Geometric Mean Relative Absolute Error</p></li>
+</ul>
 <p class="rubric">References</p>
 <ul class="simple">
 <li><p>Kourentzes N. (2014). The Bias Coefficient: a new metric for forecast bias.

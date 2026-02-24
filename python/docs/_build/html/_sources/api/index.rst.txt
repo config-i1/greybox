@@ -4,12 +4,13 @@ API
 
 .. toctree::
    :maxdepth: 2
+   :hidden:
 
    alm
    formula
    selection
    rolling
-   error_measures
+   point_measures
    association
    hm
    quantile_measures
@@ -23,9 +24,9 @@ Core Classes
 * :class:`greybox.ALM` - Augmented Linear Model estimator
 * :class:`greybox.formula` - Formula parsing function
 * :class:`greybox.expand_formula` - Formula expansion function
-* :class:`greybox.bc_transform` - Box-Cox transformation
-* :class:`greybox.bc_transform_inv` - Inverse Box-Cox transformation
-* :class:`greybox.mean_fast` - Trimmed/hubered mean
+* :func:`greybox.bc_transform` - Box-Cox transformation
+* :func:`greybox.bc_transform_inv` - Inverse Box-Cox transformation
+* :func:`greybox.mean_fast` - Trimmed/hubered mean
 
 Model Selection
 ---------------
