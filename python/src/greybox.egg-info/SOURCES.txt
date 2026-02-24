@@ -10,10 +10,10 @@ src/greybox/association.py
 src/greybox/cost_function.py
 src/greybox/data.py
 src/greybox/diagnostics.py
+src/greybox/error_measures.py
 src/greybox/fitters.py
 src/greybox/formula.py
 src/greybox/hm.py
-src/greybox/measures.py
 src/greybox/mtcars.csv
 src/greybox/pointlik.py
 src/greybox/predict.py

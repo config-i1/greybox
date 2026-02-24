@@ -1,6 +1,11 @@
 """Greybox - Toolbox for model building and forecasting."""
 
-__version__ = "1.0.1"
+from importlib.metadata import version, PackageNotFoundError
+
+try:
+    __version__ = version("greybox")
+except PackageNotFoundError:
+    __version__ = "unknown"
 
 from . import association
 from . import data

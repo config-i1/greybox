@@ -1405,8 +1405,8 @@ def CALM(
         # Bruteforce mode: generate all 2^n combinations
         all_combinations: list[list[str]] = [[]]  # type: ignore[no-redef]
         for r in range(1, n_vars + 1):
-            for combo in itertools.combinations(x_vars, r):  # type: ignore[assignment]
-                all_combinations.append(list(combo))
+            for comb in itertools.combinations(x_vars, r):
+                all_combinations.append(list(comb))
 
     n_combinations = len(all_combinations)
     n_params = n_vars + 1  # intercept + variables

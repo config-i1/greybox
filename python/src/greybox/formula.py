@@ -7,6 +7,7 @@ them to the model fit method.
 
 import inspect
 import re
+from typing import Any
 
 import numpy as np
 import pandas as pd
@@ -209,7 +210,12 @@ def _apply_transformation(var_name, data_dict, n_obs, caller_globals=None):
     )
 
 
-def formula(formula_str, data, return_type="both", as_dataframe=True):
+def formula(
+    formula_str: str,
+    data,
+    return_type: str = "both",
+    as_dataframe: bool = True,
+) -> Any:
     """Parse formula string and return design matrix and/or response.
 
     Parameters
@@ -487,7 +493,7 @@ def formula(formula_str, data, return_type="both", as_dataframe=True):
     return y, X
 
 
-def _parse_formula_terms(formula_str):
+def _parse_formula_terms(formula_str: str) -> list[str]:
     """Parse formula string into list of terms."""
     terms = []
 
