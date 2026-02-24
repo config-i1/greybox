@@ -947,7 +947,7 @@ def measures(
     Examples
     --------
     >>> import numpy as np
-    >>> from greybox.error_measures import measures
+    >>> from greybox.point_measures import measures
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1, 6.0, 7.1, 8.0, 9.2])
     >>> result = measures(actual[5:], forecast[5:], actual[:5], digits=4)

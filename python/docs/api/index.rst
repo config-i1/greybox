@@ -8,7 +8,7 @@ API
    alm
    formula
    selection
-   measures
+   error_measures
    association
    hm
    quantile_measures
@@ -35,11 +35,12 @@ Model Selection
 Accuracy Measures
 -----------------
 
-* :func:`greybox.measures.MAE` - Mean Absolute Error
-* :func:`greybox.measures.MSE` - Mean Squared Error
-* :func:`greybox.measures.RMSE` - Root Mean Squared Error
-* :func:`greybox.measures.MAPE` - Mean Absolute Percentage Error
-* :func:`greybox.measures.MASE` - Mean Absolute Scaled Error
+* :func:`greybox.point_measures.mae` - Mean Absolute Error
+* :func:`greybox.point_measures.mse` - Mean Squared Error
+* :func:`greybox.point_measures.rmse` - Root Mean Squared Error
+* :func:`greybox.point_measures.mape` - Mean Absolute Percentage Error
+* :func:`greybox.point_measures.mase` - Mean Absolute Scaled Error
+* :func:`greybox.measures` - Comprehensive error measures
 
 Association Measures
 --------------------
