@@ -6,6 +6,11 @@ Formula
 
 .. autofunction:: greybox.formula.expand_formula
 
+Backshift Operator
+------------------
+
+.. autofunction:: greybox.xreg.B
+
 Formula Syntax Reference
 ------------------------
 
@@ -45,6 +50,7 @@ Special Variables
 ~~~~~~~~~~~~~~~~~
 
 * ``trend`` - Linear time trend (1, 2, 3, ...)
+* ``B(x, k)`` - Lag (k>0) or lead (k<0) of variable x; used in ARDL models
 
 Examples
 ~~~~~~~~
@@ -68,3 +74,7 @@ Polynomial regression::
 Interactions::
 
     y, X = formula("y ~ x1 * x2", data)  # equivalent to x1 + x2 + x1:x2
+
+Distributed-lag ARDL model::
+
+    y, X = formula("y ~ x + B(x, 1) + B(x, 2)", data)

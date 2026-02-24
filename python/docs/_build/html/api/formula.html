@@ -51,6 +51,10 @@
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Formula</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.formula.formula"><code class="docutils literal notranslate"><span class="pre">formula()</span></code></a></li>
 <li class="toctree-l3"><a class="reference internal" href="#greybox.formula.expand_formula"><code class="docutils literal notranslate"><span class="pre">expand_formula()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#backshift-operator">Backshift Operator</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.xreg.B"><code class="docutils literal notranslate"><span class="pre">B()</span></code></a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="#formula-syntax-reference">Formula Syntax Reference</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="#basic-operators">Basic Operators</a></li>
 <li class="toctree-l4"><a class="reference internal" href="#transformations">Transformations</a></li>
@@ -189,6 +193,30 @@ and X is 2D array (or DataFrame) with intercept</p></li>
 </dl>
 </dd></dl>
 
+<section id="backshift-operator">
+<h2>Backshift Operator<a class="headerlink" href="#backshift-operator" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.B">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">B</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">k</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gaps</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Literal</span><span class="p"><span class="pre">[</span></span><span class="s"><span class="pre">'auto'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'NAs'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'zero'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'naive'</span></span><span class="p"><span class="pre">,</span></span><span class="w"> </span><span class="s"><span class="pre">'extrapolate'</span></span><span class="p"><span class="pre">]</span></span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'auto'</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">ndarray</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#B"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.B" title="Link to this definition"></a></dt>
+<dd><p>Backshift operator: lag (k&gt;0) or lead (k&lt;0) of x.</p>
+<p>Positive k creates lag-k (past values); negative k creates lead-abs(k)
+(future values); k=0 returns x unchanged. Gaps at boundaries are
+filled per the gaps strategy.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array-like</em><em> of </em><em>shape</em><em> (</em><em>n</em><em>,</em><em>)</em>)</p></li>
+<li><p><strong>k</strong> (<em>int</em>) – Lag order. Positive = lag (past values), negative = lead (future).</p></li>
+<li><p><strong>gaps</strong> (<em>str</em><em>, </em><em>default &quot;auto&quot;</em>) – Boundary fill strategy passed to xreg_expander.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Return type<span class="colon">:</span></dt>
+<dd class="field-even"><p>np.ndarray of shape (n,)</p>
+</dd>
+</dl>
+</dd></dl>
+
+</section>
 <section id="formula-syntax-reference">
 <h2>Formula Syntax Reference<a class="headerlink" href="#formula-syntax-reference" title="Link to this heading"></a></h2>
 <section id="basic-operators">
@@ -229,6 +257,7 @@ and X is 2D array (or DataFrame) with intercept</p></li>
 <h3>Special Variables<a class="headerlink" href="#special-variables" title="Link to this heading"></a></h3>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">trend</span></code> - Linear time trend (1, 2, 3, …)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">B(x,</span> <span class="pre">k)</span></code> - Lag (k&gt;0) or lead (k&lt;0) of variable x; used in ARDL models</p></li>
 </ul>
 </section>
 <section id="examples">
@@ -251,6 +280,10 @@ and X is 2D array (or DataFrame) with intercept</p></li>
 </div>
 <p>Interactions:</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x1 * x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>  <span class="c1"># equivalent to x1 + x2 + x1:x2</span>
+</pre></div>
+</div>
+<p>Distributed-lag ARDL model:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x + B(x, 1) + B(x, 2)&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 </pre></div>
 </div>
 </section>

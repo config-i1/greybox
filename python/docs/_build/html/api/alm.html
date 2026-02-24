@@ -97,6 +97,10 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#predictionresult">PredictionResult</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dynamic-multipliers">Dynamic Multipliers</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.xreg.multipliers"><code class="docutils literal notranslate"><span class="pre">multipliers()</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
@@ -951,6 +955,46 @@ columns (or ‘lower_0’, ‘upper_0’, etc. for multiple levels).</p>
 
 </dd></dl>
 
+</section>
+<section id="dynamic-multipliers">
+<h2>Dynamic Multipliers<a class="headerlink" href="#dynamic-multipliers" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.xreg.multipliers">
+<span class="sig-prename descclassname"><span class="pre">greybox.xreg.</span></span><span class="sig-name descname"><span class="pre">multipliers</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">model</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">parm</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">dict</span></span></span><a class="reference internal" href="../_modules/greybox/xreg.html#multipliers"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.xreg.multipliers" title="Link to this definition"></a></dt>
+<dd><p>Compute dynamic multipliers for an ARDL model.</p>
+<p>Combines distributed lag coefficients (B(parm, k) terms) with the
+ARI polynomial from the model to produce impulse-response multipliers
+over horizon h.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>model</strong> (<a class="reference internal" href="#greybox.alm.ALM" title="greybox.alm.ALM"><em>ALM</em></a>) – Fitted ALM model containing parm (and optionally B(parm, k) columns
+and/or ARIMA orders).</p></li>
+<li><p><strong>parm</strong> (<em>str</em>) – Variable name as it appears in the design matrix (column header).</p></li>
+<li><p><strong>h</strong> (<em>int</em><em>, </em><em>default 10</em>) – Forecast horizon.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>{“h1”: m1, “h2”: m2, …, “hh”: mh} of dynamic multipliers.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+<dt class="field-even">Raises<span class="colon">:</span></dt>
+<dd class="field-even"><p><strong>ValueError</strong> – If parm is not found in the model.</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALM</span><span class="p">,</span> <span class="n">formula</span><span class="p">,</span> <span class="n">multipliers</span>
+
+<span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x + B(x, 1) + B(x, 2)&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+<span class="n">model</span> <span class="o">=</span> <span class="n">ALM</span><span class="p">()</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">X</span><span class="p">)</span>
+<span class="n">m</span> <span class="o">=</span> <span class="n">multipliers</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">10</span><span class="p">)</span>
+<span class="c1"># m == {&quot;h1&quot;: ..., &quot;h2&quot;: ..., ..., &quot;h10&quot;: ...}</span>
+</pre></div>
+</div>
 </section>
 </section>
 
