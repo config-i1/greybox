@@ -1,0 +1,315 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Rolling Origin &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Error Measures" href="error_measures.html" />
+    <link rel="prev" title="Selection" href="selection.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Rolling Origin</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#greybox.rolling.rolling_origin"><code class="docutils literal notranslate"><span class="pre">rolling_origin()</span></code></a></li>
+<li class="toctree-l3"><a class="reference internal" href="#rollingoriginresult">RollingOriginResult</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="error_measures.html">Error Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="distributions.html">Distributions</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#core-classes">Core Classes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#model-selection">Model Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#rolling-origin">Rolling Origin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#accuracy-measures">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#association-measures">Association Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#half-moments">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#quantile-measures">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="index.html#variable-processing">Variable Processing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Rolling Origin</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/rolling.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="rolling-origin">
+<h1>Rolling Origin<a class="headerlink" href="#rolling-origin" title="Link to this heading"></a></h1>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.rolling.rolling_origin">
+<span class="sig-prename descclassname"><span class="pre">greybox.rolling.</span></span><span class="sig-name descname"><span class="pre">rolling_origin</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">10</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">step</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ci</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">co</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">call</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">silent</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">model_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">predict_fn</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Callable</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><span class="pre">RollingOriginResult</span></span></span><a class="reference internal" href="../_modules/greybox/rolling.html#rolling_origin"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.rolling.rolling_origin" title="Link to this definition"></a></dt>
+<dd><p>Rolling Origin Evaluation.</p>
+<p>Produces rolling origin forecasts using a single callable that accepts
+training data and horizon h. This is the standard approach for
+evaluating forecast accuracy on time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>np.ndarray</em>) – Time series data (1-D).</p></li>
+<li><p><strong>h</strong> (<em>int</em><em>, </em><em>default=10</em>) – Forecast horizon (number of steps ahead).</p></li>
+<li><p><strong>origins</strong> (<em>int</em><em>, </em><em>default=10</em>) – Number of rolling origins.</p></li>
+<li><p><strong>step</strong> (<em>int</em><em>, </em><em>default=1</em>) – Number of observations to advance between origins.</p></li>
+<li><p><strong>ci</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If False (default), expanding window — training set grows each
+origin. If True, sliding window — training set has constant size.</p></li>
+<li><p><strong>co</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If True (default), constant holdout: all origins forecast exactly
+h steps. If False, decreasing holdout: later origins may forecast
+fewer than h steps (when fewer observations remain).</p></li>
+<li><p><strong>call</strong> (<em>callable</em>) – <p><code class="docutils literal notranslate"><span class="pre">call(data,</span> <span class="pre">h,</span> <span class="pre">**optional)</span> <span class="pre">-&gt;</span> <span class="pre">forecasts</span></code></p>
+<p><code class="docutils literal notranslate"><span class="pre">data</span></code> is the training slice (np.ndarray), <code class="docutils literal notranslate"><span class="pre">h</span></code> is the horizon.
+The function may optionally accept keyword arguments <code class="docutils literal notranslate"><span class="pre">counti</span></code>,
+<code class="docutils literal notranslate"><span class="pre">counto</span></code>, and/or <code class="docutils literal notranslate"><span class="pre">countf</span></code> (index arrays into the original
+series) — they are injected automatically if present in the
+signature.</p>
+<p>Return value can be:</p>
+<ul>
+<li><p><code class="docutils literal notranslate"><span class="pre">np.ndarray</span></code> of length h → stored as <code class="docutils literal notranslate"><span class="pre">result.mean</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">dict</span></code> with string keys → one attribute per key</p></li>
+<li><p>object with <code class="docutils literal notranslate"><span class="pre">.mean</span></code> / <code class="docutils literal notranslate"><span class="pre">.lower</span></code> / <code class="docutils literal notranslate"><span class="pre">.upper</span></code> attributes</p></li>
+<li><p>3-tuple <code class="docutils literal notranslate"><span class="pre">(mean,</span> <span class="pre">lower,</span> <span class="pre">upper)</span></code></p></li>
+</ul>
+</p></li>
+<li><p><strong>silent</strong> (<em>bool</em><em>, </em><em>default=True</em>) – If False, print progress information per origin.</p></li>
+<li><p><strong>model_fn</strong> (<em>callable</em><em>, </em><em>deprecated</em>) – Old API: function <code class="docutils literal notranslate"><span class="pre">train_data</span> <span class="pre">-&gt;</span> <span class="pre">fitted_model</span></code>.</p></li>
+<li><p><strong>predict_fn</strong> (<em>callable</em><em>, </em><em>deprecated</em>) – Old API: function <code class="docutils literal notranslate"><span class="pre">(model,</span> <span class="pre">h)</span> <span class="pre">-&gt;</span> <span class="pre">forecasts</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">.actuals</span></code> — original data</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.holdout</span></code> — actual values, shape <code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">origins)</span></code>, NaN-padded</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.mean</span></code> — point forecasts, shape <code class="docutils literal notranslate"><span class="pre">(h,</span> <span class="pre">origins)</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.lower</span></code> / <code class="docutils literal notranslate"><span class="pre">.upper</span></code> — interval bounds (if returned by call)</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.origins</span></code> — number of origins evaluated</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">.h</span></code> — forecast horizon</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">._fields</span></code> — list of forecast field names</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>RollingOriginResult</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">rolling_origin</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">randn</span><span class="p">(</span><span class="mi">100</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">rolling_origin</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">h</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">origins</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span>
+<span class="gp">... </span>    <span class="n">call</span><span class="o">=</span><span class="k">lambda</span> <span class="n">data</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">data</span><span class="o">.</span><span class="n">mean</span><span class="p">()))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="go">Rolling origin with constant holdout was done.</span>
+<span class="go"> Forecast horizon: 5</span>
+<span class="go"> Number of origins: 10</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">mean</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(5, 10)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<section id="rollingoriginresult">
+<h2>RollingOriginResult<a class="headerlink" href="#rollingoriginresult" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.rolling.</span></span><span class="sig-name descname"><span class="pre">RollingOriginResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">actuals</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">holdout</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">origins</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">h</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fields</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/rolling.html#RollingOriginResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of rolling origin evaluation.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">actuals</span></span></dt>
+<dd><p>The original data.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">holdout</span></span></dt>
+<dd><p>Matrix of actual holdout values, shape (h, origins). NaN where
+h_actual &lt; h (co=False, near end of series).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">mean</span></span></dt>
+<dd><p>Point forecasts, shape (h, origins).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">lower</span></span></dt>
+<dd><p>Lower interval bounds, shape (h, origins). Present if call returned
+‘lower’ key/attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">upper</span></span></dt>
+<dd><p>Upper interval bounds, shape (h, origins). Present if call returned
+‘upper’ key/attribute.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>np.ndarray, optional</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">origins</span></span></dt>
+<dd><p>Number of rolling origins evaluated.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">h</span></span></dt>
+<dd><p>Forecast horizon.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py">
+<span class="sig-name descname"><span class="pre">_fields</span></span></dt>
+<dd><p>Names of all forecast fields stored (always includes ‘mean’).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[str]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="selection.html" class="btn btn-neutral float-left" title="Selection" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="error_measures.html" class="btn btn-neutral float-right" title="Error Measures" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

@@ -1,0 +1,450 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.rolling &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../distributions/index.html">Distributions Guide</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.rolling</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.rolling</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Rolling origin evaluation.</span>
+
+<span class="sd">This module provides functions for rolling origin cross-validation</span>
+<span class="sd">for time series models.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">inspect</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Callable</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Any</span>
+
+
+<div class="viewcode-block" id="RollingOriginResult">
+<a class="viewcode-back" href="../../api/rolling.html#greybox.rolling.RollingOriginResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">RollingOriginResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of rolling origin evaluation.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    actuals : np.ndarray</span>
+<span class="sd">        The original data.</span>
+<span class="sd">    holdout : np.ndarray</span>
+<span class="sd">        Matrix of actual holdout values, shape (h, origins). NaN where</span>
+<span class="sd">        h_actual &lt; h (co=False, near end of series).</span>
+<span class="sd">    mean : np.ndarray</span>
+<span class="sd">        Point forecasts, shape (h, origins).</span>
+<span class="sd">    lower : np.ndarray, optional</span>
+<span class="sd">        Lower interval bounds, shape (h, origins). Present if call returned</span>
+<span class="sd">        &#39;lower&#39; key/attribute.</span>
+<span class="sd">    upper : np.ndarray, optional</span>
+<span class="sd">        Upper interval bounds, shape (h, origins). Present if call returned</span>
+<span class="sd">        &#39;upper&#39; key/attribute.</span>
+<span class="sd">    origins : int</span>
+<span class="sd">        Number of rolling origins evaluated.</span>
+<span class="sd">    h : int</span>
+<span class="sd">        Forecast horizon.</span>
+<span class="sd">    _fields : list[str]</span>
+<span class="sd">        Names of all forecast fields stored (always includes &#39;mean&#39;).</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">actuals</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">holdout</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">origins</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">h</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span>
+        <span class="n">fields</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">actuals</span> <span class="o">=</span> <span class="n">actuals</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">holdout</span> <span class="o">=</span> <span class="n">holdout</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">origins</span> <span class="o">=</span> <span class="n">origins</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">h</span> <span class="o">=</span> <span class="n">h</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_fields</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">fields</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">arr</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="c1"># Detect constant vs decreasing holdout from NaN pattern</span>
+        <span class="n">has_nan</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">holdout</span><span class="p">))</span>
+        <span class="n">window_type</span> <span class="o">=</span> <span class="s2">&quot;decreasing&quot;</span> <span class="k">if</span> <span class="n">has_nan</span> <span class="k">else</span> <span class="s2">&quot;constant&quot;</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="sa">f</span><span class="s2">&quot;Rolling origin with </span><span class="si">{</span><span class="n">window_type</span><span class="si">}</span><span class="s2"> holdout was done.&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot; Forecast horizon: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">h</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot; Number of origins: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">origins</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">,</span>
+        <span class="p">]</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__str__</span><span class="p">()</span></div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_parse_call_result</span><span class="p">(</span><span class="n">result</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span> <span class="n">h_actual</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert a call() return value to {field: array} dict.</span>
+
+<span class="sd">    Supported return types:</span>
+<span class="sd">    - np.ndarray or list           → {&quot;mean&quot;: array}</span>
+<span class="sd">    - dict with string keys        → one entry per key</span>
+<span class="sd">    - object with .mean attr       → {&quot;mean&quot;: arr, &quot;lower&quot;: arr, ...}</span>
+<span class="sd">    - 3-tuple (mean, lower, upper) → {&quot;mean&quot;, &quot;lower&quot;, &quot;upper&quot;}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_to_arr</span><span class="p">(</span><span class="n">v</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">list</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">result</span><span class="p">)}</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">lower</span><span class="p">,</span> <span class="n">upper</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="p">{</span>
+                <span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">mean</span><span class="p">),</span>
+                <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">lower</span><span class="p">),</span>
+                <span class="s2">&quot;upper&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">upper</span><span class="p">),</span>
+            <span class="p">}</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">result</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">mean</span><span class="p">,</span> <span class="n">lower</span> <span class="o">=</span> <span class="n">result</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">mean</span><span class="p">),</span> <span class="s2">&quot;lower&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">lower</span><span class="p">)}</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="mi">0</span><span class="p">])}</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">result</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="c1"># Object with attributes</span>
+    <span class="n">out</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">attr</span> <span class="ow">in</span> <span class="p">(</span><span class="s2">&quot;mean&quot;</span><span class="p">,</span> <span class="s2">&quot;lower&quot;</span><span class="p">,</span> <span class="s2">&quot;upper&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">attr</span><span class="p">):</span>
+            <span class="n">val</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">val</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">out</span><span class="p">[</span><span class="n">attr</span><span class="p">]</span> <span class="o">=</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">val</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">out</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">out</span>
+
+    <span class="c1"># Fallback: try to coerce directly</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">_to_arr</span><span class="p">(</span><span class="n">result</span><span class="p">)}</span>
+
+
+<div class="viewcode-block" id="rolling_origin">
+<a class="viewcode-back" href="../../api/rolling.html#greybox.rolling.rolling_origin">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">rolling_origin</span><span class="p">(</span>
+    <span class="n">data</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+    <span class="n">h</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">origins</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+    <span class="n">step</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span>
+    <span class="n">ci</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span><span class="p">,</span>
+    <span class="n">co</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="n">call</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">silent</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">True</span><span class="p">,</span>
+    <span class="c1"># deprecated</span>
+    <span class="n">model_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="n">predict_fn</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="n">Callable</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">RollingOriginResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Rolling Origin Evaluation.</span>
+
+<span class="sd">    Produces rolling origin forecasts using a single callable that accepts</span>
+<span class="sd">    training data and horizon h. This is the standard approach for</span>
+<span class="sd">    evaluating forecast accuracy on time series.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : np.ndarray</span>
+<span class="sd">        Time series data (1-D).</span>
+<span class="sd">    h : int, default=10</span>
+<span class="sd">        Forecast horizon (number of steps ahead).</span>
+<span class="sd">    origins : int, default=10</span>
+<span class="sd">        Number of rolling origins.</span>
+<span class="sd">    step : int, default=1</span>
+<span class="sd">        Number of observations to advance between origins.</span>
+<span class="sd">    ci : bool, default=False</span>
+<span class="sd">        If False (default), expanding window — training set grows each</span>
+<span class="sd">        origin. If True, sliding window — training set has constant size.</span>
+<span class="sd">    co : bool, default=True</span>
+<span class="sd">        If True (default), constant holdout: all origins forecast exactly</span>
+<span class="sd">        h steps. If False, decreasing holdout: later origins may forecast</span>
+<span class="sd">        fewer than h steps (when fewer observations remain).</span>
+<span class="sd">    call : callable</span>
+<span class="sd">        ``call(data, h, **optional) -&gt; forecasts``</span>
+
+<span class="sd">        ``data`` is the training slice (np.ndarray), ``h`` is the horizon.</span>
+<span class="sd">        The function may optionally accept keyword arguments ``counti``,</span>
+<span class="sd">        ``counto``, and/or ``countf`` (index arrays into the original</span>
+<span class="sd">        series) — they are injected automatically if present in the</span>
+<span class="sd">        signature.</span>
+
+<span class="sd">        Return value can be:</span>
+
+<span class="sd">        - ``np.ndarray`` of length h → stored as ``result.mean``</span>
+<span class="sd">        - ``dict`` with string keys → one attribute per key</span>
+<span class="sd">        - object with ``.mean`` / ``.lower`` / ``.upper`` attributes</span>
+<span class="sd">        - 3-tuple ``(mean, lower, upper)``</span>
+
+<span class="sd">    silent : bool, default=True</span>
+<span class="sd">        If False, print progress information per origin.</span>
+<span class="sd">    model_fn : callable, deprecated</span>
+<span class="sd">        Old API: function ``train_data -&gt; fitted_model``.</span>
+<span class="sd">    predict_fn : callable, deprecated</span>
+<span class="sd">        Old API: function ``(model, h) -&gt; forecasts``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    RollingOriginResult</span>
+<span class="sd">        - ``.actuals`` — original data</span>
+<span class="sd">        - ``.holdout`` — actual values, shape ``(h, origins)``, NaN-padded</span>
+<span class="sd">        - ``.mean`` — point forecasts, shape ``(h, origins)``</span>
+<span class="sd">        - ``.lower`` / ``.upper`` — interval bounds (if returned by call)</span>
+<span class="sd">        - ``.origins`` — number of origins evaluated</span>
+<span class="sd">        - ``.h`` — forecast horizon</span>
+<span class="sd">        - ``._fields`` — list of forecast field names</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from greybox import rolling_origin</span>
+<span class="sd">    &gt;&gt;&gt; np.random.seed(42)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.cumsum(np.random.randn(100))</span>
+<span class="sd">    &gt;&gt;&gt; result = rolling_origin(y, h=5, origins=10,</span>
+<span class="sd">    ...     call=lambda data, h: np.full(h, data.mean()))</span>
+<span class="sd">    &gt;&gt;&gt; print(result)</span>
+<span class="sd">    Rolling origin with constant holdout was done.</span>
+<span class="sd">     Forecast horizon: 5</span>
+<span class="sd">     Number of origins: 10</span>
+<span class="sd">    &gt;&gt;&gt; result.mean.shape</span>
+<span class="sd">    (5, 10)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># --- backward compatibility ---</span>
+    <span class="k">if</span> <span class="n">call</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">predict_fn</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;model_fn and predict_fn are deprecated. &quot;</span>
+            <span class="s2">&quot;Use a single call=lambda data, h: ... instead.&quot;</span><span class="p">,</span>
+            <span class="ne">DeprecationWarning</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">model_fn</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">predict_fn</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Both model_fn and predict_fn must be provided together.&quot;</span><span class="p">)</span>
+        <span class="n">_mfn</span> <span class="o">=</span> <span class="n">model_fn</span>
+        <span class="n">_pfn</span> <span class="o">=</span> <span class="n">predict_fn</span>
+        <span class="n">call</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">data</span><span class="p">,</span> <span class="n">h</span><span class="p">:</span> <span class="n">_pfn</span><span class="p">(</span><span class="n">_mfn</span><span class="p">(</span><span class="n">data</span><span class="p">),</span> <span class="n">h</span><span class="p">)</span>  <span class="c1"># noqa: E731</span>
+
+    <span class="k">if</span> <span class="n">call</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;call must be provided. &quot;</span>
+            <span class="s2">&quot;Example: call=lambda data, h: np.full(h, data.mean())&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">data</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+
+    <span class="c1"># R formula: obsInSample = obs - (origins*step + (h-step)*co)</span>
+    <span class="n">obs_in_sample</span> <span class="o">=</span> <span class="n">n</span> <span class="o">-</span> <span class="p">(</span><span class="n">origins</span> <span class="o">*</span> <span class="n">step</span> <span class="o">+</span> <span class="p">(</span><span class="n">h</span> <span class="o">-</span> <span class="n">step</span><span class="p">)</span> <span class="o">*</span> <span class="nb">int</span><span class="p">(</span><span class="n">co</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">obs_in_sample</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;obs_in_sample=</span><span class="si">{</span><span class="n">obs_in_sample</span><span class="si">}</span><span class="s2"> &lt; 1. Reduce origins, h, or step (n=</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">).&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Inspect call signature for optional index kwargs</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="n">sig</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">call</span><span class="p">)</span>
+        <span class="n">_call_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sig</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+        <span class="n">_call_params</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+    <span class="n">_wants_counti</span> <span class="o">=</span> <span class="s2">&quot;counti&quot;</span> <span class="ow">in</span> <span class="n">_call_params</span>
+    <span class="n">_wants_counto</span> <span class="o">=</span> <span class="s2">&quot;counto&quot;</span> <span class="ow">in</span> <span class="n">_call_params</span>
+    <span class="n">_wants_countf</span> <span class="o">=</span> <span class="s2">&quot;countf&quot;</span> <span class="ow">in</span> <span class="n">_call_params</span>
+
+    <span class="c1"># Allocate output matrices (h, origins), NaN-filled</span>
+    <span class="n">holdout_mat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">origins</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="c1"># Forecast matrices allocated after first call to know fields</span>
+    <span class="n">fields_data</span><span class="p">:</span> <span class="n">Optional</span><span class="p">[</span><span class="nb">dict</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">n_done</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">origins</span><span class="p">):</span>
+        <span class="c1"># Effective horizon for this origin</span>
+        <span class="k">if</span> <span class="n">co</span><span class="p">:</span>
+            <span class="n">h_actual</span> <span class="o">=</span> <span class="n">h</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">h_actual</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">step</span> <span class="o">*</span> <span class="p">(</span><span class="n">origins</span> <span class="o">-</span> <span class="n">i</span><span class="p">))</span>
+
+        <span class="c1"># In-sample index range</span>
+        <span class="n">train_end</span> <span class="o">=</span> <span class="n">obs_in_sample</span> <span class="o">+</span> <span class="n">step</span> <span class="o">*</span> <span class="n">i</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">ci</span><span class="p">:</span>
+            <span class="c1"># expanding: [0, train_end)</span>
+            <span class="n">counti</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">train_end</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># sliding: constant window of size obs_in_sample</span>
+            <span class="n">counti</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">step</span> <span class="o">*</span> <span class="n">i</span><span class="p">,</span> <span class="n">train_end</span><span class="p">)</span>
+
+        <span class="c1"># Out-of-sample index range</span>
+        <span class="n">counto</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">train_end</span><span class="p">,</span> <span class="n">train_end</span> <span class="o">+</span> <span class="n">h_actual</span><span class="p">)</span>
+        <span class="n">countf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">counti</span><span class="p">,</span> <span class="n">counto</span><span class="p">])</span>
+
+        <span class="k">if</span> <span class="n">train_end</span> <span class="o">&gt;</span> <span class="n">n</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">counto</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">counto</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="n">n</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Origin </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">: out of bounds, stopping.&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="n">train_data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">counti</span><span class="p">]</span>
+
+        <span class="c1"># Build kwargs for call</span>
+        <span class="n">extra_kwargs</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">if</span> <span class="n">_wants_counti</span><span class="p">:</span>
+            <span class="n">extra_kwargs</span><span class="p">[</span><span class="s2">&quot;counti&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counti</span>
+        <span class="k">if</span> <span class="n">_wants_counto</span><span class="p">:</span>
+            <span class="n">extra_kwargs</span><span class="p">[</span><span class="s2">&quot;counto&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">counto</span>
+        <span class="k">if</span> <span class="n">_wants_countf</span><span class="p">:</span>
+            <span class="n">extra_kwargs</span><span class="p">[</span><span class="s2">&quot;countf&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">countf</span>
+
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">raw</span> <span class="o">=</span> <span class="n">call</span><span class="p">(</span><span class="n">train_data</span><span class="p">,</span> <span class="n">h_actual</span><span class="p">,</span> <span class="o">**</span><span class="n">extra_kwargs</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Origin </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">origins</span><span class="si">}</span><span class="s2"> failed: </span><span class="si">{</span><span class="n">e</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+            <span class="k">break</span>
+
+        <span class="n">parsed</span> <span class="o">=</span> <span class="n">_parse_call_result</span><span class="p">(</span><span class="n">raw</span><span class="p">,</span> <span class="n">h_actual</span><span class="p">)</span>
+
+        <span class="c1"># Ensure all arrays have length h_actual; pad to h with NaN</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">parsed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">h</span><span class="p">:</span>
+                <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">h</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+                <span class="n">padded</span><span class="p">[:</span> <span class="nb">len</span><span class="p">(</span><span class="n">arr</span><span class="p">)]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:</span><span class="n">h_actual</span><span class="p">]</span>
+                <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">padded</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">parsed</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span><span class="p">[:</span><span class="n">h</span><span class="p">]</span>
+
+        <span class="c1"># Initialise forecast matrices on first successful call</span>
+        <span class="k">if</span> <span class="n">fields_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">fields_data</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">origins</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">parsed</span><span class="p">}</span>
+
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">arr</span> <span class="ow">in</span> <span class="n">parsed</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fields_data</span><span class="p">:</span>
+                <span class="n">fields_data</span><span class="p">[</span><span class="n">key</span><span class="p">][:,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">arr</span>
+
+        <span class="c1"># Fill holdout</span>
+        <span class="n">actual_h</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">counto</span><span class="p">]</span>
+        <span class="n">holdout_mat</span><span class="p">[:</span><span class="n">h_actual</span><span class="p">,</span> <span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">actual_h</span>
+
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">silent</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Origin </span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">/</span><span class="si">{</span><span class="n">origins</span><span class="si">}</span><span class="s2">: &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;train=[</span><span class="si">{</span><span class="n">counti</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">counti</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">], &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;holdout=[</span><span class="si">{</span><span class="n">counto</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="si">}</span><span class="s2">:</span><span class="si">{</span><span class="n">counto</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">], &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;h_actual=</span><span class="si">{</span><span class="n">h_actual</span><span class="si">}</span><span class="s2">&quot;</span>
+            <span class="p">)</span>
+
+        <span class="n">n_done</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">if</span> <span class="n">fields_data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># No origins succeeded; return empty result with mean only</span>
+        <span class="n">fields_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;mean&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">((</span><span class="n">h</span><span class="p">,</span> <span class="n">origins</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)}</span>
+
+    <span class="k">return</span> <span class="n">RollingOriginResult</span><span class="p">(</span>
+        <span class="n">actuals</span><span class="o">=</span><span class="n">data</span><span class="p">,</span>
+        <span class="n">holdout</span><span class="o">=</span><span class="n">holdout_mat</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_done</span><span class="p">],</span>
+        <span class="n">origins</span><span class="o">=</span><span class="n">n_done</span><span class="p">,</span>
+        <span class="n">h</span><span class="o">=</span><span class="n">h</span><span class="p">,</span>
+        <span class="n">fields</span><span class="o">=</span><span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span><span class="p">[:,</span> <span class="p">:</span><span class="n">n_done</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">fields_data</span><span class="o">.</span><span class="n">items</span><span class="p">()},</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
