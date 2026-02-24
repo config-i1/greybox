@@ -8,16 +8,19 @@ import numpy as np
 from scipy import stats
 
 
-def dlnorm(q, meanlog=0, sdlog=1, log=False):
+def dlnorm(q, loc=0, scale=1, log=False):
     """Log-Normal distribution density.
+
+    ``loc`` is the mean of the underlying normal on the log scale (meanlog),
+    ``scale`` is the corresponding standard deviation (sdlog).
 
     Parameters
     ----------
     q : array_like
         Quantiles (must be positive).
-    meanlog : float
+    loc : float
         Mean of the underlying normal distribution (on log scale).
-    sdlog : float
+    scale : float
         Standard deviation of the underlying normal distribution.
     log : bool
         If True, return log-density.
@@ -28,20 +31,23 @@ def dlnorm(q, meanlog=0, sdlog=1, log=False):
         Density values.
     """
     if log:
-        return stats.lognorm.logpdf(q, s=sdlog, scale=np.exp(meanlog))
-    return stats.lognorm.pdf(q, s=sdlog, scale=np.exp(meanlog))
+        return stats.lognorm.logpdf(q, s=scale, scale=np.exp(loc))
+    return stats.lognorm.pdf(q, s=scale, scale=np.exp(loc))
 
 
-def plnorm(q, meanlog=0, sdlog=1):
+def plnorm(q, loc=0, scale=1):
     """Log-Normal distribution CDF.
+
+    ``loc`` is the mean of the underlying normal on the log scale (meanlog),
+    ``scale`` is the corresponding standard deviation (sdlog).
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    meanlog : float
+    loc : float
         Mean of the underlying normal distribution.
-    sdlog : float
+    scale : float
         Standard deviation of the underlying normal distribution.
 
     Returns
@@ -49,19 +55,22 @@ def plnorm(q, meanlog=0, sdlog=1):
     array
         CDF values.
     """
-    return stats.lognorm.cdf(q, s=sdlog, scale=np.exp(meanlog))
+    return stats.lognorm.cdf(q, s=scale, scale=np.exp(loc))
 
 
-def qlnorm(p, meanlog=0, sdlog=1):
+def qlnorm(p, loc=0, scale=1):
     """Log-Normal distribution quantile function.
+
+    ``loc`` is the mean of the underlying normal on the log scale (meanlog),
+    ``scale`` is the corresponding standard deviation (sdlog).
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    meanlog : float
+    loc : float
         Mean of the underlying normal distribution.
-    sdlog : float
+    scale : float
         Standard deviation of the underlying normal distribution.
 
     Returns
@@ -69,4 +78,4 @@ def qlnorm(p, meanlog=0, sdlog=1):
     array
         Quantile values.
     """
-    return stats.lognorm.ppf(p, s=sdlog, scale=np.exp(meanlog))
+    return stats.lognorm.ppf(p, s=scale, scale=np.exp(loc))

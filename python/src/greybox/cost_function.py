@@ -47,47 +47,47 @@ def _compute_log_lik_array(
         Log-likelihood values (array form, not summed).
     """
     if distribution == "dnorm":
-        return dist.dnorm(y_otU, mean=mu_otU, sd=scale, log=True)
+        return dist.dnorm(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dlaplace":
         return dist.dlaplace(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "ds":
-        return dist.ds(y_otU, mu=mu_otU, scale=scale, log=True)
+        return dist.ds(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dgnorm":
-        return dist.dgnorm(y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True)
+        return dist.dgnorm(y_otU, loc=mu_otU, scale=scale, shape=other_val, log=True)
     elif distribution == "dlogis":
         return dist.dlogis(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dt":
         return dist.dt(y_otU - mu_otU, df=scale, loc=0, scale=1, log=True)
     elif distribution == "dalaplace":
-        return dist.dalaplace(y_otU, mu=mu_otU, scale=scale, alpha=other_val, log=True)
+        return dist.dalaplace(y_otU, loc=mu_otU, scale=scale, alpha=other_val, log=True)
     elif distribution == "dlnorm":
-        return dist.dlnorm(y_otU, meanlog=mu_otU, sdlog=scale, log=True)
+        return dist.dlnorm(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dllaplace":
         return dist.dllaplace(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dls":
         return dist.dls(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dlgnorm":
-        return dist.dlgnorm(y_otU, mu=mu_otU, scale=scale, shape=other_val, log=True)
+        return dist.dlgnorm(y_otU, loc=mu_otU, scale=scale, shape=other_val, log=True)
     elif distribution == "dbcnorm":
         mask_nonzero = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
         result[mask_nonzero] = dist.dbcnorm(
             y_otU[mask_nonzero],
-            mu=mu_otU[mask_nonzero],
-            sigma=scale,
+            loc=mu_otU[mask_nonzero],
+            scale=scale,
             lambda_bc=lambda_bc,
             log=True,
         )
         return result
     elif distribution == "dfnorm":
-        return dist.dfnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
+        return dist.dfnorm(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "drectnorm":
-        return dist.drectnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
+        return dist.drectnorm(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dinvgauss":
         disp = scale / (mu_otU + 1e-300)
         lam = 1.0 / (disp + 1e-300)
         return dist.dinvgauss(
-            y_otU, mu=scale * np.ones_like(y_otU), scale=lam, log=True
+            y_otU, loc=scale * np.ones_like(y_otU), scale=lam, log=True
         )
     elif distribution == "dgamma":
         return dist.dgamma(y_otU, shape=1 / scale, scale=scale * mu_otU, log=True)
@@ -98,9 +98,9 @@ def _compute_log_lik_array(
     elif distribution == "dgeom":
         return dist.dgeom(y_otU, prob=1 / (mu_otU + 1), log=True)
     elif distribution == "dpois":
-        return dist.dpois(y_otU, mu=mu_otU, log=True)
+        return dist.dpois(y_otU, loc=mu_otU, log=True)
     elif distribution == "dnbinom":
-        return dist.dnbinom(y_otU, mu=mu_otU, size=scale, log=True)
+        return dist.dnbinom(y_otU, loc=mu_otU, size=scale, log=True)
     elif distribution == "dbinom":
         return dist.dbinom(
             y_otU.astype(int) - occurrence_model * 1,
@@ -109,23 +109,23 @@ def _compute_log_lik_array(
             log=True,
         )
     elif distribution == "dlogitnorm":
-        return dist.dlogitnorm(y_otU, mu=mu_otU, sigma=scale, log=True)
+        return dist.dlogitnorm(y_otU, loc=mu_otU, scale=scale, log=True)
     elif distribution == "dbeta":
         return dist.dbeta(y_otU, a=mu_otU, b=scale, log=True)
     elif distribution == "pnorm":
         ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
-        result[ot] = dist.pnorm(mu_otU[ot], mean=0, sd=1, log_p=True)
+        result[ot] = dist.pnorm(mu_otU[ot], loc=0, scale=1, log=True)
         result[~ot] = dist.pnorm(
-            mu_otU[~ot], mean=0, sd=1, log_p=True, lower_tail=False
+            mu_otU[~ot], loc=0, scale=1, log=True, lower_tail=False
         )
         return result
     elif distribution == "plogis":
         ot = y_otU != 0
         result = np.zeros_like(y_otU, dtype=float)
-        result[ot] = dist.plogis(mu_otU[ot], location=0, scale=1, log_p=True)
+        result[ot] = dist.plogis(mu_otU[ot], loc=0, scale=1, log=True)
         result[~ot] = dist.plogis(
-            mu_otU[~ot], location=0, scale=1, log_p=True, lower_tail=False
+            mu_otU[~ot], loc=0, scale=1, log=True, lower_tail=False
         )
         return result
     else:

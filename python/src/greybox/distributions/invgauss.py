@@ -7,14 +7,14 @@ generation for the Inverse Gaussian distribution.
 from scipy import stats
 
 
-def dinvgauss(q, mu=1, scale=1, log=False):
+def dinvgauss(q, loc=1, scale=1, log=False):
     """Inverse Gaussian distribution density.
 
     Parameters
     ----------
     q : array_like
         Quantiles (must be positive).
-    mu : float
+    loc : float
         Mean parameter.
     scale : float
         Scale parameter.
@@ -27,18 +27,18 @@ def dinvgauss(q, mu=1, scale=1, log=False):
         Density values.
     """
     if log:
-        return stats.invgauss.logpdf(q, mu=mu, scale=scale)
-    return stats.invgauss.pdf(q, mu=mu, scale=scale)
+        return stats.invgauss.logpdf(q, mu=loc, scale=scale)
+    return stats.invgauss.pdf(q, mu=loc, scale=scale)
 
 
-def pinvgauss(q, mu=1, scale=1):
+def pinvgauss(q, loc=1, scale=1):
     """Inverse Gaussian distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Mean parameter.
     scale : float
         Scale parameter.
@@ -48,17 +48,17 @@ def pinvgauss(q, mu=1, scale=1):
     array
         CDF values.
     """
-    return stats.invgauss.cdf(q, mu=mu, scale=scale)
+    return stats.invgauss.cdf(q, mu=loc, scale=scale)
 
 
-def qinvgauss(p, mu=1, scale=1):
+def qinvgauss(p, loc=1, scale=1):
     """Inverse Gaussian distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Mean parameter.
     scale : float
         Scale parameter.
@@ -68,17 +68,17 @@ def qinvgauss(p, mu=1, scale=1):
     array
         Quantile values.
     """
-    return stats.invgauss.ppf(p, mu=mu, scale=scale)
+    return stats.invgauss.ppf(p, mu=loc, scale=scale)
 
 
-def rinvgauss(n, mu=1, scale=1):
+def rinvgauss(n, loc=1, scale=1):
     """Inverse Gaussian distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Mean parameter.
     scale : float
         Scale parameter.
@@ -88,4 +88,4 @@ def rinvgauss(n, mu=1, scale=1):
     array
         Random values.
     """
-    return stats.invgauss.rvs(mu=mu, scale=scale, size=n)
+    return stats.invgauss.rvs(mu=loc, scale=scale, size=n)

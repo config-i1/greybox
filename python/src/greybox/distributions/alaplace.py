@@ -7,16 +7,16 @@ generation for the Asymmetric Laplace distribution.
 import numpy as np
 
 
-def dalaplace(q, mu=0, scale=1, alpha=0.5, log=False):
+def dalaplace(q, loc=0, scale=1, alpha=0.5, log=False):
     """Asymmetric Laplace distribution density.
 
-    f(x) = alpha * (1-alpha) / scale * exp(-(x-mu)/scale * (alpha - I(x<=mu)))
+    f(x) = alpha * (1-alpha) / scale * exp(-(x-loc)/scale * (alpha - I(x<=loc)))
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -31,28 +31,28 @@ def dalaplace(q, mu=0, scale=1, alpha=0.5, log=False):
         Density values.
     """
     q = np.asarray(q)
-    indicator = (q <= mu).astype(float)
+    indicator = (q <= loc).astype(float)
     if log:
         return (
             np.log(alpha)
             + np.log(1 - alpha)
             - np.log(scale)
-            - (q - mu) / scale * (alpha - indicator)
+            - (q - loc) / scale * (alpha - indicator)
         )
     density = (
-        alpha * (1 - alpha) / scale * np.exp(-(q - mu) / scale * (alpha - indicator))
+        alpha * (1 - alpha) / scale * np.exp(-(q - loc) / scale * (alpha - indicator))
     )
     return density
 
 
-def palaplace(q, mu=0, scale=1, alpha=0.5):
+def palaplace(q, loc=0, scale=1, alpha=0.5):
     """Asymmetric Laplace distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -65,22 +65,22 @@ def palaplace(q, mu=0, scale=1, alpha=0.5):
         CDF values.
     """
     q = np.asarray(q)
-    indicator = (q <= mu).astype(float)
+    indicator = (q <= loc).astype(float)
     return (
         1
         - indicator
-        - (1 - indicator - alpha) * np.exp((indicator - alpha) / scale * (q - mu))
+        - (1 - indicator - alpha) * np.exp((indicator - alpha) / scale * (q - loc))
     )
 
 
-def qalaplace(p, mu=0, scale=1, alpha=0.5):
+def qalaplace(p, loc=0, scale=1, alpha=0.5):
     """Asymmetric Laplace distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -105,21 +105,21 @@ def qalaplace(p, mu=0, scale=1, alpha=0.5):
     if np.any(mask_mid):
         p_mid = p[mask_mid]
         indicator = (p_mid <= alpha).astype(float)
-        result[mask_mid] = mu + scale / (indicator - alpha) * np.log(
+        result[mask_mid] = loc + scale / (indicator - alpha) * np.log(
             (1 - indicator - p_mid) / (1 - indicator - alpha)
         )
 
     return result
 
 
-def ralaplace(n, mu=0, scale=1, alpha=0.5):
+def ralaplace(n, loc=0, scale=1, alpha=0.5):
     """Asymmetric Laplace distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -131,4 +131,4 @@ def ralaplace(n, mu=0, scale=1, alpha=0.5):
     array
         Random values.
     """
-    return qalaplace(np.random.uniform(0, 1, n), mu, scale, alpha)
+    return qalaplace(np.random.uniform(0, 1, n), loc, scale, alpha)

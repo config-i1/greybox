@@ -7,14 +7,14 @@ generation for the Poisson distribution.
 from scipy import stats
 
 
-def dpois(q, mu, log=False):
+def dpois(q, loc, log=False):
     """Poisson distribution probability mass function.
 
     Parameters
     ----------
     q : array_like
         Quantiles (non-negative integers).
-    mu : float
+    loc : float
         Mean parameter (lambda).
     log : bool
         If True, return log-probability.
@@ -25,18 +25,18 @@ def dpois(q, mu, log=False):
         Probability mass values.
     """
     if log:
-        return stats.poisson.logpmf(q, mu=mu)
-    return stats.poisson.pmf(q, mu=mu)
+        return stats.poisson.logpmf(q, mu=loc)
+    return stats.poisson.pmf(q, mu=loc)
 
 
-def ppois(q, mu):
+def ppois(q, loc):
     """Poisson distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Mean parameter.
 
     Returns
@@ -44,17 +44,17 @@ def ppois(q, mu):
     array
         CDF values.
     """
-    return stats.poisson.cdf(q, mu=mu)
+    return stats.poisson.cdf(q, mu=loc)
 
 
-def qpois(p, mu):
+def qpois(p, loc):
     """Poisson distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Mean parameter.
 
     Returns
@@ -62,17 +62,17 @@ def qpois(p, mu):
     array
         Quantile values.
     """
-    return stats.poisson.ppf(p, mu=mu)
+    return stats.poisson.ppf(p, mu=loc)
 
 
-def rpois(n, mu):
+def rpois(n, loc):
     """Poisson distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Mean parameter.
 
     Returns
@@ -80,4 +80,4 @@ def rpois(n, mu):
     array
         Random values.
     """
-    return stats.poisson.rvs(mu=mu, size=n)
+    return stats.poisson.rvs(mu=loc, size=n)

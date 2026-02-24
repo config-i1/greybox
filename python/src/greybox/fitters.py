@@ -192,12 +192,12 @@ def extractor_fitted(
     """
     if distribution == "dfnorm":
         return np.sqrt(2 / np.pi) * scale * np.exp(-(mu**2) / (2 * scale**2)) + mu * (
-            1 - 2 * dist.pnorm(-mu / scale, mean=0, sd=1)
+            1 - 2 * dist.pnorm(-mu / scale, loc=0, scale=1)
         )
 
     elif distribution == "drectnorm":
-        return mu * (1 - dist.pnorm(0, mean=mu, sd=scale)) + scale * dist.dnorm(
-            0, mean=mu, sd=scale
+        return mu * (1 - dist.pnorm(0, loc=mu, scale=scale)) + scale * dist.dnorm(
+            0, loc=mu, scale=scale
         )
 
     elif distribution in (
@@ -236,10 +236,10 @@ def extractor_fitted(
         return mu / (mu + scale)
 
     elif distribution == "pnorm":
-        return dist.pnorm(mu, mean=0, sd=1)
+        return dist.pnorm(mu, loc=0, scale=1)
 
     elif distribution == "plogis":
-        return dist.plogis(mu, location=0, scale=1)
+        return dist.plogis(mu, loc=0, scale=1)
 
     else:
         return mu

@@ -10,7 +10,6 @@ Welcome to greybox's documentation!
    installation
    quickstart
    api/index
-   distributions/index
 
 .. toctree::
    :maxdepth: 1

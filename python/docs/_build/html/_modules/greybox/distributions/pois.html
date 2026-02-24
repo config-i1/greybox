@@ -44,7 +44,6 @@
 <li class="toctree-l1"><a class="reference internal" href="../../../installation.html">Installation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../quickstart.html">Quickstart</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../../../api/index.html">API</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../../../distributions/index.html">Distributions Guide</a></li>
 </ul>
 <p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
 <ul>
@@ -88,14 +87,14 @@
 
 <div class="viewcode-block" id="dpois">
 <a class="viewcode-back" href="../../../api/distributions/pois.html#greybox.distributions.dpois">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">dpois</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">dpois</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">log</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poisson distribution probability mass function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    q : array_like</span>
 <span class="sd">        Quantiles (non-negative integers).</span>
-<span class="sd">    mu : float</span>
+<span class="sd">    loc : float</span>
 <span class="sd">        Mean parameter (lambda).</span>
 <span class="sd">    log : bool</span>
 <span class="sd">        If True, return log-probability.</span>
@@ -106,21 +105,21 @@
 <span class="sd">        Probability mass values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">log</span><span class="p">:</span>
-        <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">logpmf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">logpmf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">pmf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="ppois">
 <a class="viewcode-back" href="../../../api/distributions/pois.html#greybox.distributions.ppois">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">ppois</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">ppois</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poisson distribution CDF.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    q : array_like</span>
 <span class="sd">        Quantiles.</span>
-<span class="sd">    mu : float</span>
+<span class="sd">    loc : float</span>
 <span class="sd">        Mean parameter.</span>
 
 <span class="sd">    Returns</span>
@@ -128,20 +127,20 @@
 <span class="sd">    array</span>
 <span class="sd">        CDF values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="qpois">
 <a class="viewcode-back" href="../../../api/distributions/pois.html#greybox.distributions.qpois">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">qpois</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">qpois</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poisson distribution quantile function.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    p : array_like</span>
 <span class="sd">        Probabilities.</span>
-<span class="sd">    mu : float</span>
+<span class="sd">    loc : float</span>
 <span class="sd">        Mean parameter.</span>
 
 <span class="sd">    Returns</span>
@@ -149,20 +148,20 @@
 <span class="sd">    array</span>
 <span class="sd">        Quantile values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">mu</span><span class="o">=</span><span class="n">loc</span><span class="p">)</span></div>
 
 
 
 <div class="viewcode-block" id="rpois">
 <a class="viewcode-back" href="../../../api/distributions/pois.html#greybox.distributions.rpois">[docs]</a>
-<span class="k">def</span><span class="w"> </span><span class="nf">rpois</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">mu</span><span class="p">):</span>
+<span class="k">def</span><span class="w"> </span><span class="nf">rpois</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">loc</span><span class="p">):</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Poisson distribution random number generation.</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
 <span class="sd">    n : int</span>
 <span class="sd">        Number of observations.</span>
-<span class="sd">    mu : float</span>
+<span class="sd">    loc : float</span>
 <span class="sd">        Mean parameter.</span>
 
 <span class="sd">    Returns</span>
@@ -170,7 +169,7 @@
 <span class="sd">    array</span>
 <span class="sd">        Random values.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="n">mu</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">poisson</span><span class="o">.</span><span class="n">rvs</span><span class="p">(</span><span class="n">mu</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">size</span><span class="o">=</span><span class="n">n</span><span class="p">)</span></div>
 
 </pre></div>
 

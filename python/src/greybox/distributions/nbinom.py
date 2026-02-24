@@ -7,14 +7,14 @@ generation for the Negative Binomial distribution.
 from scipy import stats
 
 
-def dnbinom(q, mu=1, size=1, log=False):
+def dnbinom(q, loc=1, size=1, log=False):
     """Negative Binomial distribution probability mass function.
 
     Parameters
     ----------
     q : array_like
         Quantiles (non-negative integers).
-    mu : float
+    loc : float
         Mean parameter.
     size : float
         Dispersion parameter (number of successes).
@@ -27,18 +27,18 @@ def dnbinom(q, mu=1, size=1, log=False):
         Probability mass values.
     """
     if log:
-        return stats.nbinom.logpmf(q, n=size, p=size / (size + mu))
-    return stats.nbinom.pmf(q, n=size, p=size / (size + mu))
+        return stats.nbinom.logpmf(q, n=size, p=size / (size + loc))
+    return stats.nbinom.pmf(q, n=size, p=size / (size + loc))
 
 
-def pnbinom(q, mu=1, size=1):
+def pnbinom(q, loc=1, size=1):
     """Negative Binomial distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Mean parameter.
     size : float
         Dispersion parameter.
@@ -48,17 +48,17 @@ def pnbinom(q, mu=1, size=1):
     array
         CDF values.
     """
-    return stats.nbinom.cdf(q, n=size, p=size / (size + mu))
+    return stats.nbinom.cdf(q, n=size, p=size / (size + loc))
 
 
-def qnbinom(p, mu=1, size=1):
+def qnbinom(p, loc=1, size=1):
     """Negative Binomial distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Mean parameter.
     size : float
         Dispersion parameter.
@@ -68,17 +68,17 @@ def qnbinom(p, mu=1, size=1):
     array
         Quantile values.
     """
-    return stats.nbinom.ppf(p, n=size, p=size / (size + mu))
+    return stats.nbinom.ppf(p, n=size, p=size / (size + loc))
 
 
-def rnbinom(n, mu=1, size=1):
+def rnbinom(n, loc=1, size=1):
     """Negative Binomial distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Mean parameter.
     size : float
         Dispersion parameter.
@@ -88,4 +88,4 @@ def rnbinom(n, mu=1, size=1):
     array
         Random values.
     """
-    return stats.nbinom.rvs(n=size, p=size / (size + mu), size=n)
+    return stats.nbinom.rvs(n=size, p=size / (size + loc), size=n)

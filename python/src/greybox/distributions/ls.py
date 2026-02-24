@@ -33,7 +33,7 @@ def dls(q, loc=0, scale=1, log=False):
     """
     q = np.asarray(q)
     log_q = np.log(q)
-    density = ds(log_q, mu=loc, scale=scale) / q
+    density = ds(log_q, loc=loc, scale=scale) / q
     density = np.maximum(density, 1e-300)
     if log:
         return np.log(density)
@@ -61,4 +61,4 @@ def qls(p, loc=0, scale=1):
     """
     from .s import qs
 
-    return np.exp(qs(p, mu=loc, scale=scale))
+    return np.exp(qs(p, loc=loc, scale=scale))

@@ -21,12 +21,11 @@ Common Parameters
 
 Most distribution functions share common parameters:
 
-* ``q`` or ``x`` : Value(s) at which to evaluate the function
-* ``loc`` or ``mu`` : Location parameter (often the mean)
-* ``scale`` : Scale parameter (often the standard deviation)
-* ``shape`` : Shape parameter(s) specific to the distribution
-* ``log`` / ``log_p`` : If True, return the log of the probability
-* ``lower_tail`` : If True (default), probabilities are P[X <= x]
+* ``loc`` : Location parameter (often the mean). For the normal distribution,
+  ``loc`` = μ (mean) and ``scale`` = σ (standard deviation).
+* ``scale`` : Scale parameter
+* ``log`` : If True, return the log of the probability
+* ``lower_tail`` : If True (default), probabilities are P[X ≤ x]
 
 Continuous Univariate Distributions
 -----------------------------------
@@ -34,20 +33,23 @@ Continuous Univariate Distributions
 Normal (Gaussian)
 ~~~~~~~~~~~~~~~~~
 
-.. py:function:: dnorm(q, mean=0, sd=1, log=False)
+.. py:function:: dnorm(q, loc=0.0, scale=1.0, log=False)
 
    Normal (Gaussian) distribution density.
 
+   For the normal distribution, ``loc`` is the mean (μ) and ``scale`` is the
+   standard deviation (σ).
+
    :param q: Value(s) at which to evaluate
-   :param mean: Mean (location parameter)
-   :param sd: Standard deviation (scale parameter)
+   :param loc: Location parameter (mean, μ)
+   :param scale: Scale parameter (standard deviation, σ)
    :param log: If True, return log density
    :return: Density at q
 
    **Example**::
 
       from greybox import dnorm
-      dnorm(0, mean=0, sd=1)  # ~0.3989
+      dnorm(0, loc=0, scale=1)  # ~0.3989
 
 Laplace
 ~~~~~~~
@@ -65,12 +67,12 @@ Laplace
 S Distribution
 ~~~~~~~~~~~~~~
 
-.. py:function:: ds(q, mu=0, scale=1, log=False)
+.. py:function:: ds(q, loc=0, scale=1, log=False)
 
    S-distribution density - a heavy-tailed distribution.
 
    :param q: Value(s) at which to evaluate
-   :param mu: Location parameter
+   :param loc: Location parameter
    :param scale: Scale parameter
    :param log: If True, return log density
    :return: Density at q
@@ -78,12 +80,12 @@ S Distribution
 Generalized Normal
 ~~~~~~~~~~~~~~~~~~
 
-.. py:function:: dgnorm(q, mu=0, scale=1, shape=1, log=False)
+.. py:function:: dgnorm(q, loc=0, scale=1, shape=1, log=False)
 
    Generalized Normal distribution density.
 
    :param q: Value(s) at which to evaluate
-   :param mu: Location parameter
+   :param loc: Location parameter
    :param scale: Scale parameter
    :param shape: Shape parameter (controls tail weight)
                  - shape=1: Laplace
@@ -97,9 +99,9 @@ Generalized Normal
 
       from greybox import dgnorm
       # Normal-like
-      dgnorm(0, mu=0, scale=1, shape=2)
+      dgnorm(0, loc=0, scale=1, shape=2)
       # Heavy-tailed
-      dgnorm(5, mu=0, scale=1, shape=1)
+      dgnorm(5, loc=0, scale=1, shape=1)
 
 Logistic
 ~~~~~~~~
@@ -131,12 +133,12 @@ Student's t
 Asymmetric Laplace
 ~~~~~~~~~~~~~~~~~~
 
-.. py:function:: dalaplace(q, mu=0, scale=1, alpha=0.5, log=False)
+.. py:function:: dalaplace(q, loc=0, scale=1, alpha=0.5, log=False)
 
    Asymmetric Laplace distribution density for quantile regression.
 
    :param q: Value(s) at which to evaluate
-   :param mu: Location parameter
+   :param loc: Location parameter
    :param scale: Scale parameter
    :param alpha: Asymmetry parameter (0 < alpha < 1)
                  - alpha < 0.5: Right-skewed
@@ -145,20 +147,23 @@ Asymmetric Laplace
    :return: Density at q
 
 Log-Transformed Distributions
------------------------------
+------------------------------
 
 These distributions model the log of the response variable.
 
 Log-Normal
 ~~~~~~~~~~
 
-.. py:function:: dlnorm(q, meanlog=0, sdlog=1, log=False)
+.. py:function:: dlnorm(q, loc=0, scale=1, log=False)
 
    Log-Normal distribution density.
 
+   ``loc`` is the mean of the underlying normal on the log scale (meanlog),
+   ``scale`` is the corresponding standard deviation (sdlog).
+
    :param q: Value(s) - must be positive
-   :param meanlog: Mean of the underlying normal distribution
-   :param sdlog: Standard deviation of the underlying normal distribution
+   :param loc: Mean of the underlying normal distribution (on log scale)
+   :param scale: Standard deviation of the underlying normal distribution
    :param log: If True, return log density
    :return: Density at q
 
@@ -193,12 +198,12 @@ Log-S
 Log-Generalized Normal
 ~~~~~~~~~~~~~~~~~~~~~~
 
-.. py:function:: dlgnorm(q, mu=0, scale=1, shape=2, log=False)
+.. py:function:: dlgnorm(q, loc=0, scale=1, shape=2, log=False)
 
    Log-Generalized Normal distribution density.
 
    :param q: Value(s) - must be positive
-   :param mu: Location parameter (of log values)
+   :param loc: Location parameter (of log values)
    :param scale: Scale parameter
    :param shape: Shape parameter
    :param log: If True, return log density
@@ -207,13 +212,13 @@ Log-Generalized Normal
 Box-Cox Normal
 ~~~~~~~~~~~~~~
 
-.. py:function:: dbcnorm(q, mu=0, sigma=1, lambda_bc=0, log=False)
+.. py:function:: dbcnorm(q, loc=0, scale=1, lambda_bc=0, log=False)
 
    Box-Cox Normal distribution density.
 
    :param q: Value(s) - must be positive
-   :param mu: Location parameter
-   :param sigma: Scale parameter
+   :param loc: Location parameter
+   :param scale: Scale parameter
    :param lambda_bc: Box-Cox transformation parameter
    :param log: If True, return log density
    :return: Density at q
@@ -226,26 +231,26 @@ These distributions model positive-valued data with a point mass at zero.
 Folded Normal
 ~~~~~~~~~~~~~~
 
-.. py:function:: dfnorm(q, mu=0, sigma=1, log=False)
+.. py:function:: dfnorm(q, loc=0, scale=1, log=False)
 
    Folded Normal distribution density.
 
    :param q: Value(s) - must be non-negative
-   :param mu: Mean of underlying normal
-   :param sigma: Standard deviation of underlying normal
+   :param loc: Location parameter of underlying normal
+   :param scale: Scale parameter of underlying normal
    :param log: If True, return log density
    :return: Density at q
 
 Rectified Normal
 ~~~~~~~~~~~~~~~~
 
-.. py:function:: drectnorm(q, mu=0, sigma=1, log=False)
+.. py:function:: drectnorm(q, loc=0, scale=1, log=False)
 
    Rectified Normal distribution density.
 
    :param q: Value(s) - must be non-negative
-   :param mu: Mean of underlying normal
-   :param sigma: Standard deviation of underlying normal
+   :param loc: Location parameter of underlying normal
+   :param scale: Scale parameter of underlying normal
    :param log: If True, return log density
    :return: Density at q
 
@@ -255,12 +260,12 @@ Distributions for Positive Values
 Inverse Gaussian
 ~~~~~~~~~~~~~~~~
 
-.. py:function:: dinvgauss(q, mu=1, scale=1, log=False)
+.. py:function:: dinvgauss(q, loc=1, scale=1, log=False)
 
    Inverse Gaussian distribution density.
 
    :param q: Value(s) - must be positive
-   :param mu: Mean parameter
+   :param loc: Mean parameter
    :param scale: Scale parameter
    :param log: If True, return log density
    :return: Density at q
@@ -309,24 +314,24 @@ Count Distributions
 Poisson
 ~~~~~~~
 
-.. py:function:: dpois(q, mu, log=False)
+.. py:function:: dpois(q, loc, log=False)
 
    Poisson distribution probability mass function.
 
    :param q: Value(s) - must be non-negative integers
-   :param mu: Mean/lambda parameter
+   :param loc: Mean/lambda parameter
    :param log: If True, return log probability
    :return: Probability mass at q
 
 Negative Binomial
 ~~~~~~~~~~~~~~~~~
 
-.. py:function:: dnbinom(q, mu=1, size=1, log=False)
+.. py:function:: dnbinom(q, loc=1, size=1, log=False)
 
    Negative Binomial distribution probability mass function.
 
    :param q: Value(s) - must be non-negative integers
-   :param mu: Mean parameter
+   :param loc: Mean parameter
    :param size: Dispersion parameter
    :param log: If True, return log probability
    :return: Probability mass at q
@@ -343,9 +348,6 @@ Geometric
    :param log: If True, return log probability
    :return: Probability mass at q
 
-Binary/Bounded Distributions
------------------------------
-
 Binomial
 ~~~~~~~~
 
@@ -358,6 +360,9 @@ Binomial
    :param prob: Probability of success
    :param log: If True, return log probability
    :return: Probability mass at q
+
+Binary/Bounded Distributions
+-----------------------------
 
 Beta
 ~~~~
@@ -375,13 +380,13 @@ Beta
 Logit-Normal
 ~~~~~~~~~~~~
 
-.. py:function:: dlogitnorm(q, mu=0, sigma=1, log=False)
+.. py:function:: dlogitnorm(q, loc=0, scale=1, log=False)
 
    Logit-Normal distribution density.
 
    :param q: Value(s) - must be in (0, 1)
-   :param mu: Mean of underlying normal (logit scale)
-   :param sigma: Standard deviation (logit scale)
+   :param loc: Mean of underlying normal (logit scale)
+   :param scale: Standard deviation (logit scale)
    :param log: If True, return log density
    :return: Density at q
 
@@ -393,16 +398,30 @@ These distributions use the CDF in the likelihood.
 Logistic CDF
 ~~~~~~~~~~~~
 
-.. py:function:: plogis(q, location=0, scale=1, log_p=False, lower_tail=True)
+.. py:function:: plogis(q, loc=0, scale=1, log=False, lower_tail=True)
 
    Logistic cumulative distribution function.
+
+   :param q: Value(s) at which to evaluate
+   :param loc: Location parameter
+   :param scale: Scale parameter
+   :param log: If True, return log probability
+   :param lower_tail: If True, return P[X ≤ q]
+   :return: CDF value at q
 
 Probit (Normal CDF)
 ~~~~~~~~~~~~~~~~~~~~
 
-.. py:function:: pnorm(q, loc=0, scale=1, log_p=False, lower_tail=True)
+.. py:function:: pnorm(q, loc=0, scale=1, log=False, lower_tail=True)
 
    Normal cumulative distribution function.
+
+   :param q: Value(s) at which to evaluate
+   :param loc: Location parameter (mean)
+   :param scale: Scale parameter (standard deviation)
+   :param log: If True, return log probability
+   :param lower_tail: If True, return P[X ≤ q]
+   :return: CDF value at q
 
 Summary
 -------
@@ -420,6 +439,6 @@ The choice of distribution depends on the nature of your data:
 * **Continuous, symmetric**: Normal, Laplace, Logistic, Student's t
 * **Heavy tails**: Laplace, S, Generalized Normal, Student's t
 * **Positive, right-skewed**: Log-Normal, Gamma, Inverse Gaussian
-* **Count data**: Poisson, Negative Binomial, Geometric
-* **Proportions**: Beta, Logit-Normal, Binomial
+* **Count data**: Poisson, Negative Binomial, Geometric, Binomial
+* **Proportions**: Beta, Logit-Normal
 * **Zero-inflated**: Folded Normal, Rectified Normal

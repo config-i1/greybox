@@ -118,7 +118,7 @@ class TestSvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale = 1.0, 1.0
 
-        py_result = ds(q, mu=mu, scale=scale)
+        py_result = ds(q, loc=mu, scale=scale)
         r_result = call_r_func("ds", q, mu, scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -128,7 +128,7 @@ class TestSvsR:
         q = np.array([0.5, 1.0, 1.5])
         mu, scale = 1.0, 1.0
 
-        py_result = ds(q, mu=mu, scale=scale, log=True)
+        py_result = ds(q, loc=mu, scale=scale, log=True)
         r_result = call_r_func("ds", q, mu, scale, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -138,7 +138,7 @@ class TestSvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale = 1.0, 1.0
 
-        py_result = ps(q, mu=mu, scale=scale)
+        py_result = ps(q, loc=mu, scale=scale)
         r_result = call_r_func("ps", q, mu, scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -148,7 +148,7 @@ class TestSvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, scale = 1.0, 1.0
 
-        py_result = qs(p, mu=mu, scale=scale)
+        py_result = qs(p, loc=mu, scale=scale)
         r_result = call_r_func("qs", p, mu, scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -162,7 +162,7 @@ class TestGnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale, shape = 0.0, 1.0, 2.0
 
-        py_result = dgnorm(q, mu=mu, scale=scale, shape=shape)
+        py_result = dgnorm(q, loc=mu, scale=scale, shape=shape)
         r_result = call_r_func("dgnorm", q, mu, scale, shape)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -172,7 +172,7 @@ class TestGnormvsR:
         q = np.array([0.5, 1.0, 1.5])
         mu, scale, shape = 0.0, 1.0, 2.0
 
-        py_result = dgnorm(q, mu=mu, scale=scale, shape=shape, log=True)
+        py_result = dgnorm(q, loc=mu, scale=scale, shape=shape, log=True)
         r_result = call_r_func("dgnorm", q, mu, scale, shape, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -182,7 +182,7 @@ class TestGnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale, shape = 0.0, 1.0, 2.0
 
-        py_result = pgnorm(q, mu=mu, scale=scale, shape=shape)
+        py_result = pgnorm(q, loc=mu, scale=scale, shape=shape)
         r_result = call_r_func("pgnorm", q, mu, scale, shape)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -192,7 +192,7 @@ class TestGnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, scale, shape = 0.0, 1.0, 2.0
 
-        py_result = qgnorm(p, mu=mu, scale=scale, shape=shape)
+        py_result = qgnorm(p, loc=mu, scale=scale, shape=shape)
         r_result = call_r_func("qgnorm", p, mu, scale, shape)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -206,7 +206,7 @@ class TestALapacevsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale, alpha = 0.0, 1.0, 0.5
 
-        py_result = dalaplace(q, mu=mu, scale=scale, alpha=alpha)
+        py_result = dalaplace(q, loc=mu, scale=scale, alpha=alpha)
         r_result = call_r_func("dalaplace", q, mu, scale, alpha)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -216,7 +216,7 @@ class TestALapacevsR:
         q = np.array([0.5, 1.0, 1.5])
         mu, scale, alpha = 0.0, 1.0, 0.5
 
-        py_result = dalaplace(q, mu=mu, scale=scale, alpha=alpha, log=True)
+        py_result = dalaplace(q, loc=mu, scale=scale, alpha=alpha, log=True)
         r_result = call_r_func("dalaplace", q, mu, scale, alpha, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -226,7 +226,7 @@ class TestALapacevsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, scale, alpha = 0.0, 1.0, 0.5
 
-        py_result = palaplace(q, mu=mu, scale=scale, alpha=alpha)
+        py_result = palaplace(q, loc=mu, scale=scale, alpha=alpha)
         r_result = call_r_func("palaplace", q, mu, scale, alpha)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -236,7 +236,7 @@ class TestALapacevsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, scale, alpha = 0.0, 1.0, 0.5
 
-        py_result = qalaplace(p, mu=mu, scale=scale, alpha=alpha)
+        py_result = qalaplace(p, loc=mu, scale=scale, alpha=alpha)
         r_result = call_r_func("qalaplace", p, mu, scale, alpha)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -250,7 +250,7 @@ class TestBcnormvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 2.5])
         mu, sigma, lambda_bc = 1.0, 1.0, 0.5
 
-        py_result = dbcnorm(q, mu=mu, sigma=sigma, lambda_bc=lambda_bc)
+        py_result = dbcnorm(q, loc=mu, scale=sigma, lambda_bc=lambda_bc)
         r_result = call_r_func("dbcnorm", q, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -260,7 +260,7 @@ class TestBcnormvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0])
         mu, sigma, lambda_bc = 1.0, 1.0, 0.5
 
-        py_result = dbcnorm(q, mu=mu, sigma=sigma, lambda_bc=lambda_bc, log=True)
+        py_result = dbcnorm(q, loc=mu, scale=sigma, lambda_bc=lambda_bc, log=True)
         r_result = call_r_func("dbcnorm", q, mu, sigma, lambda_bc, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -270,7 +270,7 @@ class TestBcnormvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 2.5])
         mu, sigma, lambda_bc = 1.0, 1.0, 0.5
 
-        py_result = pbcnorm(q, mu=mu, sigma=sigma, lambda_bc=lambda_bc)
+        py_result = pbcnorm(q, loc=mu, scale=sigma, lambda_bc=lambda_bc)
         r_result = call_r_func("pbcnorm", q, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -280,7 +280,7 @@ class TestBcnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma, lambda_bc = 1.0, 1.0, 0.5
 
-        py_result = qbcnorm(p, mu=mu, sigma=sigma, lambda_bc=lambda_bc)
+        py_result = qbcnorm(p, loc=mu, scale=sigma, lambda_bc=lambda_bc)
         r_result = call_r_func("qbcnorm", p, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -294,7 +294,7 @@ class TestFnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, sigma = 1.0, 1.0
 
-        py_result = dfnorm(q, mu=mu, sigma=sigma)
+        py_result = dfnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("dfnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-9)
@@ -304,7 +304,7 @@ class TestFnormvsR:
         q = np.array([0.5, 1.0, 1.5])
         mu, sigma = 1.0, 1.0
 
-        py_result = dfnorm(q, mu=mu, sigma=sigma, log=True)
+        py_result = dfnorm(q, loc=mu, scale=sigma, log=True)
         r_result = call_r_func("dfnorm", q, mu, sigma, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-9)
@@ -314,7 +314,7 @@ class TestFnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, sigma = 1.0, 1.0
 
-        py_result = pfnorm(q, mu=mu, sigma=sigma)
+        py_result = pfnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("pfnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-9)
@@ -324,7 +324,7 @@ class TestFnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma = 1.0, 1.0
 
-        py_result = qfnorm(p, mu=mu, sigma=sigma)
+        py_result = qfnorm(p, loc=mu, scale=sigma)
         r_result = call_r_func("qfnorm", p, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-6)
@@ -338,7 +338,7 @@ class TestLogitnormvsR:
         q = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma = 0.0, 1.0
 
-        py_result = dlogitnorm(q, mu=mu, sigma=sigma)
+        py_result = dlogitnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("dlogitnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -348,7 +348,7 @@ class TestLogitnormvsR:
         q = np.array([0.1, 0.25, 0.5, 0.75])
         mu, sigma = 0.0, 1.0
 
-        py_result = dlogitnorm(q, mu=mu, sigma=sigma, log=True)
+        py_result = dlogitnorm(q, loc=mu, scale=sigma, log=True)
         r_result = call_r_func("dlogitnorm", q, mu, sigma, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -358,7 +358,7 @@ class TestLogitnormvsR:
         q = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma = 0.0, 1.0
 
-        py_result = plogitnorm(q, mu=mu, sigma=sigma)
+        py_result = plogitnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("plogitnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -368,7 +368,7 @@ class TestLogitnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma = 0.0, 1.0
 
-        py_result = qlogitnorm(p, mu=mu, sigma=sigma)
+        py_result = qlogitnorm(p, loc=mu, scale=sigma)
         r_result = call_r_func("qlogitnorm", p, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -382,7 +382,7 @@ class TestRectnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, sigma = 1.0, 1.0
 
-        py_result = drectnorm(q, mu=mu, sigma=sigma)
+        py_result = drectnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("drectnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -392,7 +392,7 @@ class TestRectnormvsR:
         q = np.array([0.5, 1.0, 1.5])
         mu, sigma = 1.0, 1.0
 
-        py_result = drectnorm(q, mu=mu, sigma=sigma, log=True)
+        py_result = drectnorm(q, loc=mu, scale=sigma, log=True)
         r_result = call_r_func("drectnorm", q, mu, sigma, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -402,7 +402,7 @@ class TestRectnormvsR:
         q = np.array([0.0, 0.5, 1.0, 1.5, 2.0])
         mu, sigma = 1.0, 1.0
 
-        py_result = prectnorm(q, mu=mu, sigma=sigma)
+        py_result = prectnorm(q, loc=mu, scale=sigma)
         r_result = call_r_func("prectnorm", q, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -412,7 +412,7 @@ class TestRectnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, sigma = 1.0, 1.0
 
-        py_result = qrectnorm(p, mu=mu, sigma=sigma)
+        py_result = qrectnorm(p, loc=mu, scale=sigma)
         r_result = call_r_func("qrectnorm", p, mu, sigma)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -502,7 +502,7 @@ class TestLGnormvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 2.5])
         mu, scale, shape = 1.0, 1.0, 2.0
 
-        py_result = dlgnorm(q, mu=mu, scale=scale, shape=shape)
+        py_result = dlgnorm(q, loc=mu, scale=scale, shape=shape)
         assert py_result.shape == q.shape
         assert np.all(np.isfinite(py_result))
 
@@ -511,7 +511,7 @@ class TestLGnormvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0])
         mu, scale, shape = 1.0, 1.0, 2.0
 
-        py_result = dlgnorm(q, mu=mu, scale=scale, shape=shape, log=True)
+        py_result = dlgnorm(q, loc=mu, scale=scale, shape=shape, log=True)
         assert py_result.shape == q.shape
         assert np.all(np.isfinite(py_result))
 
@@ -520,7 +520,7 @@ class TestLGnormvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, scale, shape = 1.0, 1.0, 2.0
 
-        py_result = qlgnorm(p, mu=mu, scale=scale, shape=shape)
+        py_result = qlgnorm(p, loc=mu, scale=scale, shape=shape)
         assert py_result.shape == p.shape
         assert np.all(np.isfinite(py_result))
         assert np.all(py_result > 0)
@@ -534,7 +534,7 @@ class TestEdgeCases:
         q = np.array([-1, 0, 1])
         mu, scale, shape = 0, 1, 2
 
-        py_result = dgnorm(q, mu=mu, scale=scale, shape=shape)
+        py_result = dgnorm(q, loc=mu, scale=scale, shape=shape)
         r_result = call_r_func("dgnorm", q, mu, scale, shape)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -544,7 +544,7 @@ class TestEdgeCases:
         q = np.array([0.5, 1.0, 1.5, 2.0])
         mu, sigma, lambda_bc = 1.0, 1.0, 0.0
 
-        py_result = dbcnorm(q, mu=mu, sigma=sigma, lambda_bc=lambda_bc)
+        py_result = dbcnorm(q, loc=mu, scale=sigma, lambda_bc=lambda_bc)
         r_result = call_r_func("dbcnorm", q, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -554,7 +554,7 @@ class TestEdgeCases:
         q = np.array([0.5, 1.0, 1.5, 2.0])
         mu, sigma, lambda_bc = 1.0, 1.0, 1.0
 
-        py_result = dbcnorm(q, mu=mu, sigma=sigma, lambda_bc=lambda_bc)
+        py_result = dbcnorm(q, loc=mu, scale=sigma, lambda_bc=lambda_bc)
         r_result = call_r_func("dbcnorm", q, mu, sigma, lambda_bc)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -612,7 +612,7 @@ class TestLognormFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         meanlog, sdlog = 0.0, 1.0
 
-        py_result = dlnorm(q, meanlog=meanlog, sdlog=sdlog)
+        py_result = dlnorm(q, loc=meanlog, scale=sdlog)
         r_result = call_r_func("dlnorm", q, meanlog, sdlog)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -622,7 +622,7 @@ class TestLognormFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         meanlog, sdlog = 0.0, 1.0
 
-        py_result = dlnorm(q, meanlog=meanlog, sdlog=sdlog, log=True)
+        py_result = dlnorm(q, loc=meanlog, scale=sdlog, log=True)
         r_result = call_r_func("dlnorm", q, meanlog, sdlog, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -632,7 +632,7 @@ class TestLognormFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         meanlog, sdlog = 0.0, 1.0
 
-        py_result = plnorm(q, meanlog=meanlog, sdlog=sdlog)
+        py_result = plnorm(q, loc=meanlog, scale=sdlog)
         r_result = call_r_func("plnorm", q, meanlog, sdlog)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -642,7 +642,7 @@ class TestLognormFuncvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         meanlog, sdlog = 0.0, 1.0
 
-        py_result = qlnorm(p, meanlog=meanlog, sdlog=sdlog)
+        py_result = qlnorm(p, loc=meanlog, scale=sdlog)
         r_result = call_r_func("qlnorm", p, meanlog, sdlog)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -676,7 +676,7 @@ class TestLogisticFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         loc, scale = 1.0, 1.0
 
-        py_result = plogis(q, location=loc, scale=scale)
+        py_result = plogis(q, loc=loc, scale=scale)
         r_result = call_r_func("plogis", q, loc, scale)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -884,7 +884,7 @@ class TestPoissonFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu = 3.0
 
-        py_result = dpois(q, mu=mu)
+        py_result = dpois(q, loc=mu)
         r_result = call_r_func("dpois", q, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -894,7 +894,7 @@ class TestPoissonFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu = 3.0
 
-        py_result = dpois(q, mu=mu, log=True)
+        py_result = dpois(q, loc=mu, log=True)
         r_result = call_r_func("dpois", q, mu, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -904,7 +904,7 @@ class TestPoissonFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu = 3.0
 
-        py_result = ppois(q, mu=mu)
+        py_result = ppois(q, loc=mu)
         r_result = call_r_func("ppois", q, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -914,7 +914,7 @@ class TestPoissonFuncvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu = 3.0
 
-        py_result = qpois(p, mu=mu)
+        py_result = qpois(p, loc=mu)
         r_result = call_r_func("qpois", p, mu)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -928,7 +928,7 @@ class TestNbinomFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu, size = 3.0, 5.0
 
-        py_result = dnbinom(q, mu=mu, size=size)
+        py_result = dnbinom(q, loc=mu, size=size)
         r_result = call_r_func("dnbinom", q, mu=mu, size=size)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -938,7 +938,7 @@ class TestNbinomFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu, size = 3.0, 5.0
 
-        py_result = dnbinom(q, mu=mu, size=size, log=True)
+        py_result = dnbinom(q, loc=mu, size=size, log=True)
         r_result = call_r_func("dnbinom", q, mu=mu, size=size, log=True)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -948,7 +948,7 @@ class TestNbinomFuncvsR:
         q = np.array([0, 1, 2, 3, 5, 10])
         mu, size = 3.0, 5.0
 
-        py_result = pnbinom(q, mu=mu, size=size)
+        py_result = pnbinom(q, loc=mu, size=size)
         r_result = call_r_func("pnbinom", q, mu=mu, size=size)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -958,7 +958,7 @@ class TestNbinomFuncvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, size = 3.0, 5.0
 
-        py_result = qnbinom(p, mu=mu, size=size)
+        py_result = qnbinom(p, loc=mu, size=size)
         r_result = call_r_func("qnbinom", p, mu=mu, size=size)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
@@ -1105,12 +1105,12 @@ class TestInvGaussFuncvsR:
     """Compare Inverse Gaussian distribution between R and Python.
 
     Uses R's statmod::dinvgauss for comparison. The parameterization mapping:
-    Python: dinvgauss(q, mu, scale) uses scipy invgauss(mu=mu, scale=scale)
+    Python: dinvgauss(q, mu, scale) uses scipy invgauss(loc=mu, scale=scale)
     where mean = mu * scale, shape = scale / mu^2.
     R statmod: dinvgauss(q, mean, dispersion) where dispersion = 1/lambda.
     Mapping: mean = mu * scale, dispersion = mu (since lambda = scale/mu^2,
     dispersion = mu^2/scale, but actually dispersion = mean/lambda = mu*scale / (scale/mu^2)... ).
-    We test with mu=1, scale=1 where the mapping is straightforward.
+    We test with loc=1, scale=1 where the mapping is straightforward.
     """
 
     def test_dinvgauss(self):
@@ -1118,7 +1118,7 @@ class TestInvGaussFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         mu, scale = 1.0, 1.0
 
-        py_result = dinvgauss(q, mu=mu, scale=scale)
+        py_result = dinvgauss(q, loc=mu, scale=scale)
         ro.r["library"]("statmod")
         r_result = call_r_func("dinvgauss", q, mean=mu * scale, dispersion=mu**3)
 
@@ -1129,7 +1129,7 @@ class TestInvGaussFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         mu, scale = 1.0, 1.0
 
-        py_result = dinvgauss(q, mu=mu, scale=scale, log=True)
+        py_result = dinvgauss(q, loc=mu, scale=scale, log=True)
         ro.r["library"]("statmod")
         r_result = np.log(
             call_r_func("dinvgauss", q, mean=mu * scale, dispersion=mu**3)
@@ -1142,7 +1142,7 @@ class TestInvGaussFuncvsR:
         q = np.array([0.5, 1.0, 1.5, 2.0, 3.0])
         mu, scale = 1.0, 1.0
 
-        py_result = pinvgauss(q, mu=mu, scale=scale)
+        py_result = pinvgauss(q, loc=mu, scale=scale)
         ro.r["library"]("statmod")
         r_result = call_r_func("pinvgauss", q, mean=mu * scale, dispersion=mu**3)
 
@@ -1153,7 +1153,7 @@ class TestInvGaussFuncvsR:
         p = np.array([0.1, 0.25, 0.5, 0.75, 0.9])
         mu, scale = 1.0, 1.0
 
-        py_result = qinvgauss(p, mu=mu, scale=scale)
+        py_result = qinvgauss(p, loc=mu, scale=scale)
         ro.r["library"]("statmod")
         r_result = call_r_func("qinvgauss", p, mean=mu * scale, dispersion=mu**3)
 

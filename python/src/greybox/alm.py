@@ -1262,10 +1262,10 @@ class ALM:
                         / (alpha**2 + (1 - alpha) ** 2)
                     )
                     lower[:, i] = dist.qalaplace(
-                        ll, mu=linear_pred, scale=scale_al, alpha=alpha
+                        ll, loc=linear_pred, scale=scale_al, alpha=alpha
                     )
                     upper[:, i] = dist.qalaplace(
-                        lu, mu=linear_pred, scale=scale_al, alpha=alpha
+                        lu, loc=linear_pred, scale=scale_al, alpha=alpha
                     )
 
             elif d == "ds":
@@ -1275,8 +1275,8 @@ class ALM:
                 else:
                     # S-distribution variance = 120*scale⁴  →  scale=(var/120)^0.25
                     s_scale = (variances / 120) ** 0.25
-                    lower[:, i] = dist.qs(ll, mu=linear_pred, scale=s_scale)
-                    upper[:, i] = dist.qs(lu, mu=linear_pred, scale=s_scale)
+                    lower[:, i] = dist.qs(ll, loc=linear_pred, scale=s_scale)
+                    upper[:, i] = dist.qs(lu, loc=linear_pred, scale=s_scale)
 
             elif d == "dlogis":
                 if interval == "confidence":
@@ -1297,10 +1297,10 @@ class ALM:
                     s = self.other_
                     gn_scale = np.sqrt(variances * _sp_gamma(1 / s) / _sp_gamma(3 / s))
                     lower[:, i] = dist.qgnorm(
-                        ll, mu=linear_pred, scale=gn_scale, shape=s
+                        ll, loc=linear_pred, scale=gn_scale, shape=s
                     )
                     upper[:, i] = dist.qgnorm(
-                        lu, mu=linear_pred, scale=gn_scale, shape=s
+                        lu, loc=linear_pred, scale=gn_scale, shape=s
                     )
 
             elif d == "dfnorm":
@@ -1311,13 +1311,13 @@ class ALM:
                     # qfnorm requires scalar mu/sigma; compute element-wise
                     lower[:, i] = np.array(
                         [
-                            float(dist.qfnorm(ll, mu=float(mj), sigma=float(sj)))
+                            float(dist.qfnorm(ll, loc=float(mj), scale=float(sj)))
                             for mj, sj in zip(linear_pred, se)
                         ]
                     )
                     upper[:, i] = np.array(
                         [
-                            float(dist.qfnorm(lu, mu=float(mj), sigma=float(sj)))
+                            float(dist.qfnorm(lu, loc=float(mj), scale=float(sj)))
                             for mj, sj in zip(linear_pred, se)
                         ]
                     )
@@ -1327,8 +1327,8 @@ class ALM:
                     lower[:, i] = lp_l
                     upper[:, i] = lp_u
                 else:
-                    lower[:, i] = dist.qrectnorm(ll, mu=linear_pred, sigma=se)
-                    upper[:, i] = dist.qrectnorm(lu, mu=linear_pred, sigma=se)
+                    lower[:, i] = dist.qrectnorm(ll, loc=linear_pred, scale=se)
+                    upper[:, i] = dist.qrectnorm(lu, loc=linear_pred, scale=se)
 
             # ── Group C: log-link; CI=exp(t-bounds); PI=dist quantile ───────
             elif d == "dinvgauss":
@@ -1336,10 +1336,10 @@ class ALM:
                 upper[:, i] = np.exp(lp_u)
                 if interval == "prediction":
                     lower[:, i] = np.exp(linear_pred) * dist.qinvgauss(
-                        ll, mu=1, scale=self.scale
+                        ll, loc=1, scale=self.scale
                     )
                     upper[:, i] = np.exp(linear_pred) * dist.qinvgauss(
-                        lu, mu=1, scale=self.scale
+                        lu, loc=1, scale=self.scale
                     )
 
             elif d == "dgamma":
@@ -1365,8 +1365,8 @@ class ALM:
                 lower[:, i] = np.exp(lp_l)
                 upper[:, i] = np.exp(lp_u)
                 if interval == "prediction":
-                    lower[:, i] = dist.qpois(ll, mu=np.exp(linear_pred))
-                    upper[:, i] = dist.qpois(lu, mu=np.exp(linear_pred))
+                    lower[:, i] = dist.qpois(ll, loc=np.exp(linear_pred))
+                    upper[:, i] = dist.qpois(lu, loc=np.exp(linear_pred))
 
             elif d == "dnbinom":
                 lower[:, i] = np.exp(lp_l)
@@ -1374,10 +1374,10 @@ class ALM:
                 if interval == "prediction":
                     # self.scale holds the size parameter (abs(other))
                     lower[:, i] = dist.qnbinom(
-                        ll, mu=np.exp(linear_pred), size=self.scale
+                        ll, loc=np.exp(linear_pred), size=self.scale
                     )
                     upper[:, i] = dist.qnbinom(
-                        lu, mu=np.exp(linear_pred), size=self.scale
+                        lu, loc=np.exp(linear_pred), size=self.scale
                     )
 
             elif d == "dbinom":
@@ -1415,22 +1415,22 @@ class ALM:
                         variances * _sp_gamma(1 / beta) / _sp_gamma(3 / beta)
                     )
                     lower[:, i] = dist.qlgnorm(
-                        ll, mu=linear_pred, scale=lgn_scale, shape=beta
+                        ll, loc=linear_pred, scale=lgn_scale, shape=beta
                     )
                     upper[:, i] = dist.qlgnorm(
-                        lu, mu=linear_pred, scale=lgn_scale, shape=beta
+                        lu, loc=linear_pred, scale=lgn_scale, shape=beta
                     )
 
             # ── Group E: log-normal family; use dist quantile for CI and PI ──
             elif d == "dlnorm":
                 # qlnorm(p, meanlog=lp, sdlog=se) where se encodes the right
                 # uncertainty: for CI se=sqrt(var_pred), for PI se=sqrt(var_pred+σ²)
-                lower[:, i] = dist.qlnorm(ll, meanlog=linear_pred, sdlog=se)
-                upper[:, i] = dist.qlnorm(lu, meanlog=linear_pred, sdlog=se)
+                lower[:, i] = dist.qlnorm(ll, loc=linear_pred, scale=se)
+                upper[:, i] = dist.qlnorm(lu, loc=linear_pred, scale=se)
 
             elif d == "dlogitnorm":
-                lower[:, i] = dist.qlogitnorm(ll, mu=linear_pred, sigma=se)
-                upper[:, i] = dist.qlogitnorm(lu, mu=linear_pred, sigma=se)
+                lower[:, i] = dist.qlogitnorm(ll, loc=linear_pred, scale=se)
+                upper[:, i] = dist.qlogitnorm(lu, loc=linear_pred, scale=se)
 
             # ── Group F: special transformations ────────────────────────────
             elif d == "dbcnorm":
@@ -1440,10 +1440,10 @@ class ALM:
                     upper[:, i] = _bc_transform_inv(lp_u, lambda_bc_eff)
                 else:
                     lower[:, i] = dist.qbcnorm(
-                        ll, mu=linear_pred, sigma=se, lambda_bc=lambda_bc_eff
+                        ll, loc=linear_pred, scale=se, lambda_bc=lambda_bc_eff
                     )
                     upper[:, i] = dist.qbcnorm(
-                        lu, mu=linear_pred, sigma=se, lambda_bc=lambda_bc_eff
+                        lu, loc=linear_pred, scale=se, lambda_bc=lambda_bc_eff
                     )
 
             elif d == "dchisq":
@@ -1458,22 +1458,22 @@ class ALM:
             elif d == "plogis":
                 # Apply plogis to normal quantile of LP
                 lower[:, i] = dist.plogis(
-                    dist.qnorm(ll, mean=linear_pred, sd=se),
-                    location=0.0,
+                    dist.qnorm(ll, loc=linear_pred, scale=se),
+                    loc=0.0,
                     scale=1.0,
                 )
                 upper[:, i] = dist.plogis(
-                    dist.qnorm(lu, mean=linear_pred, sd=se),
-                    location=0.0,
+                    dist.qnorm(lu, loc=linear_pred, scale=se),
+                    loc=0.0,
                     scale=1.0,
                 )
 
             elif d == "pnorm":
                 lower[:, i] = dist.pnorm(
-                    dist.qnorm(ll, mean=linear_pred, sd=se), mean=0.0, sd=1.0
+                    dist.qnorm(ll, loc=linear_pred, scale=se), loc=0.0, scale=1.0
                 )
                 upper[:, i] = dist.pnorm(
-                    dist.qnorm(lu, mean=linear_pred, sd=se), mean=0.0, sd=1.0
+                    dist.qnorm(lu, loc=linear_pred, scale=se), loc=0.0, scale=1.0
                 )
 
             else:

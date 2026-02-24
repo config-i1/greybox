@@ -9,19 +9,19 @@ from scipy import stats
 from scipy import optimize
 
 
-def dfnorm(q, mu=0, sigma=1, log=False):
+def dfnorm(q, loc=0, scale=1, log=False):
     """Folded Normal distribution density.
 
-    f(x) = 1/sqrt(2*pi*sigma^2) * (
-        exp(-(x-mu)^2 / (2*sigma^2)) + exp(-(x+mu)^2 / (2*sigma^2)))
+    f(x) = 1/sqrt(2*pi*scale^2) * (
+        exp(-(x-loc)^2 / (2*scale^2)) + exp(-(x+loc)^2 / (2*scale^2)))
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
     log : bool
         If True, return log-density.
@@ -34,34 +34,34 @@ def dfnorm(q, mu=0, sigma=1, log=False):
     q = np.asarray(q)
     abs_q = np.abs(q)
     if log:
-        # log(f(x)) = log(exp(a) + exp(b)) - log(sqrt(2*pi)*sigma)
-        # where a = -(|x|-mu)^2/(2*sigma^2), b = -(|x|+mu)^2/(2*sigma^2)
-        a = -((abs_q - mu) ** 2) / (2 * sigma**2)
-        b = -((abs_q + mu) ** 2) / (2 * sigma**2)
+        # log(f(x)) = log(exp(a) + exp(b)) - log(sqrt(2*pi)*scale)
+        # where a = -(|x|-loc)^2/(2*scale^2), b = -(|x|+loc)^2/(2*scale^2)
+        a = -((abs_q - loc) ** 2) / (2 * scale**2)
+        b = -((abs_q + loc) ** 2) / (2 * scale**2)
         log_sum = np.logaddexp(a, b)
-        log_density = log_sum - np.log(np.sqrt(2 * np.pi) * sigma)
+        log_density = log_sum - np.log(np.sqrt(2 * np.pi) * scale)
         return np.where(q < 0, -np.inf, log_density)
     density = (
         1
-        / (np.sqrt(2 * np.pi) * sigma)
+        / (np.sqrt(2 * np.pi) * scale)
         * (
-            np.exp(-((abs_q - mu) ** 2) / (2 * sigma**2))
-            + np.exp(-((abs_q + mu) ** 2) / (2 * sigma**2))
+            np.exp(-((abs_q - loc) ** 2) / (2 * scale**2))
+            + np.exp(-((abs_q + loc) ** 2) / (2 * scale**2))
         )
     )
     return np.where(q < 0, 0.0, density)
 
 
-def pfnorm(q, mu=0, sigma=1):
+def pfnorm(q, loc=0, scale=1):
     """Folded Normal distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -71,24 +71,24 @@ def pfnorm(q, mu=0, sigma=1):
     """
     q = np.asarray(q)
     result = (
-        stats.norm.cdf(q, loc=mu, scale=sigma)
-        + stats.norm.cdf(q, loc=-mu, scale=sigma)
+        stats.norm.cdf(q, loc=loc, scale=scale)
+        + stats.norm.cdf(q, loc=-loc, scale=scale)
         - 1
     )
     result = np.where(q < 0, 0, result)
     return result
 
 
-def qfnorm(p, mu=0, sigma=1):
+def qfnorm(p, loc=0, scale=1):
     """Folded Normal distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -107,26 +107,26 @@ def qfnorm(p, mu=0, sigma=1):
         else:
 
             def objective(x):
-                return pfnorm(x, mu, sigma) - pi
+                return pfnorm(x, loc, scale) - pi
 
             try:
-                result[i] = optimize.brentq(objective, 0, mu + 10 * sigma)
+                result[i] = optimize.brentq(objective, 0, loc + 10 * scale)
             except ValueError:
-                result[i] = abs(stats.norm.ppf(pi, loc=mu, scale=sigma))
+                result[i] = abs(stats.norm.ppf(pi, loc=loc, scale=scale))
 
     return result.squeeze()
 
 
-def rfnorm(n, mu=0, sigma=1):
+def rfnorm(n, loc=0, scale=1):
     """Folded Normal distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -134,4 +134,4 @@ def rfnorm(n, mu=0, sigma=1):
     array
         Random values.
     """
-    return np.abs(stats.norm.rvs(loc=mu, scale=sigma, size=n))
+    return np.abs(stats.norm.rvs(loc=loc, scale=scale, size=n))

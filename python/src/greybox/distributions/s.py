@@ -9,16 +9,16 @@ import numpy as np
 from .gnorm import qgnorm
 
 
-def ds(q, mu=0, scale=1, log=False):
+def ds(q, loc=0, scale=1, log=False):
     """S-distribution density.
 
-    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(abs(mu - x)) / scale)
+    Density function: f(x) = 1/(4*scale^2) * exp(-sqrt(abs(loc - x)) / scale)
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -31,26 +31,26 @@ def ds(q, mu=0, scale=1, log=False):
         Density values.
     """
     if log:
-        return -np.log(4) - 2 * np.log(scale) - np.sqrt(np.abs(mu - q)) / scale
-    density = 1 / (4 * scale**2) * np.exp(-np.sqrt(np.abs(mu - q)) / scale)
+        return -np.log(4) - 2 * np.log(scale) - np.sqrt(np.abs(loc - q)) / scale
+    density = 1 / (4 * scale**2) * np.exp(-np.sqrt(np.abs(loc - q)) / scale)
     return density
 
 
-def ps(q, mu=0, scale=1):
+def ps(q, loc=0, scale=1):
     """S-distribution CDF."""
-    sign_val = np.sign(q - mu)
-    sqrt_term = np.sqrt(np.abs(mu - q))
+    sign_val = np.sign(q - loc)
+    sqrt_term = np.sqrt(np.abs(loc - q))
     return 0.5 + 0.5 * sign_val * (
         1 - 1 / scale * (sqrt_term + scale) * np.exp(-sqrt_term / scale)
     )
 
 
-def qs(p, mu=0, scale=1):
+def qs(p, loc=0, scale=1):
     """S-distribution quantile function."""
     p = np.asarray(p)
-    return qgnorm(p, mu=mu, scale=scale**2, shape=0.5)
+    return qgnorm(p, loc=loc, scale=scale**2, shape=0.5)
 
 
-def rs(n, mu=0, scale=1):
+def rs(n, loc=0, scale=1):
     """S-distribution random number generation."""
-    return qs(np.random.uniform(0, 1, n), mu, scale)
+    return qs(np.random.uniform(0, 1, n), loc, scale)

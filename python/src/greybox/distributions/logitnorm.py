@@ -9,18 +9,18 @@ import numpy as np
 from scipy import stats
 
 
-def dlogitnorm(q, mu=0, sigma=1, log=False):
+def dlogitnorm(q, loc=0, scale=1, log=False):
     """Logit-Normal distribution density.
 
-    f(y) = 1/(sqrt(2*pi)*sigma*y*(1-y)) * exp(-(logit(y) - mu)^2 / (2*sigma^2))
+    f(y) = 1/(sqrt(2*pi)*scale*y*(1-y)) * exp(-(logit(y) - loc)^2 / (2*scale^2))
 
     Parameters
     ----------
     q : array_like
         Quantiles (must be in (0, 1)).
-    mu : float
+    loc : float
         Location parameter (on logit scale).
-    sigma : float
+    scale : float
         Scale parameter.
     log : bool
         If True, return log-density.
@@ -34,8 +34,8 @@ def dlogitnorm(q, mu=0, sigma=1, log=False):
     logit_q = np.log(q / (1 - q))
     density = (
         1
-        / (sigma * np.sqrt(2 * np.pi) * q * (1 - q))
-        * np.exp(-((logit_q - mu) ** 2) / (2 * sigma**2))
+        / (scale * np.sqrt(2 * np.pi) * q * (1 - q))
+        * np.exp(-((logit_q - loc) ** 2) / (2 * scale**2))
     )
     density = np.maximum(density, 1e-300)
     if log:
@@ -43,16 +43,16 @@ def dlogitnorm(q, mu=0, sigma=1, log=False):
     return density
 
 
-def plogitnorm(q, mu=0, sigma=1):
+def plogitnorm(q, loc=0, scale=1):
     """Logit-Normal distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -73,22 +73,22 @@ def plogitnorm(q, mu=0, sigma=1):
     if np.any(mask_between):
         q_between = q[mask_between]
         result[mask_between] = stats.norm.cdf(
-            np.log(q_between / (1 - q_between)), loc=mu, scale=sigma
+            np.log(q_between / (1 - q_between)), loc=loc, scale=scale
         )
 
     return result
 
 
-def qlogitnorm(p, mu=0, sigma=1):
+def qlogitnorm(p, loc=0, scale=1):
     """Logit-Normal distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -97,23 +97,23 @@ def qlogitnorm(p, mu=0, sigma=1):
         Quantile values.
     """
     p = np.asarray(p)
-    result = np.exp(stats.norm.ppf(p, loc=mu, scale=sigma)) / (
-        1 + np.exp(stats.norm.ppf(p, loc=mu, scale=sigma))
+    result = np.exp(stats.norm.ppf(p, loc=loc, scale=scale)) / (
+        1 + np.exp(stats.norm.ppf(p, loc=loc, scale=scale))
     )
     result = np.where(np.isnan(result), 0, result)
     return result
 
 
-def rlogitnorm(n, mu=0, sigma=1):
+def rlogitnorm(n, loc=0, scale=1):
     """Logit-Normal distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -121,4 +121,4 @@ def rlogitnorm(n, mu=0, sigma=1):
     array
         Random values.
     """
-    return qlogitnorm(np.random.uniform(0, 1, n), mu, sigma)
+    return qlogitnorm(np.random.uniform(0, 1, n), loc, scale)

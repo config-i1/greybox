@@ -9,7 +9,7 @@ import numpy as np
 from .gnorm import dgnorm, qgnorm
 
 
-def dlgnorm(q, mu=0, scale=1, shape=1, log=False):
+def dlgnorm(q, loc=0, scale=1, shape=1, log=False):
     """Log-Generalised Normal distribution density.
 
     The density is obtained by transforming a Generalised Normal distribution
@@ -19,7 +19,7 @@ def dlgnorm(q, mu=0, scale=1, shape=1, log=False):
     ----------
     q : array_like
         Quantiles (must be positive).
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -35,14 +35,14 @@ def dlgnorm(q, mu=0, scale=1, shape=1, log=False):
     """
     q = np.asarray(q)
     log_q = np.log(q)
-    density = dgnorm(log_q, mu=mu, scale=scale, shape=shape) / q
+    density = dgnorm(log_q, loc=loc, scale=scale, shape=shape) / q
     density = np.maximum(density, 1e-300)
     if log:
         return np.log(density)
     return density
 
 
-def qlgnorm(p, mu=0, scale=1, shape=1):
+def qlgnorm(p, loc=0, scale=1, shape=1):
     """Log-Generalised Normal distribution quantile function.
 
     Quantiles are obtained by exponentiating Generalised Normal quantiles.
@@ -51,7 +51,7 @@ def qlgnorm(p, mu=0, scale=1, shape=1):
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
     scale : float
         Scale parameter.
@@ -63,4 +63,4 @@ def qlgnorm(p, mu=0, scale=1, shape=1):
     array
         Quantile values.
     """
-    return np.exp(qgnorm(p, mu=mu, scale=scale, shape=shape))
+    return np.exp(qgnorm(p, loc=loc, scale=scale, shape=shape))

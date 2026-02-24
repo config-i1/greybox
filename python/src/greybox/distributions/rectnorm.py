@@ -2,25 +2,25 @@
 
 Density, cumulative distribution, quantile functions and random number
 generation for the Rectified Normal distribution.
-If x ~ N(mu, sigma^2) then y = max(0, x) follows Rectified Normal distribution.
+If x ~ N(loc, scale^2) then y = max(0, x) follows Rectified Normal distribution.
 """
 
 import numpy as np
 from scipy import stats
 
 
-def drectnorm(q, mu=0, sigma=1, log=False):
+def drectnorm(q, loc=0, scale=1, log=False):
     """Rectified Normal distribution density.
 
-    f_y = I(x<=0) * F_x(mu, sigma) + I(x>0) * f_x(x, mu, sigma)
+    f_y = I(x<=0) * F_x(loc, scale) + I(x>0) * f_x(x, loc, scale)
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
     log : bool
         If True, return log-density.
@@ -35,27 +35,27 @@ def drectnorm(q, mu=0, sigma=1, log=False):
     if log:
         log_density = np.where(
             is_positive,
-            stats.norm.logpdf(q, loc=mu, scale=sigma),
-            stats.norm.logcdf(0, loc=mu, scale=sigma),
+            stats.norm.logpdf(q, loc=loc, scale=scale),
+            stats.norm.logcdf(0, loc=loc, scale=scale),
         )
         return log_density
     indicator = is_positive.astype(float)
-    density = indicator * stats.norm.pdf(q, loc=mu, scale=sigma) + (
+    density = indicator * stats.norm.pdf(q, loc=loc, scale=scale) + (
         1 - indicator
-    ) * stats.norm.cdf(0, loc=mu, scale=sigma)
+    ) * stats.norm.cdf(0, loc=loc, scale=scale)
     return density
 
 
-def prectnorm(q, mu=0, sigma=1):
+def prectnorm(q, loc=0, scale=1):
     """Rectified Normal distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -65,21 +65,21 @@ def prectnorm(q, mu=0, sigma=1):
     """
     q = np.asarray(q)
     indicator = (q > 0).astype(float)
-    return indicator * stats.norm.cdf(q, loc=mu, scale=sigma) + (
+    return indicator * stats.norm.cdf(q, loc=loc, scale=scale) + (
         1 - indicator
-    ) * stats.norm.cdf(0, loc=mu, scale=sigma)
+    ) * stats.norm.cdf(0, loc=loc, scale=scale)
 
 
-def qrectnorm(p, mu=0, sigma=1):
+def qrectnorm(p, loc=0, scale=1):
     """Rectified Normal distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -88,19 +88,19 @@ def qrectnorm(p, mu=0, sigma=1):
         Quantile values.
     """
     p = np.asarray(p)
-    return np.maximum(stats.norm.ppf(p, loc=mu, scale=sigma), 0)
+    return np.maximum(stats.norm.ppf(p, loc=loc, scale=scale), 0)
 
 
-def rrectnorm(n, mu=0, sigma=1):
+def rrectnorm(n, loc=0, scale=1):
     """Rectified Normal distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
 
     Returns
@@ -108,4 +108,4 @@ def rrectnorm(n, mu=0, sigma=1):
     array
         Random values.
     """
-    return np.maximum(stats.norm.rvs(loc=mu, scale=sigma, size=n), 0)
+    return np.maximum(stats.norm.rvs(loc=loc, scale=scale, size=n), 0)

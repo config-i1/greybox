@@ -9,19 +9,19 @@ import numpy as np
 from scipy import stats
 
 
-def dbcnorm(q, mu=0, sigma=1, lambda_bc=0, log=False):
+def dbcnorm(q, loc=0, scale=1, lambda_bc=0, log=False):
     """Box-Cox Normal distribution density.
 
     f(y) = y^(lambda-1) * 1/sqrt(2*pi) * exp(
-        -((y^lambda-1)/lambda - mu)^2 / (2*sigma^2))
+        -((y^lambda-1)/lambda - loc)^2 / (2*scale^2))
 
     Parameters
     ----------
     q : array_like
         Quantiles (must be non-negative).
-    mu : float
+    loc : float
         Location parameter (on transformed scale).
-    sigma : float
+    scale : float
         Scale parameter.
     lambda_bc : float
         Box-Cox transformation parameter.
@@ -35,13 +35,13 @@ def dbcnorm(q, mu=0, sigma=1, lambda_bc=0, log=False):
     """
     q = np.asarray(q)
     if lambda_bc == 0:
-        density = stats.lognorm.pdf(q, s=sigma, scale=np.exp(mu))
+        density = stats.lognorm.pdf(q, s=scale, scale=np.exp(loc))
     elif lambda_bc == 1:
-        density = stats.norm.pdf(q, loc=mu + 1, scale=sigma)
+        density = stats.norm.pdf(q, loc=loc + 1, scale=scale)
     else:
         jacobian = np.power(q, lambda_bc - 1)
         y_transformed = (np.power(q, lambda_bc) - 1) / lambda_bc
-        density = jacobian * stats.norm.pdf(y_transformed, loc=mu, scale=sigma)
+        density = jacobian * stats.norm.pdf(y_transformed, loc=loc, scale=scale)
         density = np.where(q <= 0, 0, density)
     density = np.maximum(density, 1e-300)
     if log:
@@ -49,16 +49,16 @@ def dbcnorm(q, mu=0, sigma=1, lambda_bc=0, log=False):
     return density
 
 
-def pbcnorm(q, mu=0, sigma=1, lambda_bc=0):
+def pbcnorm(q, loc=0, scale=1, lambda_bc=0):
     """Box-Cox Normal distribution CDF.
 
     Parameters
     ----------
     q : array_like
         Quantiles.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
     lambda_bc : float
         Box-Cox transformation parameter.
@@ -70,27 +70,27 @@ def pbcnorm(q, mu=0, sigma=1, lambda_bc=0):
     """
     q = np.asarray(q)
     if lambda_bc == 0:
-        return stats.lognorm.cdf(q, s=sigma, scale=np.exp(mu))
+        return stats.lognorm.cdf(q, s=scale, scale=np.exp(loc))
     else:
         result = np.zeros_like(q, dtype=float)
         mask = q > 0
         result[mask] = stats.norm.cdf(
-            (np.power(q[mask], lambda_bc) - 1) / lambda_bc, loc=mu, scale=sigma
+            (np.power(q[mask], lambda_bc) - 1) / lambda_bc, loc=loc, scale=scale
         )
         result[q <= 0] = 0
         return result
 
 
-def qbcnorm(p, mu=0, sigma=1, lambda_bc=0):
+def qbcnorm(p, loc=0, scale=1, lambda_bc=0):
     """Box-Cox Normal distribution quantile function.
 
     Parameters
     ----------
     p : array_like
         Probabilities.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
     lambda_bc : float
         Box-Cox transformation parameter.
@@ -102,25 +102,25 @@ def qbcnorm(p, mu=0, sigma=1, lambda_bc=0):
     """
     p = np.asarray(p)
     if lambda_bc == 0:
-        return stats.lognorm.ppf(p, s=sigma, scale=np.exp(mu))
+        return stats.lognorm.ppf(p, s=scale, scale=np.exp(loc))
     else:
         result = np.power(
-            stats.norm.ppf(p, loc=mu, scale=sigma) * lambda_bc + 1, 1 / lambda_bc
+            stats.norm.ppf(p, loc=loc, scale=scale) * lambda_bc + 1, 1 / lambda_bc
         )
         result = np.where(np.isnan(result), 0, result)
         return result
 
 
-def rbcnorm(n, mu=0, sigma=1, lambda_bc=0):
+def rbcnorm(n, loc=0, scale=1, lambda_bc=0):
     """Box-Cox Normal distribution random number generation.
 
     Parameters
     ----------
     n : int
         Number of observations.
-    mu : float
+    loc : float
         Location parameter.
-    sigma : float
+    scale : float
         Scale parameter.
     lambda_bc : float
         Box-Cox transformation parameter.
@@ -130,4 +130,4 @@ def rbcnorm(n, mu=0, sigma=1, lambda_bc=0):
     array
         Random values.
     """
-    return qbcnorm(np.random.uniform(0, 1, n), mu, sigma, lambda_bc)
+    return qbcnorm(np.random.uniform(0, 1, n), loc, scale, lambda_bc)

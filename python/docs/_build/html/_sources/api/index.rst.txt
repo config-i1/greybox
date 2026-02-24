@@ -16,4 +16,4 @@ API
    quantile_measures
    xreg
    transforms
-   distributions
+   ../distributions/index
