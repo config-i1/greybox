@@ -53,7 +53,7 @@ pytest tests/test_alm_distributions_compare.py
 
 ### Key design decisions
 
-- Prediction intervals use t-distribution for all distributions (matching R behavior). Variance = `X @ vcov @ X'`, scale uses `df_residual = n - k`.
+- Variance = `X @ vcov @ X'`, scale uses `df_residual = n - k`.
 - `nlopt>=2.7.0` is a required runtime dependency (declared in pyproject.toml).
 
 ## Code Style
