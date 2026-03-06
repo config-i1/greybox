@@ -7,7 +7,7 @@ for time series models.
 import inspect
 import warnings
 import numpy as np
-from typing import Callable, Optional, Any
+from typing import Any, Callable, Optional
 
 
 class RollingOriginResult:
@@ -121,11 +121,11 @@ def rolling_origin(
     step: int = 1,
     ci: bool = False,
     co: bool = True,
-    call: Optional[Callable] = None,
+    call: Callable | None = None,
     silent: bool = True,
     # deprecated
-    model_fn: Optional[Callable] = None,
-    predict_fn: Optional[Callable] = None,
+    model_fn: Callable | None = None,
+    predict_fn: Callable | None = None,
 ) -> RollingOriginResult:
     """Rolling Origin Evaluation.
 
