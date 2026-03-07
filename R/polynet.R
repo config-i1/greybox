@@ -30,7 +30,7 @@ polynetLayer1 <- function(y, X){
 
     # Fit the model, extract fitted values
     lmFit <- .lm.fit(as.matrix(X), y);
-    yFitted <- y - resid(lmFit);
+    yFitted <- y - residuals(lmFit);
 
     return(list(coefficients=coef(lmFit), fitted=yFitted));
 }

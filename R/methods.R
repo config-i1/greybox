@@ -440,7 +440,7 @@ confint.alm <- function(object, parm, level=0.95, bootstrap=FALSE, ...){
 confint.scale <- confint.alm;
 
 #' @export
-confint.greyboxC <- function(object, parm, level=0.95, ...){
+confint.calm <- function(object, parm, level=0.95, ...){
 
     # Extract parameters
     parameters <- coef(object);
@@ -604,7 +604,7 @@ nparam.logLik <- function(object, ...){
 }
 
 #' @export
-nparam.greyboxC <- function(object, ...){
+nparam.calm <- function(object, ...){
     # The length of the vector of parameters + variance
     return(sum(object$importance)+1);
 }
@@ -1003,7 +1003,7 @@ vcov.alm <- function(object, bootstrap=FALSE, ...){
 }
 
 #' @export
-vcov.greyboxC <- function(object, ...){
+vcov.calm <- function(object, ...){
     # xreg <- as.matrix(object$data);
     # xreg[,1] <- 1;
     # colnames(xreg)[1] <- "(Intercept)";
@@ -2597,7 +2597,7 @@ print.summary.greybox <- function(x, ...){
 }
 
 #' @export
-print.summary.greyboxC <- function(x, ...){
+print.summary.calm <- function(x, ...){
     ellipsis <- list(...);
     if(!any(names(ellipsis)=="digits")){
         digits <- 4;
@@ -3019,7 +3019,7 @@ summary.scale <- function(object, level=0.95, bootstrap=FALSE, ...){
 }
 
 #' @export
-summary.greyboxC <- function(object, level=0.95, ...){
+summary.calm <- function(object, level=0.95, ...){
 
     # Extract the values from the object
     errors <- residuals(object);
@@ -3054,7 +3054,7 @@ summary.greyboxC <- function(object, level=0.95, ...){
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 dfTable=dfTable, bootstrap=FALSE),
-                           class=c("summary.greyboxC","summary.greybox"));
+                           class=c("summary.calm","summary.greybox"));
     return(ourReturn);
 }
 
@@ -3097,7 +3097,7 @@ summary.greyboxD <- function(object, level=0.95, ...){
                                 ICs=ICs, ICType=object$ICType, df=df, r.squared=R2, adj.r.squared=R2Adj,
                                 distribution=object$distribution, responseName=formula(object)[[2]],
                                 nobs=nobs(object), nparam=nparam(object), dfTable=dfTable, bootstrap=FALSE),
-                           class=c("summary.greyboxC","summary.greybox"));
+                           class=c("summary.calm","summary.greybox"));
     return(ourReturn);
 }
 
@@ -3149,11 +3149,11 @@ extract.summary.greybox <- function(model, ...){
 #' @importFrom methods setMethod
 setMethod("extract", signature=className("alm","greybox"), definition=extract.greybox)
 setMethod("extract", signature=className("greybox","greybox"), definition=extract.greybox)
-setMethod("extract", signature=className("greyboxC","greybox"), definition=extract.greybox)
+setMethod("extract", signature=className("calm","greybox"), definition=extract.greybox)
 setMethod("extract", signature=className("greyboxD","greybox"), definition=extract.greybox)
 setMethod("extract", signature=className("summary.alm","greybox"), definition=extract.summary.greybox)
 setMethod("extract", signature=className("summary.greybox","greybox"), definition=extract.summary.greybox)
-setMethod("extract", signature=className("summary.greyboxC","greybox"), definition=extract.summary.greybox)
+setMethod("extract", signature=className("summary.calm","greybox"), definition=extract.summary.greybox)
 
 #' @importFrom xtable xtable
 #' @export
@@ -3856,7 +3856,7 @@ predict.greybox <- function(object, newdata=NULL, interval=c("none", "confidence
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
-    if(any(is.greyboxC(object),is.greyboxD(object))){
+    if(any(is.calm(object),is.greyboxD(object))){
         if(ncol(matrixOfxreg)==2){
             colnames(matrixOfxreg) <- parametersNames;
         }
@@ -4042,7 +4042,7 @@ predict_almari <- function(object, newdata=NULL, interval=c("none", "confidence"
         parametersNames <- substr(parametersNames[1:(length(parametersNames)/2)],8,nchar(parametersNames));
     }
 
-    if(any(is.greyboxC(object),is.greyboxD(object))){
+    if(any(is.calm(object),is.greyboxD(object))){
         matrixOfxreg <- as.matrix(cbind(rep(1,nrow(newdata)),newdata[,-1]));
         if(ncol(matrixOfxreg)==2){
             colnames(matrixOfxreg) <- parametersNames;

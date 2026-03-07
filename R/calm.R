@@ -36,7 +36,7 @@
 #' @param ... Other parameters passed to \code{alm()}.
 #'
 #' @return Function returns \code{model} - the final model of the class
-#' "greyboxC". The list of variables:
+#' "calm". The list of variables:
 #' \itemize{
 #' \item coefficients - combined parameters of the model,
 #' \item vcov - combined covariance matrix of the model,
@@ -744,7 +744,7 @@ calm <- function(data, ic=c("AICc","AIC","BIC","BICc"), bruteforce=FALSE, silent
                                  call=cl, rank=nVariables+1, data=listToCall$data, mu=mu, scale=scale,
                                  combination=variablesCombinations, other=other, loss=loss,
                                  timeElapsed=Sys.time()-startTime),
-                            class=c("greyboxC","alm","greybox"));
+                            class=c("calm","alm","greybox"));
 
     return(finalModel);
 }

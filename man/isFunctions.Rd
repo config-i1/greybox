@@ -4,7 +4,7 @@
 \alias{is.greybox}
 \alias{is.alm}
 \alias{is.occurrence}
-\alias{is.greyboxC}
+\alias{is.calm}
 \alias{is.greyboxD}
 \alias{is.rollingOrigin}
 \alias{is.rmc}
@@ -17,7 +17,7 @@ is.alm(x)
 
 is.occurrence(x)
 
-is.greyboxC(x)
+is.calm(x)
 
 is.greyboxD(x)
 
@@ -44,7 +44,7 @@ The list of functions includes:
 / \link[greybox]{lmDynamic});
 \item \code{is.alm()} tests if the object was produced by \code{alm()} function;
 \item \code{is.occurrence()} tests if an occurrence part of the model was produced;
-\item \code{is.greyboxC()} tests if the object was produced by \code{lmCombine()}
+\item \code{is.calm()} tests if the object was produced by \code{lmCombine()}
 function;
 \item \code{is.greyboxD()} tests if the object was produced by \code{lmDynamic()}
 function;
@@ -65,7 +65,7 @@ ourModel <- alm(y~x1+x2, xreg, distribution="dnorm")
 
 is.alm(ourModel)
 is.greybox(ourModel)
-is.greyboxC(ourModel)
+is.calm(ourModel)
 is.greyboxD(ourModel)
 
 }

@@ -25,7 +25,8 @@
 \item Studentised residuals over observations;
 \item ACF of the residuals;
 \item PACF of the residuals;
-\item Cook's distance over observations with 0.5, 0.75 and 0.95 quantile lines from Fisher's distribution;
+\item Cook's distance over observations with lines corresponding to heuristic values of
+4/n, 4/(n-k) and 1;
 \item Absolute standardised residuals vs Fitted;
 \item Squared standardised residuals vs Fitted;
 \item ACF of the squared residuals;

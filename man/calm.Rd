@@ -44,7 +44,7 @@ or \code{doParallel} are needed in order to run the function in parallel.}
 }
 \value{
 Function returns \code{model} - the final model of the class
-"greyboxC". The list of variables:
+"calm". The list of variables:
 \itemize{
 \item coefficients - combined parameters of the model,
 \item vcov - combined covariance matrix of the model,
