@@ -396,6 +396,12 @@ class ALM:
         if not isinstance(self.orders, (tuple, list)) or len(self.orders) != 3:
             raise ValueError("orders must be a tuple of 3 integers (p, d, q)")
 
+        if isinstance(self.occurrence, ALM):
+            if self.occurrence.fitted_values_ is None:
+                raise ValueError(
+                    "Occurrence ALM must be fitted before being passed to ALM()"
+                )
+
     def fit(self, X, y, formula=None, feature_names=None):
         """Fit the ALM model.
 
@@ -636,7 +642,18 @@ class ALM:
             yr = y
             if i_order > 0:
                 yr = np.diff(yr, n=i_order)
-            B_ols = _ols_init(X_init, yr)
+            # If occurrence is a fitted ALM (hurdle model), the size model
+            # should fit non-zero observations only; initialise from that
+            # subset so the optimiser doesn't get pulled towards mean(y)
+            # which includes the zeros.
+            if isinstance(self.occurrence, ALM) and i_order == 0:
+                mask = y != 0
+                if mask.any():
+                    B_ols = _ols_init(X_init[mask], yr[mask])
+                else:
+                    B_ols = _ols_init(X_init, yr)
+            else:
+                B_ols = _ols_init(X_init, yr)
 
         # ── Step 3: unified placement ──────────────────────────────────────────
         if B_ols is None:
@@ -664,6 +681,26 @@ class ALM:
             B_init[0] = extra_inits.get(self.distribution, 0.0)
         else:
             B_init = B_ols
+
+        # If occurrence is a pre-fitted ALM, switch to hurdle / mixture mode:
+        # fit the size model on the non-zero subset, mirroring R's
+        # `alm(y~., data, occurrence=<fitted alm>)`.
+        occurrence_is_model = isinstance(self.occurrence, ALM)
+        if occurrence_is_model:
+            occ_fitted = np.asarray(self.occurrence.fitted_values_, dtype=float)
+            if len(occ_fitted) != n_samples:
+                raise ValueError(
+                    "occurrence ALM has fitted_values_ of length "
+                    f"{len(occ_fitted)}, expected {n_samples}"
+                )
+            otU_full = y != 0
+            obs_nonzero = int(otU_full.sum())
+            obs_zero = int(n_samples - obs_nonzero)
+        else:
+            occ_fitted = None
+            otU_full = np.ones(n_samples, dtype=bool)
+            obs_nonzero = n_samples
+            obs_zero = 0
 
         print_level = self.nlopt_kargs.get("print_level", 0)
         iteration_count = [0]
@@ -695,6 +732,10 @@ class ALM:
                     else 0.0
                 ),
                 size=self.size if self.distribution == "dbinom" else 1.0,
+                otU=otU_full if occurrence_is_model else None,
+                obs_zero=obs_zero,
+                obs_nonzero=obs_nonzero,
+                occurrence_model=occurrence_is_model,
             )
 
             if print_level > 0:
@@ -853,8 +894,8 @@ class ALM:
             X,
             fitter_return["mu"],
             other_val,
-            np.ones(len(y), dtype=bool),
-            np.sum(np.ones(len(y), dtype=bool)),
+            otU_full,
+            obs_nonzero,
         )
         fitter_return["scale"] = scale
         self._scale = scale
@@ -908,6 +949,10 @@ class ALM:
             lambda_bc_val,
         )
 
+        if occurrence_is_model:
+            self.fitted_values_ = self.fitted_values_ * occ_fitted
+            self.occurrence_ = self.occurrence
+
         self._loss_value = objective_func(B_opt, np.zeros(n_params))
 
         if self.loss == "likelihood":
@@ -938,6 +983,11 @@ class ALM:
                     )
                 ):
                     n_params_calc += 1
+
+            if occurrence_is_model:
+                self._log_lik = self._log_lik + (self.occurrence.log_lik or 0.0)
+                n_params_calc = n_params_calc + self.occurrence.nparam
+
             self._aic = 2 * n_params_calc - 2 * self._log_lik
             self._bic = n_params_calc * np.log(n_samples) - 2 * self._log_lik
 
@@ -963,8 +1013,8 @@ class ALM:
             X,
             fitter_return["mu"],
             other_val,
-            np.ones(len(y), dtype=bool),
-            n_samples,
+            otU_full,
+            obs_nonzero,
         )
         self._scale = scale
 

@@ -1,6 +1,7 @@
 """Point likelihood functions.
 
-This module provides functions for calculating point-wise likelihood values.
+This module provides functions for calculating point-wise likelihood values
+and point-wise cumulative likelihood values.
 """
 
 import numpy as np
@@ -8,6 +9,46 @@ from scipy import stats
 
 from .alm import ALM
 from . import distributions as dist
+
+
+def point_lik_cumulative(model: ALM) -> np.ndarray:
+    """Point cumulative likelihood values.
+
+    Returns the value of the cumulative distribution function (CDF) of the
+    fitted model evaluated at the actual response. This is the Python
+    equivalent of R's ``greybox::pointLikCumulative``.
+
+    Supported distributions: ``dgeom``, ``dpois``, ``dnbinom``, ``dbinom``.
+
+    Parameters
+    ----------
+    model : ALM
+        Fitted ALM model with a supported discrete distribution.
+
+    Returns
+    -------
+    np.ndarray
+        CDF values evaluated at the model's actuals.
+    """
+    if not isinstance(model, ALM):
+        raise ValueError("model must be a fitted ALM")
+    distribution = model.distribution
+    y = np.asarray(model.actuals, dtype=float)
+    mu = np.asarray(model.fitted, dtype=float)
+
+    if distribution == "dgeom":
+        return dist.pgeom(y, prob=1.0 / (mu + 1.0))
+    if distribution == "dpois":
+        return dist.ppois(y, loc=mu)
+    if distribution == "dnbinom":
+        size = model.other_ if model.other_ is not None else 1.0
+        return dist.pnbinom(y, loc=mu, size=size)
+    if distribution == "dbinom":
+        size = model.size if model.size is not None else 1
+        return dist.pbinom(y, size=int(size), prob=1.0 / (mu + 1.0))
+    raise ValueError(
+        f"point_lik_cumulative is not defined for distribution={distribution!r}"
+    )
 
 
 def point_lik(
