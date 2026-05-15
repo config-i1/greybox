@@ -98,6 +98,7 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">dataclasses</span><span class="w"> </span><span class="kn">import</span> <span class="n">dataclass</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -107,6 +108,94 @@
 <span class="kn">from</span><span class="w"> </span><span class="nn">.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula</span> <span class="k">as</span> <span class="n">build_formula</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.pointlik</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_lik_cumulative</span>
 <span class="kn">from</span><span class="w"> </span><span class="nn">.smoothers</span><span class="w"> </span><span class="kn">import</span> <span class="n">lowess</span><span class="p">,</span> <span class="n">supsmu</span>
+
+
+<div class="viewcode-block" id="AidType">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.AidType">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">AidType</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Sub-categorisation of an AID classification (mirrors R&#39;s ``$type``).</span>
+
+<span class="sd">    Both attribute access (``aid_type.type1``) and dict-style access</span>
+<span class="sd">    (``aid_type[&quot;type1&quot;]``) work; the latter exists for backward</span>
+<span class="sd">    compatibility with code written against the earlier dict-based API.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    type1 : str or None</span>
+<span class="sd">        ``&quot;count&quot;`` or ``&quot;fractional&quot;``.</span>
+<span class="sd">    type2 : str or None</span>
+<span class="sd">        ``&quot;regular&quot;`` or ``&quot;intermittent&quot;``.</span>
+<span class="sd">    type2a : str or None</span>
+<span class="sd">        ``&quot;smooth&quot;`` or ``&quot;lumpy&quot;`` when intermittent, ``None`` otherwise.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">type1</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">type2</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">type2a</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;type1&quot;</span><span class="p">,</span> <span class="s2">&quot;type2&quot;</span><span class="p">,</span> <span class="s2">&quot;type2a&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="Stockouts">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.Stockouts">[docs]</a>
+<span class="nd">@dataclass</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">Stockouts</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Stockout / new / obsolete metadata (mirrors R&#39;s ``$stockouts``).</span>
+
+<span class="sd">    Both attribute access (``stockouts.start``) and dict-style access</span>
+<span class="sd">    (``stockouts[&quot;start&quot;]``) work; the latter exists for backward</span>
+<span class="sd">    compatibility with code written against the earlier dict-based API.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    start : numpy.ndarray or None</span>
+<span class="sd">        1-based positions where each stockout begins. ``None`` if the</span>
+<span class="sd">        original series had no zeros at all; an empty array if zeros</span>
+<span class="sd">        were present but none were flagged as stockouts.</span>
+<span class="sd">    end : numpy.ndarray or None</span>
+<span class="sd">        1-based positions where each stockout ends. Same length as</span>
+<span class="sd">        ``start``.</span>
+<span class="sd">    dummy : numpy.ndarray</span>
+<span class="sd">        Length-``n`` binary indicator: ``1`` on observations inside a</span>
+<span class="sd">        stockout window, ``0`` elsewhere.</span>
+<span class="sd">    new : numpy.ndarray</span>
+<span class="sd">        Length-``n`` binary indicator: ``1`` over the leading-zeros</span>
+<span class="sd">        block when the series is flagged as a new product.</span>
+<span class="sd">    obsolete : numpy.ndarray</span>
+<span class="sd">        Length-``n`` binary indicator: ``1`` over the trailing-zeros</span>
+<span class="sd">        block when the series is flagged as obsolete.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="n">start</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">end</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span>
+    <span class="n">dummy</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">new</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+    <span class="n">obsolete</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__getitem__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__contains__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">object</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">bool</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">)</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">,</span> <span class="s2">&quot;end&quot;</span><span class="p">,</span> <span class="s2">&quot;dummy&quot;</span><span class="p">,</span> <span class="s2">&quot;new&quot;</span><span class="p">,</span> <span class="s2">&quot;obsolete&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">default</span><span class="p">)</span></div>
+
 
 
 <span class="n">_VALID_ICS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;AICc&quot;</span><span class="p">,</span> <span class="s2">&quot;AIC&quot;</span><span class="p">,</span> <span class="s2">&quot;BICc&quot;</span><span class="p">,</span> <span class="s2">&quot;BIC&quot;</span><span class="p">)</span>
@@ -158,6 +247,14 @@
 <span class="k">class</span><span class="w"> </span><span class="nc">AidResult</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of :func:`aid`. Mirrors R&#39;s ``aid`` S3 class.</span>
 
+<span class="sd">    The nested ``type`` and ``stockouts`` fields are typed dataclasses</span>
+<span class="sd">    (:class:`AidType` and :class:`Stockouts`) that support both</span>
+<span class="sd">    attribute access and dict-style access. The two patterns below are</span>
+<span class="sd">    equivalent::</span>
+
+<span class="sd">        result.stockouts.start    # Python idiom</span>
+<span class="sd">        result.stockouts[&quot;start&quot;] # R-list / dict idiom</span>
+
 <span class="sd">    Attributes</span>
 <span class="sd">    ----------</span>
 <span class="sd">    y : numpy.ndarray</span>
@@ -169,16 +266,13 @@
 <span class="sd">    name : str</span>
 <span class="sd">        Name of the selected demand type (e.g. ``&quot;smooth intermittent</span>
 <span class="sd">        count&quot;``).</span>
-<span class="sd">    type : dict</span>
-<span class="sd">        Sub-categorisation of ``name`` with keys ``type1`` (``&quot;count&quot;``</span>
-<span class="sd">        or ``&quot;fractional&quot;``), ``type2`` (``&quot;regular&quot;`` or</span>
-<span class="sd">        ``&quot;intermittent&quot;``), and ``type2a`` (``&quot;smooth&quot;`` or</span>
-<span class="sd">        ``&quot;lumpy&quot;`` when intermittent, ``None`` otherwise).</span>
-<span class="sd">    stockouts : dict</span>
-<span class="sd">        Dictionary with keys ``&quot;start&quot;``, ``&quot;end&quot;``, ``&quot;dummy&quot;``,</span>
-<span class="sd">        ``&quot;new&quot;``, ``&quot;obsolete&quot;``. ``start`` and ``end`` are 1-based</span>
-<span class="sd">        positions matching R; ``dummy`` / ``new`` / ``obsolete`` are</span>
-<span class="sd">        binary numpy arrays of length ``len(y)``.</span>
+<span class="sd">    type : AidType</span>
+<span class="sd">        Sub-categorisation of ``name`` with fields ``type1``,</span>
+<span class="sd">        ``type2``, ``type2a``.</span>
+<span class="sd">    stockouts : Stockouts</span>
+<span class="sd">        Stockout / new / obsolete metadata. ``start`` and ``end`` are</span>
+<span class="sd">        1-based positions matching R; ``dummy`` / ``new`` / ``obsolete``</span>
+<span class="sd">        are binary numpy arrays of length ``len(y)``.</span>
 <span class="sd">    new : bool</span>
 <span class="sd">        ``True`` if the series starts with anomalous zeros (a new</span>
 <span class="sd">        product).</span>
@@ -205,8 +299,8 @@
         <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
         <span class="n">models</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
         <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
-        <span class="nb">type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
-        <span class="n">stockouts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="s2">&quot;AidType | dict&quot;</span><span class="p">,</span>
+        <span class="n">stockouts</span><span class="p">:</span> <span class="s2">&quot;Stockouts | dict&quot;</span><span class="p">,</span>
         <span class="n">new</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">obsolete</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
         <span class="n">ic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;AICc&quot;</span><span class="p">,</span>
@@ -214,15 +308,18 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span> <span class="o">=</span> <span class="n">stockouts</span>
+        <span class="c1"># Accept either the dataclass or a legacy dict for type/stockouts.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="nb">type</span><span class="p">,</span> <span class="n">AidType</span><span class="p">)</span> <span class="k">else</span> <span class="n">AidType</span><span class="p">(</span><span class="o">**</span><span class="nb">type</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="n">stockouts</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">stockouts</span><span class="p">,</span> <span class="n">Stockouts</span><span class="p">)</span> <span class="k">else</span> <span class="n">Stockouts</span><span class="p">(</span><span class="o">**</span><span class="n">stockouts</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">new</span> <span class="o">=</span> <span class="n">new</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span> <span class="o">=</span> <span class="n">obsolete</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">ic</span> <span class="o">=</span> <span class="n">ic</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="n">starts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span>
         <span class="n">n_stk</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">starts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">n_stk</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">n_stk</span><span class="si">}</span><span class="s2"> potential stockouts in the data.&quot;</span><span class="p">)</span>
@@ -238,7 +335,70 @@
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">(</span>
             <span class="sa">f</span><span class="s2">&quot;AidResult(name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, new=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="si">}</span><span class="s2">, obsolete=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="si">}</span><span class="s2">)&quot;</span>
-        <span class="p">)</span></div>
+        <span class="p">)</span>
+
+<div class="viewcode-block" id="AidResult.plot">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.AidResult.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the series with stockout / new / obsolete overlays.</span>
+
+<span class="sd">        Mirrors R&#39;s ``plot.aid()``:</span>
+
+<span class="sd">        - Line plot of ``y`` against 1-based positions.</span>
+<span class="sd">        - Solid red vertical line at each stockout start, dashed green</span>
+<span class="sd">          vertical line at each stockout end.</span>
+<span class="sd">        - Light-grey shaded rectangle covering each stockout span.</span>
+<span class="sd">        - Light-blue shaded rectangle covering leading zeros when the</span>
+<span class="sd">          series is flagged as a *new product*.</span>
+<span class="sd">        - Light-orange shaded rectangle covering trailing zeros when</span>
+<span class="sd">          the series is flagged as *obsolete*.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ax : matplotlib.axes.Axes, optional</span>
+<span class="sd">            Axes to draw on. A new figure is created if ``None``.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Forwarded to :meth:`matplotlib.axes.Axes.plot` for the</span>
+<span class="sd">            main series line.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        matplotlib.axes.Axes</span>
+<span class="sd">            The axes containing the plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">()</span>
+
+        <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">)</span>
+        <span class="n">x_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># 1-based to match R</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_idx</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">starts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span>
+        <span class="n">ends</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">end</span>
+        <span class="k">if</span> <span class="n">starts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">starts</span><span class="p">,</span> <span class="n">ends</span><span class="p">):</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">axvline</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;green&quot;</span><span class="p">,</span> <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">)</span>
+                <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span>
+                    <span class="nb">float</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span>
+                    <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightgrey&quot;</span><span class="p">,</span>
+                    <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span>
+                <span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="p">:</span>
+            <span class="n">first_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">first_nz</span> <span class="o">-</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightblue&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="p">:</span>
+            <span class="n">last_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">axvspan</span><span class="p">(</span><span class="n">last_nz</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">n</span> <span class="o">+</span> <span class="mf">0.5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;lightsalmon&quot;</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Time&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;AID: </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span></div>
+</div>
 
 
 
@@ -290,7 +450,107 @@
         <span class="p">)</span>
 
     <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
-        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;AidCatResult(anomalies=</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;AidCatResult(anomalies=</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span>
+
+<div class="viewcode-block" id="AidCatResult.plot">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.AidCatResult.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the 2x3 demand-category panel.</span>
+
+<span class="sd">        Mirrors R&#39;s ``plot.aidCat()`` layout: six cells, one per</span>
+<span class="sd">        demand category, each annotated with the count of series</span>
+<span class="sd">        falling in it. Row marginals (Count / Fractional totals) are</span>
+<span class="sd">        drawn along the right edge, column marginals (Regular /</span>
+<span class="sd">        Smooth Intermittent / Lumpy Intermittent totals) along the</span>
+<span class="sd">        bottom edge, and the grand total at the bottom-right.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ax : matplotlib.axes.Axes, optional</span>
+<span class="sd">            Axes to draw on. A new figure is created if ``None``.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Forwarded to :func:`matplotlib.pyplot.subplots` when</span>
+<span class="sd">            ``ax`` is ``None``.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        matplotlib.axes.Axes</span>
+<span class="sd">            The axes containing the plot.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+        <span class="k">if</span> <span class="n">ax</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">ax</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+        <span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">types</span>  <span class="c1"># rows=[&quot;Count&quot;,&quot;Fractional&quot;], cols=Regular/Smooth/Lumpy</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylim</span><span class="p">(</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_axis_off</span><span class="p">()</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Demand intervals&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Demand sizes type&quot;</span><span class="p">)</span>
+
+        <span class="c1"># Horizontal and vertical grid lines.</span>
+        <span class="k">for</span> <span class="n">y_h</span> <span class="ow">in</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mf">2.2</span><span class="p">],</span> <span class="p">[</span><span class="n">y_h</span><span class="p">,</span> <span class="n">y_h</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">x_v</span> <span class="ow">in</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">([</span><span class="n">x_v</span><span class="p">,</span> <span class="n">x_v</span><span class="p">],</span> <span class="p">[</span><span class="o">-</span><span class="mf">1.2</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.7</span><span class="p">)</span>
+
+        <span class="c1"># Category cells (top row = Count, bottom row = Fractional).</span>
+        <span class="n">labels</span> <span class="o">=</span> <span class="p">[</span>
+            <span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Regular Count&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent Count&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent Count&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+            <span class="p">(</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Regular Fractional&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent Fractional&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">1</span><span class="p">]),</span>
+            <span class="p">(</span><span class="mf">1.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent Fractional&quot;</span><span class="p">,</span> <span class="n">t</span><span class="o">.</span><span class="n">iat</span><span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">]),</span>
+        <span class="p">]</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">labels</span><span class="p">:</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span>
+                <span class="n">y</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="se">\n</span><span class="s2">(</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">n</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Column marginals along the bottom edge.</span>
+        <span class="n">col_totals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">iloc</span><span class="p">[:,</span> <span class="n">c</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">3</span><span class="p">)]</span>
+        <span class="n">col_labels</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Regular&quot;</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent&quot;</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent&quot;</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">x</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="o">-</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">),</span> <span class="n">col_labels</span><span class="p">,</span> <span class="n">col_totals</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="n">x</span><span class="p">,</span>
+                <span class="o">-</span><span class="mf">1.1</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="se">\n</span><span class="s2">(</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Row marginals along the right edge (rotated).</span>
+        <span class="n">row_totals</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">iloc</span><span class="p">[</span><span class="n">r</span><span class="p">,</span> <span class="p">:]</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">2</span><span class="p">)]</span>
+        <span class="k">for</span> <span class="n">y</span><span class="p">,</span> <span class="n">label</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">((</span><span class="mf">0.5</span><span class="p">,</span> <span class="o">-</span><span class="mf">0.5</span><span class="p">),</span> <span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Fractional&quot;</span><span class="p">),</span> <span class="n">row_totals</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+                <span class="mf">2.1</span><span class="p">,</span>
+                <span class="n">y</span><span class="p">,</span>
+                <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">label</span><span class="si">}</span><span class="se">\n</span><span class="s2">(</span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+                <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+                <span class="n">rotation</span><span class="o">=</span><span class="mi">90</span><span class="p">,</span>
+                <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+            <span class="p">)</span>
+
+        <span class="c1"># Grand total in the bottom-right corner.</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">text</span><span class="p">(</span>
+            <span class="mf">2.1</span><span class="p">,</span>
+            <span class="o">-</span><span class="mf">1.1</span><span class="p">,</span>
+            <span class="sa">f</span><span class="s2">&quot;Total</span><span class="se">\n</span><span class="s2">(</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">,</span>
+            <span class="n">ha</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+            <span class="n">va</span><span class="o">=</span><span class="s2">&quot;center&quot;</span><span class="p">,</span>
+            <span class="n">fontsize</span><span class="o">=</span><span class="mi">9</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">return</span> <span class="n">ax</span></div>
+</div>
 
 
 
@@ -765,19 +1025,19 @@
         <span class="n">last_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
         <span class="n">obsolete_dummy</span><span class="p">[</span><span class="n">last_nz</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">1</span>
 
-    <span class="n">stockouts</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">stockouts_start</span><span class="p">,</span>
-        <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">stockouts_end</span><span class="p">,</span>
-        <span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="n">stockout_dummy</span><span class="p">,</span>
-        <span class="s2">&quot;new&quot;</span><span class="p">:</span> <span class="n">new_dummy</span><span class="p">,</span>
-        <span class="s2">&quot;obsolete&quot;</span><span class="p">:</span> <span class="n">obsolete_dummy</span><span class="p">,</span>
-    <span class="p">}</span>
+    <span class="n">stockouts</span> <span class="o">=</span> <span class="n">Stockouts</span><span class="p">(</span>
+        <span class="n">start</span><span class="o">=</span><span class="n">stockouts_start</span><span class="p">,</span>
+        <span class="n">end</span><span class="o">=</span><span class="n">stockouts_end</span><span class="p">,</span>
+        <span class="n">dummy</span><span class="o">=</span><span class="n">stockout_dummy</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="n">new_dummy</span><span class="p">,</span>
+        <span class="n">obsolete</span><span class="o">=</span><span class="n">obsolete_dummy</span><span class="p">,</span>
+    <span class="p">)</span>
 
     <span class="k">return</span> <span class="n">AidResult</span><span class="p">(</span>
         <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
         <span class="n">models</span><span class="o">=</span><span class="n">id_models</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">id_type</span><span class="p">,</span>
-        <span class="nb">type</span><span class="o">=</span><span class="n">id_type_detailed</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">AidType</span><span class="p">(</span><span class="o">**</span><span class="n">id_type_detailed</span><span class="p">),</span>
         <span class="n">stockouts</span><span class="o">=</span><span class="n">stockouts</span><span class="p">,</span>
         <span class="n">new</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">product_new</span><span class="p">),</span>
         <span class="n">obsolete</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">product_obsolete</span><span class="p">),</span>
@@ -883,7 +1143,7 @@
     <span class="n">n_old</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">obsolete</span><span class="p">)</span>
     <span class="n">n_stockouts</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
-        <span class="n">starts</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span>
         <span class="k">if</span> <span class="n">starts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">n_stockouts</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)</span>
     <span class="n">anomalies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>

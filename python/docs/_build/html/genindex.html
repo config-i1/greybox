@@ -127,15 +127,17 @@
         <li><a href="api/selection.html#greybox.selection.CALMResult.aicc">(greybox.selection.CALMResult property)</a>
 </li>
       </ul></li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/aid.html#greybox.aid.aid">aid() (in module greybox.aid)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/aid.html#greybox.aid.aid_cat">aid_cat() (in module greybox.aid)</a>
 </li>
       <li><a href="api/aid.html#greybox.aid.AidCatResult">AidCatResult (class in greybox.aid)</a>
 </li>
       <li><a href="api/aid.html#greybox.aid.AidResult">AidResult (class in greybox.aid)</a>
+</li>
+      <li><a href="api/aid.html#greybox.aid.AidType">AidType (class in greybox.aid)</a>
 </li>
       <li><a href="api/alm.html#greybox.alm.ALM">ALM (class in greybox.alm)</a>
 </li>
@@ -405,14 +407,14 @@
 </li>
       <li><a href="api/selection.html#greybox.selection.CALMResult.distribution">distribution (greybox.selection.CALMResult property)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/alm.html#greybox.alm.ALM.distribution_">distribution_ (greybox.alm.ALM property)</a>
 
       <ul>
         <li><a href="api/selection.html#greybox.selection.CALMResult.distribution_">(greybox.selection.CALMResult property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/alm.html#greybox.alm.ALM.DISTRIBUTIONS">DISTRIBUTIONS (greybox.alm.ALM attribute)</a>
 </li>
       <li>
@@ -532,16 +534,20 @@
       </ul></li>
       <li><a href="api/distributions/t.html#greybox.distributions.dt">dt() (in module greybox.distributions)</a>
 </li>
+      <li><a href="api/aid.html#greybox.aid.Stockouts.dummy">dummy (greybox.aid.Stockouts attribute)</a>
+</li>
   </ul></td>
 </tr></table>
 
 <h2 id="E">E</h2>
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/formula.html#greybox.formula.expand_formula">expand_formula() (in module greybox.formula)</a>
+      <li><a href="api/aid.html#greybox.aid.Stockouts.end">end (greybox.aid.Stockouts attribute)</a>
 </li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="api/formula.html#greybox.formula.expand_formula">expand_formula() (in module greybox.formula)</a>
+</li>
       <li><a href="api/hm.html#greybox.hm.extremity">extremity() (in module greybox.hm)</a>
 </li>
   </ul></td>
@@ -789,7 +795,11 @@
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/aid.html#greybox.aid.AidResult.new">new (greybox.aid.AidResult attribute)</a>
+
+      <ul>
+        <li><a href="api/aid.html#greybox.aid.Stockouts.new">(greybox.aid.Stockouts attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/alm.html#greybox.alm.ALM.nobs">nobs (greybox.alm.ALM property)</a>
 
       <ul>
@@ -809,7 +819,11 @@
 <table style="width: 100%" class="indextable genindextable"><tr>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/aid.html#greybox.aid.AidResult.obsolete">obsolete (greybox.aid.AidResult attribute)</a>
+
+      <ul>
+        <li><a href="api/aid.html#greybox.aid.Stockouts.obsolete">(greybox.aid.Stockouts attribute)</a>
 </li>
+      </ul></li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/alm.html#greybox.alm.ALM.other_">other_ (greybox.alm.ALM attribute)</a>
@@ -850,8 +864,6 @@
 </li>
       <li><a href="api/distributions/lnorm.html#greybox.distributions.plnorm">plnorm() (in module greybox.distributions)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li>
     plogis()
 
@@ -859,10 +871,18 @@
         <li><a href="distributions/index.html#plogis">built-in function</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/distributions/logis.html#greybox.distributions.plogis">plogis() (in module greybox.distributions)</a>
 </li>
       <li><a href="api/distributions/logitnorm.html#greybox.distributions.plogitnorm">plogitnorm() (in module greybox.distributions)</a>
 </li>
+      <li><a href="api/aid.html#greybox.aid.AidCatResult.plot">plot() (greybox.aid.AidCatResult method)</a>
+
+      <ul>
+        <li><a href="api/aid.html#greybox.aid.AidResult.plot">(greybox.aid.AidResult method)</a>
+</li>
+      </ul></li>
       <li><a href="api/distributions/nbinom.html#greybox.distributions.pnbinom">pnbinom() (in module greybox.distributions)</a>
 </li>
       <li>
@@ -1046,21 +1066,25 @@
 </li>
       <li><a href="api/selection.html#greybox.selection.ModelInfo.setdefault">setdefault() (greybox.selection.ModelInfo method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/alm.html#greybox.alm.ALM.sigma">sigma (greybox.alm.ALM property)</a>
 
       <ul>
         <li><a href="api/selection.html#greybox.selection.CALMResult.sigma">(greybox.selection.CALMResult property)</a>
 </li>
       </ul></li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/quantile_measures.html#greybox.quantile_measures.smis">smis() (in module greybox.quantile_measures)</a>
 </li>
       <li><a href="api/point_measures.html#greybox.point_measures.smse">smse() (in module greybox.point_measures)</a>
 </li>
       <li><a href="api/point_measures.html#greybox.point_measures.spis">spis() (in module greybox.point_measures)</a>
 </li>
+      <li><a href="api/aid.html#greybox.aid.Stockouts.start">start (greybox.aid.Stockouts attribute)</a>
+</li>
       <li><a href="api/selection.html#greybox.selection.stepwise">stepwise() (in module greybox.selection)</a>
+</li>
+      <li><a href="api/aid.html#greybox.aid.Stockouts">Stockouts (class in greybox.aid)</a>
 </li>
       <li><a href="api/aid.html#greybox.aid.AidResult.stockouts">stockouts (greybox.aid.AidResult attribute)</a>
 </li>
@@ -1086,9 +1110,15 @@
         <li><a href="api/selection.html#greybox.selection.CALMResult.time_elapsed">(greybox.selection.CALMResult property)</a>
 </li>
       </ul></li>
+      <li><a href="api/aid.html#greybox.aid.AidResult.type">type (greybox.aid.AidResult attribute)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/aid.html#greybox.aid.AidResult.type">type (greybox.aid.AidResult attribute)</a>
+      <li><a href="api/aid.html#greybox.aid.AidType.type1">type1 (greybox.aid.AidType attribute)</a>
+</li>
+      <li><a href="api/aid.html#greybox.aid.AidType.type2">type2 (greybox.aid.AidType attribute)</a>
+</li>
+      <li><a href="api/aid.html#greybox.aid.AidType.type2a">type2a (greybox.aid.AidType attribute)</a>
 </li>
       <li><a href="api/aid.html#greybox.aid.AidCatResult.types">types (greybox.aid.AidCatResult attribute)</a>
 </li>

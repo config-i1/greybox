@@ -72,6 +72,11 @@
 <li class="toctree-l4"><a class="reference internal" href="#greybox.aid.AidCatResult"><code class="docutils literal notranslate"><span class="pre">AidCatResult</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#nested-dataclasses">Nested dataclasses</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.AidType"><code class="docutils literal notranslate"><span class="pre">AidType</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.Stockouts"><code class="docutils literal notranslate"><span class="pre">Stockouts</span></code></a></li>
+</ul>
+</li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
@@ -215,8 +220,29 @@ stockout indices, and new/obsolete flags.</p>
 <span class="n">y2</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
 <span class="n">y2</span><span class="p">[</span><span class="mi">40</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
 <span class="n">result2</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">],</span> <span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span><span class="p">,</span> <span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">end</span><span class="p">)</span>
 <span class="c1"># [41] [50]  (1-based positions, matches R)</span>
+</pre></div>
+</div>
+<p><strong>Accessing the result</strong></p>
+<p>The <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">stockouts</span></code> fields are typed dataclasses
+(<code class="xref py py-class docutils literal notranslate"><span class="pre">AidType</span></code> / <code class="xref py py-class docutils literal notranslate"><span class="pre">Stockouts</span></code>) that support both R-style
+attribute access and dict-style subscript access:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span>    <span class="c1"># numpy.ndarray of 1-based positions</span>
+<span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span> <span class="c1"># same data, dict-style fallback</span>
+<span class="n">result2</span><span class="o">.</span><span class="n">type</span><span class="o">.</span><span class="n">type1</span>         <span class="c1"># &quot;count&quot; or &quot;fractional&quot;</span>
+</pre></div>
+</div>
+<p><strong>Plotting</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">AidResult.plot()</span></code> mirrors R’s <code class="docutils literal notranslate"><span class="pre">plot.aid()</span></code> — line plot of the
+series with each stockout shaded in light grey and bracketed by a
+solid red (start) / dashed green (end) vertical line. Leading-zero
+runs flagged as a new product get a light-blue shading, trailing-zero
+runs flagged as obsolete get a light-orange shading:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">result2</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
 </section>
@@ -288,6 +314,8 @@ objects.</p>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">types</span><span class="p">)</span>        <span class="c1"># 2x3 demand-type counts</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span>    <span class="c1"># New / Stockouts / Old counts</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">categories</span><span class="p">)</span>   <span class="c1"># categorical vector per series</span>
+
+<span class="n">ax</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>         <span class="c1"># 2x3 demand-category panel</span>
 </pre></div>
 </div>
 </section>
@@ -295,9 +323,17 @@ objects.</p>
 <h2>Result classes<a class="headerlink" href="#result-classes" title="Link to this heading"></a></h2>
 <dl class="py class">
 <dt class="sig sig-object py" id="greybox.aid.AidResult">
-<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">AidResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stockouts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsolete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidResult" title="Link to this definition"></a></dt>
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">AidResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#greybox.aid.AidType" title="greybox.aid.AidType"><span class="pre">AidType</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stockouts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><a class="reference internal" href="#greybox.aid.Stockouts" title="greybox.aid.Stockouts"><span class="pre">Stockouts</span></a><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsolete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidResult" title="Link to this definition"></a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Result of <a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a>. Mirrors R’s <code class="docutils literal notranslate"><span class="pre">aid</span></code> S3 class.</p>
+<p>The nested <code class="docutils literal notranslate"><span class="pre">type</span></code> and <code class="docutils literal notranslate"><span class="pre">stockouts</span></code> fields are typed dataclasses
+(<a class="reference internal" href="#greybox.aid.AidType" title="greybox.aid.AidType"><code class="xref py py-class docutils literal notranslate"><span class="pre">AidType</span></code></a> and <a class="reference internal" href="#greybox.aid.Stockouts" title="greybox.aid.Stockouts"><code class="xref py py-class docutils literal notranslate"><span class="pre">Stockouts</span></code></a>) that support both
+attribute access and dict-style access. The two patterns below are
+equivalent:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">start</span>    <span class="c1"># Python idiom</span>
+<span class="n">result</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span> <span class="c1"># R-list / dict idiom</span>
+</pre></div>
+</div>
 <dl class="py attribute">
 <dt class="sig sig-object py" id="greybox.aid.AidResult.y">
 <span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#greybox.aid.AidResult.y" title="Link to this definition"></a></dt>
@@ -337,13 +373,11 @@ the key <code class="docutils literal notranslate"><span class="pre">&quot;stock
 <dl class="py attribute">
 <dt class="sig sig-object py" id="greybox.aid.AidResult.type">
 <span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#greybox.aid.AidResult.type" title="Link to this definition"></a></dt>
-<dd><p>Sub-categorisation of <code class="docutils literal notranslate"><span class="pre">name</span></code> with keys <code class="docutils literal notranslate"><span class="pre">type1</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>
-or <code class="docutils literal notranslate"><span class="pre">&quot;fractional&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">type2</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;regular&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;intermittent&quot;</span></code>), and <code class="docutils literal notranslate"><span class="pre">type2a</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;smooth&quot;</span></code> or
-<code class="docutils literal notranslate"><span class="pre">&quot;lumpy&quot;</span></code> when intermittent, <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise).</p>
+<dd><p>Sub-categorisation of <code class="docutils literal notranslate"><span class="pre">name</span></code> with fields <code class="docutils literal notranslate"><span class="pre">type1</span></code>,
+<code class="docutils literal notranslate"><span class="pre">type2</span></code>, <code class="docutils literal notranslate"><span class="pre">type2a</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.aid.AidType" title="greybox.aid.AidType">AidType</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -351,13 +385,12 @@ or <code class="docutils literal notranslate"><span class="pre">&quot;fractional
 <dl class="py attribute">
 <dt class="sig sig-object py" id="greybox.aid.AidResult.stockouts">
 <span class="sig-name descname"><span class="pre">stockouts</span></span><a class="headerlink" href="#greybox.aid.AidResult.stockouts" title="Link to this definition"></a></dt>
-<dd><p>Dictionary with keys <code class="docutils literal notranslate"><span class="pre">&quot;start&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;end&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dummy&quot;</span></code>,
-<code class="docutils literal notranslate"><span class="pre">&quot;new&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;obsolete&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> are 1-based
-positions matching R; <code class="docutils literal notranslate"><span class="pre">dummy</span></code> / <code class="docutils literal notranslate"><span class="pre">new</span></code> / <code class="docutils literal notranslate"><span class="pre">obsolete</span></code> are
-binary numpy arrays of length <code class="docutils literal notranslate"><span class="pre">len(y)</span></code>.</p>
+<dd><p>Stockout / new / obsolete metadata. <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> are
+1-based positions matching R; <code class="docutils literal notranslate"><span class="pre">dummy</span></code> / <code class="docutils literal notranslate"><span class="pre">new</span></code> / <code class="docutils literal notranslate"><span class="pre">obsolete</span></code>
+are binary numpy arrays of length <code class="docutils literal notranslate"><span class="pre">len(y)</span></code>.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
-<dd class="field-odd"><p>dict</p>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.aid.Stockouts" title="greybox.aid.Stockouts">Stockouts</a></p>
 </dd>
 </dl>
 </dd></dl>
@@ -393,6 +426,38 @@ discontinued product).</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidResult.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidResult.plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the series with stockout / new / obsolete overlays.</p>
+<p>Mirrors R’s <code class="docutils literal notranslate"><span class="pre">plot.aid()</span></code>:</p>
+<ul class="simple">
+<li><p>Line plot of <code class="docutils literal notranslate"><span class="pre">y</span></code> against 1-based positions.</p></li>
+<li><p>Solid red vertical line at each stockout start, dashed green
+vertical line at each stockout end.</p></li>
+<li><p>Light-grey shaded rectangle covering each stockout span.</p></li>
+<li><p>Light-blue shaded rectangle covering leading zeros when the
+series is flagged as a <em>new product</em>.</p></li>
+<li><p>Light-orange shaded rectangle covering trailing zeros when
+the series is flagged as <em>obsolete</em>.</p></li>
+</ul>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axes to draw on. A new figure is created if <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.axes.Axes.plot()</span></code> for the
+main series line.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The axes containing the plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.axes.Axes</p>
 </dd>
 </dl>
 </dd></dl>
@@ -452,6 +517,150 @@ the input columns.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Type<span class="colon">:</span></dt>
 <dd class="field-odd"><p>list[<a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult">AidResult</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">ax</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidCatResult.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidCatResult.plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the 2x3 demand-category panel.</p>
+<p>Mirrors R’s <code class="docutils literal notranslate"><span class="pre">plot.aidCat()</span></code> layout: six cells, one per
+demand category, each annotated with the count of series
+falling in it. Row marginals (Count / Fractional totals) are
+drawn along the right edge, column marginals (Regular /
+Smooth Intermittent / Lumpy Intermittent totals) along the
+bottom edge, and the grand total at the bottom-right.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>ax</strong> (<em>matplotlib.axes.Axes</em><em>, </em><em>optional</em>) – Axes to draw on. A new figure is created if <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="xref py py-func docutils literal notranslate"><span class="pre">matplotlib.pyplot.subplots()</span></code> when
+<code class="docutils literal notranslate"><span class="pre">ax</span></code> is <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The axes containing the plot.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>matplotlib.axes.Axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+<section id="nested-dataclasses">
+<h2>Nested dataclasses<a class="headerlink" href="#nested-dataclasses" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.aid.AidType">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">AidType</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">type1</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type2</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type2a</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidType"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidType" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Sub-categorisation of an AID classification (mirrors R’s <code class="docutils literal notranslate"><span class="pre">$type</span></code>).</p>
+<p>Both attribute access (<code class="docutils literal notranslate"><span class="pre">aid_type.type1</span></code>) and dict-style access
+(<code class="docutils literal notranslate"><span class="pre">aid_type[&quot;type1&quot;]</span></code>) work; the latter exists for backward
+compatibility with code written against the earlier dict-based API.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidType.type1">
+<span class="sig-name descname"><span class="pre">type1</span></span><a class="headerlink" href="#greybox.aid.AidType.type1" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;fractional&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidType.type2">
+<span class="sig-name descname"><span class="pre">type2</span></span><a class="headerlink" href="#greybox.aid.AidType.type2" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;regular&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;intermittent&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidType.type2a">
+<span class="sig-name descname"><span class="pre">type2a</span></span><a class="headerlink" href="#greybox.aid.AidType.type2a" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">&quot;smooth&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">&quot;lumpy&quot;</span></code> when intermittent, <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">Stockouts</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">start</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">end</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dummy</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsolete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#Stockouts"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.Stockouts" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Stockout / new / obsolete metadata (mirrors R’s <code class="docutils literal notranslate"><span class="pre">$stockouts</span></code>).</p>
+<p>Both attribute access (<code class="docutils literal notranslate"><span class="pre">stockouts.start</span></code>) and dict-style access
+(<code class="docutils literal notranslate"><span class="pre">stockouts[&quot;start&quot;]</span></code>) work; the latter exists for backward
+compatibility with code written against the earlier dict-based API.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts.start">
+<span class="sig-name descname"><span class="pre">start</span></span><a class="headerlink" href="#greybox.aid.Stockouts.start" title="Link to this definition"></a></dt>
+<dd><p>1-based positions where each stockout begins. <code class="docutils literal notranslate"><span class="pre">None</span></code> if the
+original series had no zeros at all; an empty array if zeros
+were present but none were flagged as stockouts.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts.end">
+<span class="sig-name descname"><span class="pre">end</span></span><a class="headerlink" href="#greybox.aid.Stockouts.end" title="Link to this definition"></a></dt>
+<dd><p>1-based positions where each stockout ends. Same length as
+<code class="docutils literal notranslate"><span class="pre">start</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray or None</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts.dummy">
+<span class="sig-name descname"><span class="pre">dummy</span></span><a class="headerlink" href="#greybox.aid.Stockouts.dummy" title="Link to this definition"></a></dt>
+<dd><p>Length-<code class="docutils literal notranslate"><span class="pre">n</span></code> binary indicator: <code class="docutils literal notranslate"><span class="pre">1</span></code> on observations inside a
+stockout window, <code class="docutils literal notranslate"><span class="pre">0</span></code> elsewhere.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts.new">
+<span class="sig-name descname"><span class="pre">new</span></span><a class="headerlink" href="#greybox.aid.Stockouts.new" title="Link to this definition"></a></dt>
+<dd><p>Length-<code class="docutils literal notranslate"><span class="pre">n</span></code> binary indicator: <code class="docutils literal notranslate"><span class="pre">1</span></code> over the leading-zeros
+block when the series is flagged as a new product.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.Stockouts.obsolete">
+<span class="sig-name descname"><span class="pre">obsolete</span></span><a class="headerlink" href="#greybox.aid.Stockouts.obsolete" title="Link to this definition"></a></dt>
+<dd><p>Length-<code class="docutils literal notranslate"><span class="pre">n</span></code> binary indicator: <code class="docutils literal notranslate"><span class="pre">1</span></code> over the trailing-zeros
+block when the series is flagged as obsolete.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
 </dd>
 </dl>
 </dd></dl>

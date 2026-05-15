@@ -67,6 +67,7 @@
 <li class="toctree-l4"><a class="reference internal" href="#greybox.smoothers.supsmu"><code class="docutils literal notranslate"><span class="pre">supsmu()</span></code></a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="#plotting-smoother-output">Plotting smoother output</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="aid.html">Automatic Identification of Demand</a></li>
@@ -298,6 +299,31 @@ University. <a class="reference external" href="https://www.osti.gov/biblio/1447
 (SLAC-PUB-3477; STAN-LCS-005), Laboratory for Computational Statistics,
 Department of Statistics, Stanford University.
 <a class="reference external" href="https://www.osti.gov/biblio/1447470">OSTI 1447470</a>.</p>
+</section>
+<section id="plotting-smoother-output">
+<h2>Plotting smoother output<a class="headerlink" href="#plotting-smoother-output" title="Link to this heading"></a></h2>
+<p>Both <code class="docutils literal notranslate"><span class="pre">lowess()</span></code> and <code class="docutils literal notranslate"><span class="pre">supsmu()</span></code> return plain dictionaries, mirroring
+R’s <code class="docutils literal notranslate"><span class="pre">list(x,</span> <span class="pre">y)</span></code>. They can be overlaid on a scatter plot with
+<code class="xref py py-mod docutils literal notranslate"><span class="pre">matplotlib</span></code> using the standard pattern:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">lowess</span><span class="p">,</span> <span class="n">supsmu</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">alpha</span><span class="o">=</span><span class="mf">0.5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;data&quot;</span><span class="p">)</span>
+<span class="n">lo</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="n">sm</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">lo</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">lo</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;red&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;LOWESS&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">sm</span><span class="p">[</span><span class="s2">&quot;x&quot;</span><span class="p">],</span> <span class="n">sm</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="s2">&quot;blue&quot;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s2">&quot;SuperSmoother&quot;</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<p>The same shape works as an overlay on an existing <code class="xref py py-class docutils literal notranslate"><span class="pre">Axes</span></code>:
+<code class="docutils literal notranslate"><span class="pre">ax.plot(out[&quot;x&quot;],</span> <span class="pre">out[&quot;y&quot;])</span></code>.</p>
 </section>
 </section>
 

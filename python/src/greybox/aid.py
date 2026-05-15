@@ -20,6 +20,7 @@ Result classes
 from __future__ import annotations
 
 import warnings
+from dataclasses import dataclass
 from typing import Any
 
 import numpy as np
@@ -29,6 +30,88 @@ from .alm import ALM
 from .formula import formula as build_formula
 from .pointlik import point_lik_cumulative
 from .smoothers import lowess, supsmu
+
+
+@dataclass
+class AidType:
+    """Sub-categorisation of an AID classification (mirrors R's ``$type``).
+
+    Both attribute access (``aid_type.type1``) and dict-style access
+    (``aid_type["type1"]``) work; the latter exists for backward
+    compatibility with code written against the earlier dict-based API.
+
+    Attributes
+    ----------
+    type1 : str or None
+        ``"count"`` or ``"fractional"``.
+    type2 : str or None
+        ``"regular"`` or ``"intermittent"``.
+    type2a : str or None
+        ``"smooth"`` or ``"lumpy"`` when intermittent, ``None`` otherwise.
+    """
+
+    type1: str | None
+    type2: str | None
+    type2a: str | None
+
+    def __getitem__(self, key: str):
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        return isinstance(key, str) and key in self.keys()
+
+    def keys(self):
+        return ("type1", "type2", "type2a")
+
+    def get(self, key: str, default=None):
+        return getattr(self, key, default)
+
+
+@dataclass
+class Stockouts:
+    """Stockout / new / obsolete metadata (mirrors R's ``$stockouts``).
+
+    Both attribute access (``stockouts.start``) and dict-style access
+    (``stockouts["start"]``) work; the latter exists for backward
+    compatibility with code written against the earlier dict-based API.
+
+    Attributes
+    ----------
+    start : numpy.ndarray or None
+        1-based positions where each stockout begins. ``None`` if the
+        original series had no zeros at all; an empty array if zeros
+        were present but none were flagged as stockouts.
+    end : numpy.ndarray or None
+        1-based positions where each stockout ends. Same length as
+        ``start``.
+    dummy : numpy.ndarray
+        Length-``n`` binary indicator: ``1`` on observations inside a
+        stockout window, ``0`` elsewhere.
+    new : numpy.ndarray
+        Length-``n`` binary indicator: ``1`` over the leading-zeros
+        block when the series is flagged as a new product.
+    obsolete : numpy.ndarray
+        Length-``n`` binary indicator: ``1`` over the trailing-zeros
+        block when the series is flagged as obsolete.
+    """
+
+    start: np.ndarray | None
+    end: np.ndarray | None
+    dummy: np.ndarray
+    new: np.ndarray
+    obsolete: np.ndarray
+
+    def __getitem__(self, key: str):
+        return getattr(self, key)
+
+    def __contains__(self, key: object) -> bool:
+        return isinstance(key, str) and key in self.keys()
+
+    def keys(self):
+        return ("start", "end", "dummy", "new", "obsolete")
+
+    def get(self, key: str, default=None):
+        return getattr(self, key, default)
 
 
 _VALID_ICS = ("AICc", "AIC", "BICc", "BIC")
@@ -78,6 +161,14 @@ def _interp_rule2(x_indexed: np.ndarray) -> np.ndarray:
 class AidResult:
     """Result of :func:`aid`. Mirrors R's ``aid`` S3 class.
 
+    The nested ``type`` and ``stockouts`` fields are typed dataclasses
+    (:class:`AidType` and :class:`Stockouts`) that support both
+    attribute access and dict-style access. The two patterns below are
+    equivalent::
+
+        result.stockouts.start    # Python idiom
+        result.stockouts["start"] # R-list / dict idiom
+
     Attributes
     ----------
     y : numpy.ndarray
@@ -89,16 +180,13 @@ class AidResult:
     name : str
         Name of the selected demand type (e.g. ``"smooth intermittent
         count"``).
-    type : dict
-        Sub-categorisation of ``name`` with keys ``type1`` (``"count"``
-        or ``"fractional"``), ``type2`` (``"regular"`` or
-        ``"intermittent"``), and ``type2a`` (``"smooth"`` or
-        ``"lumpy"`` when intermittent, ``None`` otherwise).
-    stockouts : dict
-        Dictionary with keys ``"start"``, ``"end"``, ``"dummy"``,
-        ``"new"``, ``"obsolete"``. ``start`` and ``end`` are 1-based
-        positions matching R; ``dummy`` / ``new`` / ``obsolete`` are
-        binary numpy arrays of length ``len(y)``.
+    type : AidType
+        Sub-categorisation of ``name`` with fields ``type1``,
+        ``type2``, ``type2a``.
+    stockouts : Stockouts
+        Stockout / new / obsolete metadata. ``start`` and ``end`` are
+        1-based positions matching R; ``dummy`` / ``new`` / ``obsolete``
+        are binary numpy arrays of length ``len(y)``.
     new : bool
         ``True`` if the series starts with anomalous zeros (a new
         product).
@@ -125,8 +213,8 @@ class AidResult:
         y: np.ndarray,
         models: dict,
         name: str,
-        type: dict,
-        stockouts: dict,
+        type: "AidType | dict",
+        stockouts: "Stockouts | dict",
         new: bool,
         obsolete: bool,
         ic: str = "AICc",
@@ -134,15 +222,18 @@ class AidResult:
         self.y = y
         self.models = models
         self.name = name
-        self.type = type
-        self.stockouts = stockouts
+        # Accept either the dataclass or a legacy dict for type/stockouts.
+        self.type = type if isinstance(type, AidType) else AidType(**type)
+        self.stockouts = (
+            stockouts if isinstance(stockouts, Stockouts) else Stockouts(**stockouts)
+        )
         self.new = new
         self.obsolete = obsolete
         self.ic = ic
 
     def __str__(self) -> str:
         lines = []
-        starts = self.stockouts.get("start")
+        starts = self.stockouts.start
         n_stk = 0 if starts is None else len(starts)
         if n_stk > 1:
             lines.append(f"There are {n_stk} potential stockouts in the data.")
@@ -159,6 +250,66 @@ class AidResult:
         return (
             f"AidResult(name={self.name!r}, new={self.new}, obsolete={self.obsolete})"
         )
+
+    def plot(self, ax=None, **kwargs):
+        """Plot the series with stockout / new / obsolete overlays.
+
+        Mirrors R's ``plot.aid()``:
+
+        - Line plot of ``y`` against 1-based positions.
+        - Solid red vertical line at each stockout start, dashed green
+          vertical line at each stockout end.
+        - Light-grey shaded rectangle covering each stockout span.
+        - Light-blue shaded rectangle covering leading zeros when the
+          series is flagged as a *new product*.
+        - Light-orange shaded rectangle covering trailing zeros when
+          the series is flagged as *obsolete*.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes to draw on. A new figure is created if ``None``.
+        **kwargs
+            Forwarded to :meth:`matplotlib.axes.Axes.plot` for the
+            main series line.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
+        """
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+            _, ax = plt.subplots()
+
+        n = len(self.y)
+        x_idx = np.arange(1, n + 1)  # 1-based to match R
+        ax.plot(x_idx, self.y, **kwargs)
+
+        starts = self.stockouts.start
+        ends = self.stockouts.end
+        if starts is not None and len(starts) > 0:
+            for s, e in zip(starts, ends):
+                ax.axvline(float(s) - 0.5, color="red")
+                ax.axvline(float(e) + 0.5, color="green", linestyle="--")
+                ax.axvspan(
+                    float(s) - 0.5,
+                    float(e) + 0.5,
+                    color="lightgrey",
+                    alpha=0.5,
+                )
+        if self.new:
+            first_nz = int(np.where(self.y != 0)[0][0]) + 1
+            ax.axvspan(0.5, first_nz - 0.5, color="lightblue", alpha=0.3)
+        if self.obsolete:
+            last_nz = int(np.where(self.y != 0)[0][-1]) + 1
+            ax.axvspan(last_nz + 0.5, n + 0.5, color="lightsalmon", alpha=0.3)
+
+        ax.set_xlabel("Time")
+        ax.set_ylabel("y")
+        ax.set_title(f"AID: {self.name}")
+        return ax
 
 
 class AidCatResult:
@@ -208,6 +359,103 @@ class AidCatResult:
 
     def __repr__(self) -> str:
         return f"AidCatResult(anomalies={dict(self.anomalies)})"
+
+    def plot(self, ax=None, **kwargs):
+        """Plot the 2x3 demand-category panel.
+
+        Mirrors R's ``plot.aidCat()`` layout: six cells, one per
+        demand category, each annotated with the count of series
+        falling in it. Row marginals (Count / Fractional totals) are
+        drawn along the right edge, column marginals (Regular /
+        Smooth Intermittent / Lumpy Intermittent totals) along the
+        bottom edge, and the grand total at the bottom-right.
+
+        Parameters
+        ----------
+        ax : matplotlib.axes.Axes, optional
+            Axes to draw on. A new figure is created if ``None``.
+        **kwargs
+            Forwarded to :func:`matplotlib.pyplot.subplots` when
+            ``ax`` is ``None``.
+
+        Returns
+        -------
+        matplotlib.axes.Axes
+            The axes containing the plot.
+        """
+        import matplotlib.pyplot as plt
+
+        if ax is None:
+            _, ax = plt.subplots(**kwargs)
+
+        t = self.types  # rows=["Count","Fractional"], cols=Regular/Smooth/Lumpy
+        ax.set_xlim(-1, 2.2)
+        ax.set_ylim(-1.2, 1)
+        ax.set_axis_off()
+        ax.set_xlabel("Demand intervals")
+        ax.set_ylabel("Demand sizes type")
+
+        # Horizontal and vertical grid lines.
+        for y_h in (-1, 0, 1):
+            ax.plot([-1, 2.2], [y_h, y_h], color="black", linewidth=0.7)
+        for x_v in (-1, 0, 1, 2):
+            ax.plot([x_v, x_v], [-1.2, 1], color="black", linewidth=0.7)
+
+        # Category cells (top row = Count, bottom row = Fractional).
+        labels = [
+            (-0.5, 0.5, "Regular Count", t.iat[0, 0]),
+            (0.5, 0.5, "Smooth Intermittent Count", t.iat[0, 1]),
+            (1.5, 0.5, "Lumpy Intermittent Count", t.iat[0, 2]),
+            (-0.5, -0.5, "Regular Fractional", t.iat[1, 0]),
+            (0.5, -0.5, "Smooth Intermittent Fractional", t.iat[1, 1]),
+            (1.5, -0.5, "Lumpy Intermittent Fractional", t.iat[1, 2]),
+        ]
+        for x, y, label, n in labels:
+            ax.text(
+                x,
+                y,
+                f"{label}\n({int(n)})",
+                ha="center",
+                va="center",
+                fontsize=9,
+            )
+
+        # Column marginals along the bottom edge.
+        col_totals = [int(t.iloc[:, c].sum()) for c in range(3)]
+        col_labels = ["Regular", "Smooth Intermittent", "Lumpy Intermittent"]
+        for x, label, n in zip((-0.5, 0.5, 1.5), col_labels, col_totals):
+            ax.text(
+                x,
+                -1.1,
+                f"{label}\n({n})",
+                ha="center",
+                va="center",
+                fontsize=9,
+            )
+
+        # Row marginals along the right edge (rotated).
+        row_totals = [int(t.iloc[r, :].sum()) for r in range(2)]
+        for y, label, n in zip((0.5, -0.5), ("Count", "Fractional"), row_totals):
+            ax.text(
+                2.1,
+                y,
+                f"{label}\n({n})",
+                ha="center",
+                va="center",
+                rotation=90,
+                fontsize=9,
+            )
+
+        # Grand total in the bottom-right corner.
+        ax.text(
+            2.1,
+            -1.1,
+            f"Total\n({int(t.values.sum())})",
+            ha="center",
+            va="center",
+            fontsize=9,
+        )
+        return ax
 
 
 def aid(
@@ -679,19 +927,19 @@ def aid(
         last_nz = int(np.where(y != 0)[0][-1])
         obsolete_dummy[last_nz + 1 :] = 1
 
-    stockouts = {
-        "start": stockouts_start,
-        "end": stockouts_end,
-        "dummy": stockout_dummy,
-        "new": new_dummy,
-        "obsolete": obsolete_dummy,
-    }
+    stockouts = Stockouts(
+        start=stockouts_start,
+        end=stockouts_end,
+        dummy=stockout_dummy,
+        new=new_dummy,
+        obsolete=obsolete_dummy,
+    )
 
     return AidResult(
         y=y,
         models=id_models,
         name=id_type,
-        type=id_type_detailed,
+        type=AidType(**id_type_detailed),
         stockouts=stockouts,
         new=bool(product_new),
         obsolete=bool(product_obsolete),
@@ -794,7 +1042,7 @@ def aid_cat(data, **aid_kwargs: Any) -> AidCatResult:
     n_old = sum(1 for r in results if r.obsolete)
     n_stockouts = 0
     for r in results:
-        starts = r.stockouts.get("start")
+        starts = r.stockouts.start
         if starts is not None:
             n_stockouts += len(starts)
     anomalies = pd.Series(

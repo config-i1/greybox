@@ -84,6 +84,7 @@ Classifies a time series into one of six demand types and flags stockouts, new p
 
 ```python
 import numpy as np
+import matplotlib.pyplot as plt
 from greybox import aid, aid_cat
 
 rng = np.random.default_rng(42)
@@ -93,13 +94,16 @@ y = rng.poisson(0.7, 120).astype(float)
 result = aid(y)
 print(result)                       # human-readable summary
 print(result.name)                  # e.g. "smooth intermittent count"
-print(result.type)                  # {"type1": ..., "type2": ..., "type2a": ...}
+print(result.type.type1)            # "count" or "fractional" — R-style attribute access
+print(result.type["type1"])         # dict-style fallback also works
 
-# Detect injected stockouts
+# Detect injected stockouts and plot them
 y2 = rng.poisson(3, 100).astype(float)
 y2[40:50] = 0
 result2 = aid(y2)
-print(result2.stockouts["start"], result2.stockouts["end"])  # 1-based, [41] [50]
+print(result2.stockouts.start, result2.stockouts.end)  # 1-based, [41] [50]
+ax = result2.plot()                 # series + grey-shaded stockout span
+plt.show()
 
 # Apply to multiple series at once
 series = {
@@ -110,7 +114,13 @@ series = {
 cat = aid_cat(series)
 print(cat.types)        # 2x3 demand-category frequency table
 print(cat.anomalies)    # counts of new / stockouts / old products
+ax = cat.plot()         # 2x3 demand-category panel
+plt.show()
 ```
+
+The nested `type` and `stockouts` fields are typed dataclasses that
+support both `result.stockouts.start` (R-style attribute access) and
+`result.stockouts["start"]` (dict-style fallback).
 
 ## Supported Distributions
 

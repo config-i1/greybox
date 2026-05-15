@@ -29,8 +29,31 @@ aid()
    y2 = rng.poisson(3, 100).astype(float)
    y2[40:50] = 0
    result2 = aid(y2)
-   print(result2.stockouts["start"], result2.stockouts["end"])
+   print(result2.stockouts.start, result2.stockouts.end)
    # [41] [50]  (1-based positions, matches R)
+
+**Accessing the result**
+
+The ``type`` and ``stockouts`` fields are typed dataclasses
+(:class:`AidType` / :class:`Stockouts`) that support both R-style
+attribute access and dict-style subscript access::
+
+   result2.stockouts.start    # numpy.ndarray of 1-based positions
+   result2.stockouts["start"] # same data, dict-style fallback
+   result2.type.type1         # "count" or "fractional"
+
+**Plotting**
+
+``AidResult.plot()`` mirrors R's ``plot.aid()`` — line plot of the
+series with each stockout shaded in light grey and bracketed by a
+solid red (start) / dashed green (end) vertical line. Leading-zero
+runs flagged as a new product get a light-blue shading, trailing-zero
+runs flagged as obsolete get a light-orange shading::
+
+   import matplotlib.pyplot as plt
+
+   ax = result2.plot()
+   plt.show()
 
 aid_cat()
 ---------
@@ -54,11 +77,24 @@ aid_cat()
    print(result.anomalies)    # New / Stockouts / Old counts
    print(result.categories)   # categorical vector per series
 
+   ax = result.plot()         # 2x3 demand-category panel
+
 Result classes
 --------------
 
 .. autoclass:: greybox.aid.AidResult
-   :no-members:
+   :members: plot
+   :no-undoc-members:
 
 .. autoclass:: greybox.aid.AidCatResult
+   :members: plot
+   :no-undoc-members:
+
+Nested dataclasses
+------------------
+
+.. autoclass:: greybox.aid.AidType
+   :no-members:
+
+.. autoclass:: greybox.aid.Stockouts
    :no-members:

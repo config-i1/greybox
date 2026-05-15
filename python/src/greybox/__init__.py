@@ -68,7 +68,7 @@ from .data import mtcars
 from .pointlik import point_lik, point_lik_cumulative
 
 # Automatic Identification of Demand
-from .aid import aid, aid_cat, AidResult, AidCatResult
+from .aid import aid, aid_cat, AidResult, AidCatResult, AidType, Stockouts
 
 # Smoothers
 from .smoothers import lowess, supsmu
@@ -149,6 +149,8 @@ __all__ = [
     "aid_cat",
     "AidResult",
     "AidCatResult",
+    "AidType",
+    "Stockouts",
     # Smoothers
     "lowess",
     "supsmu",
