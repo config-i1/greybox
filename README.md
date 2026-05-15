@@ -67,13 +67,14 @@ See [wiki](https://github.com/config-i1/greybox/wiki) for full documentation, ex
 3. xregMultiplier - function produces cross-products of the variables in the matrix. Could be useful when exploring interaction effects of dummy variables.
 
 ### The data analysis functions
-1. cramer - calculates Cramer's V for two categorical variables. Plus tests the significance of such association.
-2. mcor - function returns the coefficients of multiple correlation between the variables. This is useful when measuring association between categorical and numerical variables.
-3. association (aka 'assoc()') - function returns matrix of measures of association, choosing between cramer(), mcor() and cor() depending on the types of variables.
-4. determination (and the method 'determ()') - function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
-5. tableplot - plots the graph for two categorical variables.
-6. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the provided variables.
-7. graphmaker - plots the original series, the fitted values and the forecasts.
+1. aid - Automated Identification of Demand, function that detects stockouts and classifies demand into regulular/intermittent, count/fractional, smooth/lumpy.
+2. cramer - calculates Cramer's V for two categorical variables. Plus tests the significance of such association.
+3. mcor - function returns the coefficients of multiple correlation between the variables. This is useful when measuring association between categorical and numerical variables.
+4. association (aka 'assoc()') - function returns matrix of measures of association, choosing between cramer(), mcor() and cor() depending on the types of variables.
+5. determination (and the method 'determ()') - function returns the vector of coefficients of determination (R^2) for the provided data. This is useful for the diagnostics of multicollinearity.
+6. tableplot - plots the graph for two categorical variables.
+7. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the provided variables.
+8. graphmaker - plots the original series, the fitted values and the forecasts.
 
 ### Models evaluation functions
 1. ro - rolling origin evaluation (see the vignette).

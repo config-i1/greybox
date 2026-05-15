@@ -53,7 +53,20 @@ model = ALM(distribution="dlnorm", orders=(1, 1, 0))
 model.fit(X, y)
 ```
 
+## Supported Distributions
+
+| Category | Distributions |
+|----------|--------------|
+| **Continuous** | `dnorm`, `dlaplace`, `ds`, `dgnorm`, `dlgnorm`, `dfnorm`, `drectnorm`, `dt` |
+| **Positive** | `dlnorm`, `dinvgauss`, `dgamma`, `dexp`, `dchisq` |
+| **Count** | `dpois`, `dnbinom`, `dgeom` |
+| **Bounded** | `dbeta`, `dlogitnorm`, `dbcnorm` |
+| **CDF-based** | `pnorm`, `plogis` |
+| **Other** | `dalaplace`, `dbinom` |
+
 ## Smoothers (`lowess`, `supsmu`)
+
+See the [Smoothers wiki page](https://github.com/config-i1/greybox/wiki/Smoothers) for the full reference.
 
 Non-parametric smoothers that reproduce R's `stats::lowess` and `stats::supsmu` to machine precision (native pybind11 implementations).
 
@@ -79,6 +92,8 @@ References:
 [Friedman (1984)](https://www.osti.gov/biblio/1447470) for SuperSmoother.
 
 ## Automatic Identification of Demand (`aid`, `aid_cat`)
+
+See the [AID wiki page](https://github.com/config-i1/greybox/wiki/AID) for the full reference.
 
 Classifies a time series into one of six demand types and flags stockouts, new products, and obsolete products. Port of R's `greybox::aid()` / `aidCat()`.
 
@@ -122,17 +137,6 @@ The nested `type` and `stockouts` fields are typed dataclasses that
 support both `result.stockouts.start` (R-style attribute access) and
 `result.stockouts["start"]` (dict-style fallback).
 
-## Supported Distributions
-
-| Category | Distributions |
-|----------|--------------|
-| **Continuous** | `dnorm`, `dlaplace`, `ds`, `dgnorm`, `dlgnorm`, `dfnorm`, `drectnorm`, `dt` |
-| **Positive** | `dlnorm`, `dinvgauss`, `dgamma`, `dexp`, `dchisq` |
-| **Count** | `dpois`, `dnbinom`, `dgeom` |
-| **Bounded** | `dbeta`, `dlogitnorm`, `dbcnorm` |
-| **CDF-based** | `pnorm`, `plogis` |
-| **Other** | `dalaplace`, `dbinom` |
-
 ## Features
 
 - **[ALM (Augmented Linear Model)](https://github.com/config-i1/greybox/wiki/ALM)**: Likelihood-based regression with 26 distributions
@@ -144,8 +148,8 @@ support both `result.stockouts.start` (R-style attribute access) and
 - **[Distributions](https://github.com/config-i1/greybox/wiki/distributions)**: 27 distribution families with density, CDF, quantile, and random generation
 - **[Association](https://github.com/config-i1/greybox/wiki/association)**: Partial correlations and measures of association
 - **[Diagnostics](https://github.com/config-i1/greybox/wiki/diagnostics)**: Model diagnostics and validation
-- **Smoothers**: `lowess` and `supsmu` matching R's `stats::lowess` and `stats::supsmu` to machine precision
-- **Demand identification**: `aid()` and `aid_cat()` for automatic classification of demand series and stockout detection
+- **[Smoothers](https://github.com/config-i1/greybox/wiki/Smoothers)**: `lowess` and `supsmu` matching R's `stats::lowess` and `stats::supsmu` to machine precision
+- **[Demand identification](https://github.com/config-i1/greybox/wiki/AID)**: `aid()` and `aid_cat()` for automatic classification of demand series and stockout detection
 
 ## Links
 
