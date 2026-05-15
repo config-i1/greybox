@@ -89,6 +89,7 @@ test-command = "pytest {package}/tests/test_aid.py -q"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
+manylinux-x86_64-image = "manylinux_2_28"
 
 [tool.cibuildwheel.macos]
 archs = ["x86_64", "arm64"]
