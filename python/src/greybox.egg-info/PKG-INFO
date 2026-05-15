@@ -1,6 +1,6 @@
 Metadata-Version: 2.4
 Name: greybox
-Version: 1.0.1
+Version: 1.0.2
 Summary: Toolbox for model building and forecasting
 Author-email: Ivan Svetunkov <ivan@svetunkov.com>
 License: LGPL-2.1
@@ -23,6 +23,8 @@ Requires-Dist: numpy>=1.20.0
 Requires-Dist: scipy>=1.7.0
 Requires-Dist: pandas>=1.3.0
 Requires-Dist: nlopt>=2.7.0
+Requires-Dist: matplotlib>=3.5
+Requires-Dist: pybind11>=2.10
 Provides-Extra: dev
 Requires-Dist: pytest; extra == "dev"
 Requires-Dist: flake8; extra == "dev"
@@ -101,6 +103,79 @@ model.fit(X, y)
 | **CDF-based** | `pnorm`, `plogis` |
 | **Other** | `dalaplace`, `dbinom` |
 
+## Smoothers (`lowess`, `supsmu`)
+
+See the [Smoothers wiki page](https://github.com/config-i1/greybox/wiki/Smoothers) for the full reference.
+
+Non-parametric smoothers that reproduce R's `stats::lowess` and `stats::supsmu` to machine precision (native pybind11 implementations).
+
+```python
+import numpy as np
+from greybox import lowess, supsmu
+
+rng = np.random.default_rng(0)
+x = np.linspace(0, 6, 80)
+y = np.sin(x) + rng.normal(0, 0.2, 80)
+
+# Cleveland's LOWESS — robust local regression
+lo = lowess(x, y, f=0.4)
+print(lo["x"], lo["y"])   # sorted x, smoothed y
+
+# Friedman's SuperSmoother — variable-span cross-validation
+sm_cv    = supsmu(x, y)              # automatic span selection
+sm_fixed = supsmu(x, y, span=0.3)    # fixed span
+```
+
+References:
+[Cleveland (1979)](https://doi.org/10.1080/01621459.1979.10481038) for LOWESS,
+[Friedman (1984)](https://www.osti.gov/biblio/1447470) for SuperSmoother.
+
+## Automatic Identification of Demand (`aid`, `aid_cat`)
+
+See the [AID wiki page](https://github.com/config-i1/greybox/wiki/AID) for the full reference.
+
+Classifies a time series into one of six demand types and flags stockouts, new products, and obsolete products. Port of R's `greybox::aid()` / `aidCat()`.
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+from greybox import aid, aid_cat
+
+rng = np.random.default_rng(42)
+
+# Intermittent count demand: Poisson(0.7)
+y = rng.poisson(0.7, 120).astype(float)
+result = aid(y)
+print(result)                       # human-readable summary
+print(result.name)                  # e.g. "smooth intermittent count"
+print(result.type.type1)            # "count" or "fractional" — R-style attribute access
+print(result.type["type1"])         # dict-style fallback also works
+
+# Detect injected stockouts and plot them
+y2 = rng.poisson(3, 100).astype(float)
+y2[40:50] = 0
+result2 = aid(y2)
+print(result2.stockouts.start, result2.stockouts.end)  # 1-based, [41] [50]
+ax = result2.plot()                 # series + grey-shaded stockout span
+plt.show()
+
+# Apply to multiple series at once
+series = {
+    "a": rng.poisson(1, 80).astype(float),
+    "b": rng.poisson(5, 80).astype(float),
+    "c": rng.normal(10, 2, 80),
+}
+cat = aid_cat(series)
+print(cat.types)        # 2x3 demand-category frequency table
+print(cat.anomalies)    # counts of new / stockouts / old products
+ax = cat.plot()         # 2x3 demand-category panel
+plt.show()
+```
+
+The nested `type` and `stockouts` fields are typed dataclasses that
+support both `result.stockouts.start` (R-style attribute access) and
+`result.stockouts["start"]` (dict-style fallback).
+
 ## Features
 
 - **[ALM (Augmented Linear Model)](https://github.com/config-i1/greybox/wiki/ALM)**: Likelihood-based regression with 26 distributions
@@ -112,6 +187,8 @@ model.fit(X, y)
 - **[Distributions](https://github.com/config-i1/greybox/wiki/distributions)**: 27 distribution families with density, CDF, quantile, and random generation
 - **[Association](https://github.com/config-i1/greybox/wiki/association)**: Partial correlations and measures of association
 - **[Diagnostics](https://github.com/config-i1/greybox/wiki/diagnostics)**: Model diagnostics and validation
+- **[Smoothers](https://github.com/config-i1/greybox/wiki/Smoothers)**: `lowess` and `supsmu` matching R's `stats::lowess` and `stats::supsmu` to machine precision
+- **[Demand identification](https://github.com/config-i1/greybox/wiki/AID)**: `aid()` and `aid_cat()` for automatic classification of demand series and stockout detection
 
 ## Links
 

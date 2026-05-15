@@ -6,6 +6,10 @@ on:
     types: [published]
 
 jobs:
+  # ---------------------------------------------------------------------------
+  # 1. Sanity test — run the test suite on Ubuntu across every supported Python
+  #    version. If any test fails we don't bother building wheels.
+  # ---------------------------------------------------------------------------
   test:
     runs-on: ubuntu-latest
     strategy:
@@ -15,6 +19,8 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5
@@ -40,12 +46,50 @@ jobs:
           cd python/
           pytest --tb=short -v --no-header -q
 
-  build:
+  # ---------------------------------------------------------------------------
+  # 2. Build binary wheels for Linux x86_64, macOS x86_64 + arm64, Windows AMD64
+  #    Python 3.10 – 3.13. cibuildwheel handles the per-platform setup and
+  #    runs the per-wheel smoke test from [tool.cibuildwheel] in pyproject.toml.
+  # ---------------------------------------------------------------------------
+  build_wheels:
+    name: Build wheels (${{ matrix.os }})
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Build wheels
+        uses: pypa/cibuildwheel@v2.21
+        with:
+          package-dir: python
+          output-dir: wheelhouse
+
+      - name: Upload wheel artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}
+          path: wheelhouse/*.whl
+
+  # ---------------------------------------------------------------------------
+  # 3. Build the source distribution once on Linux. cibuildwheel does not
+  #    produce sdists, so we build it separately via `python -m build --sdist`.
+  # ---------------------------------------------------------------------------
+  build_sdist:
+    name: Build sdist
     needs: test
     runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
       - name: Set up Python 3.13
         uses: actions/setup-python@v5
@@ -53,33 +97,43 @@ jobs:
           python-version: '3.13'
 
       - name: Install build
-        run: |
-          pip install build
+        run: pip install build
 
-      - name: Build sdist and wheel
+      - name: Build sdist
         run: |
           cd python/
-          python -m build
+          python -m build --sdist
 
-      - name: Upload artifacts
+      - name: Upload sdist artifact
         uses: actions/upload-artifact@v4
         with:
-          name: dist
-          path: python/dist/
+          name: sdist
+          path: python/dist/*.tar.gz
 
+  # ---------------------------------------------------------------------------
+  # 4. Publish every wheel + the sdist to PyPI via trusted-publisher (OIDC).
+  #    Only runs on `release: published`; manual dispatches stop after build.
+  # ---------------------------------------------------------------------------
   publish:
-    needs: build
+    name: Publish to PyPI
+    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
+    if: github.event_name == 'release'
     environment: pypi
     permissions:
       id-token: write
 
     steps:
-      - name: Download artifacts
+      - name: Download all artifacts into dist/
         uses: actions/download-artifact@v4
         with:
-          name: dist
-          path: dist/
+          path: dist-staging
+
+      - name: Flatten artifact folders into dist/
+        run: |
+          mkdir -p dist
+          find dist-staging -type f \( -name '*.whl' -o -name '*.tar.gz' \) -exec cp {} dist/ \;
+          ls -la dist/
 
       - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1

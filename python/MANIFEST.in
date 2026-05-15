@@ -1,5 +1,10 @@
 include README.md
 include LICENSE
 recursive-include src/greybox *.csv
+recursive-include src/greybox/_native *.cpp *.h *.hpp
+# Vendored C++ headers (git submodules) — required for `pip install` from sdist.
+recursive-include extern *.h *.hpp *.in carma
+include extern/carma/LICENSE
 global-exclude __pycache__
 global-exclude *.pyc
+global-exclude .git*
