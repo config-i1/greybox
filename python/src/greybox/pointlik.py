@@ -78,8 +78,7 @@ def point_lik(
 
     Examples
     --------
-    >>> from greybox.formula import formula
-    >>> from greybox.alm import ALM
+    >>> from greybox import formula, ALM
     >>> data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
     >>> y, X = formula("y ~ x", data)
     >>> model = ALM(distribution="dnorm", loss="likelihood")

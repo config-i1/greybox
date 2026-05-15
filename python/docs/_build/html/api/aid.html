@@ -1,0 +1,495 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Automatic Identification of Demand &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Distributions Guide" href="../distributions/index.html" />
+    <link rel="prev" title="Smoothers" href="smoothers.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rolling.html">Rolling Origin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_measures.html">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smoothers.html">Smoothers</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Automatic Identification of Demand</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#aid">aid()</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.aid"><code class="docutils literal notranslate"><span class="pre">aid()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#aid-cat">aid_cat()</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.aid_cat"><code class="docutils literal notranslate"><span class="pre">aid_cat()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#result-classes">Result classes</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.AidResult"><code class="docutils literal notranslate"><span class="pre">AidResult</span></code></a></li>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.aid.AidCatResult"><code class="docutils literal notranslate"><span class="pre">AidCatResult</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Automatic Identification of Demand</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/aid.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="automatic-identification-of-demand">
+<h1>Automatic Identification of Demand<a class="headerlink" href="#automatic-identification-of-demand" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">greybox.aid</span></code> module classifies a time series into one of six
+demand types and flags stockouts, new products, and obsolete products.
+It is a one-to-one Python port of R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::aid()</span></code> and
+<code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::aidCat()</span></code>.</p>
+<section id="aid">
+<h2>aid()<a class="headerlink" href="#aid" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.aid.aid">
+<span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">aid</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">level</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">float</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">0.99</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">loss</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'likelihood'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">alm_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult"><span class="pre">AidResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/aid.html#aid"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.aid" title="Link to this definition"></a></dt>
+<dd><p>Automatic identification of demand type.</p>
+<p>Classifies a time series into one of six demand types and flags
+stockouts, new products, and obsolete products. This is a one-to-one
+Python port of R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::aid()</span></code>.</p>
+<p>The algorithm runs in two stages:</p>
+<ol class="arabic simple">
+<li><p><strong>Stockout detection.</strong> Inter-demand intervals are smoothed with
+<a class="reference internal" href="smoothers.html#greybox.smoothers.lowess" title="greybox.smoothers.lowess"><code class="xref py py-func docutils literal notranslate"><span class="pre">lowess()</span></code></a> and fitted with an
+<a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ALM</span></code></a> Geometric model. Cumulative
+probabilities above <code class="docutils literal notranslate"><span class="pre">level</span></code> are flagged as potential
+stockouts, with leading/trailing zero runs interpreted as new
+or obsolete products.</p></li>
+<li><p><strong>Demand type classification.</strong> Smoothed regressors built with
+<a class="reference internal" href="smoothers.html#greybox.smoothers.supsmu" title="greybox.smoothers.supsmu"><code class="xref py py-func docutils literal notranslate"><span class="pre">supsmu()</span></code></a> are used to fit up to four
+candidate models (rectified normal, normal + Bernoulli
+occurrence, negative binomial, negative binomial + Bernoulli
+occurrence). The model with the lowest information criterion
+names the demand type.</p></li>
+</ol>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>array_like</em>) – The time series. <code class="docutils literal notranslate"><span class="pre">NaN</span></code> values are replaced by zero.</p></li>
+<li><p><strong>ic</strong> (<em>{&quot;AICc&quot;</em><em>, </em><em>&quot;AIC&quot;</em><em>, </em><em>&quot;BICc&quot;</em><em>, </em><em>&quot;BIC&quot;}</em><em>, </em><em>default=&quot;AICc&quot;</em>) – Information criterion used to choose between candidate models.</p></li>
+<li><p><strong>level</strong> (<em>float</em><em>, </em><em>default=0.99</em>) – Confidence level for stockout identification.</p></li>
+<li><p><strong>loss</strong> (<em>str</em><em>, </em><em>default=&quot;likelihood&quot;</em>) – Loss function passed to <a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ALM</span></code></a>.</p></li>
+<li><p><strong>**alm_kwargs</strong> – Extra keyword arguments forwarded to <a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM"><code class="xref py py-class docutils literal notranslate"><span class="pre">ALM</span></code></a>.
+Useful for tuning the optimiser, e.g. <code class="docutils literal notranslate"><span class="pre">nlopt_kargs={&quot;maxeval&quot;:</span>
+<span class="pre">1000}</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Object containing the identified demand type, fitted models,
+stockout indices, and new/obsolete flags.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult">AidResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The six possible demand types are:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">regular</span> <span class="pre">count</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">regular</span> <span class="pre">fractional</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smooth</span> <span class="pre">intermittent</span> <span class="pre">count</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">smooth</span> <span class="pre">intermittent</span> <span class="pre">fractional</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lumpy</span> <span class="pre">intermittent</span> <span class="pre">count</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">lumpy</span> <span class="pre">intermittent</span> <span class="pre">fractional</span></code></p></li>
+</ul>
+<p class="rubric">Examples</p>
+<p>Classify an intermittent count series:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">aid</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">,</span> <span class="s2">&quot;lumpy intermittent count&quot;</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+<p>Inspect detected stockouts:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">y2</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y2</span><span class="p">[</span><span class="mi">40</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>  <span class="c1"># injected stockout</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res2</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">res2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">]</span>  <span class="c1"># 1-based, matches R</span>
+<span class="go">array([41])</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#greybox.aid.aid_cat" title="greybox.aid.aid_cat"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aid_cat</span></code></a></dt><dd><p>Apply <a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a> to multiple series.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">aid</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">42</span><span class="p">)</span>
+
+<span class="c1"># Intermittent count demand: Poisson(0.7) gives many zeros</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mf">0.7</span><span class="p">,</span> <span class="mi">120</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="c1"># The provided time series is smooth intermittent count</span>
+
+<span class="c1"># Detect an injected stockout</span>
+<span class="n">y2</span> <span class="o">=</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">y2</span><span class="p">[</span><span class="mi">40</span><span class="p">:</span><span class="mi">50</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">y2</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;start&quot;</span><span class="p">],</span> <span class="n">result2</span><span class="o">.</span><span class="n">stockouts</span><span class="p">[</span><span class="s2">&quot;end&quot;</span><span class="p">])</span>
+<span class="c1"># [41] [50]  (1-based positions, matches R)</span>
+</pre></div>
+</div>
+</section>
+<section id="aid-cat">
+<h2>aid_cat()<a class="headerlink" href="#aid-cat" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.aid.aid_cat">
+<span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">aid_cat</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">aid_kwargs</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Any</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.aid.AidCatResult" title="greybox.aid.AidCatResult"><span class="pre">AidCatResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/aid.html#aid_cat"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.aid_cat" title="Link to this definition"></a></dt>
+<dd><p>Apply <a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a> to multiple series and summarise the result.</p>
+<p>One-to-one port of R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::aidCat()</span></code>. Each column of
+<code class="docutils literal notranslate"><span class="pre">data</span></code> is treated as a separate series and passed through
+<a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a>; the per-series demand types are then tallied into a
+2x3 demand-category table plus a count of anomalies (new,
+stockouts, obsolete) across the collection.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>dict</em><em>, </em><em>pandas.DataFrame</em><em>, or </em><em>2-D numpy.ndarray</em>) – The series to categorise. Each column / dict entry is one
+series.</p></li>
+<li><p><strong>**aid_kwargs</strong> – Keyword arguments forwarded to <a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a> (for example
+<code class="docutils literal notranslate"><span class="pre">ic=&quot;BIC&quot;</span></code> or <code class="docutils literal notranslate"><span class="pre">level=0.95</span></code>).</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Object with the per-series categories, the 2x3 type matrix,
+the anomaly counts, and the individual <a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">AidResult</span></code></a>
+objects.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.aid.AidCatResult" title="greybox.aid.AidCatResult">AidCatResult</a></p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<p>Apply to a small dictionary of series:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">aid_cat</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">series</span> <span class="o">=</span> <span class="p">{</span>
+<span class="gp">... </span>    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+<span class="gp">... </span>    <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">80</span><span class="p">),</span>
+<span class="gp">... </span><span class="p">}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">aid_cat</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span><span class="o">.</span><span class="n">types</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(2, 3)</span>
+</pre></div>
+</div>
+<div class="admonition seealso">
+<p class="admonition-title">See also</p>
+<dl class="simple">
+<dt><a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-obj docutils literal notranslate"><span class="pre">aid</span></code></a></dt><dd><p>Apply the classification to a single series.</p>
+</dd>
+</dl>
+</div>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">aid_cat</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">series</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s2">&quot;a&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+    <span class="s2">&quot;b&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">poisson</span><span class="p">(</span><span class="mi">5</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">),</span>
+    <span class="s2">&quot;c&quot;</span><span class="p">:</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">80</span><span class="p">),</span>
+<span class="p">}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">aid_cat</span><span class="p">(</span><span class="n">series</span><span class="p">)</span>
+
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">types</span><span class="p">)</span>        <span class="c1"># 2x3 demand-type counts</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span>    <span class="c1"># New / Stockouts / Old counts</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">categories</span><span class="p">)</span>   <span class="c1"># categorical vector per series</span>
+</pre></div>
+</div>
+</section>
+<section id="result-classes">
+<h2>Result classes<a class="headerlink" href="#result-classes" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.aid.AidResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">AidResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">models</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">type</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">stockouts</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">dict</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">new</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">obsolete</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">bool</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">ic</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">str</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">'AICc'</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of <a class="reference internal" href="#greybox.aid.aid" title="greybox.aid.aid"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid()</span></code></a>. Mirrors R’s <code class="docutils literal notranslate"><span class="pre">aid</span></code> S3 class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#greybox.aid.AidResult.y" title="Link to this definition"></a></dt>
+<dd><p>The original time series with NaN values replaced by 0.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.models">
+<span class="sig-name descname"><span class="pre">models</span></span><a class="headerlink" href="#greybox.aid.AidResult.models" title="Link to this definition"></a></dt>
+<dd><p>All fitted candidate models, keyed by demand-type name. If
+stockout detection ran, the stockout model is exposed under
+the key <code class="docutils literal notranslate"><span class="pre">&quot;stockout&quot;</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict[str, <a class="reference internal" href="alm.html#greybox.alm.ALM" title="greybox.alm.ALM">ALM</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.name">
+<span class="sig-name descname"><span class="pre">name</span></span><a class="headerlink" href="#greybox.aid.AidResult.name" title="Link to this definition"></a></dt>
+<dd><p>Name of the selected demand type (e.g. <code class="docutils literal notranslate"><span class="pre">&quot;smooth</span> <span class="pre">intermittent</span>
+<span class="pre">count&quot;</span></code>).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.type">
+<span class="sig-name descname"><span class="pre">type</span></span><a class="headerlink" href="#greybox.aid.AidResult.type" title="Link to this definition"></a></dt>
+<dd><p>Sub-categorisation of <code class="docutils literal notranslate"><span class="pre">name</span></code> with keys <code class="docutils literal notranslate"><span class="pre">type1</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;count&quot;</span></code>
+or <code class="docutils literal notranslate"><span class="pre">&quot;fractional&quot;</span></code>), <code class="docutils literal notranslate"><span class="pre">type2</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;regular&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;intermittent&quot;</span></code>), and <code class="docutils literal notranslate"><span class="pre">type2a</span></code> (<code class="docutils literal notranslate"><span class="pre">&quot;smooth&quot;</span></code> or
+<code class="docutils literal notranslate"><span class="pre">&quot;lumpy&quot;</span></code> when intermittent, <code class="docutils literal notranslate"><span class="pre">None</span></code> otherwise).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.stockouts">
+<span class="sig-name descname"><span class="pre">stockouts</span></span><a class="headerlink" href="#greybox.aid.AidResult.stockouts" title="Link to this definition"></a></dt>
+<dd><p>Dictionary with keys <code class="docutils literal notranslate"><span class="pre">&quot;start&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;end&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;dummy&quot;</span></code>,
+<code class="docutils literal notranslate"><span class="pre">&quot;new&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;obsolete&quot;</span></code>. <code class="docutils literal notranslate"><span class="pre">start</span></code> and <code class="docutils literal notranslate"><span class="pre">end</span></code> are 1-based
+positions matching R; <code class="docutils literal notranslate"><span class="pre">dummy</span></code> / <code class="docutils literal notranslate"><span class="pre">new</span></code> / <code class="docutils literal notranslate"><span class="pre">obsolete</span></code> are
+binary numpy arrays of length <code class="docutils literal notranslate"><span class="pre">len(y)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.new">
+<span class="sig-name descname"><span class="pre">new</span></span><a class="headerlink" href="#greybox.aid.AidResult.new" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the series starts with anomalous zeros (a new
+product).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.obsolete">
+<span class="sig-name descname"><span class="pre">obsolete</span></span><a class="headerlink" href="#greybox.aid.AidResult.obsolete" title="Link to this definition"></a></dt>
+<dd><p><code class="docutils literal notranslate"><span class="pre">True</span></code> if the series ends with anomalous zeros (a
+discontinued product).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidResult.ic">
+<span class="sig-name descname"><span class="pre">ic</span></span><a class="headerlink" href="#greybox.aid.AidResult.ic" title="Link to this definition"></a></dt>
+<dd><p>Information criterion used to select between candidates.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.aid.</span></span><span class="sig-name descname"><span class="pre">AidCatResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">categories</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Categorical</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">types</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anomalies</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">results</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">list</span><span class="p"><span class="pre">[</span></span><a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult"><span class="pre">AidResult</span></a><span class="p"><span class="pre">]</span></span><span class="w"> </span><span class="p"><span class="pre">|</span></span><span class="w"> </span><span class="pre">None</span></span><span class="w"> </span><span class="o"><span class="pre">=</span></span><span class="w"> </span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/aid.html#AidCatResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.aid.AidCatResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of <a class="reference internal" href="#greybox.aid.aid_cat" title="greybox.aid.aid_cat"><code class="xref py py-func docutils literal notranslate"><span class="pre">aid_cat()</span></code></a>. Mirrors R’s <code class="docutils literal notranslate"><span class="pre">aidCat</span></code> S3 class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult.categories">
+<span class="sig-name descname"><span class="pre">categories</span></span><a class="headerlink" href="#greybox.aid.AidCatResult.categories" title="Link to this definition"></a></dt>
+<dd><p>Categorical vector of demand types, one entry per input series,
+with the six possible levels: <code class="docutils literal notranslate"><span class="pre">regular</span> <span class="pre">count</span></code>,
+<code class="docutils literal notranslate"><span class="pre">smooth</span> <span class="pre">intermittent</span> <span class="pre">count</span></code>, <code class="docutils literal notranslate"><span class="pre">lumpy</span> <span class="pre">intermittent</span> <span class="pre">count</span></code>,
+<code class="docutils literal notranslate"><span class="pre">regular</span> <span class="pre">fractional</span></code>, <code class="docutils literal notranslate"><span class="pre">smooth</span> <span class="pre">intermittent</span> <span class="pre">fractional</span></code>,
+<code class="docutils literal notranslate"><span class="pre">lumpy</span> <span class="pre">intermittent</span> <span class="pre">fractional</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.Categorical</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult.types">
+<span class="sig-name descname"><span class="pre">types</span></span><a class="headerlink" href="#greybox.aid.AidCatResult.types" title="Link to this definition"></a></dt>
+<dd><p>2x3 frequency table with rows <code class="docutils literal notranslate"><span class="pre">[&quot;Count&quot;,</span> <span class="pre">&quot;Fractional&quot;]</span></code> and
+columns <code class="docutils literal notranslate"><span class="pre">[&quot;Regular&quot;,</span> <span class="pre">&quot;Smooth</span> <span class="pre">Intermittent&quot;,</span> <span class="pre">&quot;Lumpy</span>
+<span class="pre">Intermittent&quot;]</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult.anomalies">
+<span class="sig-name descname"><span class="pre">anomalies</span></span><a class="headerlink" href="#greybox.aid.AidCatResult.anomalies" title="Link to this definition"></a></dt>
+<dd><p>Counts of <code class="docutils literal notranslate"><span class="pre">&quot;New&quot;</span></code>, <code class="docutils literal notranslate"><span class="pre">&quot;Stockouts&quot;</span></code>, and <code class="docutils literal notranslate"><span class="pre">&quot;Old&quot;</span></code> (obsolete)
+across the input series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.aid.AidCatResult.results">
+<span class="sig-name descname"><span class="pre">results</span></span><a class="headerlink" href="#greybox.aid.AidCatResult.results" title="Link to this definition"></a></dt>
+<dd><p>The individual <a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">AidResult</span></code></a> objects, in the same order as
+the input columns.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>list[<a class="reference internal" href="#greybox.aid.AidResult" title="greybox.aid.AidResult">AidResult</a>]</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="smoothers.html" class="btn btn-neutral float-left" title="Smoothers" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../distributions/index.html" class="btn btn-neutral float-right" title="Distributions Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

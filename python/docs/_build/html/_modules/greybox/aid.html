@@ -1,0 +1,926 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.aid &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.aid</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.aid</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Automatic Identification of Demand (AID).</span>
+
+<span class="sd">Python translation of R&#39;s :func:`greybox::aid` and :func:`greybox::aidCat`.</span>
+<span class="sd">The :func:`aid` function fits several candidate models to a single time</span>
+<span class="sd">series and picks the demand type that minimises the chosen information</span>
+<span class="sd">criterion. The :func:`aid_cat` function applies :func:`aid` to a collection</span>
+<span class="sd">of series and summarises the result as a 2x3 demand category table.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">- :func:`aid` -- Identify the demand type of a single series.</span>
+<span class="sd">- :func:`aid_cat` -- Apply :func:`aid` across multiple series.</span>
+
+<span class="sd">Result classes</span>
+<span class="sd">--------------</span>
+<span class="sd">- :class:`AidResult` -- Returned by :func:`aid`.</span>
+<span class="sd">- :class:`AidCatResult` -- Returned by :func:`aid_cat`.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">typing</span><span class="w"> </span><span class="kn">import</span> <span class="n">Any</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">.alm</span><span class="w"> </span><span class="kn">import</span> <span class="n">ALM</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.formula</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula</span> <span class="k">as</span> <span class="n">build_formula</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.pointlik</span><span class="w"> </span><span class="kn">import</span> <span class="n">point_lik_cumulative</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">.smoothers</span><span class="w"> </span><span class="kn">import</span> <span class="n">lowess</span><span class="p">,</span> <span class="n">supsmu</span>
+
+
+<span class="n">_VALID_ICS</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;AICc&quot;</span><span class="p">,</span> <span class="s2">&quot;AIC&quot;</span><span class="p">,</span> <span class="s2">&quot;BICc&quot;</span><span class="p">,</span> <span class="s2">&quot;BIC&quot;</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_get_ic</span><span class="p">(</span><span class="n">model</span><span class="p">:</span> <span class="n">ALM</span><span class="p">,</span> <span class="n">ic_name</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Return the requested IC value from a fitted ALM model.&quot;&quot;&quot;</span>
+    <span class="n">attr</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;AICc&quot;</span><span class="p">:</span> <span class="s2">&quot;aicc&quot;</span><span class="p">,</span> <span class="s2">&quot;AIC&quot;</span><span class="p">:</span> <span class="s2">&quot;aic&quot;</span><span class="p">,</span> <span class="s2">&quot;BICc&quot;</span><span class="p">:</span> <span class="s2">&quot;bicc&quot;</span><span class="p">,</span> <span class="s2">&quot;BIC&quot;</span><span class="p">:</span> <span class="s2">&quot;bic&quot;</span><span class="p">}[</span><span class="n">ic_name</span><span class="p">]</span>
+    <span class="n">value</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">attr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">value</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Model has no </span><span class="si">{</span><span class="n">ic_name</span><span class="si">}</span><span class="s2"> value (was the loss &#39;likelihood&#39;?)&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_fit_alm</span><span class="p">(</span><span class="n">formula_str</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span> <span class="n">data</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span> <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ALM</span> <span class="o">|</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Fit an ALM via the formula interface, returning None on failure.</span>
+
+<span class="sd">    Mirrors R&#39;s ``suppressWarnings(alm(...))`` and the subsequent</span>
+<span class="sd">    null-dropping at aid()&#39;s line 307.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">nlopt_kargs</span> <span class="o">=</span> <span class="n">alm_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;nlopt_kargs&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="n">maxeval</span> <span class="o">=</span> <span class="n">alm_kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s2">&quot;maxeval&quot;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">maxeval</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">nlopt_kargs</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="n">nlopt_kargs</span> <span class="ow">or</span> <span class="p">{})</span>
+        <span class="n">nlopt_kargs</span><span class="p">[</span><span class="s2">&quot;maxeval&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">maxeval</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">with</span> <span class="n">warnings</span><span class="o">.</span><span class="n">catch_warnings</span><span class="p">():</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">simplefilter</span><span class="p">(</span><span class="s2">&quot;ignore&quot;</span><span class="p">)</span>
+            <span class="n">y_vec</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">build_formula</span><span class="p">(</span><span class="n">formula_str</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+            <span class="n">model</span> <span class="o">=</span> <span class="n">ALM</span><span class="p">(</span><span class="n">nlopt_kargs</span><span class="o">=</span><span class="n">nlopt_kargs</span><span class="p">,</span> <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">)</span>
+            <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y_vec</span><span class="p">,</span> <span class="n">formula</span><span class="o">=</span><span class="n">formula_str</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">model</span>
+    <span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>  <span class="c1"># noqa: BLE001</span>
+        <span class="k">return</span> <span class="kc">None</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_interp_rule2</span><span class="p">(</span><span class="n">x_indexed</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Linear interpolation through NaNs, edge-clamped (R `approx(rule=2)`).&quot;&quot;&quot;</span>
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_indexed</span><span class="p">)</span>
+    <span class="n">idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">mask</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">x_indexed</span><span class="p">)</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">mask</span><span class="o">.</span><span class="n">any</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">interp</span><span class="p">(</span><span class="n">idx</span><span class="p">,</span> <span class="n">idx</span><span class="p">[</span><span class="n">mask</span><span class="p">],</span> <span class="n">x_indexed</span><span class="p">[</span><span class="n">mask</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="AidResult">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.AidResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AidResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of :func:`aid`. Mirrors R&#39;s ``aid`` S3 class.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The original time series with NaN values replaced by 0.</span>
+<span class="sd">    models : dict[str, ALM]</span>
+<span class="sd">        All fitted candidate models, keyed by demand-type name. If</span>
+<span class="sd">        stockout detection ran, the stockout model is exposed under</span>
+<span class="sd">        the key ``&quot;stockout&quot;``.</span>
+<span class="sd">    name : str</span>
+<span class="sd">        Name of the selected demand type (e.g. ``&quot;smooth intermittent</span>
+<span class="sd">        count&quot;``).</span>
+<span class="sd">    type : dict</span>
+<span class="sd">        Sub-categorisation of ``name`` with keys ``type1`` (``&quot;count&quot;``</span>
+<span class="sd">        or ``&quot;fractional&quot;``), ``type2`` (``&quot;regular&quot;`` or</span>
+<span class="sd">        ``&quot;intermittent&quot;``), and ``type2a`` (``&quot;smooth&quot;`` or</span>
+<span class="sd">        ``&quot;lumpy&quot;`` when intermittent, ``None`` otherwise).</span>
+<span class="sd">    stockouts : dict</span>
+<span class="sd">        Dictionary with keys ``&quot;start&quot;``, ``&quot;end&quot;``, ``&quot;dummy&quot;``,</span>
+<span class="sd">        ``&quot;new&quot;``, ``&quot;obsolete&quot;``. ``start`` and ``end`` are 1-based</span>
+<span class="sd">        positions matching R; ``dummy`` / ``new`` / ``obsolete`` are</span>
+<span class="sd">        binary numpy arrays of length ``len(y)``.</span>
+<span class="sd">    new : bool</span>
+<span class="sd">        ``True`` if the series starts with anomalous zeros (a new</span>
+<span class="sd">        product).</span>
+<span class="sd">    obsolete : bool</span>
+<span class="sd">        ``True`` if the series ends with anomalous zeros (a</span>
+<span class="sd">        discontinued product).</span>
+<span class="sd">    ic : str</span>
+<span class="sd">        Information criterion used to select between candidates.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;y&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;models&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;name&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;stockouts&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;new&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;obsolete&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;ic&quot;</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">models</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">name</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+        <span class="nb">type</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">stockouts</span><span class="p">:</span> <span class="nb">dict</span><span class="p">,</span>
+        <span class="n">new</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">obsolete</span><span class="p">:</span> <span class="nb">bool</span><span class="p">,</span>
+        <span class="n">ic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;AICc&quot;</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">models</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">type</span> <span class="o">=</span> <span class="nb">type</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span> <span class="o">=</span> <span class="n">stockouts</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">new</span> <span class="o">=</span> <span class="n">new</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span> <span class="o">=</span> <span class="n">obsolete</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ic</span> <span class="o">=</span> <span class="n">ic</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="n">n_stk</span> <span class="o">=</span> <span class="mi">0</span> <span class="k">if</span> <span class="n">starts</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">n_stk</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;There are </span><span class="si">{</span><span class="n">n_stk</span><span class="si">}</span><span class="s2"> potential stockouts in the data.&quot;</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">n_stk</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;There is 1 potential stockout in the data&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The product is new (sales start later)&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="p">:</span>
+            <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;The product has become obsolete&quot;</span><span class="p">)</span>
+        <span class="n">lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The provided time series is </span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lines</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;AidResult(name=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="si">!r}</span><span class="s2">, new=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">new</span><span class="si">}</span><span class="s2">, obsolete=</span><span class="si">{</span><span class="bp">self</span><span class="o">.</span><span class="n">obsolete</span><span class="si">}</span><span class="s2">)&quot;</span>
+        <span class="p">)</span></div>
+
+
+
+<div class="viewcode-block" id="AidCatResult">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.AidCatResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">AidCatResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of :func:`aid_cat`. Mirrors R&#39;s ``aidCat`` S3 class.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    categories : pandas.Categorical</span>
+<span class="sd">        Categorical vector of demand types, one entry per input series,</span>
+<span class="sd">        with the six possible levels: ``regular count``,</span>
+<span class="sd">        ``smooth intermittent count``, ``lumpy intermittent count``,</span>
+<span class="sd">        ``regular fractional``, ``smooth intermittent fractional``,</span>
+<span class="sd">        ``lumpy intermittent fractional``.</span>
+<span class="sd">    types : pandas.DataFrame</span>
+<span class="sd">        2x3 frequency table with rows ``[&quot;Count&quot;, &quot;Fractional&quot;]`` and</span>
+<span class="sd">        columns ``[&quot;Regular&quot;, &quot;Smooth Intermittent&quot;, &quot;Lumpy</span>
+<span class="sd">        Intermittent&quot;]``.</span>
+<span class="sd">    anomalies : pandas.Series</span>
+<span class="sd">        Counts of ``&quot;New&quot;``, ``&quot;Stockouts&quot;``, and ``&quot;Old&quot;`` (obsolete)</span>
+<span class="sd">        across the input series.</span>
+<span class="sd">    results : list[AidResult]</span>
+<span class="sd">        The individual :class:`AidResult` objects, in the same order as</span>
+<span class="sd">        the input columns.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;categories&quot;</span><span class="p">,</span> <span class="s2">&quot;types&quot;</span><span class="p">,</span> <span class="s2">&quot;anomalies&quot;</span><span class="p">,</span> <span class="s2">&quot;results&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">categories</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">,</span>
+        <span class="n">types</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">anomalies</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+        <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AidResult</span><span class="p">]</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">categories</span> <span class="o">=</span> <span class="n">categories</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">types</span> <span class="o">=</span> <span class="n">types</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anomalies</span> <span class="o">=</span> <span class="n">anomalies</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">results</span> <span class="o">=</span> <span class="n">results</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Demand categories:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">types</span><span class="p">)</span>
+            <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">Anomalies:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;AidCatResult(anomalies=</span><span class="si">{</span><span class="nb">dict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">anomalies</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span></div>
+
+
+
+<div class="viewcode-block" id="aid">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.aid">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">aid</span><span class="p">(</span>
+    <span class="n">y</span><span class="p">,</span>
+    <span class="n">ic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;AICc&quot;</span><span class="p">,</span>
+    <span class="n">level</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.99</span><span class="p">,</span>
+    <span class="n">loss</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;likelihood&quot;</span><span class="p">,</span>
+    <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">,</span>
+<span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AidResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Automatic identification of demand type.</span>
+
+<span class="sd">    Classifies a time series into one of six demand types and flags</span>
+<span class="sd">    stockouts, new products, and obsolete products. This is a one-to-one</span>
+<span class="sd">    Python port of R&#39;s :func:`greybox::aid`.</span>
+
+<span class="sd">    The algorithm runs in two stages:</span>
+
+<span class="sd">    1. **Stockout detection.** Inter-demand intervals are smoothed with</span>
+<span class="sd">       :func:`~greybox.smoothers.lowess` and fitted with an</span>
+<span class="sd">       :class:`~greybox.alm.ALM` Geometric model. Cumulative</span>
+<span class="sd">       probabilities above ``level`` are flagged as potential</span>
+<span class="sd">       stockouts, with leading/trailing zero runs interpreted as new</span>
+<span class="sd">       or obsolete products.</span>
+<span class="sd">    2. **Demand type classification.** Smoothed regressors built with</span>
+<span class="sd">       :func:`~greybox.smoothers.supsmu` are used to fit up to four</span>
+<span class="sd">       candidate models (rectified normal, normal + Bernoulli</span>
+<span class="sd">       occurrence, negative binomial, negative binomial + Bernoulli</span>
+<span class="sd">       occurrence). The model with the lowest information criterion</span>
+<span class="sd">       names the demand type.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : array_like</span>
+<span class="sd">        The time series. ``NaN`` values are replaced by zero.</span>
+<span class="sd">    ic : {&quot;AICc&quot;, &quot;AIC&quot;, &quot;BICc&quot;, &quot;BIC&quot;}, default=&quot;AICc&quot;</span>
+<span class="sd">        Information criterion used to choose between candidate models.</span>
+<span class="sd">    level : float, default=0.99</span>
+<span class="sd">        Confidence level for stockout identification.</span>
+<span class="sd">    loss : str, default=&quot;likelihood&quot;</span>
+<span class="sd">        Loss function passed to :class:`~greybox.alm.ALM`.</span>
+<span class="sd">    **alm_kwargs</span>
+<span class="sd">        Extra keyword arguments forwarded to :class:`~greybox.alm.ALM`.</span>
+<span class="sd">        Useful for tuning the optimiser, e.g. ``nlopt_kargs={&quot;maxeval&quot;:</span>
+<span class="sd">        1000}``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AidResult</span>
+<span class="sd">        Object containing the identified demand type, fitted models,</span>
+<span class="sd">        stockout indices, and new/obsolete flags.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The six possible demand types are:</span>
+
+<span class="sd">    - ``regular count``</span>
+<span class="sd">    - ``regular fractional``</span>
+<span class="sd">    - ``smooth intermittent count``</span>
+<span class="sd">    - ``smooth intermittent fractional``</span>
+<span class="sd">    - ``lumpy intermittent count``</span>
+<span class="sd">    - ``lumpy intermittent fractional``</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Classify an intermittent count series:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from greybox import aid</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng(42)</span>
+<span class="sd">    &gt;&gt;&gt; y = rng.poisson(0.7, 120).astype(float)</span>
+<span class="sd">    &gt;&gt;&gt; res = aid(y)</span>
+<span class="sd">    &gt;&gt;&gt; res.name in {</span>
+<span class="sd">    ...     &quot;smooth intermittent count&quot;, &quot;lumpy intermittent count&quot;</span>
+<span class="sd">    ... }</span>
+<span class="sd">    True</span>
+
+<span class="sd">    Inspect detected stockouts:</span>
+
+<span class="sd">    &gt;&gt;&gt; y2 = rng.poisson(3, 100).astype(float)</span>
+<span class="sd">    &gt;&gt;&gt; y2[40:50] = 0  # injected stockout</span>
+<span class="sd">    &gt;&gt;&gt; res2 = aid(y2)</span>
+<span class="sd">    &gt;&gt;&gt; res2.stockouts[&quot;start&quot;]  # 1-based, matches R</span>
+<span class="sd">    array([41])</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    aid_cat : Apply :func:`aid` to multiple series.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">ic</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_VALID_ICS</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;ic must be one of </span><span class="si">{</span><span class="n">_VALID_ICS</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="n">ic</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">obs_in_sample</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">obs_in_sample</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;y must have at least one observation&quot;</span><span class="p">)</span>
+    <span class="c1"># R: y[is.na(y)] &lt;- 0</span>
+    <span class="n">y</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y</span><span class="p">)]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+    <span class="c1"># ---------- Stockout detection (R 62-170) ----------</span>
+    <span class="n">stockout_model</span><span class="p">:</span> <span class="n">ALM</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">product_new</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">product_obsolete</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">stockouts_start</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">stockouts_end</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">has_zeros</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+
+    <span class="k">if</span> <span class="n">has_zeros</span><span class="p">:</span>
+        <span class="c1"># R: yIntervals &lt;- diff(c(0, which(y != 0), obsInSample+1))</span>
+        <span class="n">nonzero_pos</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>  <span class="c1"># 1-based positions</span>
+        <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(([</span><span class="mi">0</span><span class="p">],</span> <span class="n">nonzero_pos</span><span class="p">,</span> <span class="p">[</span><span class="n">obs_in_sample</span> <span class="o">+</span> <span class="mi">1</span><span class="p">]))</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">y_intervals</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">padded</span><span class="p">)</span>
+        <span class="n">n_int</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_intervals</span><span class="p">)</span>
+
+        <span class="c1"># R: x = lowess(1:length(yIntervals), yIntervals)$y</span>
+        <span class="n">x_smoothed</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_int</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">y_intervals</span><span class="p">)[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="c1"># Build data, response is (yIntervals - 1) per R &#39;y-1~x&#39;.</span>
+        <span class="n">df_intervals</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s2">&quot;y_minus_1&quot;</span><span class="p">:</span> <span class="n">y_intervals</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_smoothed</span><span class="p">,</span>
+        <span class="p">}</span>
+        <span class="n">stockout_model</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+            <span class="s2">&quot;y_minus_1 ~ x&quot;</span><span class="p">,</span>
+            <span class="n">df_intervals</span><span class="p">,</span>
+            <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">probabilities</span> <span class="o">=</span> <span class="n">point_lik_cumulative</span><span class="p">(</span><span class="n">stockout_model</span><span class="p">)</span>
+
+        <span class="c1"># R: productNew if first interval &gt; 1.</span>
+        <span class="k">if</span> <span class="n">y_intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">product_new</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="n">probabilities</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">level</span> <span class="ow">and</span> <span class="n">y_intervals</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">product_obsolete</span> <span class="o">=</span> <span class="kc">True</span>
+
+        <span class="c1"># R 105-128: refit on trimmed data if head/tail anomalies detected.</span>
+        <span class="k">if</span> <span class="n">product_new</span> <span class="ow">or</span> <span class="n">product_obsolete</span><span class="p">:</span>
+            <span class="c1"># Indices of yIntervals to keep (1-based in R, 0-based here).</span>
+            <span class="n">head_ids</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">product_new</span> <span class="k">else</span> <span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">mid_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_int</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+            <span class="n">tail_ids</span> <span class="o">=</span> <span class="p">[]</span> <span class="k">if</span> <span class="n">product_obsolete</span> <span class="k">else</span> <span class="p">[</span><span class="n">n_int</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span>
+            <span class="n">y_intervals_ids</span> <span class="o">=</span> <span class="n">head_ids</span> <span class="o">+</span> <span class="n">mid_ids</span> <span class="o">+</span> <span class="n">tail_ids</span>
+
+            <span class="n">df_trim</span> <span class="o">=</span> <span class="p">{</span>
+                <span class="s2">&quot;y_minus_1&quot;</span><span class="p">:</span> <span class="n">y_intervals</span><span class="p">[</span><span class="n">y_intervals_ids</span><span class="p">]</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">,</span>
+            <span class="p">}</span>
+            <span class="n">stockout_model</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="s2">&quot;y_minus_1 ~ 1&quot;</span><span class="p">,</span>
+                <span class="n">df_trim</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dgeom&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">probs_trim</span> <span class="o">=</span> <span class="n">point_lik_cumulative</span><span class="p">(</span><span class="n">stockout_model</span><span class="p">)</span>
+            <span class="c1"># R: pad probabilities with 0 sentinels at head/tail.</span>
+            <span class="n">head_pad</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="k">if</span> <span class="n">product_new</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="n">tail_pad</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="k">if</span> <span class="n">product_obsolete</span> <span class="k">else</span> <span class="p">[]</span>
+            <span class="n">probabilities</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">([</span><span class="n">head_pad</span><span class="p">,</span> <span class="n">probs_trim</span><span class="p">,</span> <span class="n">tail_pad</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">y_intervals_ids</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="n">n_int</span><span class="p">))</span>
+
+        <span class="c1"># R 138-140: outliers with interval==1 are not flagged.</span>
+        <span class="n">mask</span> <span class="o">=</span> <span class="p">(</span><span class="n">probabilities</span> <span class="o">&gt;</span> <span class="n">level</span><span class="p">)</span> <span class="o">&amp;</span> <span class="p">(</span><span class="n">y_intervals</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">mask</span><span class="p">):</span>
+            <span class="n">probabilities</span> <span class="o">=</span> <span class="n">probabilities</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">probabilities</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span> <span class="o">=</span> <span class="mf">0.0</span>
+
+        <span class="n">outliers</span> <span class="o">=</span> <span class="n">probabilities</span> <span class="o">&gt;</span> <span class="n">level</span>
+        <span class="c1"># 0-based indices into y_intervals</span>
+        <span class="n">outliers_id</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">outliers</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">cum</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">y_intervals</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>  <span class="c1"># 1-based positions</span>
+
+        <span class="k">if</span> <span class="n">outliers_id</span><span class="o">.</span><span class="n">size</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># R 146-152: start = cumsum[outliersID-1]+1, with special case</span>
+            <span class="c1"># for outliersID==1 → start = 1. All positions are 1-based to</span>
+            <span class="c1"># match R&#39;s output exactly.</span>
+            <span class="n">stockouts_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">outliers_id</span><span class="o">.</span><span class="n">size</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">outliers_id</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">stockouts_start</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">stockouts_start</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">cum</span><span class="p">[</span><span class="n">i</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="mi">1</span>
+            <span class="n">stockouts_end</span> <span class="o">=</span> <span class="p">(</span><span class="n">cum</span><span class="p">[</span><span class="n">outliers_id</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+
+            <span class="c1"># 0-based stockout positions for internal filtering.</span>
+            <span class="n">stockout_zero_based</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">,</span> <span class="n">stockouts_end</span><span class="p">):</span>
+                <span class="n">stockout_zero_based</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">stockouts_start</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">stockouts_end</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+            <span class="n">stockout_zero_based</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+
+        <span class="c1"># R 158-163: yIDsToUse = (cumsum[head] .. cumsum[tail]) - 1, dropping</span>
+        <span class="c1"># stockouts. R uses 1-based indices into y with index 0 silently dropped;</span>
+        <span class="c1"># the equivalent 0-based range is below.</span>
+        <span class="n">first_kept_pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cum</span><span class="p">[</span><span class="n">y_intervals_ids</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>  <span class="c1"># 1-based</span>
+        <span class="n">last_kept_pos</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">cum</span><span class="p">[</span><span class="n">y_intervals_ids</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]])</span>  <span class="c1"># 1-based</span>
+        <span class="n">rng_start</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">first_kept_pos</span> <span class="o">-</span> <span class="mi">2</span><span class="p">)</span>
+        <span class="n">rng_stop</span> <span class="o">=</span> <span class="n">last_kept_pos</span> <span class="o">-</span> <span class="mi">1</span>
+        <span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">rng_start</span><span class="p">,</span> <span class="n">rng_stop</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+        <span class="n">y_ids_to_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span>
+            <span class="p">[</span><span class="n">p</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">rng</span> <span class="k">if</span> <span class="n">p</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">stockout_zero_based</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
+        <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">y_ids_to_use</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">obs_in_sample</span><span class="p">)</span>
+        <span class="n">stockouts_start</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">stockouts_end</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># ---------- Demand-type classification (R 172-326) ----------</span>
+    <span class="n">y_sub</span> <span class="o">=</span> <span class="n">y</span><span class="p">[</span><span class="n">y_ids_to_use</span><span class="p">]</span>
+    <span class="n">n_sub</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_sub</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n_sub</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;All observations were classified as stockouts/new/obsolete; &quot;</span>
+            <span class="s2">&quot;nothing left for the demand-type model.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># R: xregData = data.frame(y=y[yIDsToUse], x=supsmu(...))</span>
+    <span class="n">x_main</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_sub</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">y_sub</span><span class="p">)[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+
+    <span class="c1"># R 179-184: xregDataSizes — supsmu over non-zero values, interpolated.</span>
+    <span class="n">x_sizes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">n_sub</span><span class="p">)</span>
+    <span class="n">nz_mask</span> <span class="o">=</span> <span class="n">y_sub</span> <span class="o">!=</span> <span class="mi">0</span>
+    <span class="n">n_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">nz_mask</span><span class="o">.</span><span class="n">sum</span><span class="p">())</span>
+    <span class="k">if</span> <span class="n">n_nz</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">smoothed_nz</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_nz</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">y_sub</span><span class="p">[</span><span class="n">nz_mask</span><span class="p">])[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="n">x_sizes</span><span class="p">[</span><span class="n">nz_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">smoothed_nz</span>
+    <span class="n">x_sizes_with_nan</span> <span class="o">=</span> <span class="n">x_sizes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">x_sizes_with_nan</span><span class="p">[</span><span class="o">~</span><span class="n">nz_mask</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">x_sizes</span> <span class="o">=</span> <span class="n">_interp_rule2</span><span class="p">(</span><span class="n">x_sizes_with_nan</span><span class="p">)</span>
+
+    <span class="c1"># R 187-189: fallback when main supsmu is degenerate.</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x_main</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">or</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x_main</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+        <span class="n">x_main</span> <span class="o">=</span> <span class="n">x_sizes</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+    <span class="c1"># R 192-194: drop x if it&#39;s essentially constant 1.</span>
+    <span class="n">has_x</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">x_main</span><span class="p">,</span> <span class="mi">10</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span>
+
+    <span class="c1"># R 198-201: binary / low-volume / zeroes-left checks.</span>
+    <span class="n">y_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">y_sub</span><span class="p">)</span> <span class="k">if</span> <span class="n">n_sub</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">else</span> <span class="mi">0</span>
+    <span class="k">if</span> <span class="n">y_max</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">y_is_binary</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">scaled</span> <span class="o">=</span> <span class="n">y_sub</span> <span class="o">/</span> <span class="n">y_max</span>
+        <span class="n">y_is_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="c1"># noqa: F841 — kept for parity with R, even though unused below.</span>
+    <span class="n">y_is_low_volume</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">y_sub</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])))</span>  <span class="c1"># noqa: F841</span>
+    <span class="n">zeroes_left</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y_sub</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
+    <span class="n">data_is_integer</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">y</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">trunc</span><span class="p">(</span><span class="n">y</span><span class="p">)))</span>
+
+    <span class="c1"># Default classification (will be overridden below).</span>
+    <span class="n">id_type</span> <span class="o">=</span> <span class="s2">&quot;regular fractional&quot;</span>
+    <span class="n">id_type_detailed</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;type1&quot;</span><span class="p">:</span> <span class="s2">&quot;count/fractional&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type2&quot;</span><span class="p">:</span> <span class="s2">&quot;regular/intermittent&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;type2a&quot;</span><span class="p">:</span> <span class="s2">&quot;smooth/lumpy&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="c1"># Names exactly as R uses them (must round-trip via .split(&quot; &quot;)).</span>
+    <span class="n">id_models</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ALM</span> <span class="o">|</span> <span class="kc">None</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">if</span> <span class="n">zeroes_left</span><span class="p">:</span>
+        <span class="c1"># Build occurrence data.</span>
+        <span class="n">y_occ</span> <span class="o">=</span> <span class="p">(</span><span class="n">y_sub</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">x_occ_smooth</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_sub</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">),</span> <span class="n">y_occ</span><span class="p">)[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span>
+        <span class="n">occ_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_occ</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_occ_smooth</span><span class="p">}</span>
+
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">x_occ_smooth</span> <span class="o">==</span> <span class="n">x_occ_smooth</span><span class="p">[</span><span class="mi">0</span><span class="p">]):</span>
+            <span class="n">model_occurrence</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="s2">&quot;y ~ 1&quot;</span><span class="p">,</span>
+                <span class="n">occ_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;plogis&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">model_occ_fixed</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="s2">&quot;y ~ 1&quot;</span><span class="p">,</span>
+                <span class="n">occ_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;plogis&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">model_occurrence</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="s2">&quot;y ~ x&quot;</span><span class="p">,</span>
+                <span class="n">occ_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;plogis&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="k">if</span> <span class="p">(</span>
+                <span class="n">model_occ_fixed</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">model_occurrence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+                <span class="ow">and</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">model_occ_fixed</span><span class="p">,</span> <span class="n">ic</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">model_occurrence</span><span class="p">,</span> <span class="n">ic</span><span class="p">)</span>
+            <span class="p">):</span>
+                <span class="n">model_occurrence</span> <span class="o">=</span> <span class="n">model_occ_fixed</span>
+
+        <span class="c1"># Main data for size models.</span>
+        <span class="k">if</span> <span class="n">has_x</span><span class="p">:</span>
+            <span class="n">main_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_sub</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_main</span><span class="p">}</span>
+            <span class="n">size_formula</span> <span class="o">=</span> <span class="s2">&quot;y ~ x&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">main_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_sub</span><span class="p">}</span>
+            <span class="n">size_formula</span> <span class="o">=</span> <span class="s2">&quot;y ~ 1&quot;</span>
+
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent fractional&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;lumpy intermittent fractional&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;lumpy intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="c1"># Model 1: smooth intermittent fractional (drectnorm).</span>
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent fractional&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+            <span class="n">size_formula</span><span class="p">,</span>
+            <span class="n">main_data</span><span class="p">,</span>
+            <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;drectnorm&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+
+        <span class="c1"># Initial defaults for type.</span>
+        <span class="n">id_type</span> <span class="o">=</span> <span class="s2">&quot;smooth intermittent fractional&quot;</span>
+        <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;smooth&quot;</span>
+        <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;intermittent&quot;</span>
+        <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;fractional&quot;</span>
+
+        <span class="k">if</span> <span class="n">y_is_binary</span><span class="p">:</span>
+            <span class="c1"># Use modelOccurrence directly (Bernoulli).</span>
+            <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">model_occurrence</span>
+            <span class="n">id_type</span> <span class="o">=</span> <span class="s2">&quot;smooth intermittent count&quot;</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;count&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Model 2: lumpy intermittent fractional (mixture).</span>
+            <span class="k">if</span> <span class="n">model_occurrence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;lumpy intermittent fractional&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                    <span class="n">size_formula</span><span class="p">,</span>
+                    <span class="n">main_data</span><span class="p">,</span>
+                    <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span>
+                    <span class="n">occurrence</span><span class="o">=</span><span class="n">model_occurrence</span><span class="p">,</span>
+                    <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">data_is_integer</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">y_is_binary</span><span class="p">:</span>
+            <span class="c1"># Model 3: smooth intermittent count via dnbinom.</span>
+            <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="n">size_formula</span><span class="p">,</span>
+                <span class="n">main_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="n">maxeval</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+            <span class="c1"># Compare against binomial alternatives for very-low-volume data.</span>
+            <span class="c1"># R&#39;s aid() does NOT pass `size` to dbinom; if the optimizer fails</span>
+            <span class="c1"># the IC comes back effectively infinite and the alternative is</span>
+            <span class="c1"># not preferred. We must mirror that — passing size would silently</span>
+            <span class="c1"># produce a fit that beats dnbinom but doesn&#39;t match R.</span>
+            <span class="n">binom_alt1</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="s2">&quot;y ~ 1&quot;</span><span class="p">,</span>
+                <span class="n">main_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dbinom&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+            <span class="n">binom_alt2</span> <span class="o">=</span> <span class="p">(</span>
+                <span class="n">_fit_alm</span><span class="p">(</span>
+                    <span class="n">size_formula</span><span class="p">,</span>
+                    <span class="n">main_data</span><span class="p">,</span>
+                    <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dbinom&quot;</span><span class="p">,</span>
+                    <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+                <span class="k">if</span> <span class="n">has_x</span>
+                <span class="k">else</span> <span class="kc">None</span>
+            <span class="p">)</span>
+            <span class="k">for</span> <span class="n">alt</span> <span class="ow">in</span> <span class="p">(</span><span class="n">binom_alt1</span><span class="p">,</span> <span class="n">binom_alt2</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">alt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="k">continue</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">alt_ic</span> <span class="o">=</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">alt</span><span class="p">,</span> <span class="n">ic</span><span class="p">)</span>
+                <span class="k">except</span> <span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="ne">TypeError</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">np</span><span class="o">.</span><span class="n">isfinite</span><span class="p">(</span><span class="n">alt_ic</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">base</span> <span class="o">=</span> <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">base</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">alt_ic</span> <span class="o">&lt;</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="n">ic</span><span class="p">):</span>
+                    <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">alt</span>
+
+            <span class="c1"># Model 4: lumpy intermittent count via dnbinom + occurrence.</span>
+            <span class="k">if</span> <span class="n">model_occurrence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;lumpy intermittent count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                    <span class="n">size_formula</span><span class="p">,</span>
+                    <span class="n">main_data</span><span class="p">,</span>
+                    <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
+                    <span class="n">occurrence</span><span class="o">=</span><span class="n">model_occurrence</span><span class="p">,</span>
+                    <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                    <span class="n">maxeval</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                    <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+                <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># No zeroes left: regular fractional vs regular count.</span>
+        <span class="k">if</span> <span class="n">has_x</span><span class="p">:</span>
+            <span class="n">main_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_sub</span><span class="p">,</span> <span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_main</span><span class="p">}</span>
+            <span class="n">size_formula</span> <span class="o">=</span> <span class="s2">&quot;y ~ x&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">main_data</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y_sub</span><span class="p">}</span>
+            <span class="n">size_formula</span> <span class="o">=</span> <span class="s2">&quot;y ~ 1&quot;</span>
+
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;regular fractional&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+            <span class="n">size_formula</span><span class="p">,</span>
+            <span class="n">main_data</span><span class="p">,</span>
+            <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span>
+            <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+            <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="k">if</span> <span class="n">data_is_integer</span><span class="p">:</span>
+            <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;regular count&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">_fit_alm</span><span class="p">(</span>
+                <span class="n">size_formula</span><span class="p">,</span>
+                <span class="n">main_data</span><span class="p">,</span>
+                <span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnbinom&quot;</span><span class="p">,</span>
+                <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
+                <span class="n">maxeval</span><span class="o">=</span><span class="mi">500</span><span class="p">,</span>
+                <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
+            <span class="p">)</span>
+
+    <span class="c1"># Drop None / failed models (R 307).</span>
+    <span class="n">id_models</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">id_models</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">id_models</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All candidate models failed to fit.&quot;</span><span class="p">)</span>
+
+    <span class="c1"># R 312-326: pick best by IC unless binary.</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">y_is_binary</span><span class="p">:</span>
+        <span class="n">best_name</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">id_models</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">id_models</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ic</span><span class="p">))</span>
+        <span class="n">id_type</span> <span class="o">=</span> <span class="n">best_name</span>
+        <span class="n">parts</span> <span class="o">=</span> <span class="n">id_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type1&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">parts</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+            <span class="n">id_type_detailed</span><span class="p">[</span><span class="s2">&quot;type2a&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="c1"># R 329-331: attach stockout model if there were any zeros.</span>
+    <span class="k">if</span> <span class="n">has_zeros</span> <span class="ow">and</span> <span class="n">stockout_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;stockout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stockout_model</span>
+
+    <span class="c1"># ---------- Output dummies (R 333-349) ----------</span>
+    <span class="n">stockout_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_in_sample</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">stockouts_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">,</span> <span class="n">stockouts_end</span><span class="p">):</span>
+            <span class="c1"># 1-based inclusive in R → 0-based half-open in Python.</span>
+            <span class="n">stockout_dummy</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">new_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_in_sample</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">product_new</span><span class="p">:</span>
+        <span class="c1"># R: 1:(which(y!=0)[1]-1) ones.</span>
+        <span class="n">first_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">new_dummy</span><span class="p">[:</span><span class="n">first_nz</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">obsolete_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_in_sample</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">product_obsolete</span><span class="p">:</span>
+        <span class="n">last_nz</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">y</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">obsolete_dummy</span><span class="p">[</span><span class="n">last_nz</span> <span class="o">+</span> <span class="mi">1</span> <span class="p">:]</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="n">stockouts</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;start&quot;</span><span class="p">:</span> <span class="n">stockouts_start</span><span class="p">,</span>
+        <span class="s2">&quot;end&quot;</span><span class="p">:</span> <span class="n">stockouts_end</span><span class="p">,</span>
+        <span class="s2">&quot;dummy&quot;</span><span class="p">:</span> <span class="n">stockout_dummy</span><span class="p">,</span>
+        <span class="s2">&quot;new&quot;</span><span class="p">:</span> <span class="n">new_dummy</span><span class="p">,</span>
+        <span class="s2">&quot;obsolete&quot;</span><span class="p">:</span> <span class="n">obsolete_dummy</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">return</span> <span class="n">AidResult</span><span class="p">(</span>
+        <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
+        <span class="n">models</span><span class="o">=</span><span class="n">id_models</span><span class="p">,</span>
+        <span class="n">name</span><span class="o">=</span><span class="n">id_type</span><span class="p">,</span>
+        <span class="nb">type</span><span class="o">=</span><span class="n">id_type_detailed</span><span class="p">,</span>
+        <span class="n">stockouts</span><span class="o">=</span><span class="n">stockouts</span><span class="p">,</span>
+        <span class="n">new</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">product_new</span><span class="p">),</span>
+        <span class="n">obsolete</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">product_obsolete</span><span class="p">),</span>
+        <span class="n">ic</span><span class="o">=</span><span class="n">ic</span><span class="p">,</span>
+    <span class="p">)</span></div>
+
+
+
+<span class="n">_CATEGORY_LEVELS</span> <span class="o">=</span> <span class="p">[</span>
+    <span class="s2">&quot;regular count&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lumpy intermittent count&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;regular fractional&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;smooth intermittent fractional&quot;</span><span class="p">,</span>
+    <span class="s2">&quot;lumpy intermittent fractional&quot;</span><span class="p">,</span>
+<span class="p">]</span>
+
+
+<div class="viewcode-block" id="aid_cat">
+<a class="viewcode-back" href="../../api/aid.html#greybox.aid.aid_cat">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">aid_cat</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="o">**</span><span class="n">aid_kwargs</span><span class="p">:</span> <span class="n">Any</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">AidCatResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Apply :func:`aid` to multiple series and summarise the result.</span>
+
+<span class="sd">    One-to-one port of R&#39;s :func:`greybox::aidCat`. Each column of</span>
+<span class="sd">    ``data`` is treated as a separate series and passed through</span>
+<span class="sd">    :func:`aid`; the per-series demand types are then tallied into a</span>
+<span class="sd">    2x3 demand-category table plus a count of anomalies (new,</span>
+<span class="sd">    stockouts, obsolete) across the collection.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    data : dict, pandas.DataFrame, or 2-D numpy.ndarray</span>
+<span class="sd">        The series to categorise. Each column / dict entry is one</span>
+<span class="sd">        series.</span>
+<span class="sd">    **aid_kwargs</span>
+<span class="sd">        Keyword arguments forwarded to :func:`aid` (for example</span>
+<span class="sd">        ``ic=&quot;BIC&quot;`` or ``level=0.95``).</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    AidCatResult</span>
+<span class="sd">        Object with the per-series categories, the 2x3 type matrix,</span>
+<span class="sd">        the anomaly counts, and the individual :class:`AidResult`</span>
+<span class="sd">        objects.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Apply to a small dictionary of series:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from greybox import aid_cat</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng(1)</span>
+<span class="sd">    &gt;&gt;&gt; series = {</span>
+<span class="sd">    ...     &quot;a&quot;: rng.poisson(1, 80).astype(float),</span>
+<span class="sd">    ...     &quot;b&quot;: rng.poisson(5, 80).astype(float),</span>
+<span class="sd">    ...     &quot;c&quot;: rng.normal(10, 2, 80),</span>
+<span class="sd">    ... }</span>
+<span class="sd">    &gt;&gt;&gt; result = aid_cat(series)</span>
+<span class="sd">    &gt;&gt;&gt; result.types.shape</span>
+<span class="sd">    (2, 3)</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    --------</span>
+<span class="sd">    aid : Apply the classification to a single series.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">):</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="p">{</span><span class="n">col</span><span class="p">:</span> <span class="n">data</span><span class="p">[</span><span class="n">col</span><span class="p">]</span><span class="o">.</span><span class="n">to_numpy</span><span class="p">(</span><span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">columns</span><span class="p">}</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">data</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">data</span><span class="o">.</span><span class="n">ndim</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;data must be 2-D when passed as ndarray&quot;</span><span class="p">)</span>
+        <span class="n">series</span> <span class="o">=</span> <span class="p">{</span><span class="sa">f</span><span class="s2">&quot;V</span><span class="si">{</span><span class="n">i</span><span class="w"> </span><span class="o">+</span><span class="w"> </span><span class="mi">1</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">:</span> <span class="n">data</span><span class="p">[:,</span> <span class="n">i</span><span class="p">]</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;data must be a DataFrame, dict of arrays, or 2-D ndarray&quot;</span><span class="p">)</span>
+
+    <span class="n">results</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="n">AidResult</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">vec</span> <span class="ow">in</span> <span class="n">series</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">aid</span><span class="p">(</span><span class="n">vec</span><span class="p">,</span> <span class="o">**</span><span class="n">aid_kwargs</span><span class="p">)</span>
+        <span class="n">results</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+
+    <span class="n">cat_names</span> <span class="o">=</span> <span class="p">[</span><span class="n">r</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">]</span>
+    <span class="n">categories</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Categorical</span><span class="p">(</span><span class="n">cat_names</span><span class="p">,</span> <span class="n">categories</span><span class="o">=</span><span class="n">_CATEGORY_LEVELS</span><span class="p">,</span> <span class="n">ordered</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+
+    <span class="c1"># 2x3 types matrix matching R&#39;s print.aidCat.</span>
+    <span class="n">columns</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Regular&quot;</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent&quot;</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent&quot;</span><span class="p">]</span>
+    <span class="n">rows</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Fractional&quot;</span><span class="p">]</span>
+    <span class="n">types</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span> <span class="n">columns</span><span class="o">=</span><span class="n">columns</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
+    <span class="n">label_map</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;regular count&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Regular&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;smooth intermittent count&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;lumpy intermittent count&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Count&quot;</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;regular fractional&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Fractional&quot;</span><span class="p">,</span> <span class="s2">&quot;Regular&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;smooth intermittent fractional&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Fractional&quot;</span><span class="p">,</span> <span class="s2">&quot;Smooth Intermittent&quot;</span><span class="p">),</span>
+        <span class="s2">&quot;lumpy intermittent fractional&quot;</span><span class="p">:</span> <span class="p">(</span><span class="s2">&quot;Fractional&quot;</span><span class="p">,</span> <span class="s2">&quot;Lumpy Intermittent&quot;</span><span class="p">),</span>
+    <span class="p">}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">cat_names</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">label_map</span><span class="p">:</span>
+            <span class="n">row</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="n">label_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+            <span class="n">types</span><span class="o">.</span><span class="n">at</span><span class="p">[</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="n">n_new</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">new</span><span class="p">)</span>
+    <span class="n">n_old</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="mi">1</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span> <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">obsolete</span><span class="p">)</span>
+    <span class="n">n_stockouts</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">:</span>
+        <span class="n">starts</span> <span class="o">=</span> <span class="n">r</span><span class="o">.</span><span class="n">stockouts</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s2">&quot;start&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">starts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">n_stockouts</span> <span class="o">+=</span> <span class="nb">len</span><span class="p">(</span><span class="n">starts</span><span class="p">)</span>
+    <span class="n">anomalies</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span>
+        <span class="p">[</span><span class="n">n_new</span><span class="p">,</span> <span class="n">n_stockouts</span><span class="p">,</span> <span class="n">n_old</span><span class="p">],</span> <span class="n">index</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;New&quot;</span><span class="p">,</span> <span class="s2">&quot;Stockouts&quot;</span><span class="p">,</span> <span class="s2">&quot;Old&quot;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span>
+    <span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">AidCatResult</span><span class="p">(</span>
+        <span class="n">categories</span><span class="o">=</span><span class="n">categories</span><span class="p">,</span> <span class="n">types</span><span class="o">=</span><span class="n">types</span><span class="p">,</span> <span class="n">anomalies</span><span class="o">=</span><span class="n">anomalies</span><span class="p">,</span> <span class="n">results</span><span class="o">=</span><span class="n">results</span>
+    <span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

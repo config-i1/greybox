@@ -1,0 +1,359 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.smoothers &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.smoothers</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.smoothers</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Smoothers matching R&#39;s stats::lowess and stats::supsmu.</span>
+
+<span class="sd">This module exposes two non-parametric smoothers that reproduce the</span>
+<span class="sd">behaviour of R&#39;s :func:`stats::lowess` and :func:`stats::supsmu` to</span>
+<span class="sd">machine precision. Both wrap native pybind11 extensions.</span>
+
+<span class="sd">Functions</span>
+<span class="sd">---------</span>
+<span class="sd">- :func:`lowess` -- Cleveland&#39;s locally-weighted scatterplot smoother.</span>
+<span class="sd">- :func:`supsmu` -- Friedman&#39;s variable-span super-smoother.</span>
+
+<span class="sd">Both functions accept ``x`` and ``y`` as array-like inputs and return a</span>
+<span class="sd">dict with two keys, ``&quot;x&quot;`` (sorted abscissa) and ``&quot;y&quot;`` (smoothed</span>
+<span class="sd">ordinate).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">_native_lowess</span> <span class="k">as</span> <span class="n">_lowess_native</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">_native_supsmu</span> <span class="k">as</span> <span class="n">_supsmu_native</span>
+
+
+<div class="viewcode-block" id="lowess">
+<a class="viewcode-back" href="../../api/smoothers.html#greybox.smoothers.lowess">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">lowess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mi">2</span> <span class="o">/</span> <span class="mi">3</span><span class="p">,</span> <span class="nb">iter</span><span class="o">=</span><span class="mi">3</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;LOWESS smoother (Locally Weighted Scatterplot Smoothing).</span>
+
+<span class="sd">    Performs locally weighted polynomial regression using Cleveland&#39;s</span>
+<span class="sd">    LOWESS algorithm with a tricube weight function and iterative</span>
+<span class="sd">    reweighting for robustness to outliers. The implementation matches</span>
+<span class="sd">    R&#39;s :func:`stats::lowess` to machine precision.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array_like</span>
+<span class="sd">        The abscissa values. May also be a 2-D array with two columns,</span>
+<span class="sd">        in which case the first column is used as ``x`` and the second</span>
+<span class="sd">        as ``y``.</span>
+<span class="sd">    y : array_like, optional</span>
+<span class="sd">        The ordinate values. Required unless ``x`` already contains both</span>
+<span class="sd">        columns.</span>
+<span class="sd">    f : float, default=2/3</span>
+<span class="sd">        Smoother span -- the fraction of points in the local</span>
+<span class="sd">        neighbourhood used for each fit. Larger values produce smoother</span>
+<span class="sd">        curves.</span>
+<span class="sd">    iter : int, default=3</span>
+<span class="sd">        Number of robustifying iterations. Each iteration downweights</span>
+<span class="sd">        observations with large residuals from the previous fit.</span>
+<span class="sd">    delta : float, optional</span>
+<span class="sd">        Distance threshold for interpolation. Within ``delta`` of an</span>
+<span class="sd">        evaluated point, the fit is linearly interpolated rather than</span>
+<span class="sd">        recomputed. If ``None``, defaults to ``0.01 * (max(x) - min(x))``.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary with two keys:</span>
+
+<span class="sd">        - ``&quot;x&quot;`` : :class:`numpy.ndarray` of sorted abscissa values.</span>
+<span class="sd">        - ``&quot;y&quot;`` : :class:`numpy.ndarray` of smoothed ordinate values,</span>
+<span class="sd">          aligned with ``&quot;x&quot;``.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The smoother fits a weighted linear regression at each point using</span>
+<span class="sd">    a tricube weight function</span>
+
+<span class="sd">    .. math::</span>
+<span class="sd">        w(u) = (1 - |u|^3)^3</span>
+
+<span class="sd">    applied to neighbours within the local span. Robustness iterations</span>
+<span class="sd">    downweight outliers using a bisquare weight on the residuals.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Cleveland, W. S. (1979). &quot;Robust Locally Weighted Regression and</span>
+<span class="sd">    Smoothing Scatterplots&quot;. *Journal of the American Statistical</span>
+<span class="sd">    Association*, 74(368), 829-836.</span>
+<span class="sd">    DOI: https://doi.org/10.1080/01621459.1979.10481038</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Smooth a noisy sine wave:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from greybox import lowess</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng(0)</span>
+<span class="sd">    &gt;&gt;&gt; x = np.linspace(0, 6, 60)</span>
+<span class="sd">    &gt;&gt;&gt; y = np.sin(x) + rng.normal(0, 0.2, 60)</span>
+<span class="sd">    &gt;&gt;&gt; out = lowess(x, y, f=0.4)</span>
+<span class="sd">    &gt;&gt;&gt; out[&quot;y&quot;].shape</span>
+<span class="sd">    (60,)</span>
+
+<span class="sd">    Pass both columns as a 2-D array:</span>
+
+<span class="sd">    &gt;&gt;&gt; xy = np.column_stack([x, y])</span>
+<span class="sd">    &gt;&gt;&gt; out = lowess(xy)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">y</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">ndim</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">x</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">y</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+            <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+                <span class="s2">&quot;If y is not provided, x must be a 2D array with at least 2 columns&quot;</span>
+            <span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">x</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;x and y must have the same length, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="n">delta</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">delta</span> <span class="o">=</span> <span class="o">-</span><span class="mf">1.0</span>
+
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;stable&quot;</span><span class="p">)</span>
+    <span class="n">x_sorted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+    <span class="n">y_sorted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+
+    <span class="n">smoothed</span> <span class="o">=</span> <span class="n">_lowess_native</span><span class="o">.</span><span class="n">lowess</span><span class="p">(</span><span class="n">x_sorted</span><span class="p">,</span> <span class="n">y_sorted</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="n">f</span><span class="p">,</span> <span class="n">nsteps</span><span class="o">=</span><span class="nb">iter</span><span class="p">,</span> <span class="n">delta</span><span class="o">=</span><span class="n">delta</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_sorted</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">smoothed</span><span class="p">)}</span></div>
+
+
+
+<div class="viewcode-block" id="supsmu">
+<a class="viewcode-back" href="../../api/smoothers.html#greybox.smoothers.supsmu">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">wt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="s2">&quot;cv&quot;</span><span class="p">,</span> <span class="n">periodic</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">bass</span><span class="o">=</span><span class="mf">0.0</span><span class="p">):</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Friedman&#39;s variable-span super-smoother (SuperSmoother).</span>
+
+<span class="sd">    Smooths a scatter-plot using Friedman&#39;s super-smoother algorithm.</span>
+<span class="sd">    The smoother evaluates three running linear smoothers (&quot;tweeters&quot;)</span>
+<span class="sd">    with spans ``0.05``, ``0.2``, and ``0.5`` of the sample size, then</span>
+<span class="sd">    chooses the best span at each abscissa value via cross-validated</span>
+<span class="sd">    residuals. The implementation is a direct port of R&#39;s</span>
+<span class="sd">    :func:`stats::supsmu` (FORTRAN ``supsmu`` from ``ppr.f``) and</span>
+<span class="sd">    matches R to machine precision.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    x : array_like</span>
+<span class="sd">        The abscissa values. Will be sorted internally if not already</span>
+<span class="sd">        ascending.</span>
+<span class="sd">    y : array_like</span>
+<span class="sd">        The ordinate values, same length as ``x``.</span>
+<span class="sd">    wt : array_like, optional</span>
+<span class="sd">        Per-observation weights. Default is uniform.</span>
+<span class="sd">    span : float or {&quot;cv&quot;}, default=&quot;cv&quot;</span>
+<span class="sd">        Smoother span. Pass a float in ``(0, 1]`` for a fixed span;</span>
+<span class="sd">        ``&quot;cv&quot;`` (or ``0``) selects the span automatically via</span>
+<span class="sd">        leave-one-out cross-validation at each point.</span>
+<span class="sd">    periodic : bool, default=False</span>
+<span class="sd">        If ``True``, treat ``x`` as a periodic variable in ``[0, 1]``.</span>
+<span class="sd">    bass : float, default=0.0</span>
+<span class="sd">        Bass-tone control in ``[0, 10]``. Larger values shift the</span>
+<span class="sd">        cross-validated span towards the smoother end of the range</span>
+<span class="sd">        (more smoothing in noisy regions). Values outside the range</span>
+<span class="sd">        disable the adjustment.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary with two keys:</span>
+
+<span class="sd">        - ``&quot;x&quot;`` : :class:`numpy.ndarray` of sorted abscissa values.</span>
+<span class="sd">        - ``&quot;y&quot;`` : :class:`numpy.ndarray` of smoothed ordinate values,</span>
+<span class="sd">          aligned with ``&quot;x&quot;``.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    For small samples (``n &lt; 40``) or data with substantial serial</span>
+<span class="sd">    correlation between observations close in ``x``, a prespecified</span>
+<span class="sd">    fixed span (``span=0.2`` to ``span=0.4``) is recommended over</span>
+<span class="sd">    cross-validated selection.</span>
+
+<span class="sd">    The cross-validation step uses leave-one-out residuals from each of</span>
+<span class="sd">    the three tweeters, smooths them with the medium-span smoother,</span>
+<span class="sd">    then picks the smallest residual at each abscissa. A final smooth</span>
+<span class="sd">    with the smallest span produces the output.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Friedman, J. H. (1984). &quot;A Variable Span Smoother&quot;. Technical</span>
+<span class="sd">    Report 5 (SLAC-PUB-3477; STAN-LCS-005), Laboratory for</span>
+<span class="sd">    Computational Statistics, Department of Statistics, Stanford</span>
+<span class="sd">    University. https://www.osti.gov/biblio/1447470</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Smooth count-data noise with the default cross-validated span:</span>
+
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; from greybox import supsmu</span>
+<span class="sd">    &gt;&gt;&gt; rng = np.random.default_rng(1)</span>
+<span class="sd">    &gt;&gt;&gt; x = np.arange(100, dtype=float)</span>
+<span class="sd">    &gt;&gt;&gt; y = 0.05 * x + rng.normal(0, 1, 100)</span>
+<span class="sd">    &gt;&gt;&gt; out = supsmu(x, y)</span>
+<span class="sd">    &gt;&gt;&gt; out[&quot;y&quot;].shape</span>
+<span class="sd">    (100,)</span>
+
+<span class="sd">    Force a fixed span of 0.3:</span>
+
+<span class="sd">    &gt;&gt;&gt; out_fixed = supsmu(x, y, span=0.3)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="sa">f</span><span class="s2">&quot;x and y must have the same length, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="si">}</span><span class="s2"> and </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">y</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="n">n</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">n</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x</span><span class="o">.</span><span class="n">copy</span><span class="p">(),</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">y</span><span class="o">.</span><span class="n">copy</span><span class="p">()}</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">span</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">span</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;cv&quot;</span><span class="p">:</span>
+            <span class="n">span_val</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;span must be a float or &#39;cv&#39;, got </span><span class="si">{</span><span class="n">span</span><span class="si">!r}</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">span_val</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">span</span><span class="p">)</span>
+
+    <span class="n">order</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argsort</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">kind</span><span class="o">=</span><span class="s2">&quot;stable&quot;</span><span class="p">)</span>
+    <span class="n">x_sorted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+    <span class="n">y_sorted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">wt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wt_sorted</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">wt</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">wt</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span> <span class="o">!=</span> <span class="n">n</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;wt must have length </span><span class="si">{</span><span class="n">n</span><span class="si">}</span><span class="s2">, got </span><span class="si">{</span><span class="nb">len</span><span class="p">(</span><span class="n">wt</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+        <span class="n">wt_sorted</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">wt</span><span class="p">[</span><span class="n">order</span><span class="p">])</span>
+
+    <span class="n">smoothed</span> <span class="o">=</span> <span class="n">_supsmu_native</span><span class="o">.</span><span class="n">supsmu</span><span class="p">(</span>
+        <span class="n">x_sorted</span><span class="p">,</span>
+        <span class="n">y_sorted</span><span class="p">,</span>
+        <span class="n">wt</span><span class="o">=</span><span class="n">wt_sorted</span><span class="p">,</span>
+        <span class="n">span</span><span class="o">=</span><span class="n">span_val</span><span class="p">,</span>
+        <span class="n">bass</span><span class="o">=</span><span class="n">bass</span><span class="p">,</span>
+        <span class="n">periodic</span><span class="o">=</span><span class="nb">bool</span><span class="p">(</span><span class="n">periodic</span><span class="p">),</span>
+    <span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="s2">&quot;x&quot;</span><span class="p">:</span> <span class="n">x_sorted</span><span class="p">,</span> <span class="s2">&quot;y&quot;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">smoothed</span><span class="p">)}</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

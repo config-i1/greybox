@@ -16,4 +16,6 @@ API
    quantile_measures
    xreg
    transforms
+   smoothers
+   aid
    ../distributions/index

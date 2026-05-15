@@ -1,6 +1,20 @@
-"""Automatic Identification of Demand.
+"""Automatic Identification of Demand (AID).
 
-Python translation of R's ``greybox::aid()`` and ``greybox::aidCat()``.
+Python translation of R's :func:`greybox::aid` and :func:`greybox::aidCat`.
+The :func:`aid` function fits several candidate models to a single time
+series and picks the demand type that minimises the chosen information
+criterion. The :func:`aid_cat` function applies :func:`aid` to a collection
+of series and summarises the result as a 2x3 demand category table.
+
+Functions
+---------
+- :func:`aid` -- Identify the demand type of a single series.
+- :func:`aid_cat` -- Apply :func:`aid` across multiple series.
+
+Result classes
+--------------
+- :class:`AidResult` -- Returned by :func:`aid`.
+- :class:`AidCatResult` -- Returned by :func:`aid_cat`.
 """
 
 from __future__ import annotations
@@ -62,7 +76,38 @@ def _interp_rule2(x_indexed: np.ndarray) -> np.ndarray:
 
 
 class AidResult:
-    """Result of :func:`aid`. Mirrors R's ``aid`` S3 class."""
+    """Result of :func:`aid`. Mirrors R's ``aid`` S3 class.
+
+    Attributes
+    ----------
+    y : numpy.ndarray
+        The original time series with NaN values replaced by 0.
+    models : dict[str, ALM]
+        All fitted candidate models, keyed by demand-type name. If
+        stockout detection ran, the stockout model is exposed under
+        the key ``"stockout"``.
+    name : str
+        Name of the selected demand type (e.g. ``"smooth intermittent
+        count"``).
+    type : dict
+        Sub-categorisation of ``name`` with keys ``type1`` (``"count"``
+        or ``"fractional"``), ``type2`` (``"regular"`` or
+        ``"intermittent"``), and ``type2a`` (``"smooth"`` or
+        ``"lumpy"`` when intermittent, ``None`` otherwise).
+    stockouts : dict
+        Dictionary with keys ``"start"``, ``"end"``, ``"dummy"``,
+        ``"new"``, ``"obsolete"``. ``start`` and ``end`` are 1-based
+        positions matching R; ``dummy`` / ``new`` / ``obsolete`` are
+        binary numpy arrays of length ``len(y)``.
+    new : bool
+        ``True`` if the series starts with anomalous zeros (a new
+        product).
+    obsolete : bool
+        ``True`` if the series ends with anomalous zeros (a
+        discontinued product).
+    ic : str
+        Information criterion used to select between candidates.
+    """
 
     __slots__ = (
         "y",
@@ -117,7 +162,27 @@ class AidResult:
 
 
 class AidCatResult:
-    """Result of :func:`aid_cat`. Mirrors R's ``aidCat`` S3 class."""
+    """Result of :func:`aid_cat`. Mirrors R's ``aidCat`` S3 class.
+
+    Attributes
+    ----------
+    categories : pandas.Categorical
+        Categorical vector of demand types, one entry per input series,
+        with the six possible levels: ``regular count``,
+        ``smooth intermittent count``, ``lumpy intermittent count``,
+        ``regular fractional``, ``smooth intermittent fractional``,
+        ``lumpy intermittent fractional``.
+    types : pandas.DataFrame
+        2x3 frequency table with rows ``["Count", "Fractional"]`` and
+        columns ``["Regular", "Smooth Intermittent", "Lumpy
+        Intermittent"]``.
+    anomalies : pandas.Series
+        Counts of ``"New"``, ``"Stockouts"``, and ``"Old"`` (obsolete)
+        across the input series.
+    results : list[AidResult]
+        The individual :class:`AidResult` objects, in the same order as
+        the input columns.
+    """
 
     __slots__ = ("categories", "types", "anomalies", "results")
 
@@ -152,29 +217,84 @@ def aid(
     loss: str = "likelihood",
     **alm_kwargs: Any,
 ) -> AidResult:
-    """Automatic identification of demand.
+    """Automatic identification of demand type.
 
-    Translates R's :func:`greybox::aid` one-to-one. Classifies a time series
-    into one of six demand types and flags stockouts, new products, and
-    obsolete products.
+    Classifies a time series into one of six demand types and flags
+    stockouts, new products, and obsolete products. This is a one-to-one
+    Python port of R's :func:`greybox::aid`.
+
+    The algorithm runs in two stages:
+
+    1. **Stockout detection.** Inter-demand intervals are smoothed with
+       :func:`~greybox.smoothers.lowess` and fitted with an
+       :class:`~greybox.alm.ALM` Geometric model. Cumulative
+       probabilities above ``level`` are flagged as potential
+       stockouts, with leading/trailing zero runs interpreted as new
+       or obsolete products.
+    2. **Demand type classification.** Smoothed regressors built with
+       :func:`~greybox.smoothers.supsmu` are used to fit up to four
+       candidate models (rectified normal, normal + Bernoulli
+       occurrence, negative binomial, negative binomial + Bernoulli
+       occurrence). The model with the lowest information criterion
+       names the demand type.
 
     Parameters
     ----------
-    y : array-like
-        The time series.
+    y : array_like
+        The time series. ``NaN`` values are replaced by zero.
     ic : {"AICc", "AIC", "BICc", "BIC"}, default="AICc"
-        Information criterion used for model selection.
+        Information criterion used to choose between candidate models.
     level : float, default=0.99
         Confidence level for stockout identification.
     loss : str, default="likelihood"
-        Loss function passed to :class:`ALM`.
+        Loss function passed to :class:`~greybox.alm.ALM`.
     **alm_kwargs
-        Extra keyword arguments passed through to :class:`ALM`. Useful for
-        ``nlopt_kargs={"maxeval": ...}``.
+        Extra keyword arguments forwarded to :class:`~greybox.alm.ALM`.
+        Useful for tuning the optimiser, e.g. ``nlopt_kargs={"maxeval":
+        1000}``.
 
     Returns
     -------
     AidResult
+        Object containing the identified demand type, fitted models,
+        stockout indices, and new/obsolete flags.
+
+    Notes
+    -----
+    The six possible demand types are:
+
+    - ``regular count``
+    - ``regular fractional``
+    - ``smooth intermittent count``
+    - ``smooth intermittent fractional``
+    - ``lumpy intermittent count``
+    - ``lumpy intermittent fractional``
+
+    Examples
+    --------
+    Classify an intermittent count series:
+
+    >>> import numpy as np
+    >>> from greybox import aid
+    >>> rng = np.random.default_rng(42)
+    >>> y = rng.poisson(0.7, 120).astype(float)
+    >>> res = aid(y)
+    >>> res.name in {
+    ...     "smooth intermittent count", "lumpy intermittent count"
+    ... }
+    True
+
+    Inspect detected stockouts:
+
+    >>> y2 = rng.poisson(3, 100).astype(float)
+    >>> y2[40:50] = 0  # injected stockout
+    >>> res2 = aid(y2)
+    >>> res2.stockouts["start"]  # 1-based, matches R
+    array([41])
+
+    See Also
+    --------
+    aid_cat : Apply :func:`aid` to multiple series.
     """
     if ic not in _VALID_ICS:
         raise ValueError(f"ic must be one of {_VALID_ICS}, got {ic!r}")
@@ -590,20 +710,49 @@ _CATEGORY_LEVELS = [
 
 
 def aid_cat(data, **aid_kwargs: Any) -> AidCatResult:
-    """Apply :func:`aid` to multiple series.
+    """Apply :func:`aid` to multiple series and summarise the result.
 
-    Mirrors R's ``greybox::aidCat``.
+    One-to-one port of R's :func:`greybox::aidCat`. Each column of
+    ``data`` is treated as a separate series and passed through
+    :func:`aid`; the per-series demand types are then tallied into a
+    2x3 demand-category table plus a count of anomalies (new,
+    stockouts, obsolete) across the collection.
 
     Parameters
     ----------
     data : dict, pandas.DataFrame, or 2-D numpy.ndarray
-        The series to categorise. Columns are treated as individual series.
+        The series to categorise. Each column / dict entry is one
+        series.
     **aid_kwargs
-        Keyword arguments forwarded to :func:`aid`.
+        Keyword arguments forwarded to :func:`aid` (for example
+        ``ic="BIC"`` or ``level=0.95``).
 
     Returns
     -------
     AidCatResult
+        Object with the per-series categories, the 2x3 type matrix,
+        the anomaly counts, and the individual :class:`AidResult`
+        objects.
+
+    Examples
+    --------
+    Apply to a small dictionary of series:
+
+    >>> import numpy as np
+    >>> from greybox import aid_cat
+    >>> rng = np.random.default_rng(1)
+    >>> series = {
+    ...     "a": rng.poisson(1, 80).astype(float),
+    ...     "b": rng.poisson(5, 80).astype(float),
+    ...     "c": rng.normal(10, 2, 80),
+    ... }
+    >>> result = aid_cat(series)
+    >>> result.types.shape
+    (2, 3)
+
+    See Also
+    --------
+    aid : Apply the classification to a single series.
     """
     if isinstance(data, pd.DataFrame):
         series = {col: data[col].to_numpy(dtype=float) for col in data.columns}

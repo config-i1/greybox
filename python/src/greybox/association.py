@@ -189,7 +189,7 @@ def determination(
     >>> xreg = np.column_stack([x3, x1, x2])
     >>> determination(xreg)
     """
-    from greybox.selection import stepwise
+    from .selection import stepwise
 
     xreg = np.asarray(xreg, dtype=float)
 

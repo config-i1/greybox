@@ -1,0 +1,335 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Smoothers &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+      <script defer="defer" src="https://cdn.jsdelivr.net/npm/mathjax@4/tex-mml-chtml.js"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Automatic Identification of Demand" href="aid.html" />
+    <link rel="prev" title="Transforms" href="transforms.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rolling.html">Rolling Origin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_measures.html">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Smoothers</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#lowess">LOWESS</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.smoothers.lowess"><code class="docutils literal notranslate"><span class="pre">lowess()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#supersmoother-supsmu">SuperSmoother (supsmu)</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.smoothers.supsmu"><code class="docutils literal notranslate"><span class="pre">supsmu()</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="aid.html">Automatic Identification of Demand</a></li>
+<li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Smoothers</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/smoothers.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="smoothers">
+<h1>Smoothers<a class="headerlink" href="#smoothers" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">greybox.smoothers</span></code> module provides two non-parametric smoothers
+that reproduce R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">stats::lowess()</span></code> and <code class="xref py py-func docutils literal notranslate"><span class="pre">stats::supsmu()</span></code> to
+machine precision. Each wraps a native pybind11 extension and returns
+a dictionary with sorted abscissa and smoothed ordinate.</p>
+<section id="lowess">
+<h2>LOWESS<a class="headerlink" href="#lowess" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.smoothers.lowess">
+<span class="sig-prename descclassname"><span class="pre">greybox.smoothers.</span></span><span class="sig-name descname"><span class="pre">lowess</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">f</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.6666666666666666</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">iter</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">3</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">delta</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/smoothers.html#lowess"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.smoothers.lowess" title="Link to this definition"></a></dt>
+<dd><p>LOWESS smoother (Locally Weighted Scatterplot Smoothing).</p>
+<p>Performs locally weighted polynomial regression using Cleveland’s
+LOWESS algorithm with a tricube weight function and iterative
+reweighting for robustness to outliers. The implementation matches
+R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">stats::lowess()</span></code> to machine precision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – The abscissa values. May also be a 2-D array with two columns,
+in which case the first column is used as <code class="docutils literal notranslate"><span class="pre">x</span></code> and the second
+as <code class="docutils literal notranslate"><span class="pre">y</span></code>.</p></li>
+<li><p><strong>y</strong> (<em>array_like</em><em>, </em><em>optional</em>) – The ordinate values. Required unless <code class="docutils literal notranslate"><span class="pre">x</span></code> already contains both
+columns.</p></li>
+<li><p><strong>f</strong> (<em>float</em><em>, </em><em>default=2/3</em>) – Smoother span – the fraction of points in the local
+neighbourhood used for each fit. Larger values produce smoother
+curves.</p></li>
+<li><p><strong>iter</strong> (<em>int</em><em>, </em><em>default=3</em>) – Number of robustifying iterations. Each iteration downweights
+observations with large residuals from the previous fit.</p></li>
+<li><p><strong>delta</strong> (<em>float</em><em>, </em><em>optional</em>) – Distance threshold for interpolation. Within <code class="docutils literal notranslate"><span class="pre">delta</span></code> of an
+evaluated point, the fit is linearly interpolated rather than
+recomputed. If <code class="docutils literal notranslate"><span class="pre">None</span></code>, defaults to <code class="docutils literal notranslate"><span class="pre">0.01</span> <span class="pre">*</span> <span class="pre">(max(x)</span> <span class="pre">-</span> <span class="pre">min(x))</span></code>.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with two keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> of sorted abscissa values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> of smoothed ordinate values,
+aligned with <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The smoother fits a weighted linear regression at each point using
+a tricube weight function</p>
+<div class="math notranslate nohighlight">
+\[w(u) = (1 - |u|^3)^3\]</div>
+<p>applied to neighbours within the local span. Robustness iterations
+downweight outliers using a bisquare weight on the residuals.</p>
+<p class="rubric">References</p>
+<p>Cleveland, W. S. (1979). “Robust Locally Weighted Regression and
+Smoothing Scatterplots”. <em>Journal of the American Statistical
+Association</em>, 74(368), 829-836.
+DOI: <a class="reference external" href="https://doi.org/10.1080/01621459.1979.10481038">https://doi.org/10.1080/01621459.1979.10481038</a></p>
+<p class="rubric">Examples</p>
+<p>Smooth a noisy sine wave:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">lowess</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">60</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(60,)</span>
+</pre></div>
+</div>
+<p>Pass both columns as a 2-D array:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">xy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">xy</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">lowess</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">0.2</span><span class="p">,</span> <span class="mi">80</span><span class="p">)</span>
+
+<span class="n">smoothed</span> <span class="o">=</span> <span class="n">lowess</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="o">=</span><span class="mf">0.4</span><span class="p">)</span>
+<span class="c1"># smoothed[&quot;x&quot;] are the sorted x values; smoothed[&quot;y&quot;] is the smoothed curve.</span>
+</pre></div>
+</div>
+<p><strong>Reference</strong></p>
+<p>Cleveland, W. S. (1979). “Robust Locally Weighted Regression and Smoothing
+Scatterplots”. <em>Journal of the American Statistical Association</em>, 74(368),
+829-836. DOI: <a class="reference external" href="https://doi.org/10.1080/01621459.1979.10481038">10.1080/01621459.1979.10481038</a>.</p>
+</section>
+<section id="supersmoother-supsmu">
+<h2>SuperSmoother (supsmu)<a class="headerlink" href="#supersmoother-supsmu" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.smoothers.supsmu">
+<span class="sig-prename descclassname"><span class="pre">greybox.smoothers.</span></span><span class="sig-name descname"><span class="pre">supsmu</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">x</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">wt</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">span</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'cv'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">periodic</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0.0</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/smoothers.html#supsmu"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.smoothers.supsmu" title="Link to this definition"></a></dt>
+<dd><p>Friedman’s variable-span super-smoother (SuperSmoother).</p>
+<p>Smooths a scatter-plot using Friedman’s super-smoother algorithm.
+The smoother evaluates three running linear smoothers (“tweeters”)
+with spans <code class="docutils literal notranslate"><span class="pre">0.05</span></code>, <code class="docutils literal notranslate"><span class="pre">0.2</span></code>, and <code class="docutils literal notranslate"><span class="pre">0.5</span></code> of the sample size, then
+chooses the best span at each abscissa value via cross-validated
+residuals. The implementation is a direct port of R’s
+<code class="xref py py-func docutils literal notranslate"><span class="pre">stats::supsmu()</span></code> (FORTRAN <code class="docutils literal notranslate"><span class="pre">supsmu</span></code> from <code class="docutils literal notranslate"><span class="pre">ppr.f</span></code>) and
+matches R to machine precision.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>x</strong> (<em>array_like</em>) – The abscissa values. Will be sorted internally if not already
+ascending.</p></li>
+<li><p><strong>y</strong> (<em>array_like</em>) – The ordinate values, same length as <code class="docutils literal notranslate"><span class="pre">x</span></code>.</p></li>
+<li><p><strong>wt</strong> (<em>array_like</em><em>, </em><em>optional</em>) – Per-observation weights. Default is uniform.</p></li>
+<li><p><strong>span</strong> (<em>float</em><em> or </em><em>{&quot;cv&quot;}</em><em>, </em><em>default=&quot;cv&quot;</em>) – Smoother span. Pass a float in <code class="docutils literal notranslate"><span class="pre">(0,</span> <span class="pre">1]</span></code> for a fixed span;
+<code class="docutils literal notranslate"><span class="pre">&quot;cv&quot;</span></code> (or <code class="docutils literal notranslate"><span class="pre">0</span></code>) selects the span automatically via
+leave-one-out cross-validation at each point.</p></li>
+<li><p><strong>periodic</strong> (<em>bool</em><em>, </em><em>default=False</em>) – If <code class="docutils literal notranslate"><span class="pre">True</span></code>, treat <code class="docutils literal notranslate"><span class="pre">x</span></code> as a periodic variable in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">1]</span></code>.</p></li>
+<li><p><strong>bass</strong> (<em>float</em><em>, </em><em>default=0.0</em>) – Bass-tone control in <code class="docutils literal notranslate"><span class="pre">[0,</span> <span class="pre">10]</span></code>. Larger values shift the
+cross-validated span towards the smoother end of the range
+(more smoothing in noisy regions). Values outside the range
+disable the adjustment.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p><p>Dictionary with two keys:</p>
+<ul class="simple">
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> of sorted abscissa values.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">&quot;y&quot;</span></code> : <code class="xref py py-class docutils literal notranslate"><span class="pre">numpy.ndarray</span></code> of smoothed ordinate values,
+aligned with <code class="docutils literal notranslate"><span class="pre">&quot;x&quot;</span></code>.</p></li>
+</ul>
+</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>For small samples (<code class="docutils literal notranslate"><span class="pre">n</span> <span class="pre">&lt;</span> <span class="pre">40</span></code>) or data with substantial serial
+correlation between observations close in <code class="docutils literal notranslate"><span class="pre">x</span></code>, a prespecified
+fixed span (<code class="docutils literal notranslate"><span class="pre">span=0.2</span></code> to <code class="docutils literal notranslate"><span class="pre">span=0.4</span></code>) is recommended over
+cross-validated selection.</p>
+<p>The cross-validation step uses leave-one-out residuals from each of
+the three tweeters, smooths them with the medium-span smoother,
+then picks the smallest residual at each abscissa. A final smooth
+with the smallest span produces the output.</p>
+<p class="rubric">References</p>
+<p>Friedman, J. H. (1984). “A Variable Span Smoother”. Technical
+Report 5 (SLAC-PUB-3477; STAN-LCS-005), Laboratory for
+Computational Statistics, Department of Statistics, Stanford
+University. <a class="reference external" href="https://www.osti.gov/biblio/1447470">https://www.osti.gov/biblio/1447470</a></p>
+<p class="rubric">Examples</p>
+<p>Smooth count-data noise with the default cross-validated span:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">supsmu</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">out</span><span class="p">[</span><span class="s2">&quot;y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
+<span class="go">(100,)</span>
+</pre></div>
+</div>
+<p>Force a fixed span of 0.3:</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">out_fixed</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">supsmu</span>
+
+<span class="n">rng</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">default_rng</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+<span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">100</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mf">0.05</span> <span class="o">*</span> <span class="n">x</span> <span class="o">+</span> <span class="n">rng</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mf">1.0</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+
+<span class="c1"># Default: cross-validated span selection</span>
+<span class="n">cv</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+
+<span class="c1"># Fixed span (0 &lt; span &lt;= 1)</span>
+<span class="n">fixed</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">span</span><span class="o">=</span><span class="mf">0.3</span><span class="p">)</span>
+
+<span class="c1"># Bass-tone control increases smoothness in noisy regions</span>
+<span class="n">smoother</span> <span class="o">=</span> <span class="n">supsmu</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">bass</span><span class="o">=</span><span class="mf">5.0</span><span class="p">)</span>
+</pre></div>
+</div>
+<p><strong>Reference</strong></p>
+<p>Friedman, J. H. (1984). “A Variable Span Smoother”. Technical Report 5
+(SLAC-PUB-3477; STAN-LCS-005), Laboratory for Computational Statistics,
+Department of Statistics, Stanford University.
+<a class="reference external" href="https://www.osti.gov/biblio/1447470">OSTI 1447470</a>.</p>
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="transforms.html" class="btn btn-neutral float-left" title="Transforms" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="aid.html" class="btn btn-neutral float-right" title="Automatic Identification of Demand" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

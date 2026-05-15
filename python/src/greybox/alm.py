@@ -265,8 +265,7 @@ class ALM:
 
     Examples
     --------
-    >>> from greybox.formula import formula
-    >>> from greybox.alm import ALM
+    >>> from greybox import formula, ALM
     >>> data = {'y': [1, 2, 3, 4, 5], 'x1': [1, 2, 3, 4, 5], 'x2': [2, 3, 4, 5, 6]}
     >>> y, X = formula("y ~ x1 + x2", data)
     >>> model = ALM(distribution="dnorm", loss="likelihood")
