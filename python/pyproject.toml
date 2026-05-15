@@ -85,7 +85,7 @@ build-verbosity = 1
 # Smoke-test each built wheel by importing the native modules and exercising
 # them end-to-end through aid() (which uses both lowess and supsmu).
 test-requires = ["pytest"]
-test-command = "pytest {project}/tests/test_aid.py -q"
+test-command = "pytest {package}/tests/test_aid.py -q"
 
 [tool.cibuildwheel.linux]
 archs = ["x86_64"]
