@@ -584,6 +584,8 @@ def aid(
             loss=loss,
             **alm_kwargs,
         )
+        if stockout_model is None:
+            raise RuntimeError("Stockout model failed to fit.")
         probabilities = point_lik_cumulative(stockout_model)
 
         # R: productNew if first interval > 1.
@@ -610,6 +612,8 @@ def aid(
                 loss=loss,
                 **alm_kwargs,
             )
+            if stockout_model is None:
+                raise RuntimeError("Trimmed stockout model failed to fit.")
             probs_trim = point_lik_cumulative(stockout_model)
             # R: pad probabilities with 0 sentinels at head/tail.
             head_pad = [0.0] if product_new else []
@@ -643,7 +647,7 @@ def aid(
             stockouts_end = (cum[outliers_id] - 1).astype(int)
 
             # 0-based stockout positions for internal filtering.
-            stockout_zero_based = set()
+            stockout_zero_based: set[int] = set()
             for s, e in zip(stockouts_start, stockouts_end):
                 stockout_zero_based.update(range(int(s) - 1, int(e)))
         else:
@@ -703,7 +707,7 @@ def aid(
         y_is_binary = True
     else:
         scaled = y_sub / y_max
-        y_is_binary = np.all((scaled == 0) | (scaled == 1))
+        y_is_binary = bool(np.all((scaled == 0) | (scaled == 1)))
     # noqa: F841 — kept for parity with R, even though unused below.
     y_is_low_volume = bool(np.all(np.isin(y_sub, [0, 1, 2])))  # noqa: F841
     zeroes_left = bool(np.any(y_sub == 0))
@@ -886,14 +890,18 @@ def aid(
             )
 
     # Drop None / failed models (R 307).
-    id_models = {k: v for k, v in id_models.items() if v is not None}
+    id_models_fit: dict[str, ALM] = {
+        k: v for k, v in id_models.items() if v is not None
+    }
 
-    if not id_models:
+    if not id_models_fit:
         raise RuntimeError("All candidate models failed to fit.")
 
     # R 312-326: pick best by IC unless binary.
     if not y_is_binary:
-        best_name = min(id_models.keys(), key=lambda k: _get_ic(id_models[k], ic))
+        best_name = min(
+            id_models_fit.keys(), key=lambda k: _get_ic(id_models_fit[k], ic)
+        )
         id_type = best_name
         parts = id_type.split(" ")
         if len(parts) == 3:
@@ -907,11 +915,15 @@ def aid(
 
     # R 329-331: attach stockout model if there were any zeros.
     if has_zeros and stockout_model is not None:
-        id_models["stockout"] = stockout_model
+        id_models_fit["stockout"] = stockout_model
 
     # ---------- Output dummies (R 333-349) ----------
     stockout_dummy = np.zeros(obs_in_sample, dtype=int)
-    if stockouts_start is not None and len(stockouts_start) > 0:
+    if (
+        stockouts_start is not None
+        and stockouts_end is not None
+        and len(stockouts_start) > 0
+    ):
         for s, e in zip(stockouts_start, stockouts_end):
             # 1-based inclusive in R → 0-based half-open in Python.
             stockout_dummy[int(s) - 1 : int(e)] = 1
@@ -937,7 +949,7 @@ def aid(
 
     return AidResult(
         y=y,
-        models=id_models,
+        models=id_models_fit,
         name=id_type,
         type=AidType(**id_type_detailed),
         stockouts=stockouts,

@@ -16,8 +16,8 @@ ordinate).
 
 import numpy as np
 
-from greybox import _native_lowess as _lowess_native
-from greybox import _native_supsmu as _supsmu_native
+from greybox import _native_lowess as _lowess_native  # type: ignore[attr-defined]
+from greybox import _native_supsmu as _supsmu_native  # type: ignore[attr-defined]
 
 
 def lowess(x, y=None, f=2 / 3, iter=3, delta=None):

@@ -1,10 +1,13 @@
-.PHONY: build lint test docs clean
+.PHONY: build lint typecheck test docs clean
 
 build:
 	pip install -e .
 
 lint:
 	flake8 .
+
+typecheck:
+	mypy src/greybox/ --ignore-missing-imports
 
 test:
 	pytest
