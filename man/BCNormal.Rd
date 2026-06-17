@@ -84,7 +84,17 @@ hist(x)
 \itemize{
 \item Box, G. E., & Cox, D. R. (1964). An Analysis of Transformations.
 Journal of the Royal Statistical Society. Series B (Methodological),
-26(2), 211–252. Retrieved from https://www.jstor.org/stable/2984418
+26(2), 211-252.  Retrieved from https://www.jstor.org/stable/2984418
+\item Granger, C. W. J., & Newbold, P. (1976).  Forecasting transformed
+series.  Journal of the Royal Statistical Society. Series B
+(Methodological), 38(2), 189-203.
+\doi{10.1111/j.2517-6161.1976.tb01585.x}
+\item Pankratz, A., & Dudley, U. (1987).  Forecasts of power-transformed
+series.  Journal of Forecasting, 6(4), 239-248.
+\doi{10.1002/for.3980060403}
+\item Guerrero, V. M. (1993).  Time-series analysis supported by power
+transformations.  Journal of Forecasting, 12(1), 37-48.
+\doi{10.1002/for.3980120104}
 }
 }
 \seealso{
