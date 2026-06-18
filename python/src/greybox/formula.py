@@ -247,28 +247,27 @@ def formula(
     >>> y, X = formula("y ~ x1 + x2", data)
     >>> X_no_intercept = formula("~ x1 + x2", data, return_type="X")
 
-    >>> # With transformations
-    >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
-    >>> # y is log-transformed, X has x and x^2
-    >>> y, X = formula("log(y) ~ x + x^2", data)
+    >>> # With transformations: y is log-transformed, X has x and x^2
+    >>> data_t = {'y': [1, 2, 3], 'x': [1, 2, 3]}
+    >>> y, X = formula("log(y) ~ x + x^2", data_t)
 
     >>> # Return as DataFrames with column names
     >>> y, X = formula("y ~ x1 + x2", data, as_dataframe=True)
-    >>> print(X.columns)  # ['(Intercept)', 'x1', 'x2']
+    >>> list(X.columns)
+    ['(Intercept)', 'x1', 'x2']
 
     >>> # With custom functions (defined or imported in your global scope)
     >>> def my_transform(x):
     ...     return x * 2
-    >>> data = {'y': [1, 2, 3], 'x': [1, 2, 3]}
-    >>> y, X = formula("y ~ my_transform(x)", data)
+    >>> y, X = formula("y ~ my_transform(x)", data_t)
 
     >>> # With imported functions (e.g., from scipy)
     >>> from scipy.special import erfc
-    >>> data = {'y': [1, 2, 3], 'x': [0.5, 1.0, 1.5]}
-    >>> y, X = formula("y ~ erfc(x)", data)
+    >>> data_e = {'y': [1, 2, 3], 'x': [0.5, 1.0, 1.5]}
+    >>> y, X = formula("y ~ erfc(x)", data_e)
 
     >>> # Custom function on LHS (response variable)
-    >>> y, X = formula("my_transform(y) ~ x", data)
+    >>> y, X = formula("my_transform(y) ~ x", data_t)
     """
     formula_str = formula_str.strip()
 

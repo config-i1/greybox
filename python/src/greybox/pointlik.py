@@ -79,11 +79,12 @@ def point_lik(
     Examples
     --------
     >>> from greybox import formula, ALM
-    >>> data = {'y': [1, 2, 3, 4, 5], 'x': [1, 2, 3, 4, 5]}
+    >>> data = {'y': [1.2, 2.1, 2.9, 4.2, 5.1], 'x': [1, 2, 3, 4, 5]}
     >>> y, X = formula("y ~ x", data)
     >>> model = ALM(distribution="dnorm", loss="likelihood")
-    >>> model.fit(X, y)
-    >>> point_lik(model)
+    >>> _ = model.fit(X, y)
+    >>> np.round(point_lik(model), 4)
+    array([ 1.0297,  1.2967, -0.394 ,  0.7882,  1.2839])
     """
     if not isinstance(model, ALM):
         raise ValueError("object must be a fitted ALM model")

@@ -83,7 +83,10 @@ def pcor(
                 )
 
     df = len(x_clean) - n_vars
-    t_stat = pcor_matrix * np.sqrt(df / (1 - pcor_matrix**2))
+    # The diagonal (self-correlation = 1) divides by zero here, but those
+    # entries are overwritten below, so suppress the expected warning.
+    with np.errstate(divide="ignore", invalid="ignore"):
+        t_stat = pcor_matrix * np.sqrt(df / (1 - pcor_matrix**2))
     t_stat = np.where(np.eye(n_vars, dtype=bool), 0, t_stat)
     p_value = 2 * (1 - stats.t.cdf(np.abs(t_stat), df=df))
     p_value = np.where(np.eye(n_vars, dtype=bool), np.nan, p_value)
@@ -113,7 +116,8 @@ def mcor(x: np.ndarray, y: np.ndarray | None = None) -> float:
     --------
     >>> x = np.array([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]])
     >>> y = np.array([3, 6, 9, 12, 15])
-    >>> mcor(x, y)
+    >>> round(float(mcor(x, y)), 4)
+    1.0
     """
     x = np.asarray(x, dtype=float)
     y = np.asarray(y, dtype=float)
@@ -187,7 +191,8 @@ def determination(
     >>> x2 = np.random.normal(50, 5, 100)
     >>> x3 = 100 + 0.5*x1 - 0.75*x2 + np.random.normal(0, 3, 100)
     >>> xreg = np.column_stack([x3, x1, x2])
-    >>> determination(xreg)
+    >>> np.round(determination(xreg), 4)
+    array([1.    , 0.2872, 0.5649])
     """
     from .selection import stepwise
 

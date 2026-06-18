@@ -266,11 +266,13 @@ class ALM:
     Examples
     --------
     >>> from greybox import formula, ALM
-    >>> data = {'y': [1, 2, 3, 4, 5], 'x1': [1, 2, 3, 4, 5], 'x2': [2, 3, 4, 5, 6]}
+    >>> data = {'y': [2.1, 3.9, 6.2, 7.8, 10.1, 12.2],
+    ...         'x1': [1, 2, 3, 4, 5, 6], 'x2': [2, 1, 4, 3, 6, 5]}
     >>> y, X = formula("y ~ x1 + x2", data)
     >>> model = ALM(distribution="dnorm", loss="likelihood")
-    >>> model.fit(X, y)
-    >>> print(model.coef_)
+    >>> _ = model.fit(X, y)
+    >>> np.round(model.coef, 4)  # slope parameters (x1, x2)
+    array([1.9354, 0.1021])
 
     >>> # Using nlopt with custom parameters (like R)
     >>> model = ALM(
@@ -279,12 +281,10 @@ class ALM:
     ...     nlopt_kargs={
     ...         "algorithm": "NLOPT_LN_SBPLX",
     ...         "maxeval": 1000,
-    ...         "maxtime": 600,
     ...         "xtol_rel": 1e-8,
-    ...         "print_level": 1
     ...     }
     ... )
-    >>> model.fit(X, y)
+    >>> _ = model.fit(X, y)
     """
 
     DISTRIBUTIONS = [

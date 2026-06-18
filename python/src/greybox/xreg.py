@@ -39,7 +39,12 @@ def xreg_transformer(
     Examples
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
-    >>> xreg_transformer(x, functions=["log", "sqrt"])
+    >>> np.round(xreg_transformer(x, functions=["log", "sqrt"]), 4)
+    array([[1.    , 0.    , 1.    ],
+           [2.    , 0.6931, 1.4142],
+           [3.    , 1.0986, 1.7321],
+           [4.    , 1.3863, 2.    ],
+           [5.    , 1.6094, 2.2361]])
     """
     if functions is None:
         functions = ["log", "exp", "inv", "sqrt", "square"]
@@ -53,7 +58,9 @@ def xreg_transformer(
             "Please provide something from: log, exp, inv, sqrt, square"
         )
 
-    functions = list(set(functions))
+    # Dedupe while preserving the requested order (set() would make the
+    # resulting column order nondeterministic across processes).
+    functions = list(dict.fromkeys(functions))
 
     if not silent:
         print("Preparing matrices...    ")
@@ -115,6 +122,9 @@ def xreg_multiplier(xreg: np.ndarray, silent: bool = True) -> np.ndarray:
     --------
     >>> x = np.array([[1, 2], [3, 4], [5, 6]])
     >>> xreg_multiplier(x)
+    array([[ 1.,  2.,  2.],
+           [ 3.,  4., 12.],
+           [ 5.,  6., 30.]])
     """
     xreg = np.asarray(xreg, dtype=float)
 
@@ -188,6 +198,11 @@ def xreg_expander(
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
     >>> xreg_expander(x, lags=[-1, 0, 1])
+    array([[1., 1., 2.],
+           [2., 1., 3.],
+           [3., 2., 4.],
+           [4., 3., 5.],
+           [5., 4., 5.]])
     """
     xreg = np.asarray(xreg, dtype=float)
 
@@ -290,8 +305,12 @@ def temporal_dummy(
     Examples
     --------
     >>> import pandas as pd
-    >>> dates = pd.date_range('2020-01-01', periods=12, freq='M')
-    >>> temporal_dummy(dates, freq=12)
+    >>> dates = pd.date_range('2020-01-01', periods=12, freq='ME')
+    >>> dummies = temporal_dummy(dates, freq=12)
+    >>> dummies.shape
+    (12, 12)
+    >>> dummies[0]
+    array([1., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0., 0.])
     """
     x = np.asarray(x)
     n_obs = len(x)

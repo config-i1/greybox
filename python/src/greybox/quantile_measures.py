@@ -59,9 +59,12 @@ def pinball(
     --------
     >>> holdout = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> pinball(holdout, forecast, level=0.5)  # Median pinball
-    >>> pinball(holdout, forecast, level=0.975)  # Upper quantile
-    >>> pinball(holdout, forecast, level=0.025)  # Lower quantile
+    >>> round(float(pinball(holdout, forecast, level=0.5)), 4)  # Median
+    0.25
+    >>> round(float(pinball(holdout, forecast, level=0.975)), 4)  # Upper
+    0.1075
+    >>> round(float(pinball(holdout, forecast, level=0.025)), 4)  # Lower
+    0.3925
 
     References
     ----------
@@ -142,7 +145,8 @@ def mis(
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> lower = np.array([0.5, 1.5, 2.5, 3.5, 4.5])
     >>> upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])
-    >>> mis(actual, lower, upper, level=0.95)
+    >>> round(float(mis(actual, lower, upper, level=0.95)), 4)
+    1.0
 
     References
     ----------
@@ -221,7 +225,8 @@ def smis(
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> lower = np.array([0.5, 1.5, 2.5, 3.5, 4.5])
     >>> upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])
-    >>> smis(actual, lower, upper, scale=3.0)
+    >>> round(float(smis(actual, lower, upper, scale=3.0)), 4)
+    0.3333
 
     References
     ----------
@@ -278,7 +283,8 @@ def rmis(
     >>> upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])
     >>> benchmark_lower = np.array([0.0, 1.0, 2.0, 3.0, 4.0])
     >>> benchmark_upper = np.array([2.0, 3.0, 4.0, 5.0, 6.0])
-    >>> rmis(actual, lower, upper, benchmark_lower, benchmark_upper)
+    >>> round(float(rmis(actual, lower, upper, benchmark_lower, benchmark_upper)), 4)
+    0.5
 
     References
     ----------

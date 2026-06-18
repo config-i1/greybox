@@ -84,7 +84,7 @@ def outlier_dummy(
     >>> data = {'y': [1, 2, 3, 4, 5, 100], 'x': [1, 2, 3, 4, 5, 6]}
     >>> y, X = formula("y ~ x", data)
     >>> model = ALM(distribution="dnorm", loss="likelihood")
-    >>> model.fit(X, y)
+    >>> _ = model.fit(X, y)
     >>> result = outlier_dummy(model)
     """
     if not hasattr(model, "residuals") or model.residuals is None:

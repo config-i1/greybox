@@ -15,5 +15,13 @@ Changes:
 Bugfixes:
 * asymmetry in measures() is now centred at zero (C=0) instead of at the
   mean of the errors, aligning the aggregated output with R greybox.
-* Corrected the doctests across the point_measures and hm modules (stale
-  expected values and numpy scalar reprs).
+* xreg_transformer() now preserves the requested order of transformation
+  functions; it previously used a set(), making the output column order
+  nondeterministic across processes.
+* pcor() no longer emits a spurious divide-by-zero RuntimeWarning from the
+  (discarded) matrix diagonal.
+* Repaired the doctests across the whole package (point_measures, hm,
+  association, quantile_measures, xreg, formula, alm, pointlik,
+  diagnostics): stale/incorrect expected values, numpy scalar reprs, a
+  reused variable in the formula example, and the deprecated pandas 'M'
+  frequency alias.
