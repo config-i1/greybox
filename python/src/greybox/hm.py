@@ -40,8 +40,8 @@ def hm(x: np.ndarray, center: float | None = None) -> complex:
     Examples
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
-    >>> hm(x)  # doctest: +ELLIPSIS
-    (0.79...+0.79...j)
+    >>> complex(hm(x))  # doctest: +ELLIPSIS
+    (0.4828...+0.4828...j)
 
     References
     ----------
@@ -80,8 +80,8 @@ def ham(x: np.ndarray, center: float | None = None) -> float:
     Examples
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
-    >>> ham(x)  # doctest: +ELLIPSIS
-    1.0
+    >>> round(float(ham(x)), 4)
+    0.9657
 
     References
     ----------
@@ -125,11 +125,11 @@ def asymmetry(x: np.ndarray, center: float | None = None) -> float:
     Examples
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
-    >>> asymmetry(x)
+    >>> round(float(asymmetry(x)), 4)
     0.0
     >>> x_skewed = np.array([1, 1, 1, 4, 5])
-    >>> asymmetry(x_skewed)  # doctest: +ELLIPSIS
-    -0.20...
+    >>> round(float(asymmetry(x_skewed)), 4)
+    -0.1327
 
     References
     ----------
@@ -168,8 +168,8 @@ def extremity(x: np.ndarray, center: float | None = None) -> float:
     Examples
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
-    >>> extremity(x)  # doctest: +ELLIPSIS
-    -0.04...
+    >>> round(float(extremity(x)), 4)
+    -0.3364
 
     References
     ----------
@@ -223,7 +223,7 @@ def cextremity(x: np.ndarray, center: float | None = None) -> complex:
     --------
     >>> x = np.array([1, 2, 3, 4, 5])
     >>> cextremity(x)  # doctest: +ELLIPSIS
-    (-0.04...+0...j)
+    (-0.3364...-0.3364...j)
 
     References
     ----------
@@ -302,7 +302,8 @@ def mre(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> mre(actual, forecast)  # doctest: +ELLIPSIS
+    >>> round(float(mre(actual, forecast)), 4)
+    0.0632
 
     References
     ----------

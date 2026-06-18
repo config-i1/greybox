@@ -14,8 +14,6 @@ from greybox.point_measures import (
     rmsse,
     same,
     rmae,
-    rrmse,
-    rame,
     smse,
     spis,
     sce,
@@ -36,8 +34,6 @@ from greybox.hm import (
 from greybox.quantile_measures import (
     pinball,
     mis,
-    smis,
-    rmis,
 )
 
 # Simple test arrays
@@ -81,15 +77,13 @@ class TestRMSE:
 
 class TestMPE:
     def test_basic(self):
-        # (actual - forecast) / actual * 100
-        # (1-1.1)/1*100=-10, (2-2.2)/2*100=-10, (3-2.8)/3*100=6.667,
-        # (4-4.1)/4*100=-2.5, (5-5.3)/5*100=-6.0
+        # (actual - forecast) / actual, returned as a fraction (matches R)
         errors = [
-            (1 - 1.1) / 1 * 100,
-            (2 - 2.2) / 2 * 100,
-            (3 - 2.8) / 3 * 100,
-            (4 - 4.1) / 4 * 100,
-            (5 - 5.3) / 5 * 100,
+            (1 - 1.1) / 1,
+            (2 - 2.2) / 2,
+            (3 - 2.8) / 3,
+            (4 - 4.1) / 4,
+            (5 - 5.3) / 5,
         ]
         result = mpe(actual, predicted)
         np.testing.assert_almost_equal(result, np.mean(errors))
@@ -98,18 +92,18 @@ class TestMPE:
         a = np.array([0.0, 2.0, 3.0])
         f = np.array([0.1, 2.2, 2.8])
         result = mpe(a, f)
-        expected = np.mean([(2 - 2.2) / 2 * 100, (3 - 2.8) / 3 * 100])
+        expected = np.mean([(2 - 2.2) / 2, (3 - 2.8) / 3])
         np.testing.assert_almost_equal(result, expected)
 
 
 class TestMAPE:
     def test_basic(self):
         abs_pct = [
-            abs((1 - 1.1) / 1) * 100,
-            abs((2 - 2.2) / 2) * 100,
-            abs((3 - 2.8) / 3) * 100,
-            abs((4 - 4.1) / 4) * 100,
-            abs((5 - 5.3) / 5) * 100,
+            abs((1 - 1.1) / 1),
+            abs((2 - 2.2) / 2),
+            abs((3 - 2.8) / 3),
+            abs((4 - 4.1) / 4),
+            abs((5 - 5.3) / 5),
         ]
         result = mape(actual, predicted)
         np.testing.assert_almost_equal(result, np.mean(abs_pct))

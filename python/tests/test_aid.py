@@ -162,7 +162,8 @@ class TestAidCatPlot:
     """AidCatResult.plot() — the 2x3 category panel."""
 
     @pytest.fixture(scope="class")
-    def cat_result(self):
+    @staticmethod
+    def cat_result():
         rng = np.random.default_rng(1)
         series = {
             "a": rng.poisson(1, 80).astype(float),

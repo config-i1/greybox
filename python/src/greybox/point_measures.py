@@ -99,8 +99,8 @@ def me(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> me(actual, forecast)
-    -0.1
+    >>> round(float(me(actual, forecast)), 2)
+    -0.06
 
     References
     ----------
@@ -138,8 +138,8 @@ def mae(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> mae(actual, forecast)  # doctest: +ELLIPSIS
-    0.18
+    >>> round(float(mae(actual, forecast)), 2)
+    0.1
 
     References
     ----------
@@ -176,8 +176,8 @@ def mse(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> mse(actual, forecast)
-    0.038
+    >>> round(float(mse(actual, forecast)), 3)
+    0.014
 
     References
     ----------
@@ -214,8 +214,8 @@ def rmse(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> rmse(actual, forecast)  # doctest: +ELLIPSIS
-    0.194...
+    >>> round(float(rmse(actual, forecast)), 4)
+    0.1183
 
     References
     ----------
@@ -228,11 +228,11 @@ def mpe(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     """Mean Percentage Error (MPE).
 
     The MPE measures the average percentage error. Like ME, it can detect
-    bias but expresses it as a percentage. However, it is undefined when
+    bias but expresses it as a fraction. However, it is undefined when
     actual values are zero.
 
     Formula:
-        MPE = mean((actual - forecast) / actual) * 100
+        MPE = mean((actual - forecast) / actual)
 
     Parameters
     ----------
@@ -246,14 +246,14 @@ def mpe(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     Returns
     -------
     float
-        Mean Percentage Error (in percentage points).
+        Mean Percentage Error (as a fraction).
 
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> mpe(actual, forecast)
-    -4.466666666666667
+    >>> round(float(mpe(actual, forecast)), 4)
+    -0.0323
 
     References
     ----------
@@ -270,19 +270,19 @@ def mpe(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
         actual = actual[mask]
         forecast = forecast[mask]
 
-    return np.mean((actual - forecast) / actual * 100)
+    return np.mean((actual - forecast) / actual)
 
 
 def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     """Mean Absolute Percentage Error (MAPE).
 
     The MAPE measures the average absolute percentage error. It is scale-independent
-    and expressed as a percentage, making it easy to interpret across different
+    and expressed as a fraction, making it easy to interpret across different
     contexts. However, it is undefined when actual values are zero and can be
     heavily influenced by small actual values.
 
     Formula:
-        ``MAPE = mean(|actual - forecast| / actual) * 100``
+        ``MAPE = mean(|actual - forecast| / actual)``
 
     Parameters
     ----------
@@ -296,14 +296,14 @@ def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
     Returns
     -------
     float
-        Mean Absolute Percentage Error (in percentage points).
+        Mean Absolute Percentage Error (as a fraction).
 
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5])
     >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])
-    >>> mape(actual, forecast)
-    14.933333333333332
+    >>> round(float(mape(actual, forecast)), 4)
+    0.0423
 
     References
     ----------
@@ -321,7 +321,7 @@ def mape(actual: np.ndarray, forecast: np.ndarray, na_rm: bool = True) -> float:
         actual = actual[mask]
         forecast = forecast[mask]
 
-    return np.mean(np.abs((actual - forecast) / actual) * 100)
+    return np.mean(np.abs((actual - forecast) / actual))
 
 
 def mase(
@@ -363,11 +363,13 @@ def mase(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> mase(actual, forecast)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> round(float(mase(actual, forecast)), 2)
+    0.15
     >>> # With custom scale
-    >>> mase(actual, forecast, scale=1.0)
+    >>> round(float(mase(actual, forecast, scale=1.0)), 2)
+    0.15
 
     References
     ----------
@@ -419,9 +421,10 @@ def rmsse(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> rmsse(actual, forecast)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> round(float(rmsse(actual, forecast)), 4)
+    0.1581
 
     References
     ----------
@@ -472,9 +475,10 @@ def same(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> same(actual, forecast)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> round(float(same(actual, forecast)), 2)
+    0.13
 
     References
     ----------
@@ -525,11 +529,12 @@ def rmae(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
-    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
-    >>> rmae(actual, forecast, benchmark)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,
+    ...                      5.5, 6.5, 7.5, 8.5, 9.5])
+    >>> round(float(rmae(actual, forecast, benchmark)), 2)
+    0.3
 
     References
     ----------
@@ -589,11 +594,12 @@ def rrmse(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
-    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
-    >>> rrmse(actual, forecast, benchmark)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,
+    ...                      5.5, 6.5, 7.5, 8.5, 9.5])
+    >>> round(float(rrmse(actual, forecast, benchmark)), 4)
+    0.3162
 
     References
     ----------
@@ -652,11 +658,12 @@ def rame(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
-    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
-    >>> rame(actual, forecast, benchmark)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,
+    ...                      5.5, 6.5, 7.5, 8.5, 9.5])
+    >>> round(float(rame(actual, forecast, benchmark)), 2)
+    0.26
 
     References
     ----------
@@ -720,10 +727,11 @@ def smse(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
     >>> scale = np.mean(np.abs(actual)) ** 2
-    >>> smse(actual, forecast, scale)
+    >>> round(float(smse(actual, forecast, scale)), 5)
+    0.00083
 
     References
     ----------
@@ -771,10 +779,11 @@ def spis(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
     >>> scale = np.mean(np.abs(actual[actual != 0]))
-    >>> spis(actual, forecast, scale)
+    >>> round(float(spis(actual, forecast, scale)), 4)
+    1.2364
 
     References
     ----------
@@ -824,10 +833,11 @@ def sce(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
     >>> scale = np.mean(np.abs(actual[actual != 0]))
-    >>> sce(actual, forecast, scale)
+    >>> round(float(sce(actual, forecast, scale)), 4)
+    -0.2364
 
     References
     ----------
@@ -874,11 +884,12 @@ def gmrae(
     Examples
     --------
     >>> actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])
-    >>> forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,
-    ...                      6.0, 7.1, 8.0, 9.2, 10.1])
-    >>> benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,
-    ...                      6.0, 7.0, 8.0, 9.0, 10.0])
-    >>> gmrae(actual, forecast, benchmark)
+    >>> forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,
+    ...                      6.2, 7.1, 8.2, 9.2, 10.1])
+    >>> benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,
+    ...                      5.5, 6.5, 7.5, 8.5, 9.5])
+    >>> round(float(gmrae(actual, forecast, benchmark)), 4)
+    0.2828
 
     References
     ----------
@@ -994,7 +1005,7 @@ def measures(
         "rMAE": rmae(holdout, forecast, benchmark_forecast),
         "rRMSE": rrmse(holdout, forecast, benchmark_forecast),
         "rAME": rame(holdout, forecast, benchmark_forecast),
-        "asymmetry": asymmetry(holdout - forecast),
+        "asymmetry": asymmetry(holdout - forecast, 0),
         "sPIS": spis(holdout, forecast, mean_abs_actual),
     }
 

@@ -1,0 +1,19 @@
+greybox for Python
+==============
+
+Python port of the R `greybox` package. The port tracks the R package,
+the most recent release of which is greybox v2.0.9 (Release date: 2026-02-24).
+
+
+greybox for Python (2026-06-18)
+==============
+
+Changes:
+* MPE() and MAPE() now return the error as a fraction rather than a
+  percentage, matching the convention of the R greybox package.
+
+Bugfixes:
+* asymmetry in measures() is now centred at zero (C=0) instead of at the
+  mean of the errors, aligning the aggregated output with R greybox.
+* Corrected the doctests across the point_measures and hm modules (stale
+  expected values and numpy scalar reprs).
