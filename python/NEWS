@@ -5,7 +5,7 @@ Python port of the R `greybox` package. The port tracks the R package,
 the most recent release of which is greybox v2.0.9 (Release date: 2026-02-24).
 
 
-greybox for Python (2026-06-18)
+greybox for Python v1.0.3 (2026-06-18)
 ==============
 
 Changes:
