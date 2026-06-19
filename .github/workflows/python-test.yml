@@ -2,6 +2,11 @@ name: Python Tests
 
 on:
   pull_request:
+    # Only run the Python tests when the Python package changes. R-only
+    # changes are covered by test.yml (R-CMD-check) instead.
+    paths:
+      - 'python/**'
+      - '.github/workflows/python-test.yml'
   workflow_dispatch:
   schedule:
     - cron:  '0 0 * * 1'

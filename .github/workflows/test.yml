@@ -2,6 +2,18 @@ name: R-CMD-check
 
 on:
   pull_request:
+    # Only run the R check when R package sources change. Python-only
+    # changes (under python/) are covered by python-test.yml instead.
+    paths:
+      - 'R/**'
+      - 'src/**'
+      - 'tests/**'
+      - 'man/**'
+      - 'man-roxygen/**'
+      - 'vignettes/**'
+      - 'DESCRIPTION'
+      - 'NAMESPACE'
+      - '.github/workflows/test.yml'
   workflow_dispatch:
   schedule:
     - cron:  '0 0 * * 1'

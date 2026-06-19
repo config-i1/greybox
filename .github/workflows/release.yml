@@ -1,139 +1,61 @@
-name: Release to PyPI
+name: Publish release to PyPI
 
+# Triggered when a GitHub release is published (i.e. you go to the repo's
+# Releases page and click "Publish release" on a draft).
+#
+# The flow:
+#   1. build-release-wheels.yml (manual) builds + smoke-tests the wheels
+#      and sdist and attaches them to a *draft* release with the tag you
+#      supplied. Re-running replaces the assets in place, so build
+#      failures never leave a broken published release behind.
+#   2. You review the draft in the GitHub UI, edit the notes, then click
+#      "Publish release".
+#   3. That click creates the git tag at target_commitish AND fires the
+#      ``release: published`` event that runs this workflow.
+#   4. This workflow downloads the assets already attached to the
+#      now-published release and uploads them to PyPI with PEP 740
+#      attestations. Nothing is compiled here — the wheels were built and
+#      tested before the release was ever published.
 on:
-  workflow_dispatch:
   release:
     types: [published]
 
+# Opt JavaScript actions into the Node.js 24 runtime (Node 20 is
+# deprecated 2026-06-02, removed 2026-09-16).
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
-  # ---------------------------------------------------------------------------
-  # 1. Sanity test — run the test suite on Ubuntu across every supported Python
-  #    version. If any test fails we don't bother building wheels.
-  # ---------------------------------------------------------------------------
-  test:
-    runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
-        with:
-          python-version: ${{ matrix.python-version }}
-
-      - name: Cache pip dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ matrix.python-version }}-${{ hashFiles('python/pyproject.toml') }}
-          restore-keys: |
-            ${{ runner.os }}-pip-${{ matrix.python-version }}-
-            ${{ runner.os }}-pip-
-
-      - name: Install dependencies
-        run: |
-          cd python/
-          pip install -e ".[dev]"
-
-      - name: Run tests
-        run: |
-          cd python/
-          pytest --tb=short -v --no-header -q
-
-  # ---------------------------------------------------------------------------
-  # 2. Build binary wheels for Linux x86_64, macOS x86_64 + arm64, Windows AMD64
-  #    Python 3.10 – 3.13. cibuildwheel handles the per-platform setup and
-  #    runs the per-wheel smoke test from [tool.cibuildwheel] in pyproject.toml.
-  # ---------------------------------------------------------------------------
-  build_wheels:
-    name: Build wheels (${{ matrix.os }})
-    needs: test
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Build wheels
-        uses: pypa/cibuildwheel@v2.21
-        with:
-          package-dir: python
-          output-dir: wheelhouse
-
-      - name: Upload wheel artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: wheels-${{ matrix.os }}
-          path: wheelhouse/*.whl
-
-  # ---------------------------------------------------------------------------
-  # 3. Build the source distribution once on Linux. cibuildwheel does not
-  #    produce sdists, so we build it separately via `python -m build --sdist`.
-  # ---------------------------------------------------------------------------
-  build_sdist:
-    name: Build sdist
-    needs: test
-    runs-on: ubuntu-latest
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          submodules: recursive
-
-      - name: Set up Python 3.13
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.13'
-
-      - name: Install build
-        run: pip install build
-
-      - name: Build sdist
-        run: |
-          cd python/
-          python -m build --sdist
-
-      - name: Upload sdist artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: sdist
-          path: python/dist/*.tar.gz
-
-  # ---------------------------------------------------------------------------
-  # 4. Publish every wheel + the sdist to PyPI via trusted-publisher (OIDC).
-  #    Only runs on `release: published`; manual dispatches stop after build.
-  # ---------------------------------------------------------------------------
   publish:
     name: Publish to PyPI
-    needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest
-    if: github.event_name == 'release'
-    environment: pypi
+    environment:
+      name: pypi
+      url: https://pypi.org/p/greybox
     permissions:
-      id-token: write
+      id-token: write       # trusted publishing (OIDC)
+      attestations: write   # PEP 740 / Sigstore attestations
+      contents: read        # gh release download
 
     steps:
-      - name: Download all artifacts into dist/
-        uses: actions/download-artifact@v4
-        with:
-          path: dist-staging
-
-      - name: Flatten artifact folders into dist/
+      - name: Download release assets
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.event.release.tag_name }}
         run: |
           mkdir -p dist
-          find dist-staging -type f \( -name '*.whl' -o -name '*.tar.gz' \) -exec cp {} dist/ \;
-          ls -la dist/
+          # Pull every asset attached to the release into dist/ — the
+          # wheels + sdist that build-release-wheels.yml staged on the
+          # draft are the exact files we publish to PyPI.
+          gh release download "$TAG" --repo "${{ github.repository }}" --dir dist
+          ls -R dist/
 
-      - name: Publish to PyPI
+      - name: Publish to PyPI (with PEP 740 attestations)
         uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          # SLSA Build Level 3 in-toto attestation per file, signed via
+          # Sigstore using the runner's OIDC identity.
+          attestations: true
+          # Retry-safe: re-running skips already-uploaded files instead
+          # of failing the whole upload.
+          skip-existing: true

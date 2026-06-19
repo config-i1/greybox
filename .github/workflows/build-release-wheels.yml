@@ -1,0 +1,206 @@
+name: Build release wheels
+
+# Builds release-quality Python wheels + sdist and stages them on a
+# **draft** GitHub release. Run manually; this workflow does NOT publish
+# to PyPI and does NOT create a git tag. The draft release is the
+# "staging area" — re-running this workflow with the same ``tag`` input
+# replaces the draft's assets in place, so a build failure is fully
+# recoverable: you never have to delete and recreate a published release.
+#
+# Flow:
+#   1. Run this workflow (Actions tab -> "Build release wheels" -> Run)
+#      with the tag you intend to release, e.g. v1.0.3. cibuildwheel
+#      builds and smoke-tests every wheel; the sdist is built too. If
+#      anything fails to compile or test, the draft is simply not
+#      updated with good assets.
+#   2. Review the resulting draft release in the repo's Releases page,
+#      edit the notes, then click "Publish release". That creates the
+#      git tag at the target commit AND fires release.yml.
+#   3. release.yml downloads the just-attached, already-tested assets
+#      and uploads them to PyPI.
+#
+# PR-time / scheduled testing continues through python-test.yml, which
+# is intentionally lighter (no wheel build).
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Tag name for the draft release (e.g. v1.0.3). Re-runs with the same tag replace the existing draft.'
+        required: true
+        type: string
+
+# Opt every JavaScript action (including those bundled inside
+# cibuildwheel, e.g. actions/setup-python) into the Node.js 24 runtime.
+# GitHub deprecated Node.js 20 on 2026-06-02 and removes it on
+# 2026-09-16; this env var is the documented opt-in for the transition.
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+jobs:
+  # Full Python test suite gate. If any test fails we don't build or
+  # stage anything — "test, then release if everything compiles". The
+  # R-vs-Python comparison tests importorskip rpy2 and skip cleanly here.
+  test:
+    name: Test suite (Python ${{ matrix.python-version }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ['3.10', '3.11', '3.12', '3.13']
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+          cache: 'pip'
+
+      - name: Install package with dev extras
+        run: pip install -e "python/.[dev]"
+
+      - name: Run tests
+        run: pytest python/tests --tb=short -q
+
+  build_wheels:
+    name: Build ${{ matrix.cibw-build }} on ${{ matrix.os }}
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        # The ``tag`` field is an artifact-safe version of ``cibw-build``
+        # — actions/upload-artifact rejects the ``*`` glob in artifact
+        # names, so the build glob can't be reused there directly.
+        include:
+          # Linux: cp310–cp313 manylinux (manylinux_2_28 from pyproject)
+          - { os: ubuntu-latest,  cibw-build: 'cp310-manylinux*', tag: 'cp310-linux' }
+          - { os: ubuntu-latest,  cibw-build: 'cp311-manylinux*', tag: 'cp311-linux' }
+          - { os: ubuntu-latest,  cibw-build: 'cp312-manylinux*', tag: 'cp312-linux' }
+          - { os: ubuntu-latest,  cibw-build: 'cp313-manylinux*', tag: 'cp313-linux' }
+          # macOS: cp310–cp313. The glob matches both x86_64 and arm64,
+          # so each row produces both wheels (archs come from pyproject).
+          - { os: macos-latest,   cibw-build: 'cp310-macosx*',    tag: 'cp310-macos' }
+          - { os: macos-latest,   cibw-build: 'cp311-macosx*',    tag: 'cp311-macos' }
+          - { os: macos-latest,   cibw-build: 'cp312-macosx*',    tag: 'cp312-macos' }
+          - { os: macos-latest,   cibw-build: 'cp313-macosx*',    tag: 'cp313-macos' }
+          # Windows: cp310–cp313
+          - { os: windows-latest, cibw-build: 'cp310-win_amd64',  tag: 'cp310-win' }
+          - { os: windows-latest, cibw-build: 'cp311-win_amd64',  tag: 'cp311-win' }
+          - { os: windows-latest, cibw-build: 'cp312-win_amd64',  tag: 'cp312-win' }
+          - { os: windows-latest, cibw-build: 'cp313-win_amd64',  tag: 'cp313-win' }
+
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+
+      # Cache cibuildwheel's per-OS interpreter / pip download cache.
+      # Scoped per (OS × Python build tag) so entries don't shadow.
+      - name: Cache cibuildwheel
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cache/cibuildwheel
+            ~/AppData/Local/Temp/cibuildwheel/Cache
+          key: cibuildwheel-${{ matrix.tag }}-v1
+
+      # All build settings (skip rules, archs, manylinux image, macOS
+      # deployment target, and the per-wheel smoke test) come from
+      # [tool.cibuildwheel] in python/pyproject.toml. We only narrow the
+      # build to one interpreter per matrix row here.
+      - name: Build & test wheels
+        uses: pypa/cibuildwheel@v2.21
+        with:
+          package-dir: python
+          output-dir: wheelhouse
+        env:
+          CIBW_BUILD: ${{ matrix.cibw-build }}
+
+      - name: Upload wheels as artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          # Use the artifact-safe ``tag`` matrix field (no ``*`` glob).
+          name: wheels-${{ matrix.tag }}
+          path: ./wheelhouse/*.whl
+          retention-days: 14
+          if-no-files-found: error
+
+  build_sdist:
+    name: Build sdist
+    needs: test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+          cache: 'pip'
+
+      - name: Install build
+        run: python -m pip install build
+
+      - name: Build sdist
+        run: python -m build --sdist python
+
+      - name: Upload sdist artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: sdist
+          path: ./python/dist/*.tar.gz
+          retention-days: 14
+          if-no-files-found: error
+
+  prepare_draft_release:
+    name: Stage wheels on draft GitHub release
+    needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # creating / updating the draft release
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+          pattern: 'wheels-*'
+
+      - name: Download sdist artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: sdist
+          path: dist
+
+      - name: List staged files
+        run: ls -R dist/
+
+      - name: Create or update draft release
+        uses: softprops/action-gh-release@v2
+        with:
+          # draft: true means no git tag is created yet — GitHub creates
+          # it at target_commitish when you click "Publish release".
+          # Re-running with the same tag_name updates this draft in place.
+          tag_name: ${{ inputs.tag }}
+          target_commitish: ${{ github.sha }}
+          draft: true
+          prerelease: false
+          generate_release_notes: true
+          files: dist/*
+          fail_on_unmatched_files: true
+          body: |
+            ## Installation
+
+            ```bash
+            pip install greybox
+            ```
+
+            ## What's Changed
+            See the auto-generated release notes below.
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
