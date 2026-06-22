@@ -797,7 +797,7 @@ def spis(
         return np.nan
 
     cumsum_errors = np.cumsum(forecast - actual)
-    return np.sum(cumsum_errors, axis=0) / scale
+    return float(np.sum(cumsum_errors, axis=0) / scale)
 
 
 def sce(
@@ -848,7 +848,7 @@ def sce(
     if scale == 0:
         return np.nan
 
-    return np.sum(actual - forecast, axis=0) / scale
+    return float(np.sum(actual - forecast, axis=0) / scale)
 
 
 def gmrae(
