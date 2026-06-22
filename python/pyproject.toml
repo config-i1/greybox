@@ -7,7 +7,7 @@ name = "greybox"
 version = "1.0.4"
 description = "Toolbox for model building and forecasting"
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.11"
 license = {text = "LGPL-2.1"}
 authors = [
     {name = "Ivan Svetunkov", email = "ivan@svetunkov.com"},
@@ -16,10 +16,10 @@ classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Science/Research",
     "License :: OSI Approved :: GNU Lesser General Public License v2 or later (LGPLv2+)",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
     "Topic :: Scientific/Engineering :: Mathematics",
 ]
 dependencies = [
@@ -73,7 +73,7 @@ python_functions = ["test_*"]
 # Python interpreters to build wheels for. PyPy is skipped (nlopt has no
 # PyPy wheels), 32-bit Linux/Windows are also skipped to keep the matrix
 # focused on common targets.
-build = "cp310-* cp311-* cp312-* cp313-*"
+build = "cp311-* cp312-* cp313-* cp314-*"
 skip = [
     "*-musllinux_*",   # Alpine wheels — skip until there's demand
     "*_i686",          # 32-bit Linux

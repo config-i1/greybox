@@ -46,7 +46,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python-version: ['3.10', '3.11', '3.12', '3.13']
+        python-version: ['3.11', '3.12', '3.13', '3.14']
     steps:
       - uses: actions/checkout@v5
         with:
@@ -75,22 +75,22 @@ jobs:
         # — actions/upload-artifact rejects the ``*`` glob in artifact
         # names, so the build glob can't be reused there directly.
         include:
-          # Linux: cp310–cp313 manylinux (manylinux_2_28 from pyproject)
-          - { os: ubuntu-latest,  cibw-build: 'cp310-manylinux*', tag: 'cp310-linux' }
+          # Linux: cp311–cp314 manylinux (manylinux_2_28 from pyproject)
           - { os: ubuntu-latest,  cibw-build: 'cp311-manylinux*', tag: 'cp311-linux' }
           - { os: ubuntu-latest,  cibw-build: 'cp312-manylinux*', tag: 'cp312-linux' }
           - { os: ubuntu-latest,  cibw-build: 'cp313-manylinux*', tag: 'cp313-linux' }
-          # macOS: cp310–cp313. The glob matches both x86_64 and arm64,
+          - { os: ubuntu-latest,  cibw-build: 'cp314-manylinux*', tag: 'cp314-linux' }
+          # macOS: cp311–cp314. The glob matches both x86_64 and arm64,
           # so each row produces both wheels (archs come from pyproject).
-          - { os: macos-latest,   cibw-build: 'cp310-macosx*',    tag: 'cp310-macos' }
           - { os: macos-latest,   cibw-build: 'cp311-macosx*',    tag: 'cp311-macos' }
           - { os: macos-latest,   cibw-build: 'cp312-macosx*',    tag: 'cp312-macos' }
           - { os: macos-latest,   cibw-build: 'cp313-macosx*',    tag: 'cp313-macos' }
-          # Windows: cp310–cp313
-          - { os: windows-latest, cibw-build: 'cp310-win_amd64',  tag: 'cp310-win' }
+          - { os: macos-latest,   cibw-build: 'cp314-macosx*',    tag: 'cp314-macos' }
+          # Windows: cp311–cp314
           - { os: windows-latest, cibw-build: 'cp311-win_amd64',  tag: 'cp311-win' }
           - { os: windows-latest, cibw-build: 'cp312-win_amd64',  tag: 'cp312-win' }
           - { os: windows-latest, cibw-build: 'cp313-win_amd64',  tag: 'cp313-win' }
+          - { os: windows-latest, cibw-build: 'cp314-win_amd64',  tag: 'cp314-win' }
 
     steps:
       - uses: actions/checkout@v5

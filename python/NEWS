@@ -9,6 +9,11 @@ greybox for Python v1.0.4 (2026-06-22)
 ==============
 
 Changes:
+* Drop Python 3.10 support, add Python 3.14 support. `requires-python`
+  bumped to `>=3.11`, classifiers and the cibuildwheel build pattern
+  refreshed accordingly. The release-wheel matrix now produces wheels
+  for cp311 / cp312 / cp313 / cp314 across Linux (manylinux_2_28),
+  macOS (x86_64 + arm64), and Windows.
 * Move `pybind11` from `[project].dependencies` to `[build-system].requires`
   only. pybind11 is build-time only — the compiled `_native_lowess` and
   `_native_supsmu` modules don't import it at runtime — so listing it in
