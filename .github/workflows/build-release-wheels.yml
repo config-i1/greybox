@@ -53,7 +53,7 @@ jobs:
           submodules: recursive
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v5
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
           cache: 'pip'
@@ -124,7 +124,7 @@ jobs:
           CIBW_BUILD: ${{ matrix.cibw-build }}
 
       - name: Upload wheels as artifacts
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           # Use the artifact-safe ``tag`` matrix field (no ``*`` glob).
           name: wheels-${{ matrix.tag }}
@@ -142,7 +142,7 @@ jobs:
           submodules: recursive
           fetch-depth: 0
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: '3.13'
           cache: 'pip'
@@ -154,7 +154,7 @@ jobs:
         run: python -m build --sdist python
 
       - name: Upload sdist artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: sdist
           path: ./python/dist/*.tar.gz
@@ -169,14 +169,14 @@ jobs:
       contents: write   # creating / updating the draft release
     steps:
       - name: Download all wheel artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           path: dist
           merge-multiple: true
           pattern: 'wheels-*'
 
       - name: Download sdist artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v6
         with:
           name: sdist
           path: dist
