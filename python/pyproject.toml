@@ -75,9 +75,17 @@ python_functions = ["test_*"]
 # focused on common targets.
 build = "cp311-* cp312-* cp313-* cp314-*"
 skip = [
-    "*-musllinux_*",   # Alpine wheels — skip until there's demand
-    "*_i686",          # 32-bit Linux
-    "*-win32",         # 32-bit Windows
+    "*-musllinux_*",         # Alpine wheels — skip until there's demand
+    "*_i686",                # 32-bit Linux
+    "*-win32",               # 32-bit Windows
+    # ``nlopt`` (a runtime dep) does not yet ship cp314 wheels for macOS
+    # Intel on PyPI — only 2.4.x / 2.6.2 are visible to cp314-macosx_x86_64,
+    # so the post-build test "pip install greybox-1.0.4-cp314-...whl" fails
+    # with "No matching distribution found for nlopt>=2.7.0". The wheel
+    # itself builds fine; users just couldn't install it. Drop until
+    # upstream nlopt publishes a cp314 macOS Intel wheel. cp314 macOS
+    # arm64 (Apple Silicon) is unaffected — nlopt ships wheels for it.
+    "cp314-macosx_x86_64",
 ]
 build-verbosity = 1
 
