@@ -111,8 +111,12 @@ jobs:
       # deployment target, and the per-wheel smoke test) come from
       # [tool.cibuildwheel] in python/pyproject.toml. We only narrow the
       # build to one interpreter per matrix row here.
+      #
+      # cibuildwheel v3.1+ is required for Python 3.14 (cp314) support;
+      # v2.21 only knows up to cp313 and emits
+      # "No build identifiers selected" for cp314-* targets.
       - name: Build & test wheels
-        uses: pypa/cibuildwheel@v2.21
+        uses: pypa/cibuildwheel@v3.1
         with:
           package-dir: python
           output-dir: wheelhouse
