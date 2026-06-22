@@ -5,6 +5,18 @@ Python port of the R `greybox` package. The port tracks the R package,
 the most recent release of which is greybox v2.0.9 (Release date: 2026-02-24).
 
 
+greybox for Python v1.0.4 (2026-06-22)
+==============
+
+Changes:
+* Move `pybind11` from `[project].dependencies` to `[build-system].requires`
+  only. pybind11 is build-time only — the compiled `_native_lowess` and
+  `_native_supsmu` modules don't import it at runtime — so listing it in
+  runtime deps was a packaging bug. Surfaced by conda-forge's recipe for
+  greybox where `pip check` refused to install a clean environment with
+  "greybox requires pybind11, which is not installed".
+
+
 greybox for Python v1.0.3 (2026-06-18)
 ==============
 
