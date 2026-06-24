@@ -13,8 +13,8 @@ These objects are imported from other packages. Follow the links
 below to see their documentation.
 
 \describe{
-  \item{generics}{\code{\link[generics]{accuracy}}, \code{\link[generics]{forecast}}}
+  \item{generics}{\code{\link[generics:accuracy]{accuracy()}}, \code{\link[generics:forecast]{forecast()}}}
 
-  \item{xtable}{\code{\link[xtable]{xtable}}}
+  \item{xtable}{\code{\link[xtable:xtable]{xtable()}}}
 }}
 

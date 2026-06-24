@@ -1,9 +1,10 @@
-greybox v2.0.9 (Release data: 2026-02-24)
+greybox v2.0.9 (Release data: 2026-06-25)
 ==============
 
 Changes:
 * ALM in case of ARI now does not do optimisation and relies on the OLS estimates of parameters.
 * Cook's distance lines now correspond to heuristics of 4/n, 4/(n-k) and 1.
+* New function - stick() - that implements Hans' Levenbach STI classification scheme and supports additional plot() method.
 
 
 greybox v2.0.8 (Release data: 2026-02-20)

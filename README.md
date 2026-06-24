@@ -75,6 +75,7 @@ See [wiki](https://github.com/config-i1/greybox/wiki) for full documentation, ex
 6. tableplot - plots the graph for two categorical variables.
 7. spread - plots the matrix of scatter / boxplot / tableplot diagrams - depending on the type of the provided variables.
 8. graphmaker - plots the original series, the fitted values and the forecasts.
+9. stick - Seasonal, Trend, Irregular Contribution Kit based on Hans' Levenbach STI classification. Shows the proportion of the variability attributed to the specific time series components.
 
 ### Models evaluation functions
 1. ro - rolling origin evaluation (see the vignette).

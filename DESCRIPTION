@@ -1,8 +1,8 @@
 Package: greybox
 Type: Package
 Title: Toolbox for Model Building and Forecasting
-Version: 2.0.9.41002
-Date: 2026-02-24
+Version: 2.0.9.41003
+Date: 2026-06-25
 Authors@R: c(person("Ivan", "Svetunkov", email = "ivan@svetunkov.com", role = c("aut", "cre"),
                   comment="Senior Lecturer at Centre for Marketing Analytics and Forecasting, Lancaster University, UK"),
              person("Yves R.", "Sagaert", role = c("ctb"),
@@ -45,7 +45,7 @@ Suggests:
 Enhances:
     vars,
     forecast
-RoxygenNote: 7.3.3
 VignetteBuilder: knitr
 Encoding: UTF-8
 Roxygen: list(old_usage = TRUE)
+Config/roxygen2/version: 8.0.0

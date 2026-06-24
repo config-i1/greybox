@@ -7,6 +7,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 IMPORTANT: Always use the python/.venv environment when running Python commands!
 Example: cd python && .venv/bin/python -m pytest tests/
 
+IMPORTANT: Never create cache files, virtual environments, or other generated
+artifacts in the project's root folder. All Python work — including the
+virtual environment (`python/.venv`), caches, and build outputs — belongs in
+the `python/` subfolder.
+
 Python port of the R `greybox` package — a toolbox for regression model building and forecasting. The R package (root directory) is the mature original; the Python port (`python/`) is the active development target on the `Python` branch.
 
 ## Build, Lint, and Test Commands

@@ -40,7 +40,7 @@ The package includes the following functions for models construction:
 See discussion of some of these functions in this vignette below.
 
 
-## Models evaluation functions
+## Model evaluation functions
 1. [ro()](ro.html) - produce forecasts with a specified function using rolling origin.
 2. `measures()` - function, returning a bunch of error measures for the provided forecast and the holdout sample.
 3. `rmcb()` - regression on ranks of forecasting methods. This is a fast alternative to the classical nemenyi / MCB test.
@@ -102,6 +102,7 @@ The following methods can be applied to the models, produced by `alm()`, `stepwi
 
 ## Additional functions
 1. `graphmaker()` - produces linear plots for the variable, its forecasts and fitted values.
+2. `stick()` Seasonal, Trend, Irregular Contribution Kit based on Hans' Levenbach STI classification. Shows the proportion of the variability attributed to the specific time series components. A good starting point for the Exploratory Data Analysis.
 <!--7. `nemenyi()` - test for the comparison of different classifiers. This can be useful when several forecasting methods need to be compared. This function not only reports the critical values of the test, but also produces the plots, showing how the different methods compare.-->
 
 

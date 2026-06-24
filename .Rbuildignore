@@ -14,3 +14,4 @@ python
 CLAUDE.md
 AGENTS.md
 LICENSE
+^\.claude$
