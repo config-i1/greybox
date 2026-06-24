@@ -81,6 +81,22 @@
 <span class="sd">Density, cumulative distribution, quantile functions and random number</span>
 <span class="sd">generation for the distribution that becomes normal after the Box-Cox</span>
 <span class="sd">transformation.</span>
+
+<span class="sd">References</span>
+<span class="sd">----------</span>
+<span class="sd">.. [1] Box, G. E. P., &amp; Cox, D. R. (1964).  An analysis of transformations.</span>
+<span class="sd">       *Journal of the Royal Statistical Society. Series B (Methodological)*,</span>
+<span class="sd">       26(2), 211-252.  https://www.jstor.org/stable/2984418</span>
+<span class="sd">.. [2] Granger, C. W. J., &amp; Newbold, P. (1976).  Forecasting transformed</span>
+<span class="sd">       series.  *Journal of the Royal Statistical Society. Series B</span>
+<span class="sd">       (Methodological)*, 38(2), 189-203.</span>
+<span class="sd">       doi:10.1111/j.2517-6161.1976.tb01585.x</span>
+<span class="sd">.. [3] Pankratz, A., &amp; Dudley, U. (1987).  Forecasts of power-transformed</span>
+<span class="sd">       series.  *Journal of Forecasting*, 6(4), 239-248.</span>
+<span class="sd">       doi:10.1002/for.3980060403</span>
+<span class="sd">.. [4] Guerrero, V. M. (1993).  Time-series analysis supported by power</span>
+<span class="sd">       transformations.  *Journal of Forecasting*, 12(1), 37-48.</span>
+<span class="sd">       doi:10.1002/for.3980120104</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
@@ -189,12 +205,44 @@
     <span class="n">p</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">lambda_bc</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">stats</span><span class="o">.</span><span class="n">lognorm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="n">scale</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">(</span><span class="n">loc</span><span class="p">))</span>
-    <span class="k">else</span><span class="p">:</span>
+    <span class="k">elif</span> <span class="n">lambda_bc</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="c1"># BC inverse support is x &gt; -1/lambda (lower-bounded); the</span>
+        <span class="c1"># underlying Normal can place mass below that boundary which</span>
+        <span class="c1"># corresponds to (formally) negative y.  The naive</span>
+        <span class="c1"># (qnorm(p)*lambda+1)**(1/lambda) becomes NaN for such p when</span>
+        <span class="c1"># 1/lambda is non-integer; the standard convention here is to</span>
+        <span class="c1"># map that mass to y=0 (the natural lower BC support edge).</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span>
             <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span> <span class="o">*</span> <span class="n">lambda_bc</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">1</span> <span class="o">/</span> <span class="n">lambda_bc</span>
         <span class="p">)</span>
         <span class="n">result</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">result</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">result</span></div>
+        <span class="k">return</span> <span class="n">result</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="c1"># lambda_bc &lt; 0: BC inverse support is x &lt; -1/lambda</span>
+        <span class="c1"># (upper-bounded).  The underlying Normal puts non-zero mass</span>
+        <span class="c1"># *above* -1/lambda which would correspond to y = +infinity</span>
+        <span class="c1"># (the mass at the upper support boundary).  The unrenormalized</span>
+        <span class="c1"># BC CDF therefore saturates at</span>
+        <span class="c1">#   P_valid = norm.cdf(-1/lambda, loc, scale) &lt; 1</span>
+        <span class="c1"># and the naive quantile is NaN for any p &gt; P_valid (the</span>
+        <span class="c1"># previous behaviour silently coerced those NaNs to 0, which</span>
+        <span class="c1"># is dimensionally wrong: the model implies a *large* y, not</span>
+        <span class="c1"># zero).</span>
+        <span class="c1">#</span>
+        <span class="c1"># Renormalize to the truncated distribution on (0, +infinity)</span>
+        <span class="c1"># by conditioning on the underlying Normal falling within the</span>
+        <span class="c1"># valid BC inverse support, i.e. invert</span>
+        <span class="c1">#   F_trunc(y) = pbcnorm(y, ...) / P_valid</span>
+        <span class="c1"># which IS a proper CDF.  The renormalized quantile is finite</span>
+        <span class="c1"># for every p in (0, 1) and approaches +infinity only as</span>
+        <span class="c1"># p -&gt; 1.  See Granger &amp; Newbold (1976), Pankratz &amp; Dudley</span>
+        <span class="c1"># (1987), Guerrero (1993) for the standard truncated-</span>
+        <span class="c1"># distribution treatment of BC at lambda &lt; 0.</span>
+        <span class="n">p_valid</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span> <span class="o">/</span> <span class="n">lambda_bc</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span>
+            <span class="n">stats</span><span class="o">.</span><span class="n">norm</span><span class="o">.</span><span class="n">ppf</span><span class="p">(</span><span class="n">p</span> <span class="o">*</span> <span class="n">p_valid</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="n">loc</span><span class="p">,</span> <span class="n">scale</span><span class="o">=</span><span class="n">scale</span><span class="p">)</span> <span class="o">*</span> <span class="n">lambda_bc</span> <span class="o">+</span> <span class="mi">1</span><span class="p">,</span>
+            <span class="mi">1</span> <span class="o">/</span> <span class="n">lambda_bc</span><span class="p">,</span>
+        <span class="p">)</span></div>
 
 
 

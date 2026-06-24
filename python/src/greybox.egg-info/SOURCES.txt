@@ -22,6 +22,7 @@ src/greybox/quantile_measures.py
 src/greybox/rolling.py
 src/greybox/selection.py
 src/greybox/smoothers.py
+src/greybox/stick.py
 src/greybox/transforms.py
 src/greybox/xreg.py
 src/greybox.egg-info/PKG-INFO

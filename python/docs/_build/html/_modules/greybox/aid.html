@@ -682,6 +682,8 @@
             <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
             <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
         <span class="p">)</span>
+        <span class="k">if</span> <span class="n">stockout_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Stockout model failed to fit.&quot;</span><span class="p">)</span>
         <span class="n">probabilities</span> <span class="o">=</span> <span class="n">point_lik_cumulative</span><span class="p">(</span><span class="n">stockout_model</span><span class="p">)</span>
 
         <span class="c1"># R: productNew if first interval &gt; 1.</span>
@@ -708,6 +710,8 @@
                 <span class="n">loss</span><span class="o">=</span><span class="n">loss</span><span class="p">,</span>
                 <span class="o">**</span><span class="n">alm_kwargs</span><span class="p">,</span>
             <span class="p">)</span>
+            <span class="k">if</span> <span class="n">stockout_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;Trimmed stockout model failed to fit.&quot;</span><span class="p">)</span>
             <span class="n">probs_trim</span> <span class="o">=</span> <span class="n">point_lik_cumulative</span><span class="p">(</span><span class="n">stockout_model</span><span class="p">)</span>
             <span class="c1"># R: pad probabilities with 0 sentinels at head/tail.</span>
             <span class="n">head_pad</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.0</span><span class="p">]</span> <span class="k">if</span> <span class="n">product_new</span> <span class="k">else</span> <span class="p">[]</span>
@@ -741,7 +745,7 @@
             <span class="n">stockouts_end</span> <span class="o">=</span> <span class="p">(</span><span class="n">cum</span><span class="p">[</span><span class="n">outliers_id</span><span class="p">]</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
 
             <span class="c1"># 0-based stockout positions for internal filtering.</span>
-            <span class="n">stockout_zero_based</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="n">stockout_zero_based</span><span class="p">:</span> <span class="nb">set</span><span class="p">[</span><span class="nb">int</span><span class="p">]</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">,</span> <span class="n">stockouts_end</span><span class="p">):</span>
                 <span class="n">stockout_zero_based</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)))</span>
         <span class="k">else</span><span class="p">:</span>
@@ -801,7 +805,7 @@
         <span class="n">y_is_binary</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">scaled</span> <span class="o">=</span> <span class="n">y_sub</span> <span class="o">/</span> <span class="n">y_max</span>
-        <span class="n">y_is_binary</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">y_is_binary</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">((</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">|</span> <span class="p">(</span><span class="n">scaled</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)))</span>
     <span class="c1"># noqa: F841 — kept for parity with R, even though unused below.</span>
     <span class="n">y_is_low_volume</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isin</span><span class="p">(</span><span class="n">y_sub</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">])))</span>  <span class="c1"># noqa: F841</span>
     <span class="n">zeroes_left</span> <span class="o">=</span> <span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y_sub</span> <span class="o">==</span> <span class="mi">0</span><span class="p">))</span>
@@ -984,14 +988,18 @@
             <span class="p">)</span>
 
     <span class="c1"># Drop None / failed models (R 307).</span>
-    <span class="n">id_models</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">id_models</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">}</span>
+    <span class="n">id_models_fit</span><span class="p">:</span> <span class="nb">dict</span><span class="p">[</span><span class="nb">str</span><span class="p">,</span> <span class="n">ALM</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">k</span><span class="p">:</span> <span class="n">v</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">id_models</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">v</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+    <span class="p">}</span>
 
-    <span class="k">if</span> <span class="ow">not</span> <span class="n">id_models</span><span class="p">:</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">id_models_fit</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">RuntimeError</span><span class="p">(</span><span class="s2">&quot;All candidate models failed to fit.&quot;</span><span class="p">)</span>
 
     <span class="c1"># R 312-326: pick best by IC unless binary.</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">y_is_binary</span><span class="p">:</span>
-        <span class="n">best_name</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">id_models</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">id_models</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ic</span><span class="p">))</span>
+        <span class="n">best_name</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span>
+            <span class="n">id_models_fit</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">k</span><span class="p">:</span> <span class="n">_get_ic</span><span class="p">(</span><span class="n">id_models_fit</span><span class="p">[</span><span class="n">k</span><span class="p">],</span> <span class="n">ic</span><span class="p">)</span>
+        <span class="p">)</span>
         <span class="n">id_type</span> <span class="o">=</span> <span class="n">best_name</span>
         <span class="n">parts</span> <span class="o">=</span> <span class="n">id_type</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
@@ -1005,11 +1013,15 @@
 
     <span class="c1"># R 329-331: attach stockout model if there were any zeros.</span>
     <span class="k">if</span> <span class="n">has_zeros</span> <span class="ow">and</span> <span class="n">stockout_model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">id_models</span><span class="p">[</span><span class="s2">&quot;stockout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stockout_model</span>
+        <span class="n">id_models_fit</span><span class="p">[</span><span class="s2">&quot;stockout&quot;</span><span class="p">]</span> <span class="o">=</span> <span class="n">stockout_model</span>
 
     <span class="c1"># ---------- Output dummies (R 333-349) ----------</span>
     <span class="n">stockout_dummy</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">obs_in_sample</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">int</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">stockouts_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+    <span class="k">if</span> <span class="p">(</span>
+        <span class="n">stockouts_start</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="n">stockouts_end</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span>
+        <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+    <span class="p">):</span>
         <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">e</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">stockouts_start</span><span class="p">,</span> <span class="n">stockouts_end</span><span class="p">):</span>
             <span class="c1"># 1-based inclusive in R → 0-based half-open in Python.</span>
             <span class="n">stockout_dummy</span><span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span> <span class="p">:</span> <span class="nb">int</span><span class="p">(</span><span class="n">e</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
@@ -1035,7 +1047,7 @@
 
     <span class="k">return</span> <span class="n">AidResult</span><span class="p">(</span>
         <span class="n">y</span><span class="o">=</span><span class="n">y</span><span class="p">,</span>
-        <span class="n">models</span><span class="o">=</span><span class="n">id_models</span><span class="p">,</span>
+        <span class="n">models</span><span class="o">=</span><span class="n">id_models_fit</span><span class="p">,</span>
         <span class="n">name</span><span class="o">=</span><span class="n">id_type</span><span class="p">,</span>
         <span class="nb">type</span><span class="o">=</span><span class="n">AidType</span><span class="p">(</span><span class="o">**</span><span class="n">id_type_detailed</span><span class="p">),</span>
         <span class="n">stockouts</span><span class="o">=</span><span class="n">stockouts</span><span class="p">,</span>

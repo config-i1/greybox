@@ -18,4 +18,5 @@ API
    transforms
    smoothers
    aid
+   stick
    ../distributions/index

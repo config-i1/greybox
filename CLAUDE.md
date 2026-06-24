@@ -21,11 +21,17 @@ All commands run from `python/`:
 ```bash
 make build          # pip install -e src/
 make lint           # ruff check + format
+make typecheck      # mypy src/greybox/ --ignore-missing-imports
 make test           # pytest
 pytest tests/test_alm.py                              # single file
 pytest tests/test_alm.py::TestFormula::test_formula_with_response  # single test
 ptw                 # watch mode
 ```
+
+IMPORTANT: Always run `make typecheck` (mypy) together with the linting
+checks — treat type checking as part of "linting", never skip it. New or
+changed code must pass `make lint` AND `make typecheck` before it is
+considered done.
 
 R-vs-Python comparison tests require `rpy2` and R `greybox` installed:
 ```bash
@@ -52,6 +58,7 @@ pytest tests/test_alm_distributions_compare.py
 - **`hm.py`** — Half-moment measures: `hm()`, `ham()`, `asymmetry()`, `extremity()`, `mre()`.
 - **`quantile_measures.py`** — `pinball()` quantile/expectile scoring, `MIS`.
 - **`diagnostics.py`** — `outlier_dummy()` with `OutlierResult`.
+- **`stick.py`** — `stick()` (Seasonality, Trend, Irregular contribution via ANOVA) with `StickResult` (`.strength`, `.anova`, `.plot()`).
 - **`transforms.py`** — `bc_transform()`, `bc_transform_inv()`, `mean_fast()`.
 - **`pointlik.py`** — `point_lik()` point-wise likelihoods per observation.
 - **`data.py`** — `mtcars` dataset.

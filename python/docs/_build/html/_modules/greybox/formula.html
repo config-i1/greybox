@@ -327,28 +327,27 @@
 <span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ x1 + x2&quot;, data)</span>
 <span class="sd">    &gt;&gt;&gt; X_no_intercept = formula(&quot;~ x1 + x2&quot;, data, return_type=&quot;X&quot;)</span>
 
-<span class="sd">    &gt;&gt;&gt; # With transformations</span>
-<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [1, 2, 3]}</span>
-<span class="sd">    &gt;&gt;&gt; # y is log-transformed, X has x and x^2</span>
-<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;log(y) ~ x + x^2&quot;, data)</span>
+<span class="sd">    &gt;&gt;&gt; # With transformations: y is log-transformed, X has x and x^2</span>
+<span class="sd">    &gt;&gt;&gt; data_t = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [1, 2, 3]}</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;log(y) ~ x + x^2&quot;, data_t)</span>
 
 <span class="sd">    &gt;&gt;&gt; # Return as DataFrames with column names</span>
 <span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ x1 + x2&quot;, data, as_dataframe=True)</span>
-<span class="sd">    &gt;&gt;&gt; print(X.columns)  # [&#39;(Intercept)&#39;, &#39;x1&#39;, &#39;x2&#39;]</span>
+<span class="sd">    &gt;&gt;&gt; list(X.columns)</span>
+<span class="sd">    [&#39;(Intercept)&#39;, &#39;x1&#39;, &#39;x2&#39;]</span>
 
 <span class="sd">    &gt;&gt;&gt; # With custom functions (defined or imported in your global scope)</span>
 <span class="sd">    &gt;&gt;&gt; def my_transform(x):</span>
 <span class="sd">    ...     return x * 2</span>
-<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [1, 2, 3]}</span>
-<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ my_transform(x)&quot;, data)</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ my_transform(x)&quot;, data_t)</span>
 
 <span class="sd">    &gt;&gt;&gt; # With imported functions (e.g., from scipy)</span>
 <span class="sd">    &gt;&gt;&gt; from scipy.special import erfc</span>
-<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [0.5, 1.0, 1.5]}</span>
-<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ erfc(x)&quot;, data)</span>
+<span class="sd">    &gt;&gt;&gt; data_e = {&#39;y&#39;: [1, 2, 3], &#39;x&#39;: [0.5, 1.0, 1.5]}</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ erfc(x)&quot;, data_e)</span>
 
 <span class="sd">    &gt;&gt;&gt; # Custom function on LHS (response variable)</span>
-<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;my_transform(y) ~ x&quot;, data)</span>
+<span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;my_transform(y) ~ x&quot;, data_t)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">formula_str</span> <span class="o">=</span> <span class="n">formula_str</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
 

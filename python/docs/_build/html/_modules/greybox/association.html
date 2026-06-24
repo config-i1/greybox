@@ -163,7 +163,10 @@
                 <span class="p">)</span>
 
     <span class="n">df</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">x_clean</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_vars</span>
-    <span class="n">t_stat</span> <span class="o">=</span> <span class="n">pcor_matrix</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">df</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pcor_matrix</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
+    <span class="c1"># The diagonal (self-correlation = 1) divides by zero here, but those</span>
+    <span class="c1"># entries are overwritten below, so suppress the expected warning.</span>
+    <span class="k">with</span> <span class="n">np</span><span class="o">.</span><span class="n">errstate</span><span class="p">(</span><span class="n">divide</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">,</span> <span class="n">invalid</span><span class="o">=</span><span class="s2">&quot;ignore&quot;</span><span class="p">):</span>
+        <span class="n">t_stat</span> <span class="o">=</span> <span class="n">pcor_matrix</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sqrt</span><span class="p">(</span><span class="n">df</span> <span class="o">/</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">pcor_matrix</span><span class="o">**</span><span class="mi">2</span><span class="p">))</span>
     <span class="n">t_stat</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n_vars</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="mi">0</span><span class="p">,</span> <span class="n">t_stat</span><span class="p">)</span>
     <span class="n">p_value</span> <span class="o">=</span> <span class="mi">2</span> <span class="o">*</span> <span class="p">(</span><span class="mi">1</span> <span class="o">-</span> <span class="n">stats</span><span class="o">.</span><span class="n">t</span><span class="o">.</span><span class="n">cdf</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">t_stat</span><span class="p">),</span> <span class="n">df</span><span class="o">=</span><span class="n">df</span><span class="p">))</span>
     <span class="n">p_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">n_vars</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">bool</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">,</span> <span class="n">p_value</span><span class="p">)</span>
@@ -196,7 +199,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([[1, 2], [2, 4], [3, 6], [4, 8], [5, 10]])</span>
 <span class="sd">    &gt;&gt;&gt; y = np.array([3, 6, 9, 12, 15])</span>
-<span class="sd">    &gt;&gt;&gt; mcor(x, y)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mcor(x, y)), 4)</span>
+<span class="sd">    1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
     <span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
@@ -273,7 +277,8 @@
 <span class="sd">    &gt;&gt;&gt; x2 = np.random.normal(50, 5, 100)</span>
 <span class="sd">    &gt;&gt;&gt; x3 = 100 + 0.5*x1 - 0.75*x2 + np.random.normal(0, 3, 100)</span>
 <span class="sd">    &gt;&gt;&gt; xreg = np.column_stack([x3, x1, x2])</span>
-<span class="sd">    &gt;&gt;&gt; determination(xreg)</span>
+<span class="sd">    &gt;&gt;&gt; np.round(determination(xreg), 4)</span>
+<span class="sd">    array([1.    , 0.2872, 0.5649])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="kn">from</span><span class="w"> </span><span class="nn">.selection</span><span class="w"> </span><span class="kn">import</span> <span class="n">stepwise</span>
 

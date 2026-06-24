@@ -352,11 +352,13 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; from greybox import formula, ALM</span>
-<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [1, 2, 3, 4, 5], &#39;x1&#39;: [1, 2, 3, 4, 5], &#39;x2&#39;: [2, 3, 4, 5, 6]}</span>
+<span class="sd">    &gt;&gt;&gt; data = {&#39;y&#39;: [2.1, 3.9, 6.2, 7.8, 10.1, 12.2],</span>
+<span class="sd">    ...         &#39;x1&#39;: [1, 2, 3, 4, 5, 6], &#39;x2&#39;: [2, 1, 4, 3, 6, 5]}</span>
 <span class="sd">    &gt;&gt;&gt; y, X = formula(&quot;y ~ x1 + x2&quot;, data)</span>
 <span class="sd">    &gt;&gt;&gt; model = ALM(distribution=&quot;dnorm&quot;, loss=&quot;likelihood&quot;)</span>
-<span class="sd">    &gt;&gt;&gt; model.fit(X, y)</span>
-<span class="sd">    &gt;&gt;&gt; print(model.coef_)</span>
+<span class="sd">    &gt;&gt;&gt; _ = model.fit(X, y)</span>
+<span class="sd">    &gt;&gt;&gt; np.round(model.coef, 4)  # slope parameters (x1, x2)</span>
+<span class="sd">    array([1.9354, 0.1021])</span>
 
 <span class="sd">    &gt;&gt;&gt; # Using nlopt with custom parameters (like R)</span>
 <span class="sd">    &gt;&gt;&gt; model = ALM(</span>
@@ -365,12 +367,10 @@
 <span class="sd">    ...     nlopt_kargs={</span>
 <span class="sd">    ...         &quot;algorithm&quot;: &quot;NLOPT_LN_SBPLX&quot;,</span>
 <span class="sd">    ...         &quot;maxeval&quot;: 1000,</span>
-<span class="sd">    ...         &quot;maxtime&quot;: 600,</span>
 <span class="sd">    ...         &quot;xtol_rel&quot;: 1e-8,</span>
-<span class="sd">    ...         &quot;print_level&quot;: 1</span>
 <span class="sd">    ...     }</span>
 <span class="sd">    ... )</span>
-<span class="sd">    &gt;&gt;&gt; model.fit(X, y)</span>
+<span class="sd">    &gt;&gt;&gt; _ = model.fit(X, y)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
 
     <span class="n">DISTRIBUTIONS</span> <span class="o">=</span> <span class="p">[</span>

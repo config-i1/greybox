@@ -179,8 +179,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; me(actual, forecast)</span>
-<span class="sd">    -0.1</span>
+<span class="sd">    &gt;&gt;&gt; round(float(me(actual, forecast)), 2)</span>
+<span class="sd">    -0.06</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -221,8 +221,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; mae(actual, forecast)  # doctest: +ELLIPSIS</span>
-<span class="sd">    0.18</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mae(actual, forecast)), 2)</span>
+<span class="sd">    0.1</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -262,8 +262,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; mse(actual, forecast)</span>
-<span class="sd">    0.038</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mse(actual, forecast)), 3)</span>
+<span class="sd">    0.014</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -303,8 +303,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; rmse(actual, forecast)  # doctest: +ELLIPSIS</span>
-<span class="sd">    0.194...</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rmse(actual, forecast)), 4)</span>
+<span class="sd">    0.1183</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -320,11 +320,11 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Percentage Error (MPE).</span>
 
 <span class="sd">    The MPE measures the average percentage error. Like ME, it can detect</span>
-<span class="sd">    bias but expresses it as a percentage. However, it is undefined when</span>
+<span class="sd">    bias but expresses it as a fraction. However, it is undefined when</span>
 <span class="sd">    actual values are zero.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        MPE = mean((actual - forecast) / actual) * 100</span>
+<span class="sd">        MPE = mean((actual - forecast) / actual)</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -338,14 +338,14 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float</span>
-<span class="sd">        Mean Percentage Error (in percentage points).</span>
+<span class="sd">        Mean Percentage Error (as a fraction).</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; mpe(actual, forecast)</span>
-<span class="sd">    -4.466666666666667</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mpe(actual, forecast)), 4)</span>
+<span class="sd">    -0.0323</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -362,7 +362,7 @@
         <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
         <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span><span class="p">)</span></div>
 
 
 
@@ -372,12 +372,12 @@
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Mean Absolute Percentage Error (MAPE).</span>
 
 <span class="sd">    The MAPE measures the average absolute percentage error. It is scale-independent</span>
-<span class="sd">    and expressed as a percentage, making it easy to interpret across different</span>
+<span class="sd">    and expressed as a fraction, making it easy to interpret across different</span>
 <span class="sd">    contexts. However, it is undefined when actual values are zero and can be</span>
 <span class="sd">    heavily influenced by small actual values.</span>
 
 <span class="sd">    Formula:</span>
-<span class="sd">        ``MAPE = mean(|actual - forecast| / actual) * 100``</span>
+<span class="sd">        ``MAPE = mean(|actual - forecast| / actual)``</span>
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
@@ -391,14 +391,14 @@
 <span class="sd">    Returns</span>
 <span class="sd">    -------</span>
 <span class="sd">    float</span>
-<span class="sd">        Mean Absolute Percentage Error (in percentage points).</span>
+<span class="sd">        Mean Absolute Percentage Error (as a fraction).</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; mape(actual, forecast)</span>
-<span class="sd">    14.933333333333332</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mape(actual, forecast)), 4)</span>
+<span class="sd">    0.0423</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -416,7 +416,7 @@
         <span class="n">actual</span> <span class="o">=</span> <span class="n">actual</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
         <span class="n">forecast</span> <span class="o">=</span> <span class="n">forecast</span><span class="p">[</span><span class="n">mask</span><span class="p">]</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span><span class="p">)</span> <span class="o">*</span> <span class="mi">100</span><span class="p">)</span></div>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">((</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">)</span> <span class="o">/</span> <span class="n">actual</span><span class="p">))</span></div>
 
 
 
@@ -461,11 +461,13 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; mase(actual, forecast)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mase(actual, forecast)), 2)</span>
+<span class="sd">    0.15</span>
 <span class="sd">    &gt;&gt;&gt; # With custom scale</span>
-<span class="sd">    &gt;&gt;&gt; mase(actual, forecast, scale=1.0)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mase(actual, forecast, scale=1.0)), 2)</span>
+<span class="sd">    0.15</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -520,9 +522,10 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; rmsse(actual, forecast)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rmsse(actual, forecast)), 4)</span>
+<span class="sd">    0.1581</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -576,9 +579,10 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; same(actual, forecast)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(same(actual, forecast)), 2)</span>
+<span class="sd">    0.13</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -632,11 +636,12 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
-<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
-<span class="sd">    &gt;&gt;&gt; rmae(actual, forecast, benchmark)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,</span>
+<span class="sd">    ...                      5.5, 6.5, 7.5, 8.5, 9.5])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rmae(actual, forecast, benchmark)), 2)</span>
+<span class="sd">    0.3</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -699,11 +704,12 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
-<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
-<span class="sd">    &gt;&gt;&gt; rrmse(actual, forecast, benchmark)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,</span>
+<span class="sd">    ...                      5.5, 6.5, 7.5, 8.5, 9.5])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rrmse(actual, forecast, benchmark)), 4)</span>
+<span class="sd">    0.3162</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -765,11 +771,12 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
-<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
-<span class="sd">    &gt;&gt;&gt; rame(actual, forecast, benchmark)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,</span>
+<span class="sd">    ...                      5.5, 6.5, 7.5, 8.5, 9.5])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rame(actual, forecast, benchmark)), 2)</span>
+<span class="sd">    0.26</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -836,10 +843,11 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
 <span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual)) ** 2</span>
-<span class="sd">    &gt;&gt;&gt; smse(actual, forecast, scale)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(smse(actual, forecast, scale)), 5)</span>
+<span class="sd">    0.00083</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -890,10 +898,11 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
 <span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual[actual != 0]))</span>
-<span class="sd">    &gt;&gt;&gt; spis(actual, forecast, scale)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(spis(actual, forecast, scale)), 4)</span>
+<span class="sd">    1.2364</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -907,7 +916,7 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
     <span class="n">cumsum_errors</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">cumsum</span><span class="p">(</span><span class="n">forecast</span> <span class="o">-</span> <span class="n">actual</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cumsum_errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span></div>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">cumsum_errors</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span></div>
 
 
 
@@ -946,10 +955,11 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
 <span class="sd">    &gt;&gt;&gt; scale = np.mean(np.abs(actual[actual != 0]))</span>
-<span class="sd">    &gt;&gt;&gt; sce(actual, forecast, scale)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(sce(actual, forecast, scale)), 4)</span>
+<span class="sd">    -0.2364</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -960,7 +970,7 @@
     <span class="k">if</span> <span class="n">scale</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
 
-    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span></div>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">actual</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">/</span> <span class="n">scale</span><span class="p">)</span></div>
 
 
 
@@ -999,11 +1009,12 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5, 6, 7, 8, 9, 10])</span>
-<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1,</span>
-<span class="sd">    ...                      6.0, 7.1, 8.0, 9.2, 10.1])</span>
-<span class="sd">    &gt;&gt;&gt; benchmark = np.array([1.0, 2.0, 3.0, 4.0, 5.0,</span>
-<span class="sd">    ...                      6.0, 7.0, 8.0, 9.0, 10.0])</span>
-<span class="sd">    &gt;&gt;&gt; gmrae(actual, forecast, benchmark)</span>
+<span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.2, 3.2, 3.9, 5.1,</span>
+<span class="sd">    ...                      6.2, 7.1, 8.2, 9.2, 10.1])</span>
+<span class="sd">    &gt;&gt;&gt; benchmark = np.array([0.5, 1.5, 2.5, 3.5, 4.5,</span>
+<span class="sd">    ...                      5.5, 6.5, 7.5, 8.5, 9.5])</span>
+<span class="sd">    &gt;&gt;&gt; round(float(gmrae(actual, forecast, benchmark)), 4)</span>
+<span class="sd">    0.2828</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -1122,7 +1133,7 @@
         <span class="s2">&quot;rMAE&quot;</span><span class="p">:</span> <span class="n">rmae</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
         <span class="s2">&quot;rRMSE&quot;</span><span class="p">:</span> <span class="n">rrmse</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
         <span class="s2">&quot;rAME&quot;</span><span class="p">:</span> <span class="n">rame</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">benchmark_forecast</span><span class="p">),</span>
-        <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="n">asymmetry</span><span class="p">(</span><span class="n">holdout</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">),</span>
+        <span class="s2">&quot;asymmetry&quot;</span><span class="p">:</span> <span class="n">asymmetry</span><span class="p">(</span><span class="n">holdout</span> <span class="o">-</span> <span class="n">forecast</span><span class="p">,</span> <span class="mi">0</span><span class="p">),</span>
         <span class="s2">&quot;sPIS&quot;</span><span class="p">:</span> <span class="n">spis</span><span class="p">(</span><span class="n">holdout</span><span class="p">,</span> <span class="n">forecast</span><span class="p">,</span> <span class="n">mean_abs_actual</span><span class="p">),</span>
     <span class="p">}</span>
 

@@ -114,6 +114,7 @@
 <li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smoothers.html">Smoothers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="aid.html">Automatic Identification of Demand</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stick.html">Seasonality, Trend, and Irregular Contribution Kit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
 </ul>
 </li>
@@ -333,11 +334,13 @@ internally but only uses first p in the model.</p></li>
 
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">formula</span><span class="p">,</span> <span class="n">ALM</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">]}</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">data</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;y&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mf">2.1</span><span class="p">,</span> <span class="mf">3.9</span><span class="p">,</span> <span class="mf">6.2</span><span class="p">,</span> <span class="mf">7.8</span><span class="p">,</span> <span class="mf">10.1</span><span class="p">,</span> <span class="mf">12.2</span><span class="p">],</span>
+<span class="gp">... </span>        <span class="s1">&#39;x1&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="s1">&#39;x2&#39;</span><span class="p">:</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">4</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">5</span><span class="p">]}</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span><span class="p">,</span> <span class="n">X</span> <span class="o">=</span> <span class="n">formula</span><span class="p">(</span><span class="s2">&quot;y ~ x1 + x2&quot;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">model</span> <span class="o">=</span> <span class="n">ALM</span><span class="p">(</span><span class="n">distribution</span><span class="o">=</span><span class="s2">&quot;dnorm&quot;</span><span class="p">,</span> <span class="n">loss</span><span class="o">=</span><span class="s2">&quot;likelihood&quot;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="nb">print</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">coef_</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">coef</span><span class="p">,</span> <span class="mi">4</span><span class="p">)</span>  <span class="c1"># slope parameters (x1, x2)</span>
+<span class="go">array([1.9354, 0.1021])</span>
 </pre></div>
 </div>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="c1"># Using nlopt with custom parameters (like R)</span>
@@ -347,12 +350,10 @@ internally but only uses first p in the model.</p></li>
 <span class="gp">... </span>    <span class="n">nlopt_kargs</span><span class="o">=</span><span class="p">{</span>
 <span class="gp">... </span>        <span class="s2">&quot;algorithm&quot;</span><span class="p">:</span> <span class="s2">&quot;NLOPT_LN_SBPLX&quot;</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s2">&quot;maxeval&quot;</span><span class="p">:</span> <span class="mi">1000</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;maxtime&quot;</span><span class="p">:</span> <span class="mi">600</span><span class="p">,</span>
 <span class="gp">... </span>        <span class="s2">&quot;xtol_rel&quot;</span><span class="p">:</span> <span class="mf">1e-8</span><span class="p">,</span>
-<span class="gp">... </span>        <span class="s2">&quot;print_level&quot;</span><span class="p">:</span> <span class="mi">1</span>
 <span class="gp">... </span>    <span class="p">}</span>
 <span class="gp">... </span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">_</span> <span class="o">=</span> <span class="n">model</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
 </pre></div>
 </div>
 <dl class="py attribute">

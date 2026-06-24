@@ -139,9 +139,12 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; holdout = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; pinball(holdout, forecast, level=0.5)  # Median pinball</span>
-<span class="sd">    &gt;&gt;&gt; pinball(holdout, forecast, level=0.975)  # Upper quantile</span>
-<span class="sd">    &gt;&gt;&gt; pinball(holdout, forecast, level=0.025)  # Lower quantile</span>
+<span class="sd">    &gt;&gt;&gt; round(float(pinball(holdout, forecast, level=0.5)), 4)  # Median</span>
+<span class="sd">    0.25</span>
+<span class="sd">    &gt;&gt;&gt; round(float(pinball(holdout, forecast, level=0.975)), 4)  # Upper</span>
+<span class="sd">    0.1075</span>
+<span class="sd">    &gt;&gt;&gt; round(float(pinball(holdout, forecast, level=0.025)), 4)  # Lower</span>
+<span class="sd">    0.3925</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -225,7 +228,8 @@
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; lower = np.array([0.5, 1.5, 2.5, 3.5, 4.5])</span>
 <span class="sd">    &gt;&gt;&gt; upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])</span>
-<span class="sd">    &gt;&gt;&gt; mis(actual, lower, upper, level=0.95)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mis(actual, lower, upper, level=0.95)), 4)</span>
+<span class="sd">    1.0</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -307,7 +311,8 @@
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; lower = np.array([0.5, 1.5, 2.5, 3.5, 4.5])</span>
 <span class="sd">    &gt;&gt;&gt; upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])</span>
-<span class="sd">    &gt;&gt;&gt; smis(actual, lower, upper, scale=3.0)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(smis(actual, lower, upper, scale=3.0)), 4)</span>
+<span class="sd">    0.3333</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -367,7 +372,8 @@
 <span class="sd">    &gt;&gt;&gt; upper = np.array([1.5, 2.5, 3.5, 4.5, 5.5])</span>
 <span class="sd">    &gt;&gt;&gt; benchmark_lower = np.array([0.0, 1.0, 2.0, 3.0, 4.0])</span>
 <span class="sd">    &gt;&gt;&gt; benchmark_upper = np.array([2.0, 3.0, 4.0, 5.0, 6.0])</span>
-<span class="sd">    &gt;&gt;&gt; rmis(actual, lower, upper, benchmark_lower, benchmark_upper)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(rmis(actual, lower, upper, benchmark_lower, benchmark_upper)), 4)</span>
+<span class="sd">    0.5</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>

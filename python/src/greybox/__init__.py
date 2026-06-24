@@ -106,6 +106,9 @@ from .quantile_measures import pinball, mis, smis, rmis
 # Diagnostics
 from .diagnostics import outlier_dummy, OutlierResult
 
+# Seasonality, Trend, and Irregular Contribution Kit
+from .stick import stick, StickResult
+
 __all__ = [
     "__version__",
     # Submodules
@@ -192,4 +195,6 @@ __all__ = [
     # Diagnostics
     "outlier_dummy",
     "OutlierResult",
+    "stick",
+    "StickResult",
 ] + list(_distribution_names)

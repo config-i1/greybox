@@ -1,0 +1,347 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Seasonality, Trend, and Irregular Contribution Kit &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Distributions Guide" href="../distributions/index.html" />
+    <link rel="prev" title="Automatic Identification of Demand" href="aid.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">API</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="alm.html">ALM</a></li>
+<li class="toctree-l2"><a class="reference internal" href="formula.html">Formula</a></li>
+<li class="toctree-l2"><a class="reference internal" href="selection.html">Selection</a></li>
+<li class="toctree-l2"><a class="reference internal" href="rolling.html">Rolling Origin</a></li>
+<li class="toctree-l2"><a class="reference internal" href="point_measures.html">Accuracy Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="association.html">Association</a></li>
+<li class="toctree-l2"><a class="reference internal" href="hm.html">Half-Moments</a></li>
+<li class="toctree-l2"><a class="reference internal" href="quantile_measures.html">Quantile Measures</a></li>
+<li class="toctree-l2"><a class="reference internal" href="xreg.html">Xreg</a></li>
+<li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
+<li class="toctree-l2"><a class="reference internal" href="smoothers.html">Smoothers</a></li>
+<li class="toctree-l2"><a class="reference internal" href="aid.html">Automatic Identification of Demand</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Seasonality, Trend, and Irregular Contribution Kit</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#stick">stick()</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.stick.stick"><code class="docutils literal notranslate"><span class="pre">stick()</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#result-class">Result class</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#greybox.stick.StickResult"><code class="docutils literal notranslate"><span class="pre">StickResult</span></code></a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
+</ul>
+</li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="index.html">API</a></li>
+      <li class="breadcrumb-item active">Seasonality, Trend, and Irregular Contribution Kit</li>
+      <li class="wy-breadcrumbs-aside">
+            <a href="../_sources/api/stick.rst.txt" rel="nofollow"> View page source</a>
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <section id="seasonality-trend-and-irregular-contribution-kit">
+<h1>Seasonality, Trend, and Irregular Contribution Kit<a class="headerlink" href="#seasonality-trend-and-irregular-contribution-kit" title="Link to this heading"></a></h1>
+<p>The <code class="docutils literal notranslate"><span class="pre">greybox.stick</span></code> module decomposes the variance of a time series
+into seasonal, trend and irregular parts based on an Analysis of
+Variance (ANOVA) of the series on the seasonal and trend factors, and
+measures the contribution of each component. It is a Python port of R’s
+<code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::stick()</span></code> and implements the Seasonality, Trend, and
+Irregular (STI) classification of Hans Levenbach.</p>
+<section id="stick">
+<h2>stick()<a class="headerlink" href="#stick" title="Link to this heading"></a></h2>
+<dl class="py function">
+<dt class="sig sig-object py" id="greybox.stick.stick">
+<span class="sig-prename descclassname"><span class="pre">greybox.stick.</span></span><span class="sig-name descname"><span class="pre">stick</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lags</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span> <span class="sig-return"><span class="sig-return-icon">&#x2192;</span> <span class="sig-return-typehint"><a class="reference internal" href="#greybox.stick.StickResult" title="greybox.stick.StickResult"><span class="pre">StickResult</span></a></span></span><a class="reference internal" href="../_modules/greybox/stick.html#stick"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.stick.stick" title="Link to this definition"></a></dt>
+<dd><p>Seasonality, Trend, and Irregular Contribution Kit.</p>
+<p>Decomposes the variance of a time series into seasonal, trend and
+irregular parts based on an Analysis of Variance (ANOVA) of the series
+on the seasonal and trend factors, and measures the contribution of
+each component. This is a Python port of R’s <code class="xref py py-func docutils literal notranslate"><span class="pre">greybox::stick()</span></code>.</p>
+<p>A data frame is formed internally with the response <code class="docutils literal notranslate"><span class="pre">y</span></code>, a
+categorical (factor) variable for each of the provided seasonal
+<code class="docutils literal notranslate"><span class="pre">lags</span></code> and a “trend” factor. For a monthly series with <code class="docutils literal notranslate"><span class="pre">lags=12</span></code>,
+the seasonal factor takes values <code class="docutils literal notranslate"><span class="pre">1..12</span></code> repeated throughout the
+sample (the month of the year), while the trend factor takes values
+<code class="docutils literal notranslate"><span class="pre">1..ceil(T/12)</span></code>, each repeated 12 times (the year). The trend factor
+is constructed based on the longest of the provided lags. An ANOVA is
+then applied to <code class="docutils literal notranslate"><span class="pre">y</span> <span class="pre">~</span> <span class="pre">seasonal</span> <span class="pre">+</span> <span class="pre">trend</span></code> and the strength of each
+component is measured as the share of the respective Sum of Squares in
+the total Sum of Squares. The irregular component corresponds to the
+share of the residual Sum of Squares; the strengths sum up to one.</p>
+<p>The function implements the Seasonality, Trend, and Irregular (STI)
+classification of Hans Levenbach.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>y</strong> (<em>array-like</em>) – The time series to analyse.</p></li>
+<li><p><strong>lags</strong> (<em>int</em><em> or </em><em>sequence</em><em> of </em><em>int</em>) – The seasonal lags (periodicities) in the data, e.g.
+<code class="docutils literal notranslate"><span class="pre">lags=[24,</span> <span class="pre">168]</span></code> for hourly data or <code class="docutils literal notranslate"><span class="pre">lags=12</span></code> for monthly
+data. Values not greater than one are dropped.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>Object with the original data, the <code class="docutils literal notranslate"><span class="pre">lags</span></code> used, the ANOVA table
+and the <code class="docutils literal notranslate"><span class="pre">strength</span></code> of each component.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p><a class="reference internal" href="#greybox.stick.StickResult" title="greybox.stick.StickResult">StickResult</a></p>
+</dd>
+</dl>
+<p class="rubric">References</p>
+<p>Levenbach, H. (2021). Four P’s in a Pod: e-Commerce Forecasting and
+Planning for Supply Chain Practitioners. Independently published.
+ISBN 979-8461733575.</p>
+<p class="rubric">Examples</p>
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">121</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">result</span> <span class="o">=</span> <span class="n">stick</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">bool</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">strength</span><span class="o">.</span><span class="n">sum</span><span class="p">(),</span> <span class="mf">1.0</span><span class="p">))</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<p><strong>Example</strong>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">greybox</span><span class="w"> </span><span class="kn">import</span> <span class="n">stick</span>
+
+<span class="c1"># Monthly series with a trend and a seasonal pattern</span>
+<span class="n">t</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">121</span><span class="p">)</span>
+<span class="n">y</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">+</span> <span class="mf">0.3</span> <span class="o">*</span> <span class="n">t</span> <span class="o">+</span> <span class="mi">20</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">sin</span><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">pi</span> <span class="o">*</span> <span class="n">t</span> <span class="o">/</span> <span class="mi">12</span><span class="p">)</span>
+
+<span class="n">result</span> <span class="o">=</span> <span class="n">stick</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="mi">12</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="p">)</span>
+<span class="c1"># Seasonality, Trend, and Irregular Contribution Kit</span>
+<span class="c1"># Seasonal lags: 12</span>
+<span class="c1">#</span>
+<span class="c1"># Strength of the components:</span>
+<span class="c1"># seasonal12    ...</span>
+<span class="c1"># trend         ...</span>
+<span class="c1"># irregular     ...</span>
+
+<span class="c1"># Multiple seasonal lags (e.g. hourly data)</span>
+<span class="n">result2</span> <span class="o">=</span> <span class="n">stick</span><span class="p">(</span><span class="n">y_hourly</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="p">[</span><span class="mi">24</span><span class="p">,</span> <span class="mi">168</span><span class="p">])</span>
+</pre></div>
+</div>
+<p><strong>Accessing the result</strong></p>
+<p>The <a class="reference internal" href="#greybox.stick.StickResult" title="greybox.stick.StickResult"><code class="xref py py-class docutils literal notranslate"><span class="pre">StickResult</span></code></a> exposes the strength of each
+component as a <code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.Series</span></code> and the full ANOVA table as a
+<code class="xref py py-class docutils literal notranslate"><span class="pre">pandas.DataFrame</span></code>:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span><span class="o">.</span><span class="n">strength</span>            <span class="c1"># one entry per lag, plus trend &amp; irregular</span>
+<span class="n">result</span><span class="o">.</span><span class="n">strength</span><span class="p">[</span><span class="s2">&quot;trend&quot;</span><span class="p">]</span>   <span class="c1"># strength of the trend</span>
+<span class="n">result</span><span class="o">.</span><span class="n">anova</span>               <span class="c1"># Df / Sum Sq / Mean Sq / F value / Pr(&gt;F)</span>
+</pre></div>
+</div>
+<p>The strengths are the shares of the respective Sum of Squares in the
+total Sum of Squares and sum up to one.</p>
+<p><strong>Plotting</strong></p>
+<p><code class="docutils literal notranslate"><span class="pre">StickResult.plot()</span></code> mirrors R’s <code class="docutils literal notranslate"><span class="pre">plot.stick()</span></code>. For every seasonal
+lag it draws a <em>seasonal plot</em> (the series reshaped into one grey line
+per cycle, with the average seasonal profile overlaid as a bold dashed
+black line); the final plot is the <em>trend plot</em> (one grey line per
+seasonal position drawn across the cycles, with the average level per
+cycle – the trend – overlaid as a bold dashed black line). The
+<code class="docutils literal notranslate"><span class="pre">which</span></code> argument selects which panes to draw: <code class="docutils literal notranslate"><span class="pre">1,</span> <span class="pre">...,</span> <span class="pre">k-1</span></code> are the
+seasonal plots, <code class="docutils literal notranslate"><span class="pre">k</span></code> is the trend plot; <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default) draws
+all of them:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+<span class="n">axes</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">()</span>          <span class="c1"># all panes</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">which</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>     <span class="c1"># only the trend plot</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+</section>
+<section id="result-class">
+<h2>Result class<a class="headerlink" href="#result-class" title="Link to this heading"></a></h2>
+<dl class="py class">
+<dt class="sig sig-object py" id="greybox.stick.StickResult">
+<span class="property"><span class="k"><span class="pre">class</span></span><span class="w"> </span></span><span class="sig-prename descclassname"><span class="pre">greybox.stick.</span></span><span class="sig-name descname"><span class="pre">StickResult</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">y</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">lags</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">ndarray</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">anova</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">DataFrame</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">strength</span></span><span class="p"><span class="pre">:</span></span><span class="w"> </span><span class="n"><span class="pre">Series</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/stick.html#StickResult"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.stick.StickResult" title="Link to this definition"></a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Result of <a class="reference internal" href="#greybox.stick.stick" title="greybox.stick.stick"><code class="xref py py-func docutils literal notranslate"><span class="pre">stick()</span></code></a>. Mirrors R’s <code class="docutils literal notranslate"><span class="pre">stick</span></code> S3 class.</p>
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.stick.StickResult.y">
+<span class="sig-name descname"><span class="pre">y</span></span><a class="headerlink" href="#greybox.stick.StickResult.y" title="Link to this definition"></a></dt>
+<dd><p>The original time series.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.stick.StickResult.lags">
+<span class="sig-name descname"><span class="pre">lags</span></span><a class="headerlink" href="#greybox.stick.StickResult.lags" title="Link to this definition"></a></dt>
+<dd><p>The seasonal lags used in the analysis (unique, ascending).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.stick.StickResult.anova">
+<span class="sig-name descname"><span class="pre">anova</span></span><a class="headerlink" href="#greybox.stick.StickResult.anova" title="Link to this definition"></a></dt>
+<dd><p>The ANOVA table, with one row per seasonal lag, a <code class="docutils literal notranslate"><span class="pre">trend</span></code> row
+(when a trend was fitted) and a <code class="docutils literal notranslate"><span class="pre">Residuals</span></code> row. Columns are
+<code class="docutils literal notranslate"><span class="pre">Df</span></code>, <code class="docutils literal notranslate"><span class="pre">Sum</span> <span class="pre">Sq</span></code>, <code class="docutils literal notranslate"><span class="pre">Mean</span> <span class="pre">Sq</span></code>, <code class="docutils literal notranslate"><span class="pre">F</span> <span class="pre">value</span></code> and <code class="docutils literal notranslate"><span class="pre">Pr(&gt;F)</span></code>.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.DataFrame</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py attribute">
+<dt class="sig sig-object py" id="greybox.stick.StickResult.strength">
+<span class="sig-name descname"><span class="pre">strength</span></span><a class="headerlink" href="#greybox.stick.StickResult.strength" title="Link to this definition"></a></dt>
+<dd><p>The strength of each component: one entry per seasonal lag, the
+<code class="docutils literal notranslate"><span class="pre">trend</span></code> and the <code class="docutils literal notranslate"><span class="pre">irregular</span></code> component. The values are the
+shares of the respective Sum of Squares in the total Sum of
+Squares and sum up to one.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>pandas.Series</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py method">
+<dt class="sig sig-object py" id="greybox.stick.StickResult.plot">
+<span class="sig-name descname"><span class="pre">plot</span></span><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">which</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">axes</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/greybox/stick.html#StickResult.plot"><span class="viewcode-link"><span class="pre">[source]</span></span></a><a class="headerlink" href="#greybox.stick.StickResult.plot" title="Link to this definition"></a></dt>
+<dd><p>Plot the seasonal and trend components.</p>
+<p>Mirrors R’s <code class="docutils literal notranslate"><span class="pre">plot.stick()</span></code>. For every seasonal lag a “seasonal
+plot” is produced (the series reshaped into one grey line per
+cycle, with the average seasonal profile overlaid as a bold dashed
+black line); the final plot is the “trend plot” (one grey line per
+seasonal position drawn across the cycles, with the average level
+per cycle – the trend – overlaid as a bold dashed black line).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters<span class="colon">:</span></dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>which</strong> (<em>int</em><em> or </em><em>sequence</em><em> of </em><em>int</em><em>, </em><em>optional</em>) – Which plots to produce: <code class="docutils literal notranslate"><span class="pre">1,</span> <span class="pre">...,</span> <span class="pre">k-1</span></code> correspond to the
+seasonal plots for each of the seasonal lags (in ascending
+order), while <code class="docutils literal notranslate"><span class="pre">k</span></code> corresponds to the trend plot (the last
+one). If <code class="docutils literal notranslate"><span class="pre">None</span></code> (the default), all the plots are produced.
+Values outside the valid range are dropped with a warning.</p></li>
+<li><p><strong>axes</strong> (<em>matplotlib.axes.Axes</em><em> or </em><em>sequence</em><em> of </em><em>Axes</em><em>, </em><em>optional</em>) – Axes to draw on, one per requested plot. A new figure with a
+row of subplots is created if <code class="docutils literal notranslate"><span class="pre">None</span></code>.</p></li>
+<li><p><strong>**kwargs</strong> – Forwarded to <code class="xref py py-meth docutils literal notranslate"><span class="pre">matplotlib.axes.Axes.plot()</span></code> for the grey
+component lines.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns<span class="colon">:</span></dt>
+<dd class="field-even"><p>The axes containing the plots.</p>
+</dd>
+<dt class="field-odd">Return type<span class="colon">:</span></dt>
+<dd class="field-odd"><p>numpy.ndarray of matplotlib.axes.Axes</p>
+</dd>
+</dl>
+</dd></dl>
+
+</dd></dl>
+
+</section>
+</section>
+
+
+           </div>
+          </div>
+          <footer><div class="rst-footer-buttons" role="navigation" aria-label="Footer">
+        <a href="aid.html" class="btn btn-neutral float-left" title="Automatic Identification of Demand" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="../distributions/index.html" class="btn btn-neutral float-right" title="Distributions Guide" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

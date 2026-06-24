@@ -65,6 +65,7 @@
 <li class="toctree-l2"><a class="reference internal" href="transforms.html">Transforms</a></li>
 <li class="toctree-l2"><a class="reference internal" href="smoothers.html">Smoothers</a></li>
 <li class="toctree-l2"><a class="reference internal" href="aid.html">Automatic Identification of Demand</a></li>
+<li class="toctree-l2"><a class="reference internal" href="stick.html">Seasonality, Trend, and Irregular Contribution Kit</a></li>
 <li class="toctree-l2"><a class="reference internal" href="../distributions/index.html">Distributions Guide</a></li>
 </ul>
 </li>
@@ -174,7 +175,8 @@ values will be based on stepwise regressions for each variable.</p></li>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x2</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">50</span><span class="p">,</span> <span class="mi">5</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">x3</span> <span class="o">=</span> <span class="mi">100</span> <span class="o">+</span> <span class="mf">0.5</span><span class="o">*</span><span class="n">x1</span> <span class="o">-</span> <span class="mf">0.75</span><span class="o">*</span><span class="n">x2</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">normal</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">3</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">xreg</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">x3</span><span class="p">,</span> <span class="n">x1</span><span class="p">,</span> <span class="n">x2</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">determination</span><span class="p">(</span><span class="n">xreg</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">determination</span><span class="p">(</span><span class="n">xreg</span><span class="p">),</span> <span class="mi">4</span><span class="p">)</span>
+<span class="go">array([1.    , 0.2872, 0.5649])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -202,7 +204,8 @@ of variables and a dependent variable.</p>
 <p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([[</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">],</span> <span class="p">[</span><span class="mi">2</span><span class="p">,</span> <span class="mi">4</span><span class="p">],</span> <span class="p">[</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">8</span><span class="p">],</span> <span class="p">[</span><span class="mi">5</span><span class="p">,</span> <span class="mi">10</span><span class="p">]])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">y</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">3</span><span class="p">,</span> <span class="mi">6</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">12</span><span class="p">,</span> <span class="mi">15</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mcor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">round</span><span class="p">(</span><span class="nb">float</span><span class="p">(</span><span class="n">mcor</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)),</span> <span class="mi">4</span><span class="p">)</span>
+<span class="go">1.0</span>
 </pre></div>
 </div>
 </dd></dl>

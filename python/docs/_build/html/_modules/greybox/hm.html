@@ -120,8 +120,8 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
-<span class="sd">    &gt;&gt;&gt; hm(x)  # doctest: +ELLIPSIS</span>
-<span class="sd">    (0.79...+0.79...j)</span>
+<span class="sd">    &gt;&gt;&gt; complex(hm(x))  # doctest: +ELLIPSIS</span>
+<span class="sd">    (0.4828...+0.4828...j)</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -163,8 +163,8 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
-<span class="sd">    &gt;&gt;&gt; ham(x)  # doctest: +ELLIPSIS</span>
-<span class="sd">    1.0</span>
+<span class="sd">    &gt;&gt;&gt; round(float(ham(x)), 4)</span>
+<span class="sd">    0.9657</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -211,11 +211,11 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
-<span class="sd">    &gt;&gt;&gt; asymmetry(x)</span>
+<span class="sd">    &gt;&gt;&gt; round(float(asymmetry(x)), 4)</span>
 <span class="sd">    0.0</span>
 <span class="sd">    &gt;&gt;&gt; x_skewed = np.array([1, 1, 1, 4, 5])</span>
-<span class="sd">    &gt;&gt;&gt; asymmetry(x_skewed)  # doctest: +ELLIPSIS</span>
-<span class="sd">    -0.20...</span>
+<span class="sd">    &gt;&gt;&gt; round(float(asymmetry(x_skewed)), 4)</span>
+<span class="sd">    -0.1327</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -257,8 +257,8 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
-<span class="sd">    &gt;&gt;&gt; extremity(x)  # doctest: +ELLIPSIS</span>
-<span class="sd">    -0.04...</span>
+<span class="sd">    &gt;&gt;&gt; round(float(extremity(x)), 4)</span>
+<span class="sd">    -0.3364</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -315,7 +315,7 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; x = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; cextremity(x)  # doctest: +ELLIPSIS</span>
-<span class="sd">    (-0.04...+0...j)</span>
+<span class="sd">    (-0.3364...-0.3364...j)</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>
@@ -397,7 +397,8 @@
 <span class="sd">    --------</span>
 <span class="sd">    &gt;&gt;&gt; actual = np.array([1, 2, 3, 4, 5])</span>
 <span class="sd">    &gt;&gt;&gt; forecast = np.array([1.1, 2.0, 3.2, 3.9, 5.1])</span>
-<span class="sd">    &gt;&gt;&gt; mre(actual, forecast)  # doctest: +ELLIPSIS</span>
+<span class="sd">    &gt;&gt;&gt; round(float(mre(actual, forecast)), 4)</span>
+<span class="sd">    0.0632</span>
 
 <span class="sd">    References</span>
 <span class="sd">    ----------</span>

@@ -1,0 +1,471 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" data-content_root="../../">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>greybox.stick &mdash; greybox 1.0.0 documentation</title>
+      <link rel="stylesheet" type="text/css" href="../../_static/pygments.css?v=b86133f3" />
+      <link rel="stylesheet" type="text/css" href="../../_static/css/theme.css?v=9edc463e" />
+
+  
+      <script src="../../_static/jquery.js?v=5d32c60e"></script>
+      <script src="../../_static/_sphinx_javascript_frameworks_compat.js?v=2cd50e6c"></script>
+      <script src="../../_static/documentation_options.js?v=8d563738"></script>
+      <script src="../../_static/doctools.js?v=fd6eb6e6"></script>
+      <script src="../../_static/sphinx_highlight.js?v=6ffebe34"></script>
+    <script src="../../_static/js/theme.js"></script>
+    <link rel="index" title="Index" href="../../genindex.html" />
+    <link rel="search" title="Search" href="../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav"> 
+  <div class="wy-grid-for-nav">
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+
+          
+          
+          <a href="../../index.html" class="icon icon-home">
+            greybox
+          </a>
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" aria-label="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+        </div><div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="Navigation menu">
+              <p class="caption" role="heading"><span class="caption-text">Contents:</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="../../installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../quickstart.html">Quickstart</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../api/index.html">API</a></li>
+</ul>
+<p class="caption" role="heading"><span class="caption-text">Additional Information</span></p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="https://github.com/config-i1/greybox">GitHub Repository</a></li>
+<li class="toctree-l1"><a class="reference external" href="https://pypi.org/project/greybox/">Python Package Index</a></li>
+</ul>
+
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap"><nav class="wy-nav-top" aria-label="Mobile navigation menu" >
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../index.html">greybox</a>
+      </nav>
+
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          <div role="navigation" aria-label="Page navigation">
+  <ul class="wy-breadcrumbs">
+      <li><a href="../../index.html" class="icon icon-home" aria-label="Home"></a></li>
+          <li class="breadcrumb-item"><a href="../index.html">Module code</a></li>
+      <li class="breadcrumb-item active">greybox.stick</li>
+      <li class="wy-breadcrumbs-aside">
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+             
+  <h1>Source code for greybox.stick</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;Seasonality, Trend, and Irregular Contribution Kit (STI).</span>
+
+<span class="sd">This module is a Python port of R&#39;s ``greybox::stick``. It decomposes the</span>
+<span class="sd">variance of a time series into seasonal, trend and irregular parts based on</span>
+<span class="sd">an Analysis of Variance (ANOVA) of the series on the seasonal and trend</span>
+<span class="sd">factors and measures the contribution of each component.</span>
+
+<span class="sd">The function implements the Seasonality, Trend, and Irregular (STI)</span>
+<span class="sd">classification of Hans Levenbach (Levenbach, H. (2021). Four P&#39;s in a Pod:</span>
+<span class="sd">e-Commerce Forecasting and Planning for Supply Chain Practitioners.</span>
+<span class="sd">Independently published. ISBN 979-8461733575).</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">warnings</span>
+
+<span class="kn">import</span><span class="w"> </span><span class="nn">numpy</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">np</span>
+<span class="kn">import</span><span class="w"> </span><span class="nn">pandas</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">pd</span>
+<span class="kn">from</span><span class="w"> </span><span class="nn">scipy</span><span class="w"> </span><span class="kn">import</span> <span class="n">stats</span>
+
+
+<div class="viewcode-block" id="StickResult">
+<a class="viewcode-back" href="../../api/stick.html#greybox.stick.StickResult">[docs]</a>
+<span class="k">class</span><span class="w"> </span><span class="nc">StickResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Result of :func:`stick`. Mirrors R&#39;s ``stick`` S3 class.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : numpy.ndarray</span>
+<span class="sd">        The original time series.</span>
+<span class="sd">    lags : numpy.ndarray</span>
+<span class="sd">        The seasonal lags used in the analysis (unique, ascending).</span>
+<span class="sd">    anova : pandas.DataFrame</span>
+<span class="sd">        The ANOVA table, with one row per seasonal lag, a ``trend`` row</span>
+<span class="sd">        (when a trend was fitted) and a ``Residuals`` row. Columns are</span>
+<span class="sd">        ``Df``, ``Sum Sq``, ``Mean Sq``, ``F value`` and ``Pr(&gt;F)``.</span>
+<span class="sd">    strength : pandas.Series</span>
+<span class="sd">        The strength of each component: one entry per seasonal lag, the</span>
+<span class="sd">        ``trend`` and the ``irregular`` component. The values are the</span>
+<span class="sd">        shares of the respective Sum of Squares in the total Sum of</span>
+<span class="sd">        Squares and sum up to one.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">(</span><span class="s2">&quot;y&quot;</span><span class="p">,</span> <span class="s2">&quot;lags&quot;</span><span class="p">,</span> <span class="s2">&quot;anova&quot;</span><span class="p">,</span> <span class="s2">&quot;strength&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span>
+        <span class="bp">self</span><span class="p">,</span>
+        <span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">lags</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span>
+        <span class="n">anova</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">,</span>
+        <span class="n">strength</span><span class="p">:</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">,</span>
+    <span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">y</span> <span class="o">=</span> <span class="n">y</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lags</span> <span class="o">=</span> <span class="n">lags</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">anova</span> <span class="o">=</span> <span class="n">anova</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">strength</span> <span class="o">=</span> <span class="n">strength</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">digits</span> <span class="o">=</span> <span class="mi">4</span>
+        <span class="n">lags_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">lag</span><span class="p">))</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lags</span><span class="p">)</span>
+        <span class="n">rounded</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">strength</span><span class="o">.</span><span class="n">round</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span>
+        <span class="k">return</span> <span class="p">(</span>
+            <span class="s2">&quot;Seasonality, Trend, and Irregular Contribution Kit</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;Seasonal lags: </span><span class="si">{</span><span class="n">lags_str</span><span class="si">}</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+            <span class="s2">&quot;Strength of the components:</span><span class="se">\n</span><span class="s2">&quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">rounded</span><span class="o">.</span><span class="n">to_string</span><span class="p">()</span><span class="si">}</span><span class="s2">&quot;</span>
+        <span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">lags_str</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">lag</span><span class="p">))</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">lags</span><span class="p">)</span>
+        <span class="k">return</span> <span class="sa">f</span><span class="s2">&quot;StickResult(lags=[</span><span class="si">{</span><span class="n">lags_str</span><span class="si">}</span><span class="s2">])&quot;</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_reshape_to_matrix</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="nb">int</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Reshape ``y`` into a ``[period x cycle]`` matrix.</span>
+
+<span class="sd">        Columns are cycles, rows are positions within the cycle. The last</span>
+<span class="sd">        (incomplete) cycle is padded with NaNs.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">y_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+        <span class="n">nobs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_values</span><span class="p">)</span>
+        <span class="n">n_cycles</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">ceil</span><span class="p">(</span><span class="n">nobs</span> <span class="o">/</span> <span class="n">period</span><span class="p">))</span>
+        <span class="n">padded</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">n_cycles</span> <span class="o">*</span> <span class="n">period</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">padded</span><span class="p">[:</span><span class="n">nobs</span><span class="p">]</span> <span class="o">=</span> <span class="n">y_values</span>
+        <span class="c1"># C-order reshape gives row i = cycle i; transpose so that the</span>
+        <span class="c1"># columns are cycles and the rows are positions within the cycle.</span>
+        <span class="k">return</span> <span class="n">padded</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">n_cycles</span><span class="p">,</span> <span class="n">period</span><span class="p">)</span><span class="o">.</span><span class="n">T</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_seasonal</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Draw the seasonal plot for one lag on the given axes.&quot;&quot;&quot;</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_to_matrix</span><span class="p">(</span><span class="n">period</span><span class="p">)</span>
+        <span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">x_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># One grey line per cycle, light-to-dark gradient.</span>
+        <span class="n">shades</span> <span class="o">=</span> <span class="mf">0.85</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_col</span>
+        <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_col</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_idx</span><span class="p">,</span> <span class="n">matrix</span><span class="p">[:,</span> <span class="n">j</span><span class="p">],</span> <span class="n">color</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">shades</span><span class="p">[</span><span class="n">j</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># The average seasonal profile across the cycles.</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">x_idx</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Seasonal plot (lag </span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">period</span><span class="p">)</span><span class="si">}</span><span class="s2">)&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Period within the cycle&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">)</span>
+
+    <span class="k">def</span><span class="w"> </span><span class="nf">_plot_trend</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ax</span><span class="p">,</span> <span class="n">period</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Draw the trend plot (uses the longest lag) on the given axes.&quot;&quot;&quot;</span>
+        <span class="n">matrix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reshape_to_matrix</span><span class="p">(</span><span class="n">period</span><span class="p">)</span>
+        <span class="n">n_row</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">=</span> <span class="n">matrix</span><span class="o">.</span><span class="n">shape</span>
+        <span class="n">x_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_col</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># One grey line per seasonal position, drawn across the cycles.</span>
+        <span class="n">shades</span> <span class="o">=</span> <span class="mf">0.85</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_row</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span> <span class="o">/</span> <span class="n">n_row</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">n_row</span><span class="p">):</span>
+            <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">x_idx</span><span class="p">,</span> <span class="n">matrix</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span> <span class="n">color</span><span class="o">=</span><span class="nb">str</span><span class="p">(</span><span class="n">shades</span><span class="p">[</span><span class="n">i</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="c1"># The average level per cycle: the trend.</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span>
+            <span class="n">x_idx</span><span class="p">,</span>
+            <span class="n">np</span><span class="o">.</span><span class="n">nanmean</span><span class="p">(</span><span class="n">matrix</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">),</span>
+            <span class="n">color</span><span class="o">=</span><span class="s2">&quot;black&quot;</span><span class="p">,</span>
+            <span class="n">linewidth</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="n">linestyle</span><span class="o">=</span><span class="s2">&quot;--&quot;</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s2">&quot;Trend plot&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s2">&quot;Cycle&quot;</span><span class="p">)</span>
+        <span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s2">&quot;Value&quot;</span><span class="p">)</span>
+
+<div class="viewcode-block" id="StickResult.plot">
+<a class="viewcode-back" href="../../api/stick.html#greybox.stick.StickResult.plot">[docs]</a>
+    <span class="k">def</span><span class="w"> </span><span class="nf">plot</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">which</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">axes</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<span class="w">        </span><span class="sd">&quot;&quot;&quot;Plot the seasonal and trend components.</span>
+
+<span class="sd">        Mirrors R&#39;s ``plot.stick()``. For every seasonal lag a &quot;seasonal</span>
+<span class="sd">        plot&quot; is produced (the series reshaped into one grey line per</span>
+<span class="sd">        cycle, with the average seasonal profile overlaid as a bold dashed</span>
+<span class="sd">        black line); the final plot is the &quot;trend plot&quot; (one grey line per</span>
+<span class="sd">        seasonal position drawn across the cycles, with the average level</span>
+<span class="sd">        per cycle -- the trend -- overlaid as a bold dashed black line).</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        which : int or sequence of int, optional</span>
+<span class="sd">            Which plots to produce: ``1, ..., k-1`` correspond to the</span>
+<span class="sd">            seasonal plots for each of the seasonal lags (in ascending</span>
+<span class="sd">            order), while ``k`` corresponds to the trend plot (the last</span>
+<span class="sd">            one). If ``None`` (the default), all the plots are produced.</span>
+<span class="sd">            Values outside the valid range are dropped with a warning.</span>
+<span class="sd">        axes : matplotlib.axes.Axes or sequence of Axes, optional</span>
+<span class="sd">            Axes to draw on, one per requested plot. A new figure with a</span>
+<span class="sd">            row of subplots is created if ``None``.</span>
+<span class="sd">        **kwargs</span>
+<span class="sd">            Forwarded to :meth:`matplotlib.axes.Axes.plot` for the grey</span>
+<span class="sd">            component lines.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        numpy.ndarray of matplotlib.axes.Axes</span>
+<span class="sd">            The axes containing the plots.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="kn">import</span><span class="w"> </span><span class="nn">matplotlib.pyplot</span><span class="w"> </span><span class="k">as</span><span class="w"> </span><span class="nn">plt</span>
+
+        <span class="n">n_lags</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lags</span><span class="p">)</span>
+        <span class="n">has_trend</span> <span class="o">=</span> <span class="s2">&quot;trend&quot;</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">strength</span><span class="o">.</span><span class="n">index</span>
+        <span class="n">n_plots</span> <span class="o">=</span> <span class="n">n_lags</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span> <span class="k">if</span> <span class="n">has_trend</span> <span class="k">else</span> <span class="mi">0</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">which</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">which</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">n_plots</span> <span class="o">+</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">np</span><span class="o">.</span><span class="n">isscalar</span><span class="p">(</span><span class="n">which</span><span class="p">):</span>
+            <span class="n">which</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">which</span><span class="p">)]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">which</span> <span class="o">=</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">which</span><span class="p">]</span>
+
+        <span class="n">valid</span> <span class="o">=</span> <span class="p">[</span><span class="n">w</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">which</span> <span class="k">if</span> <span class="mi">1</span> <span class="o">&lt;=</span> <span class="n">w</span> <span class="o">&lt;=</span> <span class="n">n_plots</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">valid</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">which</span><span class="p">):</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+                <span class="sa">f</span><span class="s2">&quot;Some values of &#39;which&#39; are outside the range &quot;</span>
+                <span class="sa">f</span><span class="s2">&quot;[1, </span><span class="si">{</span><span class="n">n_plots</span><span class="si">}</span><span class="s2">] and are dropped.&quot;</span><span class="p">,</span>
+                <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+            <span class="p">)</span>
+        <span class="n">which</span> <span class="o">=</span> <span class="n">valid</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">which</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">object</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">axes</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">_</span><span class="p">,</span> <span class="n">axes</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">subplots</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">which</span><span class="p">))</span>
+        <span class="n">axes</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">axes</span><span class="p">)</span>
+
+        <span class="n">lag_max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lags</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">ax</span><span class="p">,</span> <span class="n">w</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">axes</span><span class="p">,</span> <span class="n">which</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">w</span> <span class="o">&lt;=</span> <span class="n">n_lags</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot_seasonal</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">lags</span><span class="p">[</span><span class="n">w</span> <span class="o">-</span> <span class="mi">1</span><span class="p">]),</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">_plot_trend</span><span class="p">(</span><span class="n">ax</span><span class="p">,</span> <span class="n">lag_max</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">axes</span></div>
+</div>
+
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_residual_sum_of_squares</span><span class="p">(</span><span class="n">y</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">design</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">float</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Residual sum of squares of an OLS fit of ``y`` on ``design``.&quot;&quot;&quot;</span>
+    <span class="n">coef</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">lstsq</span><span class="p">(</span><span class="n">design</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">residuals</span> <span class="o">=</span> <span class="n">y</span> <span class="o">-</span> <span class="n">design</span> <span class="o">@</span> <span class="n">coef</span>
+    <span class="k">return</span> <span class="nb">float</span><span class="p">(</span><span class="n">residuals</span> <span class="o">@</span> <span class="n">residuals</span><span class="p">)</span>
+
+
+<span class="k">def</span><span class="w"> </span><span class="nf">_factor_dummies</span><span class="p">(</span><span class="n">codes</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Treatment-coded dummies for a factor (first level dropped).&quot;&quot;&quot;</span>
+    <span class="n">levels</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+    <span class="c1"># Drop the first level for identifiability (treatment contrasts).</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([(</span><span class="n">codes</span> <span class="o">==</span> <span class="n">level</span><span class="p">)</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">float</span><span class="p">)</span> <span class="k">for</span> <span class="n">level</span> <span class="ow">in</span> <span class="n">levels</span><span class="p">[</span><span class="mi">1</span><span class="p">:]])</span>
+
+
+<div class="viewcode-block" id="stick">
+<a class="viewcode-back" href="../../api/stick.html#greybox.stick.stick">[docs]</a>
+<span class="k">def</span><span class="w"> </span><span class="nf">stick</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">StickResult</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Seasonality, Trend, and Irregular Contribution Kit.</span>
+
+<span class="sd">    Decomposes the variance of a time series into seasonal, trend and</span>
+<span class="sd">    irregular parts based on an Analysis of Variance (ANOVA) of the series</span>
+<span class="sd">    on the seasonal and trend factors, and measures the contribution of</span>
+<span class="sd">    each component. This is a Python port of R&#39;s :func:`greybox::stick`.</span>
+
+<span class="sd">    A data frame is formed internally with the response ``y``, a</span>
+<span class="sd">    categorical (factor) variable for each of the provided seasonal</span>
+<span class="sd">    ``lags`` and a &quot;trend&quot; factor. For a monthly series with ``lags=12``,</span>
+<span class="sd">    the seasonal factor takes values ``1..12`` repeated throughout the</span>
+<span class="sd">    sample (the month of the year), while the trend factor takes values</span>
+<span class="sd">    ``1..ceil(T/12)``, each repeated 12 times (the year). The trend factor</span>
+<span class="sd">    is constructed based on the longest of the provided lags. An ANOVA is</span>
+<span class="sd">    then applied to ``y ~ seasonal + trend`` and the strength of each</span>
+<span class="sd">    component is measured as the share of the respective Sum of Squares in</span>
+<span class="sd">    the total Sum of Squares. The irregular component corresponds to the</span>
+<span class="sd">    share of the residual Sum of Squares; the strengths sum up to one.</span>
+
+<span class="sd">    The function implements the Seasonality, Trend, and Irregular (STI)</span>
+<span class="sd">    classification of Hans Levenbach.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    y : array-like</span>
+<span class="sd">        The time series to analyse.</span>
+<span class="sd">    lags : int or sequence of int</span>
+<span class="sd">        The seasonal lags (periodicities) in the data, e.g.</span>
+<span class="sd">        ``lags=[24, 168]`` for hourly data or ``lags=12`` for monthly</span>
+<span class="sd">        data. Values not greater than one are dropped.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    StickResult</span>
+<span class="sd">        Object with the original data, the ``lags`` used, the ANOVA table</span>
+<span class="sd">        and the ``strength`` of each component.</span>
+
+<span class="sd">    References</span>
+<span class="sd">    ----------</span>
+<span class="sd">    Levenbach, H. (2021). Four P&#39;s in a Pod: e-Commerce Forecasting and</span>
+<span class="sd">    Planning for Supply Chain Practitioners. Independently published.</span>
+<span class="sd">    ISBN 979-8461733575.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; import numpy as np</span>
+<span class="sd">    &gt;&gt;&gt; t = np.arange(1, 121)</span>
+<span class="sd">    &gt;&gt;&gt; y = 100 + 0.3 * t + 20 * np.sin(2 * np.pi * t / 12)</span>
+<span class="sd">    &gt;&gt;&gt; result = stick(y, lags=12)</span>
+<span class="sd">    &gt;&gt;&gt; bool(np.isclose(result.strength.sum(), 1.0))</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">lags</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;&#39;lags&#39; must be provided (e.g. lags=12).&quot;</span><span class="p">)</span>
+
+    <span class="n">y_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">y</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+    <span class="n">nobs</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">y_values</span><span class="p">)</span>
+
+    <span class="c1"># Only seasonal lags above one make sense; keep unique and sorted.</span>
+    <span class="n">lags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">lags</span><span class="p">))</span>
+    <span class="n">lags</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">lags</span><span class="p">[</span><span class="n">lags</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="nb">int</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span>
+            <span class="s2">&quot;No seasonal lags greater than one were provided. &quot;</span>
+            <span class="s2">&quot;stick() needs at least one seasonal periodicity.&quot;</span>
+        <span class="p">)</span>
+
+    <span class="c1"># Drop the lags that are too long to form at least two full cycles.</span>
+    <span class="n">too_long</span> <span class="o">=</span> <span class="n">lags</span> <span class="o">&gt;=</span> <span class="n">nobs</span>
+    <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">too_long</span><span class="p">):</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span>
+            <span class="s2">&quot;The following lags are not smaller than the number of &quot;</span>
+            <span class="s2">&quot;observations and are dropped: &quot;</span>
+            <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">lag</span><span class="p">))</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">lag</span><span class="w"> </span><span class="ow">in</span><span class="w"> </span><span class="n">lags</span><span class="p">[</span><span class="n">too_long</span><span class="p">])</span><span class="si">}</span><span class="s2">.&quot;</span><span class="p">,</span>
+            <span class="n">stacklevel</span><span class="o">=</span><span class="mi">2</span><span class="p">,</span>
+        <span class="p">)</span>
+        <span class="n">lags</span> <span class="o">=</span> <span class="n">lags</span><span class="p">[</span><span class="o">~</span><span class="n">too_long</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">lags</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;None of the provided lags is shorter than the sample.&quot;</span><span class="p">)</span>
+
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">nobs</span><span class="p">)</span>
+
+    <span class="c1"># Build the ordered list of terms: a seasonal factor per lag, then the</span>
+    <span class="c1"># trend (&quot;year&quot;) factor based on the longest lag.</span>
+    <span class="n">term_names</span> <span class="o">=</span> <span class="p">[</span><span class="sa">f</span><span class="s2">&quot;seasonal</span><span class="si">{</span><span class="nb">int</span><span class="p">(</span><span class="n">lag</span><span class="p">)</span><span class="si">}</span><span class="s2">&quot;</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lags</span><span class="p">]</span>
+    <span class="n">term_codes</span> <span class="o">=</span> <span class="p">[</span><span class="n">positions</span> <span class="o">%</span> <span class="nb">int</span><span class="p">(</span><span class="n">lag</span><span class="p">)</span> <span class="k">for</span> <span class="n">lag</span> <span class="ow">in</span> <span class="n">lags</span><span class="p">]</span>
+
+    <span class="n">lag_max</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">lags</span><span class="p">))</span>
+    <span class="n">trend_codes</span> <span class="o">=</span> <span class="n">positions</span> <span class="o">//</span> <span class="n">lag_max</span>
+    <span class="n">has_trend</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">trend_codes</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">has_trend</span><span class="p">:</span>
+        <span class="n">term_names</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;trend&quot;</span><span class="p">)</span>
+        <span class="n">term_codes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">trend_codes</span><span class="p">)</span>
+
+    <span class="c1"># Sequential (Type I) ANOVA: add each term&#39;s dummies in order and</span>
+    <span class="c1"># record the reduction in the residual sum of squares.</span>
+    <span class="n">intercept</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">((</span><span class="n">nobs</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+    <span class="n">design</span> <span class="o">=</span> <span class="n">intercept</span>
+    <span class="n">rss_prev</span> <span class="o">=</span> <span class="n">_residual_sum_of_squares</span><span class="p">(</span><span class="n">y_values</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+
+    <span class="n">df</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sum_sq</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">codes</span> <span class="ow">in</span> <span class="n">term_codes</span><span class="p">:</span>
+        <span class="n">dummies</span> <span class="o">=</span> <span class="n">_factor_dummies</span><span class="p">(</span><span class="n">codes</span><span class="p">)</span>
+        <span class="n">design</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">column_stack</span><span class="p">([</span><span class="n">design</span><span class="p">,</span> <span class="n">dummies</span><span class="p">])</span>
+        <span class="n">rss_curr</span> <span class="o">=</span> <span class="n">_residual_sum_of_squares</span><span class="p">(</span><span class="n">y_values</span><span class="p">,</span> <span class="n">design</span><span class="p">)</span>
+        <span class="n">df</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dummies</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">sum_sq</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">rss_prev</span> <span class="o">-</span> <span class="n">rss_curr</span><span class="p">)</span>
+        <span class="n">rss_prev</span> <span class="o">=</span> <span class="n">rss_curr</span>
+
+    <span class="c1"># Residual (&quot;irregular&quot;) row.</span>
+    <span class="n">df_residual</span> <span class="o">=</span> <span class="n">nobs</span> <span class="o">-</span> <span class="n">design</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">sum_sq_residual</span> <span class="o">=</span> <span class="n">rss_prev</span>
+
+    <span class="n">rows</span> <span class="o">=</span> <span class="n">term_names</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;Residuals&quot;</span><span class="p">]</span>
+    <span class="n">df_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">df</span> <span class="o">+</span> <span class="p">[</span><span class="n">df_residual</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">sum_sq_all</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">sum_sq</span> <span class="o">+</span> <span class="p">[</span><span class="n">sum_sq_residual</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="nb">float</span><span class="p">)</span>
+    <span class="n">mean_sq</span> <span class="o">=</span> <span class="n">sum_sq_all</span> <span class="o">/</span> <span class="n">df_all</span>
+
+    <span class="c1"># F values and p-values for the model terms (not for the residuals).</span>
+    <span class="n">mean_sq_residual</span> <span class="o">=</span> <span class="n">mean_sq</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">f_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="n">p_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">rows</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">df_residual</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">f_value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">mean_sq</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">mean_sq_residual</span>
+        <span class="n">p_value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">stats</span><span class="o">.</span><span class="n">f</span><span class="o">.</span><span class="n">sf</span><span class="p">(</span><span class="n">f_value</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">df_all</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">df_residual</span><span class="p">)</span>
+
+    <span class="n">anova</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="p">(</span>
+        <span class="p">{</span>
+            <span class="s2">&quot;Df&quot;</span><span class="p">:</span> <span class="n">df_all</span><span class="p">,</span>
+            <span class="s2">&quot;Sum Sq&quot;</span><span class="p">:</span> <span class="n">sum_sq_all</span><span class="p">,</span>
+            <span class="s2">&quot;Mean Sq&quot;</span><span class="p">:</span> <span class="n">mean_sq</span><span class="p">,</span>
+            <span class="s2">&quot;F value&quot;</span><span class="p">:</span> <span class="n">f_value</span><span class="p">,</span>
+            <span class="s2">&quot;Pr(&gt;F)&quot;</span><span class="p">:</span> <span class="n">p_value</span><span class="p">,</span>
+        <span class="p">},</span>
+        <span class="n">index</span><span class="o">=</span><span class="n">rows</span><span class="p">,</span>
+    <span class="p">)</span>
+
+    <span class="c1"># Strength of each component = its share of the total Sum of Squares.</span>
+    <span class="n">strength_values</span> <span class="o">=</span> <span class="n">sum_sq_all</span> <span class="o">/</span> <span class="n">sum_sq_all</span><span class="o">.</span><span class="n">sum</span><span class="p">()</span>
+    <span class="n">strength_names</span> <span class="o">=</span> <span class="n">term_names</span> <span class="o">+</span> <span class="p">[</span><span class="s2">&quot;irregular&quot;</span><span class="p">]</span>
+    <span class="n">strength</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">Series</span><span class="p">(</span><span class="n">strength_values</span><span class="p">,</span> <span class="n">index</span><span class="o">=</span><span class="n">strength_names</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">StickResult</span><span class="p">(</span><span class="n">y</span><span class="o">=</span><span class="n">y_values</span><span class="p">,</span> <span class="n">lags</span><span class="o">=</span><span class="n">lags</span><span class="p">,</span> <span class="n">anova</span><span class="o">=</span><span class="n">anova</span><span class="p">,</span> <span class="n">strength</span><span class="o">=</span><span class="n">strength</span><span class="p">)</span></div>
+
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>&#169; Copyright 2025, Ivan Svetunkov.</p>
+  </div>
+
+  Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    provided by <a href="https://readthedocs.org">Read the Docs</a>.
+   
+
+</footer>
+        </div>
+      </div>
+    </section>
+  </div>
+  <script>
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

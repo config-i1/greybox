@@ -3,7 +3,6 @@ scipy>=1.7.0
 pandas>=1.3.0
 nlopt>=2.7.0
 matplotlib>=3.5
-pybind11>=2.10
 
 [dev]
 pytest
