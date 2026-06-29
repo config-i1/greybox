@@ -150,6 +150,7 @@ support both `result.stockouts.start` (R-style attribute access) and
 - **[Diagnostics](https://github.com/config-i1/greybox/wiki/diagnostics)**: Model diagnostics and validation
 - **[Smoothers](https://github.com/config-i1/greybox/wiki/Smoothers)**: `lowess` and `supsmu` matching R's `stats::lowess` and `stats::supsmu` to machine precision
 - **[Demand identification](https://github.com/config-i1/greybox/wiki/AID)**: `aid()` and `aid_cat()` for automatic classification of demand series and stockout detection
+- **[Method comparison (RMCB)](https://github.com/config-i1/greybox/wiki/RMCB)**: `rmcb()` for the Nemenyi/MCB test comparing forecasting methods, with `"mcb"` and `"lines"` plots
 
 ## Links
 
