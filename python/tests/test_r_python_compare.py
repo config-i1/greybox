@@ -1158,3 +1158,52 @@ class TestInvGaussFuncvsR:
         r_result = call_r_func("qinvgauss", p, mean=mu * scale, dispersion=mu**3)
 
         assert_allclose(py_result, r_result, rtol=1e-10)
+
+
+class TestRMCBvsR:
+    """Compare rmcb() between R and Python for the rank-based branches."""
+
+    def _fixture(self):
+        """A fixed matrix shared by the comparison tests."""
+        rng = np.random.default_rng(42)
+        data = rng.normal(size=(50, 4))
+        data[:, 1] += 4
+        data[:, 2] += 3
+        data[:, 3] += 2
+        names = ["Method1", "Method2", "Method3", "Method4"]
+        return data, names
+
+    def _run(self, distribution):
+        from greybox import rmcb
+        import pandas as pd
+
+        data, names = self._fixture()
+        # Build the R matrix entirely in R (robust to numpy2ri global
+        # conversion being active from other tests in the suite).
+        ro.globalenv["flat"] = ro.FloatVector(data.flatten(order="F").tolist())
+        ro.globalenv["nm"] = ro.StrVector(names)
+        r_set = ro.r(
+            f"d <- matrix(flat, nrow={data.shape[0]}, ncol={data.shape[1]});"
+            "colnames(d) <- nm;"
+            f'rmcb(d, level=0.95, outplot="none", distribution="{distribution}")'
+        )
+        r_mean = np.array(r_set.rx2("mean"))
+        r_interval = np.array(r_set.rx2("interval"))
+        r_pvalue = float(np.array(r_set.rx2("p.value"))[0])
+
+        py = rmcb(
+            pd.DataFrame(data, columns=names), distribution=distribution
+        )
+        return r_mean, r_interval, r_pvalue, py
+
+    def test_rmcb_tukey(self):
+        r_mean, r_interval, r_pvalue, py = self._run("tukey")
+        assert_allclose(py.mean.to_numpy(), r_mean, rtol=1e-8)
+        assert_allclose(py.interval.to_numpy(), r_interval, atol=1e-6)
+        assert_allclose(py.p_value, r_pvalue, atol=1e-8)
+
+    def test_rmcb_dnorm(self):
+        r_mean, r_interval, r_pvalue, py = self._run("dnorm")
+        assert_allclose(py.mean.to_numpy(), r_mean, rtol=1e-8)
+        assert_allclose(py.interval.to_numpy(), r_interval, atol=1e-8)
+        assert_allclose(py.p_value, r_pvalue, atol=1e-8)

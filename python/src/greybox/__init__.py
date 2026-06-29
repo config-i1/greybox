@@ -109,6 +109,9 @@ from .diagnostics import outlier_dummy, OutlierResult
 # Seasonality, Trend, and Irregular Contribution Kit
 from .stick import stick, StickResult
 
+# Regression for Multiple Comparison with the Best
+from .rmcb import rmcb, RMCBResult
+
 __all__ = [
     "__version__",
     # Submodules
@@ -197,4 +200,6 @@ __all__ = [
     "OutlierResult",
     "stick",
     "StickResult",
+    "rmcb",
+    "RMCBResult",
 ] + list(_distribution_names)
